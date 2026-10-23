@@ -1,6 +1,6 @@
 # Codex ortak çalışma talimatları — Smart Nutrition Platform
 
-> Baseline: `DOCS-V1` · 15.10.2026 · durum: **taslak / ekip onayı bekliyor**. Bu repo eski fitness uygulamasının devamı değildir. **Sıfırdan** geliştirilecek diyetisyen odaklı üründür.
+> Baseline: `DOCS-V1` · 15.10.2026 · durum: **22 ürün/teknoloji kararı onaylı; ortak teknik sözleşmelerin açık parçaları onay bekliyor**. Hazırlık durumu ve sözleşme bulguları `docs/12_TEAM_PLAN_AND_DECISIONS.md` içindedir. Bu repo eski fitness uygulamasının devamı değildir. **Sıfırdan** geliştirilecek diyetisyen odaklı üründür.
 
 ## 1. Her görevden önce oku
 1. Bu `AGENTS.md`.
@@ -20,7 +20,7 @@
 ## 3. Görev kapsamı
 - Sadece istenen işi yap. İlgisiz ekran, teknoloji, paket, endpoint veya veri modeli ekleme.
 - Belirsiz veya ürün/sağlık açısından önemli kararları **kendiliğinden kesinleştirme**; raporla, çözüm öner.
-- Taslak teknoloji kararları için uygulama iskeleti üretmeden önce `docs/12_TEAM_PLAN_AND_DECISIONS.md` durumunu kontrol et.
+- Teknolojiler `12` karar 20 ile onaylıdır; tekrar teknoloji seçme. Uygulama görevinden önce `12`deki geliştirmeye hazırlık tablosunda ilgili modülün açık DTO/yetki/şema kararlarını kontrol et; açık parçadan kod veya kesin mock üretme. Belge düzenleme görevi uygulama iskeleti oluşturma izni değildir.
 - **Eski fitness repo/doküman/kodlarını kopyalama, taşıma veya referans alma.** Trainer, workout planı, gym ekipmanı vb. özellikler yoktur. Yalnız beslenmeye destek olan günlük fiziksel aktivite kaydı var.
 
 ## 4. Dengeli modülerlik / refactor
@@ -33,7 +33,7 @@
 
 ## 5. Mimari ve güvenlik
 - Ayrı istemciler (mobil/web) aynı versiyonlu backend API'yi kullanır; iş kuralları sunucudadır.
-- Yetki kontrolü yalnızca istemcide değil **sunucuda her işlemde** yapılır; diyetisyen sadece aktif ilişkili ve erişimine izin verilmiş danışanı görür.
+- Yetki kontrolü yalnızca istemcide değil **sunucuda her işlemde** yapılır; doğrulanmış diyetisyen sadece aktif ilişkili ve kategori bazında erişimine izin verilmiş danışan verisini görür. Tahliller ayrıca geri çekilmemiş açık onay gerektirir; Admin sağlık verisini varsayılan göremez. Danışanın kendi verisine erişimi diyetisyen ilişkisine bağlı değildir.
 - Sahte sağlık iddiası oluşturma. Gıda fotoğrafı kalori ve porsiyonu **tahmindir**; kullanıcı düzeltir ve onaylar. Kan tahlili çıktısı **tıbbi tanı/tedavi değildir**; birim ve laboratuvar referans aralığı bilinmiyorsa kesin yorum verme.
 - Gerçek sağlık verisini seed/test/log içine koyma; sırları commit etme; sahte sentetik veri kullan.
 - Sağlık verisi / KVKK / açık rıza / silme / audit / mağaza yayını için `docs/11_SECURITY_AND_RELEASE.md` geçerlidir.
@@ -46,4 +46,4 @@ Her Codex görevi sonunda **kısa ve somut** rapor ver:
 4. Sözleşme (`04/05/06`) değişti mi, diğer geliştiriciyi etkiliyor mu?
 5. Eksikler / bilinen hatalar / sonraki önerilen tek adım?
 
-İstenen dışındaki değişiklikleri yapma. Kullanıcıya doğrulanmamış test sonucu bildirme. Kod değişikliği istenmemişse **hiçbir dosyayı değiştirme**.
+İstenen dışındaki değişiklikleri yapma. Kullanıcıya doğrulanmamış test sonucu bildirme. Yalnız inceleme/rapor istenmişse **hiçbir dosyayı değiştirme**. Belge düzenleme istenmişse yalnız izin verilen belgeleri değiştir; kod, uygulama klasörü veya yeni belge oluşturmayı bu istekten çıkarma. Kullanıcının koruma altına aldığı dosyalar, uyumsuzluk bulunsa da değiştirilmez; bulgu ve gerekli onay raporlanır.
