@@ -1,0 +1,25 @@
+# Local development only; the API continues to run on the host.
+name: smart-nutrition-platform
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: smart-nutrition-postgres
+    environment:
+      POSTGRES_DB: smart_nutrition
+      POSTGRES_USER: smart_nutrition
+      POSTGRES_PASSWORD: ${SMART_NUTRITION_POSTGRES_PASSWORD:?Set SMART_NUTRITION_POSTGRES_PASSWORD in backend/.env or the environment}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:
+    name: smart-nutrition-postgres-data
