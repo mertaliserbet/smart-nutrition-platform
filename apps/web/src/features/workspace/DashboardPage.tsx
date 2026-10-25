@@ -29,7 +29,7 @@ export function DashboardPage() {
           <section className="card" aria-labelledby="recent-clients-title">
             <header className="card-header"><div><h2 id="recent-clients-title">Danışanlarım</h2><p>Günlük takibin başladığı yer.</p></div><Link className="text-link" to="/onizleme/danisanlar">Listeyi aç<Icon name="arrow" /></Link></header>
             <EmptyState icon="users" title="İlk bağlantıyla başlayacak">
-              Danışan listeniz ve izinli kayıtlarınız burada yer alacak. Önizlemede gerçek veya örnek sağlık verisi gösterilmiyor.
+              Genel bakıştaki özetler veri bağlantısı bekliyor. Danışanlar bölümünde sentetik kayıt görünümlerini inceleyebilirsiniz.
             </EmptyState>
           </section>
           <section className="request-strip"><span className="strip-icon"><Icon name="link" /></span><div><h2>Yeni bir yolculuğun ilk adımı</h2><p>Danışanlarınızın bağlantı taleplerini bu alandan takip edin.</p></div><Link to="/onizleme/baglanti-istekleri" className="icon-button" aria-label="Bağlantı isteklerini aç"><Icon name="arrow" /></Link></section>

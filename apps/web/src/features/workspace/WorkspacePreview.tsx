@@ -4,22 +4,8 @@ import { Brand, Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
 import { ThemeControl } from '../../core/theme/ThemeProvider'
 import { DashboardPage } from './DashboardPage'
-
-function ClientsPage() {
-  return (
-    <>
-      <div className="page-heading"><p className="eyebrow">DANIŞAN TAKİBİ</p><h1 tabIndex={-1}>Danışanlarım</h1><p>Birlikte ilerlediğiniz danışanlar, tek bir yerde.</p></div>
-      <section className="card" aria-labelledby="clients-title">
-        <header className="card-header"><div><h2 id="clients-title">Danışan listesi</h2><p>Aktif bağlantılarınız burada görüntülenecek.</p></div><span className="neutral-badge">Önizleme</span></header>
-        <div className="list-toolbar"><label className="search-field"><Icon name="search" /><input aria-label="Danışan ara" placeholder="Danışan adıyla ara" disabled /></label><p>Arama, danışanlar yüklendiğinde kullanılabilir.</p></div>
-        <EmptyState icon="users" title="Danışan listeniz burada yer alacak" action={<Link className="button button-secondary" to="/onizleme/baglanti-istekleri">Bağlantı isteklerini incele<Icon name="arrow" /></Link>}>
-          Önizlemede danışan verisi gösterilmiyor. Gerçek listeniz, karşılıklı onaylanan aktif bağlantılarınızı içerecek.
-        </EmptyState>
-      </section>
-      <div className="inline-note"><Icon name="shield" /><p>Danışan bağlantısı, tüm sağlık kayıtlarına erişim anlamına gelmez. Paylaşılan her kategori için danışanın izni gerekir.</p></div>
-    </>
-  )
-}
+import { ClientsPage } from '../clients/ClientsPage'
+import { ClientDetailsPage } from '../clients/ClientDetailsPage'
 
 function RequestsPage() {
   return (
@@ -70,6 +56,7 @@ export function WorkspacePreview() {
           <Routes>
             <Route index element={<DashboardPage />} />
             <Route path="danisanlar" element={<ClientsPage />} />
+            <Route path="danisanlar/:clientId" element={<ClientDetailsPage />} />
             <Route path="baglanti-istekleri" element={<RequestsPage />} />
             <Route path="*" element={<div className="page-heading"><h1 tabIndex={-1}>Bu bölüm bulunamadı.</h1><Link className="text-link" to="/onizleme">Genel bakışa dön</Link></div>} />
           </Routes>

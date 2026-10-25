@@ -19,7 +19,7 @@ describe('workspace preview and navigation', () => {
     expect(screen.queryByText('0')).not.toBeInTheDocument()
     await user.click(screen.getByRole('link', { name: 'Danışanlarımı görüntüle' }))
     expect(screen.getByRole('heading', { level: 1, name: 'Danışanlarım' })).toHaveFocus()
-    expect(screen.getByRole('textbox', { name: 'Danışan ara' })).toBeDisabled()
+    expect(screen.getByRole('searchbox', { name: 'Danışan ara' })).toBeEnabled()
     await user.click(screen.getByRole('link', { name: 'Bağlantı isteklerini incele' }))
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Bağlantı istekleri')
     expect(request).not.toHaveBeenCalled()
