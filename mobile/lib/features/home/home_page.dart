@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_tokens.dart';
+import '../nutrition/manual_meal_log_page.dart';
 import 'dashboard_demo_data.dart';
 import 'dashboard_details.dart';
 import 'dashboard_summary.dart';
@@ -186,7 +187,17 @@ class _QuickActions extends StatelessWidget {
                           ),
                         ),
                       ),
-                      onPressed: () => _showPreview(context, action.label),
+                      onPressed: () {
+                        if (action.label == 'Öğün ekle') {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const ManualMealLogPage(),
+                            ),
+                          );
+                        } else {
+                          _showPreview(context, action.label);
+                        }
+                      },
                       child: Column(
                         children: [
                           Icon(action.icon, color: colors.primary),

@@ -4,7 +4,8 @@ Tek ASP.NET Core Web API projesi ve bir xUnit test projesi. Hedef .NET 10;
 oluşturma ortamı SDK 10.0.401. `global.json`, kararlı .NET 10 SDK feature band'lerini
 kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabitlendi.
 
-Auth, kullanıcı oturumu, domain entity'si, iş endpointi veya migration yoktur.
+Auth, kullanıcı oturumu, iş endpointi veya migration yoktur. `MealLog` ve
+`MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
 `04/05/06` ortak sözleşmelerinin açık alanları burada kesinleştirilmemiştir.
 
 ## Yapı
@@ -16,6 +17,18 @@ Auth, kullanıcı oturumu, domain entity'si, iş endpointi veya migration yoktur
 - `tests/SmartNutrition.Api.Tests/`: gerçek uygulama host'u ile altyapı testleri.
 - `.config/dotnet-tools.json`: projeye özel `dotnet-ef`; global kurulum gerekmez.
 - `compose.yaml`: yalnız yerel geliştirme için bağımsız PostgreSQL 17.
+- `Features/MealLogs/`: MealLog/MealLogItem alanları, yerel bütünlük kuralları ve MealType.
+- `Models/RecordSource.cs`: ortak kaynak değerleri; AI/cihaz entegrasyonunu etkinleştirmez.
+
+MealLog modelleri UUID, zorunlu alan, UTC an, en az bir kalem, kalem–öğün bağı,
+pozitif gram ve negatif olamayan kalori/makro kurallarını uygular. Bilinmeyen
+miktar/besin değerleri nullable `decimal` olarak korunur; yuvarlama, porsiyon
+dönüşümü, klinik sınır veya günlük saat dilimi politikası seçilmemiştir.
+Constructor parametreleri sunucu içi model verileridir, HTTP oluşturma DTO'su değildir.
+Kullanıcı ilişkisi kurulmadan bu modeller EF modeline eklenmez ve migration üretilmez.
+Auth entegrasyonunda User → ClientProfile kimlik çözümleme, kaynak sahipliği ve
+besin/tarif/analiz referans yetkileri tamamlanmalı; analiz için uygun tamamlanma ve
+kullanıcı onayı doğrulanmalıdır. Bunlar yerel model doğrulamasıyla sağlanmış sayılmaz.
 
 Gelecek iş modülleri ihtiyaç oldukça feature klasörlerinde oluşturulur. Ayrı
 Domain/Application/Infrastructure projeleri, genel repository veya ek servisler yoktur.

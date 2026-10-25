@@ -97,12 +97,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const SmartNutritionApp());
 
-    for (final label in [
-      'Öğün ekle',
-      'Su ekle',
-      'Aktivite ekle',
-      'Tahlil ekle',
-    ]) {
+    for (final label in ['Su ekle', 'Aktivite ekle', 'Tahlil ekle']) {
       final action = find.text(label);
       await Scrollable.ensureVisible(tester.element(action), alignment: 0.5);
       await tester.pumpAndSettle();
