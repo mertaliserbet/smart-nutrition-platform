@@ -1,0 +1,11 @@
+@SmartNutrition.Api_HostAddress = http://localhost:5052
+
+GET {{SmartNutrition.Api_HostAddress}}/health/live
+
+###
+
+GET {{SmartNutrition.Api_HostAddress}}/health/ready
+
+###
+
+GET {{SmartNutrition.Api_HostAddress}}/openapi/v1.json
