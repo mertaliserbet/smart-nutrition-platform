@@ -1,0 +1,63 @@
+import { Icon } from '../../core/components/Icon'
+import { EmptyState } from '../../core/components/EmptyState'
+import type { BodyMeasurement, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
+
+const sourceLabels: Record<RecordSource, string> = {
+  manual: 'Manuel kayıt', wearable: 'Cihaz aktarımı', ai_assisted: 'AI destekli kayıt',
+}
+const mealLabels: Record<MealType, string> = {
+  breakfast: 'Kahvaltı', lunch: 'Öğle öğünü', dinner: 'Akşam öğünü', snack: 'Ara öğün', other: 'Diğer öğün',
+}
+const dateFormatter = new Intl.DateTimeFormat('tr-TR', {
+  day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+})
+// Display individual source values without selecting a clinical rounding policy
+// or computing daily totals/targets from the still-open day/time-zone contract.
+const numberFormatter = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 20 })
+
+function Quantity({ label, value, unit }: { label: string; value: number | null; unit: string }) {
+  return <div><dt>{label}</dt><dd className={value === null ? 'unknown-value' : undefined}>{value === null ? 'Bilinmiyor' : `${numberFormatter.format(value)} ${unit}`}</dd></div>
+}
+
+function RecordTime({ at }: { at: string }) {
+  return <time dateTime={at}><Icon name="clock" />{dateFormatter.format(new Date(at))}</time>
+}
+
+export function MealLogList({ clientId, records }: { clientId: string; records: MealLog[] }) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.consumedAt.localeCompare(a.consumedAt))
+  if (visibleRecords.length === 0) return <EmptyState icon="leaf" title="Henüz öğün kaydı yok">Bu görünümde görüntülenebilecek öğün kaydı bulunmuyor.</EmptyState>
+  return <div className="record-list" aria-label="Öğün kayıtları">
+    {visibleRecords.map((record) => <article className="meal-record" key={record.id} aria-labelledby={`meal-${record.id}`}>
+      <header className="record-header"><div><h3 id={`meal-${record.id}`}>{mealLabels[record.mealType]}</h3><RecordTime at={record.consumedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+      <ul className="meal-items">
+        {record.items.filter((item) => item.mealLogId === record.id).map((item) => <li key={item.id}>
+          <div className="meal-item-title"><h4>{item.displayName}</h4>{item.isEstimated && <span className="estimate-badge">Tahmini</span>}</div>
+          <dl className="record-quantities">
+            <Quantity label="Porsiyon" value={item.quantityGrams} unit="g" />
+            <Quantity label="Enerji" value={item.caloriesKcal} unit="kcal" />
+            <Quantity label="Protein" value={item.proteinGrams} unit="g" />
+            <Quantity label="Karbonhidrat" value={item.carbsGrams} unit="g" />
+            <Quantity label="Yağ" value={item.fatGrams} unit="g" />
+          </dl>
+        </li>)}
+      </ul>
+      {record.note && <p className="record-note"><Icon name="info" />{record.note}</p>}
+    </article>)}
+    <p className="record-footnote">Tahmini değerler kesin ölçüm değildir. Diyetisyen görünümü danışanın tüketim kayıtlarını değiştirmez.</p>
+  </div>
+}
+
+export function WaterLogList({ clientId, records }: { clientId: string; records: WaterLog[] }) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.consumedAt.localeCompare(a.consumedAt))
+  if (visibleRecords.length === 0) return <EmptyState icon="plan" title="Henüz su kaydı yok">Bu görünümde görüntülenebilecek su kaydı bulunmuyor.</EmptyState>
+  return <ul className="record-list water-records" aria-label="Su kayıtları">{visibleRecords.map((record) => <li className="water-record" key={record.id}><span className="water-icon"><Icon name="water" /></span><div><strong>{numberFormatter.format(record.amountMl)} mL</strong><RecordTime at={record.consumedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></li>)}</ul>
+}
+
+export function BodyMeasurementList({ clientId, records }: { clientId: string; records: BodyMeasurement[] }) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.measuredAt.localeCompare(a.measuredAt))
+  if (visibleRecords.length === 0) return <EmptyState icon="chart" title="Henüz ölçüm kaydı yok">Bu görünümde görüntülenebilecek ölçüm kaydı bulunmuyor.</EmptyState>
+  return <div className="record-list" aria-label="Ölçüm kayıtları">{visibleRecords.map((record) => <article className="measurement-record" key={record.id}>
+    <header className="record-header"><RecordTime at={record.measuredAt} /><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+    <dl className="record-quantities measurement-quantities"><Quantity label="Kilo" value={record.weightKg} unit="kg" /><Quantity label="Bel çevresi" value={record.waistCm} unit="cm" /><Quantity label="Vücut yağ oranı" value={record.bodyFatPercent} unit="%" /></dl>
+  </article>)}<p className="record-footnote">Ölçümler kaydedildiği tarih ve birimle gösterilir. Bu ekran klinik değerlendirme veya hedef önerisi üretmez.</p></div>
+}
