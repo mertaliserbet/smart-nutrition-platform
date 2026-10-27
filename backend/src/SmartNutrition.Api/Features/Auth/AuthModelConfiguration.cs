@@ -21,6 +21,7 @@ internal static class AuthModelConfiguration
         users.Property(user => user.Id).HasColumnName("id").ValueGeneratedNever();
         users.Property(user => user.Email).HasColumnName("email").UseCollation(EmailCollation).IsRequired();
         users.Property(user => user.PasswordHash).HasColumnName("password_hash").IsRequired();
+        users.Property(user => user.IsEmailVerified).HasColumnName("is_email_verified").HasDefaultValue(false).IsRequired();
         users.Property(user => user.Role).HasColumnName("role").IsRequired()
             .HasConversion(role => role.ToString().ToLowerInvariant(), value => Enum.Parse<UserRole>(value, true));
         users.Property(user => user.CreatedAt).HasColumnName("created_at").IsRequired();

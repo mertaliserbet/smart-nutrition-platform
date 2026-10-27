@@ -27,6 +27,7 @@ public sealed class UserRegistrationPostgresTests
             {
                 Email = $"  {email}  ",
                 Password = password,
+                DisplayName = "Synthetic client",
                 Role = UserRole.Client
             });
             Assert.Equal(email.Normalize().ToUpperInvariant(), user.Email);
@@ -54,7 +55,8 @@ public sealed class UserRegistrationPostgresTests
         var errors = await CreateService(database).ValidateAsync(new RegisterUserRequest
         {
             Email = email.ToLowerInvariant(),
-            Password = "Synthetic pass1!"
+            Password = "Synthetic pass1!",
+            DisplayName = "Synthetic client"
         });
 
         Assert.Contains(errors, error => error.MemberNames.Contains("email"));

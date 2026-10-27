@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
@@ -19,7 +20,7 @@ public sealed class UserRegistrationTests
     [InlineData("synthetic@example.test", "", "password")]
     public void ValidatesKnownRequiredInputsWithoutEchoingThem(string? email, string? password, string field)
     {
-        var request = new RegisterUserRequest { Email = email, Password = password };
+        var request = new RegisterUserRequest { Email = email, Password = password, DisplayName = "Synthetic client" };
         var errors = Validate(request);
         Assert.Contains(errors, error => error.MemberNames.Contains(field));
         Assert.All(errors, error => Assert.DoesNotContain("synthetic@example.test", error.ErrorMessage!));
@@ -34,7 +35,7 @@ public sealed class UserRegistrationTests
         using var database = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseNpgsql().Options);
         var service = new UserRegistrationService(database, new UpperInvariantLookupNormalizer(),
             new PasswordHasher<User>(), Options.Create(new RegistrationPasswordPolicy()));
-        var request = new RegisterUserRequest { Email = "synthetic@example.test", Password = "Synthetic!", Role = role };
+        var request = new RegisterUserRequest { Email = "synthetic@example.test", Password = "Synthetic!", DisplayName = "Synthetic client", Role = role };
 
         var errors = await service.ValidateAsync(request);
         Assert.Contains(errors, error => error.MemberNames.Contains("role"));
@@ -46,7 +47,7 @@ public sealed class UserRegistrationTests
     public void OnlyClientOrUnspecifiedRoleIsAcceptedAndMalformedUnicodeIsRejected()
     {
         foreach (var role in new UserRole?[] { null, UserRole.Client })
-            Assert.Empty(Validate(new RegisterUserRequest { Email = "  Synthetic@Example.test  ", Password = "Synthetic!", Role = role }));
+            Assert.Empty(Validate(new RegisterUserRequest { Email = "  Synthetic@Example.test  ", Password = "Synthetic!", DisplayName = "Synthetic client", Role = role }));
         Assert.NotEmpty(Validate(new RegisterUserRequest { Email = "\ud800@example.test", Password = "Synthetic!" }));
     }
 
@@ -55,7 +56,7 @@ public sealed class UserRegistrationTests
     [InlineData("role", "\"dietitian\"")]
     public void JsonRoleCannotGrantPrivileges(string property, string value)
     {
-        var json = $"{{\"email\":\"synthetic@example.test\",\"password\":\"Synthetic!\",\"{property}\":{value}}}";
+        var json = $"{{\"email\":\"synthetic@example.test\",\"password\":\"Synthetic!\",\"displayName\":\"Synthetic client\",\"{property}\":{value}}}";
         var request = JsonSerializer.Deserialize<RegisterUserRequest>(json, JsonSerializerOptions.Web)!;
         Assert.Contains(Validate(request), error => error.MemberNames.Contains("role"));
     }
@@ -65,6 +66,7 @@ public sealed class UserRegistrationTests
     [InlineData("userId")]
     [InlineData("clientId")]
     [InlineData("isVerified")]
+    [InlineData("isEmailVerified")]
     [InlineData("passwordHash")]
     [InlineData("clientProfile")]
     public void JsonCannotOverpostIdentitySecurityOrStillOpenProfileFields(string property)
@@ -79,7 +81,7 @@ public sealed class UserRegistrationTests
         const string email = "synthetic@example.test";
         const string password = " Synthetic secret! ";
         var request = JsonSerializer.Deserialize<RegisterUserRequest>(
-            "{\"email\":\"synthetic@example.test\",\"password\":\" Synthetic secret! \",\"role\":\"client\"}",
+            "{\"email\":\"synthetic@example.test\",\"password\":\" Synthetic secret! \",\"displayName\":\"Synthetic client\",\"role\":\"client\"}",
             JsonSerializerOptions.Web)!;
 
         Assert.Equal(email, request.Email);
@@ -137,6 +139,37 @@ public sealed class UserRegistrationTests
         policy.RequiredUniqueChars = 8;
         Assert.NotEmpty(policy.Validate("Aa1!Aa1!Aa1!"));
         Assert.Empty(policy.Validate(" Synthetic pass1! "));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  \t")]
+    public void RegistrationRequiresTheApprovedDisplayName(string? displayName)
+    {
+        var errors = Validate(new RegisterUserRequest
+        {
+            Email = "synthetic@example.test",
+            Password = "Synthetic!",
+            DisplayName = displayName
+        });
+        Assert.Contains(errors, error => error.MemberNames.Contains("displayName"));
+    }
+
+    [Fact]
+    public void FirstVersionPolicySupportsSpacesAndUnicodeWithoutCharacterTypeRequirements()
+    {
+        var policy = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .SetBasePath(Path.GetDirectoryName(typeof(Program).Assembly.Location)!)
+            .AddJsonFile("appsettings.json").Build()
+            .GetSection(RegistrationPasswordPolicy.SectionName).Get<RegistrationPasswordPolicy>()!;
+
+        Assert.Equal(8, policy.RequiredLength);
+        Assert.Equal(128, policy.MaximumLength);
+        foreach (var password in new[] { "abcdefgh", "        ", " şifre ğü ", string.Concat(Enumerable.Repeat("🔒", 8)), new string('a', 128) })
+            Assert.Empty(policy.Validate(password));
+        foreach (var password in new[] { "abcdefg", string.Concat(Enumerable.Repeat("🔒", 7)), new string('a', 129), "abcdefg\ud800" })
+            Assert.NotEmpty(policy.Validate(password));
     }
 
     internal static RegistrationPasswordPolicy TestPolicy() => new()

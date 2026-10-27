@@ -77,6 +77,12 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasColumnName("email")
                         .UseCollation("users_email_case_insensitive");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_email_verified");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text")

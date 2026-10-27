@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Health;
@@ -25,6 +26,8 @@ builder.Services.AddControllers()
     })
     .ConfigureApiBehaviorOptions(options =>
     {
+        // Keep MVC status errors (including unsupported media type) in the shared error envelope.
+        options.SuppressMapClientErrors = true;
         options.InvalidModelStateResponseFactory = context =>
             new Microsoft.AspNetCore.Mvc.BadRequestObjectResult(
                 ApiErrors.Create(context.HttpContext, StatusCodes.Status400BadRequest));
@@ -36,9 +39,15 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (!string.IsNullOrWhiteSpace(connectionString))
+        connectionString = new NpgsqlConnectionStringBuilder(connectionString) { IncludeErrorDetail = false }.ConnectionString;
     options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        postgres => postgres.MigrationsHistoryTable("__ef_migrations_history")));
+        connectionString,
+        postgres => postgres.MigrationsHistoryTable("__ef_migrations_history"))
+        .EnableSensitiveDataLogging(false);
+});
 builder.Services.AddHealthChecks()
     .AddCheck<PostgresHealthCheck>("postgresql", tags: ["ready"], timeout: TimeSpan.FromSeconds(5));
 

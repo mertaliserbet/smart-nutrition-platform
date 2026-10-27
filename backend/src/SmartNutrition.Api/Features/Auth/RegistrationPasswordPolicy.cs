@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace SmartNutrition.Api.Features.Auth;
 
@@ -6,7 +8,7 @@ public sealed class RegistrationPasswordPolicy
 {
     public const string SectionName = "Auth:RegistrationPasswordPolicy";
 
-    // No product defaults: each setting must be supplied explicitly before preparation is enabled.
+    // Values are centrally configured; the first API policy is specified in appsettings.json.
     public int? RequiredLength { get; set; }
     public int? MaximumLength { get; set; }
     public int? RequiredUniqueChars { get; set; }
@@ -27,14 +29,22 @@ public sealed class RegistrationPasswordPolicy
 
         ArgumentNullException.ThrowIfNull(password);
         var errors = new List<ValidationResult>();
-        if (password.Length > MaximumLength)
+        var remaining = password.AsSpan();
+        var characterCount = 0;
+        var distinctCharacters = new HashSet<Rune>();
+        while (!remaining.IsEmpty)
         {
-            errors.Add(Error("Password exceeds the configured maximum length."));
-            return errors;
+            if (Rune.DecodeFromUtf16(remaining, out var character, out var consumed) != OperationStatus.Done)
+                return [Error("Password must contain valid Unicode characters.")];
+            characterCount++;
+            if (characterCount > MaximumLength)
+                return [Error("Password exceeds the configured maximum length.")];
+            distinctCharacters.Add(character);
+            remaining = remaining[consumed..];
         }
-        if (password.Length < RequiredLength)
+        if (characterCount < RequiredLength)
             errors.Add(Error("Password does not meet the configured minimum length."));
-        if (password.Distinct().Count() < RequiredUniqueChars)
+        if (distinctCharacters.Count < RequiredUniqueChars)
             errors.Add(Error("Password does not contain enough distinct characters."));
         if (RequireDigit == true && !password.Any(char.IsDigit))
             errors.Add(Error("Password must contain a digit."));

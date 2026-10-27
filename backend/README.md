@@ -4,10 +4,10 @@ Tek ASP.NET Core Web API projesi ve bir xUnit test projesi. Hedef .NET 10;
 oluşturma ortamı SDK 10.0.401. `global.json`, kararlı .NET 10 SDK feature band'lerini
 kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabitlendi.
 
-User/ClientProfile veritabanı ve Identity parola temeli hazırdır. Giriş/kayıt
-endpointi, kullanıcı oturumu, JWT, MFA veya e-posta gönderimi yoktur. `MealLog` ve
+`POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir.
+Giriş, kullanıcı oturumu, JWT, MFA veya e-posta gönderimi yoktur. `MealLog` ve
 `MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
-`04/05/06` ortak sözleşmelerinin açık alanları burada kesinleştirilmemiştir.
+Bu görevde onaylanan kayıt şeması aşağıdadır; ortak `04/05/06` belgeleri değiştirilmemiştir.
 
 ## Yapı
 
@@ -20,7 +20,7 @@ endpointi, kullanıcı oturumu, JWT, MFA veya e-posta gönderimi yoktur. `MealLo
 - `.config/dotnet-tools.json`: projeye özel `dotnet-ef`; global kurulum gerekmez.
 - `compose.yaml`: yalnız yerel geliştirme için bağımsız PostgreSQL 17.
 - `Features/MealLogs/`: MealLog/MealLogItem alanları, yerel bütünlük kuralları ve MealType.
-- `Features/Auth/`: User/ClientProfile modelleri ve EF eşlemeleri; iş endpointi içermez.
+- `Features/Auth/`: User/ClientProfile modelleri, EF eşlemeleri, kayıt doğrulamaları ve AuthController.
 - `Models/UserRole.cs`: mevcut `client`, `dietitian`, `admin` değerleri.
 - `Models/RecordSource.cs`: ortak kaynak değerleri; AI/cihaz entegrasyonunu etkinleştirmez.
 
@@ -49,8 +49,8 @@ kimlik kullanılır; gelecekte oturumdaki doğrulanmış User bu bağlantıyla �
 `IPasswordHasher<User>` DI üzerinden ASP.NET Core Identity `PasswordHasher<User>`
 olarak sunulur; özel hash/salt algoritması veya ek Identity tablo takımı yoktur.
 User oluşturulurken yalnız hash saklanır; düz parola modelde tutulmaz ve kırpılmaz.
-Hash ve hesap–profil gezinme özellikleri JSON'a çıkmaz. Entity'ler HTTP kayıt/me
-DTO'su değildir; açık DTO ve parola politikası onayından önce doğrudan bağlanmaz.
+Hash, e-posta doğrulama durumu ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
+Entity'ler HTTP kayıt/me DTO'su değildir; kayıt yalnız aşağıdaki DTO'larla çalışır.
 Parola doğrulamasında gelecekte `SuccessRehashNeeded` sonucu da ele alınmalıdır.
 
 E-posta alanı harf duyarsız, aksanları ayırt eden ICU collation ve benzersiz indeks
@@ -59,37 +59,53 @@ boy hassasiyeti/ölçeği seçilmemiştir; boy `numeric`, doğum tarihi nullable
 Zorunlu metin, rol ve pozitif/sonlu boy kısıtları DB'de de korunur. FK otomatik
 silme yapmaz (`NO ACTION`); bu, nihai hesap silme/saklama politikasının yerine geçmez.
 
-## Kayıt hazırlığı
+## Kayıt API'si
 
-- `RegisterUserRequest`: bilinen `email`, `password`, nullable `role` girdileri.
-  Rol gönderilmezse danışan hazırlanır; yalnız `client` kabul edilir, Admin/Diyetisyen
-  ve tanımsız roller reddedilir. Kimlik/güvenlik/profil alanları eklenemez.
-  E-posta ve parola girdileri JSON'a geri yazılmaz; DTO bir `record` değildir ve
+- `RegisterUserRequest`: zorunlu `email`, `password`, `displayName`; isteğe bağlı `role`.
+  Rol gönderilmezse danışan oluşturulur; yalnız `client` kabul edilir, Admin/Diyetisyen
+  ve tanımsız roller reddedilir. Kimlik, hash, doğrulama bayrağı veya iç içe profil alanı gönderilemez.
+  E-posta, parola ve görünen ad girdileri JSON'a geri yazılmaz; DTO bir `record` değildir ve
   varsayılan `ToString` girdileri dökmez. İstek nesneleri loglarda destructure edilmez.
 - `UserRegistrationService.ValidateAsync`: temel DTO ve parola doğrulamasından sonra
   e-posta benzersizliğini DB'de kontrol eder. E-posta dış boşlukları kırpılır ve
   Identity `UpperInvariantLookupNormalizer` ile Unicode/invariant normalizasyonu yapılır.
 - `PrepareAsync`: sunucunun ürettiği kimlik/zamanla, daima `UserRole.Client` ve Identity
-  hash'i içeren, EF tarafından izlenmeyen User hazırlar. Hesap kaydetmez, profil/oturum
-  oluşturmaz ve başarı yanıtı üretmez. Profil gövdesi ve register/me yanıt kökü hâlâ
-  açık olduğundan tamamlanmış kayıt akışı veya HTTP response DTO'su değildir.
+  hash'i içeren, EF tarafından izlenmeyen User hazırlayan mevcut yardımcıdır.
+- `RegisterAsync`: doğrulamadan sonra User ve ClientProfile nesnelerini oluşturur;
+  ikisini tek `SaveChangesAsync` transaction'ında kaydeder. Herhangi bir ekleme
+  başarısızsa ikisi de geri alınır. Ön kontrolde veya `ux_users_email` indeksinde
+  yakalanan mükerrer/yarışan kayıt `409 conflict` olur; DB hata ayrıntısı dönmez.
+
+`POST /api/v1/auth/register` JSON alır. Örnek alan biçimi (sentetik örnek):
+
+```json
+{ "email": "synthetic@example.test", "password": "sentetik parola", "displayName": "Örnek danışan" }
+```
+
+Başarı `201 { "id": "<User UUID>" }` döner. ClientProfile kimliği ayrı UUID'dir;
+doğum tarihi/boy toplanmaz ve nullable kalır. User'ın `is_email_verified` değeri
+başlangıçta `false`tur; istemci bunu atayamaz. Token, cookie, otomatik giriş veya
+doğrulama e-postası üretilmez. `/me` henüz uygulanmadığından sahte Location verilmez.
+Girdi/JSON/rol hataları `400 invalid_request`, parola politikası hataları
+`422 validation_failed`, desteklenmeyen içerik `415 unsupported_media_type`,
+beklenmeyen kayıt hataları `500 internal_error` olur. Tümü ortak
+`error: { code, message }, requestId` zarfını kullanır.
 
 Parola politikası `Auth:RegistrationPasswordPolicy` bölümünden options ile bağlanır.
-`RequiredLength`, `MaximumLength`, `RequiredUniqueChars`, `RequireDigit`,
-`RequireLowercase`, `RequireUppercase`, `RequireNonAlphanumeric` değerlerinin **tamamı**
-açıkça yapılandırılmalıdır. Örneğin ortam değişkeni anahtarı
-`Auth__RegistrationPasswordPolicy__RequiredLength` olur. Ürün için onaysız sayı veya
-karmaşıklık varsayılanı eklenmemiştir; onaylı değerler verilene kadar kayıt hazırlığı
-güvenli biçimde kapalı kalır. Eksik/hatalı politika `InvalidOperationException` üretir;
-bu bir kullanıcı doğrulama hatası değildir. API/health açılışını etkilemez. Testlerdeki
-parola ayarları yalnız sentetik senaryolardır, üretim varsayılanı değildir.
+İlk sürüm `appsettings.json` değerleri: 8–128 Unicode karakteri (kod noktası),
+karakter türü zorunluluğu yok, boşluklar desteklenir. `RequiredUniqueChars = 1`
+ek bir farklı karakter zorunluluğu getirmez. Ortam/User Secrets ayarları merkezi
+değerleri değiştirebilir; örnek anahtar `Auth__RegistrationPasswordPolicy__RequiredLength`.
+Eksik/hatalı politika kullanıcı doğrulama hatası sayılmaz; `InvalidOperationException`
+olarak güvenli sunucu hatasına gider. Eski karmaşıklık testleri yalnız
+yapılandırılabilirlik senaryolarıdır, ilk sürüm politikasını değiştirmez.
 
-Parola kırpılmaz veya loglanmaz; yapılandırılmış uzunluk sınırları hash'ten önce
-denetlenir. İstek doğrulama mesajları denenen değerleri içermez. Sonraki kayıt
-akışı profil şemasını ve atomik kaydı tamamlamalı; ön kontrolden sonra oluşabilecek
-`ux_users_email` yarışını güvenli `409 conflict` karşılığına çevirmelidir.
-`06`daki diyetisyen başvurusu/rol anlatımı, bu görevin yalnız danışan kayıt kuralıyla
-ortak onayla uyarlanmalıdır; ortak belgeler bu görevde değiştirilmemiştir.
+Parola kırpılmaz/normalize edilmez veya loglanmaz; Unicode geçerliliği ve uzunluk
+sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen değerleri
+içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
+Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
+`201 { id }` yanıtı ortak belgelere ayrı görevde işlenmelidir. `06`daki diyetisyen
+başvurusu/rol anlatımı da mevcut yalnız danışan kayıt kuralıyla uyarlanmalıdır.
 
 ## Geliştirme ortamı
 
@@ -113,8 +129,8 @@ dağıtım ortamında ayrıca yapılandırılır.
   hatalı veya erişilemezse `503 Unhealthy`. Bağlantı ayrıntılarını dışarı vermez.
 - `/openapi/v1.json` ve `/swagger`: yalnız `Development` ortamında sunulur.
 
-Bunlar operasyonel altyapı yollarıdır; `/api/v1` iş sözleşmesine yeni kaynak eklemez.
-Swagger'daki iş operasyonları, onaylı modüller geliştirilince eklenecektir.
+Health yolları operasyonel altyapı kontrolleridir. Swagger yalnız kayıt operasyonunu
+ve onaylanan giriş/yanıt alanlarını gösterir; giriş veya MealLog endpointi içermez.
 
 ## PostgreSQL bağlantısı
 
@@ -228,9 +244,12 @@ try { dotnet test } finally {
 ```
 
 Bu değişken `AppDbContext`/`SELECT 1`/readiness testine ek olarak Auth PostgreSQL
-testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Auth testleri yalnız
-sentetik hesap/profil verilerini transaction içinde yazar ve tamamını geri alır;
-migration, tablo veya kalıcı seed oluşturmaz. Harici PostgreSQL için aynı test değişkenine yetkili test bağlantısını
+testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Model testleri sentetik
+verileri transaction içinde geri alır. Gerçek kayıt API testleri yalnız kendilerinin
+oluşturduğu rastgele `registration_api_test_<UUID>` şemasına migration uygular ve
+kayıtları orada commit eder; bitince yalnız bu geçici şemayı temizler. Uygulama
+tabloları sıfırlanmaz veya silinmez. Bu testler için test bağlantısında şema oluşturma
+yetkisi gerekir. Harici PostgreSQL için aynı test değişkenine yetkili test bağlantısını
 verin. Normal test host'ları gerçek geliştirici User Secrets'ına geri dönmez.
 
 ## Migration altyapısı
@@ -242,6 +261,8 @@ hesap/profil satırlarını veya e-posta yazımını güncellemez. PostgreSQL'de
 gerekir (mevcut PostgreSQL 17 Docker imajında vardır). Mevcut harf/Unicode farkıyla
 çakışan hesaplar varsa indeks değişikliği transaction içinde başarısız olur; hesaplar
 otomatik birleştirilmez veya silinmez. Çakışmalar ayrı kararla çözülmelidir.
+`AddUserEmailVerificationState`, `users.is_email_verified` boolean alanını `false`
+varsayılanıyla ekler; mevcut hesap/profil verilerini silmez.
 Başlangıçta otomatik migration veya `EnsureCreated` çalışmaz.
 Veritabanını değiştirmeden bağlamı ve mevcut migration listesini kontrol edin:
 
@@ -254,7 +275,7 @@ Yerel User Secrets bağlantısıyla geliştirme veritabanına uygulamak için:
 
 ```powershell
 $env:DOTNET_ENVIRONMENT = 'Development'
-dotnet ef database update EnforceCaseInsensitiveEmails --project src/SmartNutrition.Api
+dotnet ef database update AddUserEmailVerificationState --project src/SmartNutrition.Api
 dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api
 ```
 
