@@ -14,7 +14,7 @@ namespace SmartNutrition.Api.Features.Auth;
 public sealed class AuthController(UserRegistrationService registration, EmailVerificationService verification,
     VerificationEmailQueue emailQueue, UserLoginService login, CurrentUserService currentUser) : ControllerBase
 {
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme)]
     [HttpGet("me")]
     [ProducesResponseType<CurrentUserResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -26,7 +26,12 @@ public sealed class AuthController(UserRegistrationService registration, EmailVe
         if (Request.Query.Count != 0 || HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true)
             return BadRequest(ApiErrors.Create(HttpContext, StatusCodes.Status400BadRequest));
         var response = await currentUser.GetAsync(User, cancellationToken);
-        return response is null ? Challenge() : Ok(response);
+        if (response is not null && User.Identity?.AuthenticationType == WebSessionAuthentication.Scheme &&
+            !await HttpContext.RequestServices.GetRequiredService<WebSessionService>().TouchAsync(User, cancellationToken))
+            response = null;
+        if (response is null && User.Identity?.AuthenticationType == WebSessionAuthentication.Scheme)
+            await Microsoft.AspNetCore.Authentication.AuthenticationHttpContextExtensions.SignOutAsync(HttpContext, WebSessionAuthentication.Scheme);
+        return response is null ? Challenge(WebSessionAuthentication.AccountScheme) : Ok(response);
     }
 
     [AllowAnonymous]

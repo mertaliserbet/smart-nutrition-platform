@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
 import { EmailVerificationPage } from './features/auth/EmailVerificationPage'
+import { AccountPage } from './features/auth/AccountPage'
 import { WorkspacePreview } from './features/workspace/WorkspacePreview'
 import { ThemeProvider } from './core/theme/ThemeProvider'
 
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/giris" element={<AuthPage key="login" mode="login" />} />
         <Route path="/sifremi-unuttum" element={<AuthPage key="reset" mode="reset" />} />
         <Route path="/eposta-dogrulama" element={<EmailVerificationPage />} />
+        <Route path="/hesabim" element={<AccountPage />} />
         {import.meta.env.DEV && <Route path="/onizleme/*" element={<WorkspacePreview />} />}
         <Route path="*" element={
           <main id="main-content" className="not-found">

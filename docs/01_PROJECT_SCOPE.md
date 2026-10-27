@@ -33,7 +33,7 @@ Mert mobil ve ilgili API'lerden; Uğur web, Auth ve ilgili API'lerden sorumludur
 
 | Başlık | Onaylı kapsam | Aşama / açık karar |
 |---|---|---|
-| Hesap (19) | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, profil ve güvenli oturum; Admin MFA | **MVP önceliği**; kayıt/e-posta doğrulama, 15 dakikalık JWT login ve `GET /auth/me` kendi hesap özeti `06/12`de onaylı. Refresh/logout/iptal, cookie/istemci saklama, profil düzenleme/uzman profili ve MFA ayrıntıları açık |
+| Hesap (19) | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, profil ve güvenli oturum; Admin MFA | **MVP önceliği**; kayıt/e-posta doğrulama, 15 dakikalık JWT login, `GET /auth/me` ve W2 web cookie/CSRF/iptal `06/12`de onaylı. Mobil refresh/iptal/saklama, profil düzenleme/uzman profili ve MFA ayrıntıları açık |
 | Uzman ve ilişki (1–3) | Mobil/web başvuru, Admin doğrulaması; diyetisyen arama ve davet kodu, karşılıklı onay; en fazla bir aktif diyetisyen, geçmiş korunur | **İlk sürüm:** yönetim paneli webde. Başvuru belgeleri ve davet kodunun teknik yapısı açık; çoklu aktif diyetisyen mevcut kapsamda yok |
 | Beslenme programı (4–6) | Kişisel veya diyetisyen tarafından atanan `NutritionPlan`; toplamda tek aktif program; öğün alternatifleri ve sürüm geçmişi. Diyetisyen programını yalnız yetkili diyetisyen düzenler; gerçek tüketim serbestçe kaydedilip karşılaştırılır | Temel oluşturma/atama/görüntüleme **MVP önceliği**; alternatif/sürüm yapısı, program geçişi ve uyum hesabı ayrıntıları açık |
 | Öğün | Manuel öğün/besin ve miktar girişi, kalori/makro, düzeltme/silme; plan dışında tüketim de kaydedilir | **MVP önceliği**; gram/adet dönüşümü ayrıntısı açık. Barkod önceki bir geliştirme önerisidir, teslimi onaylanmış kapsam değildir |
@@ -85,7 +85,7 @@ Tek aktif diyetisyen/program, kişisel program, uzmanı Admin'in doğrulaması, 
 - Onaylı özelliklerin sprint/yayın takvimi; ilk sürüm koşulları korunarak kapasite planı. Android/iOS ilk önceliği, ülke/dil kapsamı ve ücretli model.
 - Başvuru belgeleri/doğrulama süreci, davet kodu yapısı, çoklu rol/profil; kişisel/atanmış program geçişi ve ilişki bittikten sonraki program davranışı.
 - Program sürüm/alternatif ve tarif bileşen yapıları, kişisel makro/programsız hedef alanları, güvenli öneri hesabı ve program uyum yöntemi; yorum/cevap moderasyonu, görev durum/son tarih/hatırlatma ve bildirim kanalları.
-- Paylaşım kategorileri, tahlil açık onayının kapsamı/kanıtı, Auth refresh/logout/iptal, cookie/istemci saklama ve MFA yöntemi, saklama/silme/audit; gizlilik ve gerçek yayın için `11`deki kontroller. Onaylı 15 dakikalık JWT access kararı açık seçim sayılmaz.
+- Paylaşım kategorileri, tahlil açık onayının kapsamı/kanıtı, mobil refresh/iptal/saklama ve MFA yöntemi, saklama/silme/audit; gizlilik ve gerçek yayın için `11`deki kontroller. Onaylı 15 dakikalık JWT ve W2 web cookie/CSRF/iptal kararları açık seçim sayılmaz.
 - Hibrit katalog sağlayıcıları/lisansları, hazır model/API ve veri validasyonu; tahlil test kodları, birim dönüşümleri, OCR taslağı/onay kaydı ve opsiyonel ML'nin bilimsel koşulları.
 - Health Connect/HealthKit cihaz/OS desteği ve veri şemaları, aktif/toplam enerji ayrımı, manuel/cihaz örtüşmesi ve tekilleştirme; sayısal hassasiyet, saat dilimi, PDF içeriği ve dosya erişimi.
 - Renk paleti, font, token değerleri, navigasyon ve ekran onayı; dağıtım sağlayıcısı, paket sürümleri ve maliyet.

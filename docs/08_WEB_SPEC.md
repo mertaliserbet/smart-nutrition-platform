@@ -10,7 +10,7 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 
 | Ekran | İçerik ve işlemler | İlgili API / açık bağımlılık |
 |---|---|---|
-| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. Uzman doğrulama durumu ve cookie/CSRF/refresh/istemci entegrasyonu ayrı açık bağımlılıktır |
+| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. W2 web cookie/CSRF/iptal onaylıdır; uzman doğrulama durumu, sıfırlama ve MFA açık bağımlılıktır |
 | Dashboard | aktif danışan sayısı, bekleyen istekler, son kayıtların özeti | `/dietitian-relationships`, `/dietitian/clients` |
 | Danışan Listesi | Aktif ilişkili danışanların sınırlı id/displayName listesi; izinli ek özetler ayrı kapsam | `/dietitian/clients`; bekleyen/bitmiş ilişki durumları `/dietitian-relationships`ten |
 | Danışan Detayı | hedefler, günlük/haftalık özet, ölçüm trendi | `/dietitian/clients/{clientId}/dashboard` |
@@ -31,6 +31,14 @@ Doğrulama, kullanıcı/hesap operasyonları, şikâyetler, besin kataloğu, Aud
 Başvuru mobil veya webden alınabilir; doğrulayan Admin'dir. Başvuru belgeleri, ret/yeniden başvuru, idari rol değişiklikleri, MFA challenge ve admin endpoint DTO'ları açıktır. Bunlar ortak sözleşme onayından sonra `06`da tamamlanır; yeni `/admin/*` yolları bu belgeden tahmin edilmez.
 
 ## Temel UX davranışları
+Onaylı W2-C1–C7 diliminde giriş mevcut beş alanlı hesap özetine ve hesap ekranına
+gider; danışan veya diyetisyen rolü tek başına panel/sağlık yetkisi vermez.
+Hesap ekranı yenilenince aynı origin HTTPS cookie ile CSRF ve GET auth/me yeniden
+okunur. Başarısız çıkışta hassas bilgiler kaldırılır, sunucuda iptal doğrulanmadığı
+gösterilir; eski CSRF/hesap değişiminde yazma otomatik tekrarlanmaz. JWT/CSRF
+kalıcı depolama veya URL'ye yazılmaz. Uzman doğrulama durumu beş alanlı hesap
+DTO'suna eklenmez; başvuru/MFA ve gerçek panel erişimi ayrı açık bağımlılıktır.
+
 - Ekranlar profesyonel, erişilebilir, responsive; masaüstünde verimli tablo ve filtreler; tablette kullanılabilir düzen.
 - Danışanın yeni öğün kaydı ilk aşamada **yenileme veya isteğe bağlı polling ile** görülebilir; anlık push/WebSocket ancak karar sonrası uygulanır. “Anında düşer” vaadi bağlantı mekanizması yoksa verilmez.
 - Yetkisiz danışana erişimde frontend saklama yeterli değildir; backend doğrulanmış uzman + aktif ilişki + kategori izni, tahlilde ayrıca açık onay kontrol eder. Geri çekilince yeni okumalar, cache ve PDF erişimi engellenir; listeler/sayılar kapalı kategoriden bilgi sızdırmaz.

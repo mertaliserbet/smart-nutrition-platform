@@ -21,6 +21,7 @@ builder.Services.AddOptions<RegistrationPasswordPolicy>()
 builder.Services.AddScoped<UserRegistrationService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddWebSessionAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddScoped<UserLoginService>();
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
@@ -52,6 +53,13 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = loginSettings.RequestsPerMinute, Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0, AutoReplenishment = true
+        }));
+    var webSettings = builder.Configuration.GetSection(WebSessionOptions.SectionName).Get<WebSessionOptions>() ?? new();
+    options.AddPolicy("csrf", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = webSettings.CsrfRequestsPerMinute, Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0, AutoReplenishment = true
         }));
 });
@@ -96,6 +104,16 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/v1/auth", StringComparison.OrdinalIgnoreCase))
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers.CacheControl = "no-store";
+            return Task.CompletedTask;
+        });
+    await next(context);
+});
 app.UseExceptionHandler(handler => handler.Run(context =>
 {
     var status = context.Features.Get<IExceptionHandlerFeature>()?.Error is BadHttpRequestException
@@ -106,6 +124,7 @@ app.UseExceptionHandler(handler => handler.Run(context =>
 }));
 app.UseStatusCodePages(context =>
     ApiErrors.WriteAsync(context.HttpContext, context.HttpContext.Response.StatusCode));
+app.Use(WebSessionAuthentication.GuardAsync);
 app.UseHttpsRedirection();
 app.UseRateLimiter();
 app.UseAuthentication();

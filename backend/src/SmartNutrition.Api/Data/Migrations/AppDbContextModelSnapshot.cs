@@ -23,6 +23,56 @@ namespace SmartNutrition.Api.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.Auth.AuthSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("AbsoluteExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("absolute_expires_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("IdleExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("idle_expires_at");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_at");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_auth_sessions");
+
+                    b.HasIndex("IdleExpiresAt")
+                        .HasDatabaseName("ix_auth_sessions_idle_expires_at");
+
+                    b.HasIndex("RevokedAt")
+                        .HasDatabaseName("ix_auth_sessions_revoked_at");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_auth_sessions_user_id");
+
+                    b.ToTable("auth_sessions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_auth_sessions_revoked_at", "revoked_at IS NULL OR revoked_at >= created_at");
+
+                            t.HasCheckConstraint("ck_auth_sessions_times", "created_at <= last_seen_at AND last_seen_at < idle_expires_at AND idle_expires_at <= absolute_expires_at");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Auth.ClientProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -131,6 +181,16 @@ namespace SmartNutrition.Api.Data.Migrations
 
                             t.HasCheckConstraint("ck_users_role", "role IN ('client', 'dietitian', 'admin')");
                         });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.Auth.AuthSession", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_auth_sessions_users_user_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Auth.ClientProfile", b =>

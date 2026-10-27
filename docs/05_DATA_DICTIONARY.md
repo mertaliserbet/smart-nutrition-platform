@@ -34,7 +34,7 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 
 | Entity | Temel alanlar | Not / kısıt |
 |---|---|---|
-| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. Şifre sıfırlama, güvenli oturum ve Admin MFA kayıtları **AÇIK**tır |
+| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. W2 web oturumu aşağıda onaylıdır; şifre sıfırlama, mobil oturum ve Admin MFA kayıtları **AÇIK**tır |
 | `ClientProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `birthDate: date?`, `heightCm: decimal?` | `userId` → User ve unique; boy cm. Yaş/kişisel veri hassas ele alınır; doğum tarihi şimdilik isteğe bağlıdır |
 | `DietitianProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `licenseInfo: AÇIK?`, `isVerified: boolean` | `userId` → User ve unique; uzmanı Admin doğrular. Mobil/web başvuru, belge biçimi ve doğrulama geçmişinin yapısı **AÇIK**tır; `isVerified` istemcinin kendi değiştireceği bir alan değildir |
 | `DietitianClientRelationship` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `status: RelationshipStatus`, `requestedAt: instant`, `respondedAt: instant?`, `endedAt: instant?` | `clientId` → ClientProfile, `dietitianId` → DietitianProfile; danışan başına en fazla bir aktif ilişki. Karşılıklı onay gerekir; arama/davet kodu onayın yerine geçmez |
@@ -63,7 +63,7 @@ alan değişikliği gerektirmez. `GET /api/v1/auth/me` yalnız aşağıdaki alan
 
 | Alan | Tip / nullability | Kaynak |
 |---|---|---|
-| `id` | `uuid`, zorunlu | Doğrulanmış JWT `sub` ile bulunan `User.id`; ClientProfile UUID'si değildir |
+| `id` | `uuid`, zorunlu | Doğrulanmış JWT veya W2 cookie `sub` ile bulunan `User.id`; ClientProfile UUID'si değildir |
 | `displayName` | `string?`, anahtar daima bulunur | O User'ın opsiyonel ClientProfile ilişkisindeki mevcut ad; profil yoksa null. Zorunlu profil adı alanının kendisi nullable yapılmaz |
 | `email` | `string`, zorunlu | User'ın DB'deki güncel e-postası |
 | `role` | `UserRole`, zorunlu | User'ın DB'deki güncel kanonik rolü |
@@ -79,6 +79,37 @@ Bu işlemde hesap hâlâ bulunmalı, e-postası doğrulanmış olmalı ve günce
 izinli `client`/`dietitian` rolüyle eşleşmelidir; aksi durumda `06`daki ortak `401`
 uygulanır. Admin MFA engeli korunur. Bu kontrol yalnız kendi hesap okumasının
 güvencesidir; diğer endpointler için genel anlık oturum iptali anlamına gelmez.
+
+### Onaylı web oturumu — AuthSession (27.10.2026)
+
+W2-C1–C7 ortak onayı kullanıcı tarafından teyit edilmiştir. Bu sunucu kaydı
+`auth_sessions` tablosunda tutulur; HTTP yanıtı değildir.
+
+| Alan | Tip / sütun | Bütünlük |
+|---|---|---|
+| `id` | `uuid`, `id` | Sunucunun ürettiği PK; çıplak UUID kimlik doğrulama sırrı değildir |
+| `userId` | `uuid`, `user_id` | Zorunlu FK → User.id; unique değildir, birden çok cihaz desteklenir; silme NO ACTION |
+| `createdAt` | `instant`, `created_at` | İlk giriş UTC anı; değişmez |
+| `lastSeenAt` | `instant`, `last_seen_at` | İlk değer createdAt; başarılı yetkili istekte geriye gitmeden ilerler |
+| `idleExpiresAt` | `instant`, `idle_expires_at` | Başlangıç createdAt + 30 dakika; başarılı yetkili istekte en fazla now + 30 dakika |
+| `absoluteExpiresAt` | `instant`, `absolute_expires_at` | Değişmez createdAt + 8 saat; idle bu sınırı aşmaz |
+| `revokedAt` | `instant?`, `revoked_at` | Başlangıç null; iptal sonrası yeniden null olamaz; createdAt'ten önce olamaz |
+
+DB kısıtı: `createdAt <= lastSeenAt < idleExpiresAt <= absoluteExpiresAt`.
+`user_id`, `idle_expires_at`, `revoked_at` indekslenir. Cookie bileti/ham cookie,
+JWT, parola, refresh token veya Data Protection anahtarı bu tabloda saklanmaz;
+User'a yeni oturum/refresh alanı eklenmez. Etkin bitiş idle/absolute sürelerinin
+erken olanıdır; eşitlik anında geçersizdir. İptal veya süre bitişinden en geç
+24 saat sonra yalnız oturum satırı temizlenir. Normal çalışmada 10 dakikalık
+temizlik 23 saat 50 dakika eşiğini kullanır; DB kesintisindeki gecikme izlenir.
+Sağlık/audit saklama süresi buradan türetilmez.
+
+Her cookie kimlik kontrolü oturum ve güncel doğrulanmış User/rolünü DB'den okur.
+Süre uzatma ve iptal koşullu atomik işlemlerdir; eski istek süreyi geri alamaz
+ve iptali silemez. Login User satırını kilitleyip doğrulanan hash/rol/doğrulama
+durumunu yeniden kontrol eder. Gelecekteki parola/rol/doğrulama değişimleri
+aynı User kilidi ve transaction içinde bütün web oturumlarını iptal etmelidir;
+mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 
 ## Beslenme ve günlük takip
 

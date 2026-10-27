@@ -110,6 +110,19 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - Kanonik işlem `GET /api/v1/auth/me`, yanıt DTO'su `CurrentUserResponse` olur; yeni `CurrentUser` entity'si/tablosu oluşturulmaz. Eski uygulanmamış `GET /api/v1/me` taslağı bu görevde kullanıcının açık yol talimatıyla değiştirilmiştir; ikinci GET alias'ı oluşturulmaz. `PATCH /api/v1/me` ayrı, henüz uygulanmamış profil düzenleme taslağıdır.
 - Yanıt düz kökte tam beş alan taşır: `id`, `displayName`, `email`, `role`, `isEmailVerified`. `id`, JWT `sub` ile seçilen `User.id`; `displayName`, varsa o User'a ait `ClientProfile.displayName`, yoksa açık `null`dır. `user`/`clientProfile` sarmalayıcısı veya farklı rol için alternatif yanıt kökü üretilmez. Birim/nullability ve erişim kuralları `05/06`dadır.
 
+### Onaylı web oturumu adları — 27.10.2026
+
+Kullanıcı W2-C1–C7 için Uğur–Mert ortak onayını açıkça teyit etti.
+`AuthSession` yalnız sunucuda tutulan web cookie oturumudur; PostgreSQL tablosu
+`auth_sessions`tir. User/profil veya JWT/refresh token entity'si değildir ve
+istemciye serileştirilmez. Alanları `05`, HTTP sözleşmesi `06`dadır.
+`CsrfTokenResponse` yalnız `{ requestToken }` yanıt DTO'sudur; entity/tablo değildir.
+Web oluşturma mevcut `LoginUserRequest` ve beş alanlı `CurrentUserResponse`
+adlarını kullanır. `sid`, yalnız korumalı cookie biletindeki AuthSession UUID'sidir;
+JWT claim/yanıtı değişmez. `requestToken` yetkilendirme veya e-posta tokenı değildir.
+Cookie adları `__Host-smart-nutrition-session` ve `__Host-smart-nutrition-csrf`,
+istek başlığı `X-CSRF-TOKEN` olur. Mobil JWT girişine cookie/CSRF şartı eklenmez.
+
 ## Başlangıç enum sözlüğü
 
 | Enum | JSON değerleri |

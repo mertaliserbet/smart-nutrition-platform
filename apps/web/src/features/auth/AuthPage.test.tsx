@@ -39,17 +39,23 @@ describe('authentication presentation boundary', () => {
     expect(password).toHaveAttribute('type', 'password')
   })
 
-  it('never sends or stores credentials or navigates to a signed-in panel', async () => {
+  it('clears credentials and reports a failed real login without storing anything', async () => {
     const request = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(Response.json({ requestToken: 'synthetic-csrf' }))
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
     const store = vi.spyOn(Storage.prototype, 'setItem')
     const user = renderApp()
     await user.type(screen.getByLabelText('E-posta adresi'), 'demo@example.com')
     await user.type(screen.getByLabelText('Şifre', { exact: true }), 'a')
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
-    expect(screen.getByRole('status')).toHaveTextContent('oturum açılmadı')
+    expect(await screen.findByRole('status')).toHaveTextContent('Giriş bilgileri doğrulanamadı')
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tekrar hoş geldiniz.')
     expect(screen.getByLabelText('Şifre', { exact: true })).toHaveValue('')
-    expect(request).not.toHaveBeenCalled()
+    expect(request).toHaveBeenCalledTimes(2)
+    expect(request).toHaveBeenLastCalledWith('/api/v1/auth/web-session', expect.objectContaining({
+      method: 'POST', credentials: 'same-origin', headers: { 'X-CSRF-TOKEN': 'synthetic-csrf', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'demo@example.com', password: 'a' }),
+    }))
     expect(store).not.toHaveBeenCalled()
   })
 

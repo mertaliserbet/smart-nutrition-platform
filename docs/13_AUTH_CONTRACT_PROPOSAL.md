@@ -2,10 +2,11 @@
 
 **Tarih:** 27.10.2026 · **İlk öneri temeli:** DOCS-V1 / `6351089` · **Güncel inceleme temeli:** `main` / `bedce49`.
 
-**Durum: ÖNERİ — Uğur ve Mert tarafından henüz onaylanmadı.** Bu belge mevcut
-`04/05/06` sözleşmelerini değiştirmez. Aşağıdaki alanlar, süreler ve ek yollar
-inceleme adaylarıdır; çalışan API, kesin mock, migration veya tamamlanmış Auth
-olarak kullanılamaz. Her karar ayrı kabul edilebilir veya düzeltilebilir.
+**Durum: KISMEN ONAYLI.** 27.10.2026 tarihinde kullanıcı W2-C1–C7 için
+“İki tarafın ortak onayı var; uygula” diyerek Uğur–Mert ortak onayını teyit etti.
+W2 ad/alan/HTTP kuralları `04/05/06`ya, güvenlik ve hazırlık durumu `11/12`ye
+işlenir; normatif kaynaklar bunlardır. Diğer A1–A8 adaylarının onayı bu kayıttan
+türetilmez; aşağıdaki tarihsel öneriler çalışan API sözleşmesi sayılmaz.
 
 **Güncel karar farkı — 27.10.2026:** Bu önerinin temeli `6351089`dur; sonradan
 kayıt/e-posta doğrulama ve JWT giriş görevleri kullanıcı tarafından ayrıca
@@ -15,8 +16,9 @@ doğrulanmamış veya Admin hesap aynı `401`i alır. Aşağıdaki opaque bearer
 ve refresh/cookie içeren yanıt önerileri mevcut giriş sözleşmesi değildir.
 E-posta doğrulaması artık 30 dakika ve `resend-verification` yoluyla uygulanmıştır;
 eski 24 saat/`email-verification-requests` önerileri geçerli kaynak sayılmaz.
-Mevcut hız limitleri ve teslim sınırları `06`dadır. Profil düzenleme, cookie/CSRF, refresh,
-logout/iptal, MFA ve sıfırlama önerileri henüz onaylanmış/uygulanmış sayılmaz;
+Mevcut hız limitleri ve teslim sınırları `06`dadır. W2 web cookie/CSRF/iptal
+ayrıca ortak onaylıdır. Profil düzenleme, mobil refresh/iptal, MFA ve sıfırlama
+önerileri henüz onaylanmış/uygulanmış sayılmaz;
 bu not A1–A8'in tamamına veya iki geliştiricinin ayrı onayına eşdeğer değildir.
 
 **Sonraki kendi hesap görevi — 27.10.2026:** Kullanıcının açık talimatıyla
@@ -65,9 +67,10 @@ yarışı/tekrar kullanım ve sunucuda iptal testleri ayrıca zorunludur.
 
 **Yön seçimi:** Uğur, 27.10.2026 tarihinde “Önce HttpOnly cookie, CSRF ve sunucuda
 oturum iptali sözleşmesini tamamla” seçeneğini seçti. W1 uygulanmayacaktır.
-Aşağıdaki W2 ayrıntıları bu talimatla hazırlanmış **inceleme önerisidir**;
-Uğur ve Mert'in ayrıntılı şema onayı henüz yoktur. Web giriş/oturum uygulaması
-veya kanonik sözleşme değişikliği yapılmamıştır.
+Aşağıdaki W2 ayrıntıları ilk talimatla inceleme önerisi olarak hazırlanmıştı;
+sonraki açık kullanıcı teyidi W2-C1–C7 ortak onayını kaydetmiştir.
+Bu teyit web giriş/oturum uygulamasını ve ilgili kanonik sözleşme değişikliğini
+yetkilendirir; diğer Auth önerilerini onaylamaz.
 
 ## Önerinin 6351089 temelindeki durumu ve farkları (tarihsel)
 
@@ -182,10 +185,11 @@ tanımsız JSON alanı/biçimi ve boş girdi `400`; parola politikası ihlali `4
 Ayrı başvuru akışı onaylanmadan
 diyetisyen rolüne geçiş veya başvuru endpointi uygulanmaz.
 
-## W2 — web cookie, CSRF ve sunucuda iptal sözleşmesi adayı
+## W2 — onaylı web cookie, CSRF ve sunucuda iptal kararının inceleme kaydı
 
-**Tamamı ÖNERİDİR; kanonik uygulama kaynağı değildir.** W2-C1–C7 birlikte
-incelenir. Bu bölüm, aşağıdaki tarihsel A4–A5'in `useCookies`, opaque bearer,
+**W2-C1–C7 ortak onayı kullanıcı tarafından 27.10.2026'da teyit edilmiştir.**
+Bu bölüm kararın inceleme kaydıdır; güncel kanonik kaynak `04/05/06`dır.
+Bu bölüm, aşağıdaki tarihsel A4–A5'in `useCookies`, opaque bearer,
 geniş login yanıtı ve mobil refresh tasarımını web uygulaması için devre dışı
 bırakır. Yeni yol/tip adları yalnız bu bölümün inceleme adaylarıdır.
 
@@ -289,7 +293,7 @@ gönderim olanağı verir.
 
 Yeni kavram adayı **`AuthSession`**, tablo adayı **`auth_sessions`**tir. Yalnız
 web cookie oturumunu izler; `User`, `ClientProfile` veya doğrulama tokenı için
-eşanlamlı entity değildir. İstemciye serileştirilmez. `04/05`e henüz eklenmez.
+eşanlamlı entity değildir. İstemciye serileştirilmez. Ortak onayla `04/05`e işlenmiştir.
 
 | Alan adayı | Tip / DB karşılığı | Bütünlük |
 |---|---|---|
@@ -407,16 +411,17 @@ Admin/rol engeli; 5) tam 30 dakika/8 saat sınırları, başarılı istekle sın
 kapalı erişim, çok API örneği ve anahtar sürekliliği; 8) geç istemci yanıtları,
 iptal/ağ hatasında gerçek çıkış durumu; 9) iki login yolunun ortak IP sınırı;
 10) User güvenlik değişimiyle bütün web oturumlarının atomik iptali ve secret'sız
-log/audit. Bunlar W2 uygulaması olmadığı için **çalıştırılmış W2 testleri değildir**.
+log/audit. Bu liste öneri hazırlanırken kabul planıydı; tek başına gerçekleşmiş
+test sonucu değildir. Uygulanan alt kapsamın doğrulaması backend/web README ve
+görev raporunda ayrı belirtilir; üretim audit/yayın kontrolleri açık kalır.
 
 Mevcut `bedce49` temeli ayrı doğrulanmıştır: geçici PostgreSQL 17 ve Mailpit
 v1.32.0 ile **190 backend testi geçti, 0 atlandı**. Bu, mevcut JWT/e-posta/hesap
 kodunun sonucudur; W2'nin uygulanmış veya doğrulanmış olduğunu göstermez.
 
-**Sonraki tek adım:** Uğur ve Mert'in W2-C1–C7 ad/yol/alan/süre/iptal/saklama
-adaylarını birlikte kabul etmesi veya düzeltmesi. Ardından `04/05/06/11/12` ve
-ilgili backend/web/mobil etkileri onaylı tek değişiklikte ele alınır; iki taraf
-aynı ortak `main` sürümüne eşitlenmeden entegrasyon yapılmaz.
+**Onay sonrası uygulama:** `04/05/06/11/12` ve backend/web etkileri aynı
+değişiklikte ele alınır. Mobil JWT yolu/DTO'su korunur; Mert entegrasyon öncesi
+ortak `main`i eşitler. Mobil refresh/iptal, uzman profili ve Admin MFA açıktır.
 
 ## Tarihsel A4–A5 ile fark
 
@@ -529,8 +534,7 @@ W2 için ayrı kayıt:
 | Alt karar | Uğur | Mert |
 |---|---|---|
 | W2 yönü: önce cookie/CSRF/sunucuda iptal sözleşmesini hazırlama | 27.10.2026 kullanıcı seçimi | Ayrı kayıt yok |
-| W2-C1–C7: HTTP, yeni ad/alan, cookie, süre, iptal ve saklama adayları | Ayrıntılı ortak onay bekliyor | Ayrıntılı ortak onay bekliyor |
+| W2-C1–C7: HTTP, yeni ad/alan, cookie, süre, iptal ve saklama | 27.10.2026 kullanıcı ortak onayı teyit etti | 27.10.2026 kullanıcı ortak onayı teyit etti |
 
-Bu önerinin hazırlanmasını istemek, önerilen alan/yol/politikaları veya iki
-tarafın sözleşme onayını vermiş olmak değildir. Bu revizyon yalnız bu belgeyi
-günceller; `04/05/06` veya uygulama/migration dosyalarını değiştirmez.
+İlk hazırlama talebi uygulama onayı değildi; sonraki açık kullanıcı teyidi yalnız
+W2-C1–C7'yi kapatmıştır. Diğer öneriler ve üretim yayın kapıları açık kalır.

@@ -74,3 +74,11 @@ Uygulama sistem temasını izler; kullanıcı tema tercihi veya kalıcı
 saklama henüz uygulanmamıştır. Android/iOS `com.example` kimlikleri ve standart
 ikonlar geliştirme yer tutucularıdır; mağaza kimliği, ikon ve yayın imzası ayrıca
 kesinleştirilmelidir. Ortak veri/API sözleşmelerinden açık şema uygulanmamıştır.
+## W2 web oturumu entegrasyon notu — 27.10.2026
+
+Kullanıcının teyit ettiği Uğur–Mert ortak onayıyla web cookie/CSRF/iptal
+sözleşmesi `docs/04/05/06/11/12`ye işlendi. Mobil `POST /auth/login` isteği,
+15 dakikalık JWT yanıtı ve bearer `GET /auth/me` beş alanı değişmedi. Mobil
+isteklere cookie/CSRF/Origin eklenmez; yeni web yollarından mobil refresh DTO'su
+türetilmez. Mobil refresh/iptal/saklama hâlâ açık karardır. Mobil kaynak kodu
+bu dilimde değişmedi; Mert entegrasyondan önce ortak main'i eşitlemelidir.

@@ -3,7 +3,8 @@
 Uğur'un web alanı için React/TypeScript + Vite uygulaması. E-posta doğrulama ve
 yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama
 arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi de bulunur.
-Giriş/oturum ve sağlık verisi entegrasyonu henüz tamamlanmamıştır.
+W2 ortak onayıyla gerçek web cookie girişi, hesap özeti ve sunucuda çıkış bağlıdır.
+Sağlık verisi ve gerçek uzman/Admin paneli entegrasyonu henüz tamamlanmamıştır.
 
 ## Çalıştırma
 
@@ -18,7 +19,51 @@ npm test
 npm run build
 ```
 
-## E-posta doğrulama
+## Web oturumu (W2)
+
+`/giris` formu CSRF aldıktan sonra `POST /api/v1/auth/web-session` çağırır.
+Parola kırpılmaz; gönderimde temizlenir. Başarılı giriş `/hesabim` ekranını açar;
+danışan/diyetisyen rolü panel erişimi yerine yalnız hesap özeti gösterir.
+Hesap ekranı sayfa açılışında CSRF, ardından `GET /api/v1/auth/me` okur;
+adı olmayan hesap **Belirtilmemiş** görünür. JWT login yolu webden çağrılmaz.
+
+Cookie Secure/HttpOnly/SameSite=Strict'tir; JS tarafından okunmaz. Hesap/CSRF
+yalnız sayfa belleğindedir; kalıcı depolama, URL veya loga yazılmaz. Arka planda
+oturum yaşatma polling'i yoktur. Çıkışta hesap bilgileri hemen kaldırılır;
+CSRF ile `DELETE /api/v1/auth/web-session` yalnız 204 dönerse girişe geçilir.
+Ağ/500 hatası sunucuda doğrulanmamış çıkış olarak görünür; kullanıcı tekrar
+denerken hesap bağlamı yeniden okunur. Farklı hesaba geçen sekmede otomatik
+çıkış yapılmaz. 400/403'te eski CSRF atılır; yazma otomatik tekrarlanmaz.
+Sayfadan ayrılma isteği iptal eder, geç yanıt görünümü geri getiremez.
+
+Bu akış HTTPS gerektirir. Backend `https://localhost:7099` HTTPS profili ve
+`Auth__WebSession__Origin=https://localhost:5173` ile yapılandırılır; anahtar
+koruması ve dizin izinleri için `backend/README.md` izlenir. Güvenilir .NET
+geliştirme sertifikasını Git dışındaki özel bir dizine PEM olarak aktarın:
+
+```powershell
+dotnet dev-certs https --trust
+dotnet dev-certs https --export-path "$env:LOCALAPPDATA/SmartNutrition/dev-cert.pem" --format Pem --no-password
+$env:SMART_NUTRITION_HTTPS_CERT = "$env:LOCALAPPDATA/SmartNutrition/dev-cert.pem"
+$env:SMART_NUTRITION_HTTPS_KEY = "$env:LOCALAPPDATA/SmartNutrition/dev-cert.key"
+$env:NODE_EXTRA_CA_CERTS = $env:SMART_NUTRITION_HTTPS_CERT
+npm run dev
+```
+
+Üst dizini önce oluşturun ve yalnız geliştirme hesabının erişimini sağlayın.
+PEM özel anahtarı kaynak depoya taşınmaz. Vite her iki yol birlikte verilince
+`https://localhost:5173` üzerinde çalışır; API sertifikasını normal doğrular
+(`secure:true`), kontrolü kapatmaz. HTTP önizleme eski görsel/e-posta yollarını
+destekler; cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
+API proxy'si gerekir; Vite preview API proxy'si sağlamaz.
+
+## E-posta doğrulama akışı
+
+W2 doğrulaması: `npm run typecheck`, `npm run lint`, `npm test` (**72 test**) ve
+`npm run build` başarılıdır. Gerçek HTTPS Vite/API proxy ve sentetik hesapla
+giriş–hesap yenileme–çıkış tarayıcıda da doğrulanmıştır.
+
+### Doğrulama kodu
 
 Giriş ekranındaki **E-postamı doğrula** bağlantısı `/eposta-dogrulama` ekranını açar.
 E-postadaki 43 karakterlik tek kullanımlık kod elle yapıştırılır; URL'den kod
@@ -109,17 +154,17 @@ Backend ve mobil dosyaları bu web görevi kapsamında değiştirilmemiştir.
 
 ## Ortak sözleşme ve devam sınırı
 
-`docs/04`, `05`, `06` değiştirilmemiştir. Yeni endpoint, sözleşme dışı domain
-modeli, oturum DTO'su, paylaşım kategorisi veya açık şemadan kesin mock
-oluşturulmamıştır. Danışan liste girdisi yalnız `id` ve `displayName` içerir;
+`docs/04/05/06` W2 ortak onayıyla güncellenmiştir. AuthSession yalnız sunucuda,
+CsrfTokenResponse yalnız CSRF yanıtında kullanılır. Paylaşım kategorisi veya
+açık şemadan kesin mock oluşturulmamıştır. Danışan liste girdisi yalnız `id` ve `displayName` içerir;
 doğum tarihi, boy, User veya Dashboard kök DTO'su varsayılmaz. Öğün/su/ölçüm/aktivite/tahlil
 tipleri yalnız tanımlı alanları kullanır; fixture'lar üretim derlemesine dahil
 edilmez. Bilinmeyen danışan kimliğine mevcut bir örneğin verisi atanmaz;
 kayıt, öğün kalemi ve tahlil sonucu sahiplik bağlantıları görüntüleme öncesinde eşleştirilir.
 Bu istemci kontrolleri gerçek kaynak/yetki denetimi olarak sunulmaz.
 Giriş/sıfırlama formlarında e-posta biçimi ve boş şifre yerel olarak kontrol
-edilir; kayıt parola politikası girişte uygulanmaz. Bu iki form geçerli olsa da
-istek, hesap kontrolü, e-posta veya token üretilmez; başarılı giriş/sıfırlama taklidi yapılmaz.
+edilir; kayıt parola politikası girişte uygulanmaz. Giriş gerçek W2 API'sine
+bağlıdır; sıfırlama formu hâlâ istek/e-posta üretmeyen sunumdur.
 Şifre gönderimde ve sayfa geçişinde temizlenir; saklanmaz veya loglanmaz.
 `isLoading` / `errorMessage` yalnız test edilebilir sunum girdileridir; yapay
 gecikme veya sahte ağ yanıtı yoktur.
@@ -133,9 +178,9 @@ nihai ortak tema/ekran onayı sayılmaz. Uzak font, analitik veya medya isteği 
 Backend altyapısı PostgreSQL bağlantısı, sağlık kontrolleri ve geliştirme
 OpenAPI/Swagger görünümünü ve User/ClientProfile kaydını içerir. `6f808ff`
 seviyesinde kayıt, e-posta doğrulama/yeniden gönderim, 15 dakikalık JWT login ve
-`GET /auth/me` hesap özeti hazırdır. Bu web dilimi yalnız oturumsuz e-posta
-doğrulama/yeniden gönderim işlemlerini kullanır. Ortak Auth önerisinin tamamı
-onaylanmış sayılmaz. Sonraki adım istemci cookie/saklama, refresh/logout/iptal
-kararlarını iki tarafla kapatıp gerçek web girişini entegre etmektir.
+`GET /auth/me` hesap özeti hazırdır. Web, e-posta doğrulama/yeniden gönderime
+ek olarak W2 cookie/CSRF/hesap/çıkış işlemlerini kullanır. Ortak Auth önerisinin tamamı
+onaylanmış sayılmaz. W2 web cookie/CSRF/iptal ortak onayı ayrıca kayıtlıdır;
+mobil refresh/iptal/saklama, sıfırlama ve uzman/Admin giriş kapıları açık kalır.
 Admin MFA, başvuru/doğrulama ve açık DTO'lara bağlı program/görev/yorum ekranları
 bu başlangıca dahil değildir. Gerçek veri veya yayın için `docs/11` kapısı geçerlidir.

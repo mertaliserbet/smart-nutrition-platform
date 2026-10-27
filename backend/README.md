@@ -179,7 +179,7 @@ uygulanmış sayılmaz. Diyetisyen rolü tek başına sağlık verisine erişim 
 
 ## Kendi hesap bilgileri
 
-`GET /api/v1/auth/me` yalnız mevcut JWT bearer authentication/authorization ile
+`GET /api/v1/auth/me` JWT bearer veya W2 web cookie authentication ile
 erişilir. İstek gövdesi ve query parametresi yoktur; `userId` kabul edilmez.
 Kimlik, middleware'in doğruladığı tek `sub` claim'indeki **User UUID'sidir**;
 ClientProfile kimliği veya özel istemci başlıkları hesap seçemez.
@@ -502,3 +502,71 @@ Başvuru: [ASP.NET Core health checks](https://learn.microsoft.com/en-us/aspnet/
 [Mailpit Docker](https://mailpit.axllent.org/docs/install/docker/),
 [MailKit](https://github.com/jstedfast/MailKit),
 [PostgreSQL Docker imajı](https://github.com/docker-library/docs/blob/master/postgres/README.md).
+## W2 web cookie oturumu — 27.10.2026
+
+W2-C1–C7 ortak onayıyla aynı API'ye `GET /api/v1/auth/csrf` ve
+`POST`/`DELETE /api/v1/auth/web-session` eklendi. `GET /auth/me` artık JWT veya
+web cookie kabul eder; mevcut beş alanlı yanıt değişmez. JWT login gövdesi,
+15 dakikalık token ve diğer API'lerin bearer yetkisi korunur. Admin MFA'sız
+oturum alamaz; bu dilim uzman profili/sağlık/panel yetkisi sağlamaz.
+
+Yeni `AddWebAuthSessions` migration'ı yalnız `auth_sessions`, FK, zaman
+kısıtları ve indeksleri ekler. Mevcut User/ClientProfile ve sağlık şeması değişmez.
+Yeni migration'ı yerel PostgreSQL'e normal `dotnet ef database update` ile
+uygulayın. Gerçek veri üzerinde otomatik migration/dağıtım yapılmaz.
+
+Web oturumu için environment/User Secrets:
+
+```powershell
+$env:Auth__WebSession__Origin = 'https://localhost:5173'
+$env:Auth__WebSession__KeyRingPath = "$env:LOCALAPPDATA/SmartNutrition/session-keys"
+dotnet run --project src/SmartNutrition.Api --launch-profile https
+```
+
+DB/JWT/SMTP ayarları aşağıdaki mevcut kurulumla birlikte gerekir. Origin tek
+HTTPS authority'dir; son slash/path/query içermez. KeyRingPath mutlak ve Git
+dışında olmalıdır. Özel dizini uygulama Windows hesabına kısıtlayın; Windows'ta
+Data Protection anahtarları o hesabın DPAPI korumasıyla kalıcı saklanır.
+Windows dışı ortamda `Auth__WebSession__KeyProtectionCertificatePath` ve gerekiyorsa
+`Auth__WebSession__KeyProtectionCertificatePassword` ile özel anahtarlı PFX sağlayın;
+sertifika/anahtar Git'e veya loglara girmez. Çok örnekte aynı uygulama adı
+(`SmartNutrition.WebSession.v1`), anahtar halkası ve çözme yetkisi gerekir.
+Origin boşken mevcut JWT kurulumu çalışabilir; web yolları 500 ile kapalıdır.
+Hatalı web anahtar/origin ayarı başlangıçta reddedilir. Üretim koruma/rotasyon
+sağlayıcısı ve izinleri ayrıca yayın kapısında doğrulanır.
+
+Web HTTPS proxy/sertifika kurulumu `apps/web/README.md` içindedir; varsayılan
+API HTTPS portu 7099'dur. Secure/SameSite gevşetilmez, TLS doğrulaması kapatılmaz.
+Cookie ve antiforgery yalnız web yolları/hesap okuması için kullanılır;
+Authorization+cookie beraberliği reddedilir. CSRF tokenı kullanıcı ve sid'ye
+bağlıdır. Login yolları aynı IP sayacını paylaşır (10/dakika); CSRF 30/dakikadır.
+
+Her cookie kimliği güncel User ve AuthSession satırlarını DB'den kontrol eder;
+DB hatasında erişim açılmaz. Idle 30 dakika, mutlak ömür 8 saattir. Başarılı
+hesap okuması idle'ı mutlak sınırı aşmadan ilerletir; CSRF/health/statik dosya
+uzatmaz. Logout iptalini atomik uzatma geri alamaz. Gelecekteki parola/rol/e-posta
+güvenlik yazmaları, aynı transaction'da `WebSessionService.RevokeAllAsync` ile
+User kilidini alıp bütün web oturumlarını iptal ederek User değişimini yapmalıdır.
+Başarılı Identity rehash gerçek parola değişikliği değildir. Temizlik normal
+çalışmada her 10 dakikada, iptal/bitimden 23 saat 50 dakika geçmiş satırları
+siler; kesinti hatası genel logla izlenir. Sağlık/audit satırları etkilenmez.
+
+`WebSessionApiTests` gerçek PostgreSQL'de cookie/CSRF, süre sınırları, replay,
+Origin/karışık kimlik, ortak limit, DB kesintisi, şifre değişimiyle login yarışı,
+atomik iptal, korumalı kalıcı anahtar/ikinci API örneği ve temizlik testlerini
+içerir. Yalnız sentetik hesaplar ve özel geçici şemalar kullanılır. Gerçek test
+çalıştırma opt-in'i aşağıdaki mevcut `SMART_NUTRITION_TEST_*` ayarlarıdır.
+
+Mobil JWT refresh/iptal, parola sıfırlama ve Admin MFA; üretim audit şeması,
+kalıcı e-posta teslimi, ortak çok örnekli IP sayacı ve proxy yayın kapıları açıktır.
+Web logout mevcut stateless JWT'yi iptal etmez. Aşağıdaki önceki görev notlarında
+cookie'nin açık olduğu ifadeler tarihsel görev kapsamıdır; güncel W2 sözleşmesi
+`docs/04/05/06/11/12`dedir.
+
+Bu değişikliğin doğrulaması: `dotnet build SmartNutrition.Backend.slnx --no-restore`
+başarılı (0 uyarı/hata); geçici PostgreSQL 17 ve Mailpit v1.32.0 ile
+`dotnet test SmartNutrition.Backend.slnx --no-restore` **214 geçti, 0 atlandı**.
+Güvenilir HTTPS Vite proxy/Kestrel üzerinde sentetik kayıt + SMTP doğrulama,
+cookie login, beş alanlı me, logout, logout sonrası 401 ve login boyut sınırının
+413 yanıtı doğrulandı. Tarayıcıda giriş, hesap yenileme, çıkış ve çıkış sonrası
+korunan hesap yolunun girişe dönmesi de doğrulandı.

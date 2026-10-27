@@ -14,7 +14,7 @@
 ## Teknik güvenlik kontrolü
 | Kontrol | Kabul yönü |
 |---|---|
-| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı ve 15 dakikalık JWT access aşağıda onaylı; refresh/logout/iptal, cookie ve MFA yöntemi açık |
+| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı, 15 dakikalık JWT ve W2 web cookie/CSRF/iptal onaylı; mobil refresh/iptal ve MFA açık |
 | Yetki | Her endpointin kendi rol/kaynak kuralı; danışan kendi kaydı, diyetisyen doğrulanmış uzman + aktif ilişki + kategori izni ve tahlilde ayrı açık onay. Kişisel program için ilişki aranmaz |
 | Sağlık verisi | TLS, aktarım/depoda güvenlik, en az ayrıcalık, audit |
 | İstemci | güvenli token saklama; ekran/log/cache ile veri sızıntısını sınırlama |
@@ -35,6 +35,32 @@
 - Mevcut sınırlı bellek kuyruğu kalıcı teslim sağlamaz. SMTP hatası/kuyruk doluluğu/yeniden başlatma durumunda hesap doğrulanmamış kalır; yeniden gönderim gerekir. Üretim teslim dayanıklılığı, çok API örneğinde ortak IP limitleri ve güvenilir proxy ayarları yayın öncesi ayrıca değerlendirilir. Mobil/web doğrulama ekranı/deep-link akışı bu backend adımında uygulanmamıştır.
 
 ## Geliştirme ve gerçek veri kapıları
+### Onaylı web cookie güvenliği — 27.10.2026
+
+Kullanıcı W2-C1–C7 ortak onayını teyit etti. `06`daki ayrı web oturumu
+ASP.NET Core Cookie Authentication/Data Protection, HttpOnly/Secure/Strict
+host cookie, oturuma bağlı antiforgery ve tam HTTPS Origin kontrolü kullanır.
+Korunan bilet yalnız User/rol/oturum referansı taşır; JWT/refresh/PII taşımaz.
+30 dakika hareketsizlik ve 8 saat mutlak sınır DB'de her istekte doğrulanır;
+başarılı hesap okuması dışında oturum uzatılmaz. DB kesintisi kapalı erişimdir.
+Çıkış DB iptalinden sonra 204'tür; istemci ağ hatasını tamamlanmış çıkış saymaz.
+Parola ve CSRF yalnız geçici bellektedir; cookie/Authorization/CSRF/ham yanıt
+loglanmaz. Yeni oturum aynı hesapta da önceki CSRF'yi geçersiz kılar.
+
+`Auth:WebSession:Origin` ve Git dışındaki `KeyRingPath` yapılandırılır.
+Windows'ta anahtarlar uygulama Windows hesabının DPAPI korumasını kullanır;
+diğer ortamlarda özel anahtarı bulunan koruma sertifikası gerekir. Kalıcı dizin
+uygulama kimliğine kısıtlanır. Çok API örneği aynı uygulama adı/anahtar halkasını
+kullanmalıdır. Web ayarı yoksa JWT altyapısı çalışabilir, web oturumu açılamaz;
+yanlış HTTPS/anahtar ayarı başlangıçta reddedilir. Dev sertifikası kontrolü atlanmaz.
+Üretim anahtar dağıtımı/koruma/rotasyon, ortak rate limit/güvenilir proxy,
+audit kalıcı şema/teslim ve kesinti sonrası temizlik izleme yayın kapılarıdır.
+Mevcut AuditEvent için önerilen web oturum olayları, audit şeması açık olduğu
+için tamamlanmış üretim audit'i olarak sunulmaz. Web oturum satırı en geç
+24 saatte temizlenir; sağlık/audit saklaması ayrı kalır. Yeni parola/rol/doğrulama
+yazmaları User kilidi + aynı transaction'da bütün web oturumlarını iptal etmelidir.
+Web çıkışı stateless JWT'yi iptal etmez; mobil refresh/iptal ve Admin MFA açıktır.
+
 
 **Giriş/JWT güncellemesi — 27.10.2026:** `06`daki onaylı giriş yanıtı yalnız
 `accessToken`, sabit `tokenType: Bearer` ve UTC `expiresAt` içerir. Mevcut Identity
@@ -54,18 +80,20 @@ giriş yanıtı loglanmaz; JWT framework hata ayrıntıları yanıta/loga taşı
 Login varsayılan IP sınırı dakikada 10 istek ve gövde sınırı 4096 byte'tır.
 Üretimde HTTPS, güvenilir proxy, ortak çok örnekli limit ve anahtar saklama/rotasyonu
 ayrıca yapılandırılır. Mevcut access token stateless'tir; anlık iptal/refresh/logout,
-cookie/istemci saklama, MFA ve sıfırlama henüz sağlanmaz. Bu sınırlar korunmadan
+mobil istemci saklama, MFA ve sıfırlama henüz sağlanmaz. Web cookie/CSRF/iptal
+ayrı W2 dilimidir. Bu sınırlar korunmadan
 tam güvenli oturum/yayın tamamlandı denmez; rol tek başına sağlık kaydı yetkisi değildir.
 
-**Kendi hesap okuması — 27.10.2026:** `GET /api/v1/auth/me` yalnız doğrulanmış
-JWT bearer ile erişilir. User UUID'si tek `sub` claim'inden çözülür; istemciden
+**Kendi hesap okuması — 27.10.2026:** `GET /api/v1/auth/me` doğrulanmış
+JWT bearer veya W2 web cookie ile erişilir; ikisi birlikte kabul edilmez.
+User UUID'si tek `sub` claim'inden çözülür; istemciden
 userId alınmaz. Güncel User ve opsiyonel kendi ClientProfile'ından yalnız `id`,
 nullable `displayName`, `email`, `role`, `isEmailVerified` seçilir; entity/hash/token
 ve diğer profil/sağlık verileri serileştirilmez. Profil yoksa ad null'dır. Yanıt
 `Cache-Control: no-store` kullanır; yanıt içeriği veya hassas hesap verisi loglanmaz.
 Silinmiş hesap, artık doğrulanmamış e-posta veya tokenla uyuşmayan güncel rol için
-ortak `401` kullanılır; Admin MFA engeli korunur. Bu salt okunur kontrol yeni veri
-yazmaz veya diğer kaynaklar için anlık token iptali uygulandığı anlamına gelmez.
+ortak `401` kullanılır; Admin MFA engeli korunur. Bu hesap projeksiyonu User/profil verisi
+yazmaz; W2 cookie modunda yalnız AuthSession idle süresi uzar. Diğer kaynaklar için anlık JWT iptali anlamına gelmez.
 
 Ürün/teknoloji kararları onaylıdır; Auth/profil ve kategori/onay DTO'ları dahil teknik bağımlılıklar `12`nin hazırlık tablosundadır. İlgili şema kapanmadan gerçek yetki/oturum entegrasyonu tamamlandı sayılmaz. Sentetik tasarım/bağımsız altyapı çalışması gerçek sağlık verisi toplama veya yayın izni değildir.
 

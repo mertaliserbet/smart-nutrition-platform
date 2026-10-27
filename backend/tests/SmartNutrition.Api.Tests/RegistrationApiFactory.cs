@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +28,14 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private readonly IVerificationEmailSender? _sender;
     private readonly bool _useSmtp;
     private readonly bool _includeAuthProbe;
+    private readonly bool _webSessions;
+    private readonly bool _useWebCertificate;
+    private readonly string _keyRing = Path.Combine(Path.GetTempPath(), "nutrition-session-test-" + Guid.NewGuid().ToString("N"));
+    private readonly string _certificatePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     private readonly CaptureLoggerProvider _logs = new();
 
     private RegistrationApiFactory(IInterceptor? interceptor, TimeProvider? clock, IVerificationEmailSender? sender,
-        bool useSmtp, bool includeAuthProbe)
+        bool useSmtp, bool includeAuthProbe, bool webSessions, bool webCertificate)
     {
         var builder = new NpgsqlConnectionStringBuilder(
             Environment.GetEnvironmentVariable(PostgresFactAttribute.ConnectionVariable))
@@ -44,12 +50,23 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         _sender = sender;
         _useSmtp = useSmtp;
         _includeAuthProbe = includeAuthProbe;
+        _webSessions = webSessions;
+        _useWebCertificate = webSessions && (webCertificate || !OperatingSystem.IsWindows());
+        if (_useWebCertificate)
+        {
+            Directory.CreateDirectory(_keyRing);
+            using var rsa = RSA.Create(2048);
+            var request = new CertificateRequest("CN=Synthetic test key protection", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+            File.WriteAllBytes(Path.Combine(_keyRing, "protection.pfx"), certificate.Export(X509ContentType.Pkcs12, _certificatePassword));
+        }
     }
 
     public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null,
-        TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false)
+        TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false,
+        bool webSessions = false, bool webCertificate = false)
     {
-        var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe);
+        var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe, webSessions, webCertificate);
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -68,16 +85,17 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         }
     }
 
-    public HttpClient Client() => CreateClient(new WebApplicationFactoryClientOptions
+    public HttpClient Client(bool handleCookies = true) => CreateClient(new WebApplicationFactoryClientOptions
     {
         BaseAddress = new Uri("https://localhost"),
-        AllowAutoRedirect = false
+        AllowAutoRedirect = false, HandleCookies = handleCookies
     });
 
     public AppDbContext Database() => new(new DbContextOptionsBuilder<AppDbContext>()
         .UseNpgsql(_testConnection).Options);
 
     public string Logs => string.Join(Environment.NewLine, _logs.Messages);
+    public string KeyRing => _keyRing;
     public JwtTestSettings Jwt { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -87,6 +105,10 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
             new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _testConnection,
+                ["Auth:WebSession:Origin"] = _webSessions ? "https://localhost" : "",
+                ["Auth:WebSession:KeyRingPath"] = _webSessions ? _keyRing : "",
+                ["Auth:WebSession:KeyProtectionCertificatePath"] = _useWebCertificate ? Path.Combine(_keyRing, "protection.pfx") : "",
+                ["Auth:WebSession:KeyProtectionCertificatePassword"] = _certificatePassword,
                 ["Email:Smtp:Host"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_HOST") : "",
                 ["Email:Smtp:Port"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_PORT") : "587",
                 ["Email:Smtp:FromAddress"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_FROM") : "",
@@ -121,6 +143,12 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         // Only the random schema created by this instance is eligible for cleanup.
         command.CommandText = $"DROP SCHEMA IF EXISTS \"{CheckedSchemaName()}\" CASCADE";
         await command.ExecuteNonQueryAsync();
+        // The path is a private, randomly named test directory, never a deployment key ring.
+        var keyName = Path.GetFileName(_keyRing);
+        if (Path.GetDirectoryName(_keyRing) == Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar) &&
+            keyName.StartsWith("nutrition-session-test-", StringComparison.Ordinal) &&
+            Guid.TryParseExact(keyName["nutrition-session-test-".Length..], "N", out _) && Directory.Exists(_keyRing))
+            Directory.Delete(_keyRing, recursive: true);
     }
 
     private string CheckedSchemaName()

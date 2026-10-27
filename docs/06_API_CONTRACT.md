@@ -8,7 +8,7 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 
 - Base path: `/api/v1`. JSON `camelCase`; enum değerleri `04_NAMING_CONVENTIONS.md` içindeki lowercase değerler.
 - İç `id`/FK alanları UUID string; zaman UTC ISO 8601 ör. `2026-10-15T12:30:00Z`, tarihler `YYYY-MM-DD`. `externalRecordId` sağlayıcının string kimliğidir, UUID olmak zorunda değildir. Decimal değerler JSON number, boolean true/false; birimler ve nullability `05`e uyar. Ölçümde `null` bilinmeyen, `0` gerçek sıfırdır.
-- Onaylı giriş dilimi: 15 dakikalık JWT access token, `Authorization: Bearer <access-token>`. Refresh/logout, istemci secure storage/cookie stratejisi ve MFA ayrıca açık; bu özellikler mevcut giriş dilimine dahil değildir.
+- Onaylı JWT girişi: 15 dakikalık access token, `Authorization: Bearer <access-token>`. Web cookie/CSRF/iptal W2-C1–C7 ile ayrıca onaylıdır; mobil refresh/iptal, secure storage ve MFA açık kalır.
 - Auth olmayan/geçersiz oturum `401`, rol/ilişki yetkisiz `403`, bulunamayan `404`, doğrulama `400/422`, çakışma `409`, hız limiti `429`, iç hata `500`. Başka danışanın kaydına dair varlık bilgisi sızmaması için uygun yerde `404` kullanılır; aynı kaynak için davranış tutarlı tutulur.
 - Liste istekleri `page` (1'den başlayan pozitif integer), `pageSize` (pozitif integer, sunucu limiti); yanıt `{ items: [...], totalCount: integer }`. Varsayılanlar/üst limit **AÇIK**tır. `totalCount` yalnız yetkili filtrelenmiş kümenin sayısıdır. Boş liste `200` ve `items: []` döner.
 - Zaman filtresi desteklenen günlük kayıtlarda `from`/`to` UTC instant'tır; `from` dahil, `to` hariçtir; ikisi varsa `from < to` gerekir. Alanlar MealLog/WaterLog için `consumedAt`, ölçüm için `measuredAt`, aktivite için `startedAt`, tahlil için `collectedAt`tır. Yerel gün ve program uyum saat dilimi politikası **AÇIK**tır; istemci/sunucu ayrı ayrı varsaymaz.
@@ -55,7 +55,10 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 | Kimlik | `POST /api/v1/auth/login` | Doğrulanmış, Admin olmayan hesap için 15 dakikalık JWT access token |
 | Kimlik | `POST /api/v1/auth/refresh` | Token yenileme |
 | Kimlik | `POST /api/v1/auth/logout` | Oturum kapatma/refresh iptali |
-| Kimlik / hesap | `GET /api/v1/auth/me` | Geçerli JWT sahibinin beş alanlı kendi hesap özeti |
+| Kimlik / web | `GET /api/v1/auth/csrf` | Anonim veya geçerli cookie bağlamında CSRF request tokenı |
+| Kimlik / web | `POST /api/v1/auth/web-session` | CSRF/Origin ile korunan web cookie oturumu oluşturma |
+| Kimlik / web | `DELETE /api/v1/auth/web-session` | CSRF/Origin ile mevcut web oturumunu sunucuda iptal etme |
+| Kimlik / hesap | `GET /api/v1/auth/me` | Geçerli JWT veya web cookie sahibinin beş alanlı kendi hesap özeti |
 | Profil | `PATCH /api/v1/me` | Kendi profilini güncelle |
 | Diyetisyen | `GET /api/v1/dietitians` | Uygun uzman arama/görüntüleme (doğrulama şartı) |
 | İlişki | `POST /api/v1/dietitian-relationships` | Danışanın ilişki talebi |
@@ -204,7 +207,7 @@ Geçerli birim/referans yoksa açıklama `unknown` ve sınırlılıkları yansı
 ## Kimlik, profil ve ilişki işlemlerinin sınırları
 
 - `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Çoklu rol ve diğer profil sözleşmeleri ayrıca açıktır.
-- `POST /auth/login`: aşağıdaki JWT giriş şeması onaylıdır. E-posta doğrulanmadan veya Admin MFA akışı hazır olmadan token verilmez. Refresh/logout mevcut taslak yollarını korur; bu işlemler, cookie stratejisi ve MFA challenge gövdeleri henüz uygulanmaz.
+- `POST /auth/login`: aşağıdaki JWT giriş şeması onaylıdır. E-posta doğrulanmadan veya Admin MFA akışı hazır olmadan token verilmez. Mevcut refresh/logout taslakları mobil/API için açık kalır; web ayrı W2 cookie kaynağını kullanır. MFA challenge gövdeleri açık kalır.
 - Kendi hesap okuması, kullanıcının bu görevde açıkça istediği `GET /auth/me` yolunu ve aşağıdaki düz beş alanlı yanıtı kullanır. Eski uygulanmamış `GET /me` taslağı yerine bu yol geçerlidir; GET alias/redirect eklenmez. `PATCH /me` ise ayrı açık profil düzenleme taslağıdır: `displayName`, danışanın nullable `birthDate`/`heightCm` alanları hedeflenir; yanıt/rol ayrıntıları kapanmadan uygulanmaz. `role`, `isVerified`, `isEmailVerified` veya MFA/secret alanı bu yoldan yükseltilemez. `licenseInfo` tipi açıkken keyfî JSON kabul edilmez.
 - `GET /dietitians` araması `query` ve pagination kullanabilir; uygun/doğrulanmış uzman profilleri için `id`, `displayName`, `isVerified` gibi paylaşılabilir alanlar sunulur; sağlık kaydı, özel belge veya hesap sırrı dönmez.
 - `POST /dietitian-relationships`: danışandan hedef `dietitianId`; `clientId` auth'tan. `201` kendi pending DietitianClientRelationship kaydı; GET aynı User'ın taraf olduğu ilişkileri `05` alanlarıyla listeler. Davet kodu biçimi/ömrü/istek alanı açıktır; ayrı kod modeli veya tek taraflı otomatik onay yolu üretilmez.
@@ -249,12 +252,12 @@ Kullanıcı bu görevde JWT + 15 dakika kararını, ayrıca aşağıdaki istek/y
 
 | İşlem | Request | Response / hata |
 |---|---|---|
-| `GET /api/v1/auth/me` | Geçerli `Authorization: Bearer <access-token>`. Gövde/query parametresi yok; `userId` alınmaz | `200 CurrentUserResponse`: yalnız `id: uuid`, `displayName: string?`, `email: string`, `role: UserRole`, `isEmailVerified: boolean`. Anahtarların beşi de daima vardır. Desteklenmeyen query/gövde `400 invalid_request`; eksik/geçersiz/süresi dolmuş token veya geçersiz mevcut hesap `401 unauthenticated`; beklenmeyen sunucu/DB hatası `500 internal_error` |
+| `GET /api/v1/auth/me` | Geçerli JWT bearer veya W2 web cookie. Gövde/query parametresi yok; `userId` alınmaz | `200 CurrentUserResponse`: yalnız `id: uuid`, `displayName: string?`, `email: string`, `role: UserRole`, `isEmailVerified: boolean`. Anahtarların beşi de daima vardır. Desteklenmeyen query/gövde `400 invalid_request`; eksik/geçersiz/süresi dolmuş token veya geçersiz mevcut hesap `401 unauthenticated`; beklenmeyen sunucu/DB hatası `500 internal_error` |
 
-- Endpoint yalnız mevcut JWT bearer authentication/authorization ile erişilir. Kimlik, middleware'in doğruladığı tek `sub` claim'indeki User UUID'sidir; istemci kimliği, özel başlık, profil UUID'si veya URL'deki başka ID ile seçilmez.
+- Endpoint JWT bearer veya aşağıdaki onaylı web cookie authentication ile erişilir. Kimlik, middleware'in doğruladığı tek `sub` claim'indeki User UUID'sidir; istemci kimliği, özel başlık, profil UUID'si veya URL'deki başka ID ile seçilmez. İki kimlik birlikte gönderilmez.
 - User ve varsa kendi ClientProfile'ı yalnız gerekli alanlarla salt okunur sorgulanır. `displayName` profil yoksa açık `null` olur; `client`/`dietitian` için aynı yanıt kullanılır. E-posta ve ad tokena eklenmez, DB'den güncel alınır. User/ClientProfile entity'si, hash, token, güvenlik metadata'sı, `createdAt`/`updatedAt`, sağlık verisi veya iç içe profil dönmez.
-- Token süresi bitmemiş olsa dahi User DB'de yoksa, e-posta doğrulaması kalkmışsa veya güncel rol tokenın izinli rolüyle eşleşmiyorsa aynı genel `401` ve `WWW-Authenticate: Bearer` döner. Başka kullanıcı varlığı/durumu hata metnine eklenmez. Mevcut Admin MFA engeli değişmez.
-- Yanıt `Cache-Control: no-store` kullanır. Bu işlem kullanıcı, profil, parola veya token alanına yazmaz; yeni entity/migration, yetkisiz rol geçişi veya genel token iptali eklemez. Kayıt ve giriş yanıtları değişmez. Profil düzenleme/uzman profili şemaları açık kalır.
+- Süre bitmemiş olsa dahi User DB'de yoksa, e-posta doğrulaması kalkmışsa veya güncel rol kimliğin izinli rolüyle eşleşmiyorsa aynı genel `401` döner; JWT modunda `WWW-Authenticate: Bearer` korunur. Hesap durumu hata metnine eklenmez. Admin MFA engeli değişmez.
+- Yanıt `Cache-Control: no-store` kullanır. User/profil/parola/token alanları değişmez; W2 cookie modunda yalnız başarılı isteğin AuthSession idle süresi ilerler. Genel JWT iptali eklenmez. Kayıt/JWT giriş yanıtları değişmez; profil düzenleme/uzman profili açıktır.
 
 ### Henüz uygulanmamış kimlik işlemleri
 
@@ -264,6 +267,65 @@ Kullanıcı bu görevde JWT + 15 dakika kararını, ayrıca aşağıdaki istek/y
 | `POST /api/v1/auth/reset-password` | `token: string`, `password: string` | `204`; geçersiz/süresi dolmuş token veya parola kuralı `422`. Sıfırlama tokenı/akışı ve mevcut oturumların iptal ayrıntısı **AÇIK**tır; kayıt parola politikası yukarıda onaylıdır |
 
 Bu token/password alanları yalnız HTTP kimlik girdileridir; User modeline düz metin secret alanı eklemez. Admin MFA doğrulama/kurulum/kurtarma ve diyetisyen başvuru/doğrulama endpointlerinin gövdeleri ilgili güvenlik/başvuru şeması tamamlanınca tanımlanır; sağlık verisi yetkisiyle karıştırılmaz.
+
+### Onaylı web cookie oturumu — W2-C1–C7 (27.10.2026)
+
+Kullanıcı iki tarafın ortak onayını teyit etmiştir. Mevcut JWT login yolu,
+15 dakikalık süresi, claim'leri ve üç alanlı yanıtı korunur; cookie üretmez.
+Web akışı ayrı kaynak kullanır; JWT login'i çağırmaz, refresh token üretmez.
+
+| Method + route | İstek | Yanıt |
+|---|---|---|
+| `GET /api/v1/auth/csrf` | Gövde/query yok; mevcut geçerli cookie veya anonim bağlam | `200 CsrfTokenResponse { requestToken: string }`; framework CSRF cookie'si hazırlanır, hesap/oturum ID'si dönmez |
+| `POST /api/v1/auth/web-session` | Mevcut `LoginUserRequest { email, password }`; JSON; query yok; CSRF cookie + `X-CSRF-TOKEN`, tam Origin | Auth istisnası `200 CurrentUserResponse`: yalnız id/displayName/email/role/isEmailVerified; oturum commit'inden sonra korumalı cookie; Location/JWT/refresh/sid yok |
+| `GET /api/v1/auth/me` | Gövde/query yok; JWT veya web cookie | Mevcut beş alanlı `200 CurrentUserResponse` aynen korunur; opsiyonel profil adı null olabilir |
+| `DELETE /api/v1/auth/web-session` | Gövde/query yok; CSRF cookie + `X-CSRF-TOKEN`, tam Origin; yalnız mevcut cookie | DB iptalinden sonra boş `204`; auth ve CSRF cookie'leri temizlenir. Olmayan/bozuk/bitmiş/iptal edilmiş oturumda da geçerli CSRF/Origin ile `204`; başka oturum etkilenmez |
+
+- Yeni web yollarında Authorization kabul edilmez (`400`). Hesap okumasında
+  Authorization ve auth cookie birlikteyse `400`; başarısız kimlikten diğerine
+  düşülmez. Geçerli web oturumuyla yeniden login `409 conflict`tir. Bozuk cookie
+  kimlik sayılmaz; anonim CSRF ile yeniden giriş yapılabilir. Olmayan hesap,
+  yanlış parola, doğrulanmamış e-posta ve Admin aynı genel `401`i alır.
+- Web/API aynı HTTPS origin'dedir. Cookie'ler Secure/HttpOnly/SameSite=Strict,
+  Path=/, Domain'sizdir: `__Host-smart-nutrition-session` ve
+  `__Host-smart-nutrition-csrf`. Auth cookie tarayıcı oturum cookie'sidir;
+  Expires/Max-Age ve beni hatırla yoktur. Bilet ASP.NET Core AddCookie/Data
+  Protection ile korunur; yalnız tek sub(User UUID), role, sid(AuthSession UUID)
+  ve framework zamanlarını taşır. Anahtarlar Git dışında kalıcı/şifreli depoda,
+  aynı uygulama adıyla yönetilir; eksik/geçersiz ayar web erişimini kapatır.
+- CSRF `IAntiforgery` ile kullanıcıya ve oturum sid'sine bağlanır; aynı User'ın
+  yeni oturumu da eski tokenı geçersiz kılar. Girişten sonra yeni token alınır.
+  Login/logout ve ileride cookie yetkisi kazanan yazmalar iş kuralından önce
+  CSRF ister. Yazmada Origin tek yapılandırılmış HTTPS scheme/host/port ile tam
+  eşleşir; eksik/null/farklı Origin `403`. CSRF GET'inde varsa Origin aynı kurala
+  uyar; Sec-Fetch-Site cross-site `403`. Geçersiz/eksik CSRF `400`; ham ayrıntı
+  dönmez. Credential CORS açılmaz. Mevcut diğer API yolları cookie yetkisi kazanmaz.
+- Her cookie isteği DB'de revokedAt=null, now<idleExpiresAt, now<absoluteExpiresAt,
+  doğru User/FK, güncel doğrulanmış e-posta ve aynı client/dietitian rolünü denetler.
+  Admin kabul edilmez. DB hatası genel `500`, erişim kapalıdır; olumlu sonuç önbelleği yoktur.
+  Başlangıç idle 30 dakika, mutlak süre 8 saattir. Başarılı yetkili hesap okuması
+  idle'ı min(now+30 dakika,absoluteExpiresAt) sınırında atomik ilerletir; CSRF,
+  statik dosya, sağlık kontrolü, başarısız istek veya keepalive polling'i uzatmaz.
+  Bilet mutlak sınıra kadar geçerlidir; DB idle kontrolü her istekte zorunludur.
+- Logout iptalini eski uzatma silemez. Login doğruladığı User hash/rol/doğrulama
+  durumunu aynı User satır kilidinde yeniden denetler; yarışta `401`, cookie yoktur.
+  Gelecekteki güvenlik yazmaları aynı kilit/transaction içinde tüm web oturumlarını
+  iptal eder. Rehash gerçek parola değişikliği sayılmaz. İptalden önce yetkili
+  istek tamamlanabilir. Web çıkışı mevcut stateless JWT'yi iptal etmez; mobil
+  refresh/iptal ve Admin MFA ayrı açık sözleşmelerdir.
+- Tüm yanıtlar no-store ve ortak hata zarfını kullanır; HTML/302 yönlendirmesi yoktur.
+  Yanlış JSON içerik `415`; ek/eksik/boş alan veya query/gövde ihlali `400`;
+  4096 byte login aşımı `413`; IP aşımı `429`; altyapı hatası `500`dür.
+  Web/JWT login aynı IP başına dakikada 10 istek sayacını paylaşır; CSRF GET
+  ayrı dakikada 30 istek sınırını kullanır; ikisi yapılandırılabilir.
+  Proxy başlığı keyfî güvenilir sayılmaz; çok örnekli ortak sayaç yayın kapısıdır.
+- Web credentials=same-origin kullanır; hesap özeti/CSRF yalnız geçici sayfa
+  belleğinde tutulur. Hesap ekranı yenilenince CSRF ve GET me ile yeniden okunur;
+  token/hesap cookie'si JS depolama/URL/loga yazılmaz. 401 ve çıkış hassas UI'yi
+  temizler; geç yanıtlar eski hesabı geri getiremez. CSRF/hesap değişiminde yazma
+  otomatik tekrarlanmaz. Çıkış yalnız 204 ile doğrulanır; ağ/500 hatasında
+  “Çıkış sunucuda doğrulanamadı; tekrar deneyin” gösterilir. E-posta işlemleri
+  oturum oluşturmaz/uzatmaz; mobil bearer'a CSRF eklenmez.
 
 ## Örnek 1 — manuel öğün oluşturma
 ```http
@@ -334,7 +396,7 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 - Program arşivleme/değiştirme ve ilişkinin bitişindeki program davranışı; programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve gün/saat dilimi politikası açıktır. Tarihçe korumadan eski programı güncellemek onaylı çözüm değildir.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.
-- Refresh/logout/iptal ve cookie stratejisi, MFA challenge/kurulum/kurtarma gövdeleri, profil düzenleme/uzman profili yanıtı, şifre sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt/parola politikası, e-posta doğrulama/yeniden gönderim, 15 dakikalık JWT giriş ve `GET /auth/me` hesap özeti sözleşmeleri onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.
+- Mobil refresh/iptal/saklama, MFA challenge/kurulum/kurtarma, profil düzenleme/uzman profili, sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt/e-posta doğrulama, JWT giriş/hesap özeti ve W2 web cookie/CSRF/iptal onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.
 - İlk sürüm yorum/cevap bildirimleri ve diyetisyen PDF raporları onaylı kapsamdır; bildirim/rapor DTO, teslim/dosya yetkilendirmesi ve moderasyon ayrıntıları açık olduğundan bu görevde tahminî yollar açılmaz. İzin dışı veri export edilmez. KVKK, silme, saklama ve audit için `11` kapısı korunur.
 - Sayısal hassasiyet/yuvarlama, metin/dosya/pagination limitleri, tekrar denemelerde idempotency ve güvenli silme ayrıntıları ortak onay bekler. Mevcut enumlar ve model adları değişmez.
 

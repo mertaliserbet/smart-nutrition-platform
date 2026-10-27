@@ -86,13 +86,14 @@ public sealed class InfrastructureTests
         var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", database.Database.ProviderName);
-        Assert.Equal([typeof(ClientProfile).FullName!, typeof(User).FullName!],
+        Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(User).FullName!],
             database.Model.GetEntityTypes().Select(entity => entity.Name).Order().ToArray());
         Assert.Collection(database.Database.GetMigrations(),
             migration => Assert.EndsWith("_AddAuthFoundation", migration),
             migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration),
             migration => Assert.EndsWith("_AddUserEmailVerificationState", migration),
-            migration => Assert.EndsWith("_AddEmailVerificationTokens", migration));
+            migration => Assert.EndsWith("_AddEmailVerificationTokens", migration),
+            migration => Assert.EndsWith("_AddWebAuthSessions", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -133,7 +134,11 @@ public sealed class InfrastructureTests
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
-        Assert.Equal(5, paths.EnumerateObject().Count());
+        Assert.Equal(7, paths.EnumerateObject().Count());
+        Assert.True(paths.GetProperty("/api/v1/auth/csrf").TryGetProperty("get", out _));
+        var webSession = paths.GetProperty("/api/v1/auth/web-session");
+        Assert.True(webSession.TryGetProperty("post", out _));
+        Assert.True(webSession.TryGetProperty("delete", out _));
         var currentUser = paths.GetProperty("/api/v1/auth/me").GetProperty("get");
         Assert.False(currentUser.TryGetProperty("requestBody", out _));
         var currentUserSchema = currentUser.GetProperty("responses").GetProperty("200").GetProperty("content")
