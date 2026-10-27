@@ -6,9 +6,10 @@ kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabit
 
 `POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir;
 doğrulama e-postası SMTP üzerinden arka planda gönderilir. `verify-email` ve
-`resend-verification` uçları hazırdır. Giriş, kullanıcı oturumu, JWT veya MFA yoktur. `MealLog` ve
+`resend-verification` uçları hazırdır. `login`, doğrulanmış Admin olmayan hesaplara
+15 dakikalık JWT access token verir. Refresh/logout, MFA ve parola sıfırlama yoktur. `MealLog` ve
 `MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
-Kayıt/e-posta doğrulama şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
+Kayıt/e-posta doğrulama/JWT giriş şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
 
 ## Yapı
 
@@ -21,7 +22,7 @@ Kayıt/e-posta doğrulama şemaları ortak `04/05/06/11/12` belgeleriyle eşgüd
 - `.config/dotnet-tools.json`: projeye özel `dotnet-ef`; global kurulum gerekmez.
 - `compose.yaml`: yalnız yerel geliştirme için PostgreSQL 17 ve Mailpit SMTP.
 - `Features/MealLogs/`: MealLog/MealLogItem alanları, yerel bütünlük kuralları ve MealType.
-- `Features/Auth/`: User/ClientProfile modelleri, EF eşlemeleri, kayıt doğrulamaları ve AuthController.
+- `Features/Auth/`: User/ClientProfile, EF eşlemeleri, kayıt/e-posta doğrulama/giriş servisleri ve JWT yapılandırması.
 - `Models/UserRole.cs`: mevcut `client`, `dietitian`, `admin` değerleri.
 - `Models/RecordSource.cs`: ortak kaynak değerleri; AI/cihaz entegrasyonunu etkinleştirmez.
 
@@ -44,15 +45,17 @@ User hesabının UUID'si ile ClientProfile UUID'si ayrı kimliklerdir. Profilin 
 `user_id` FK'si ve benzersiz indeksi, bir hesabın en fazla bir danışan profiline
 bağlanmasını sağlar. User'ın profili olmayabilir; rol–profil ve çoklu rol politikası
 bu temel tarafından kesinleştirilmez. Profil oluşturulurken User nesnesinden alınan
-kimlik kullanılır; gelecekte oturumdaki doğrulanmış User bu bağlantıyla çözülecektir.
-Şu anda oturum/claim çözümleme veya yetkilendirme uygulanmamıştır.
+kimlik kullanılır. JWT middleware `sub` claim'ini güvenilir User UUID'si olarak
+doğrular; ilgili iş modülü bunu User → ClientProfile üzerinden danışana çözmelidir.
+Kaynak/ilişki/kategori yetkileri bu Auth temelinin yerine geçmez.
 
 `IPasswordHasher<User>` DI üzerinden ASP.NET Core Identity `PasswordHasher<User>`
 olarak sunulur; özel hash/salt algoritması veya ek Identity tablo takımı yoktur.
 User oluşturulurken yalnız hash saklanır; düz parola modelde tutulmaz ve kırpılmaz.
 Hash, e-posta doğrulama durumu/token metadata'sı ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
 Entity'ler HTTP kayıt/me DTO'su değildir; kayıt yalnız aşağıdaki DTO'larla çalışır.
-Parola doğrulamasında gelecekte `SuccessRehashNeeded` sonucu da ele alınmalıdır.
+Girişte `SuccessRehashNeeded`, yalnız doğrulanmış ve girişe uygun hesabın hash'ini
+önceki hash/rol/doğrulama koşuluyla günceller; eşzamanlı parola değişikliğini ezmez.
 
 E-posta alanı harf duyarsız, aksanları ayırt eden ICU collation ve benzersiz indeks
 kullanır. `normalizedEmail` gibi yeni bir sözleşme alanı eklenmemiştir. Metin uzunluğu ve
@@ -107,7 +110,69 @@ sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen de�
 içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
 Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
 `201 { id }` yanıtı ortak belgelere işlenmiştir. Diyetisyen başvurusu/çoklu rol,
-`/me`, giriş ve oturum sözleşmelerinin açık kısımları bu görevde uygulanmamıştır.
+`/me`, refresh/logout/iptal ve istemci oturum sözleşmelerinin açık kısımları bu görevde uygulanmamıştır.
+
+## Giriş ve JWT access token
+
+`POST /api/v1/auth/login`, `application/json` ile zorunlu `email` ve `password`
+alır. Başarı `200 { "accessToken": "<JWT>", "tokenType": "Bearer", "expiresAt": "<UTC ISO 8601>" }`.
+Token yalnız bu onaylı başarı yanıtında verilir; kayıt/e-posta doğrulama yanıtlarına
+eklenmez. Cookie, refresh token veya profil yanıtı üretilmez.
+
+E-posta mevcut Identity normalizer ile kırpılır/normalleştirilir; parola aynen
+Identity PasswordHasher'a verilir. Olmayan hesapta da aynı altyapıyla dummy hash
+doğrulaması yapılır; dummy User/oturum/DB kaydı yoktur. Yanlış parola, olmayan
+hesap, doğrulanmamış e-posta ve Admin aynı `401 unauthenticated` hatasını alır.
+Admin, MFA hazır olana kadar hem token üretiminde hem bearer kabulünde kapalıdır.
+
+JWT süresi 15 dakikadır; claim'ler yalnız `sub` (User UUID), `role` ve standart
+`iss`, `aud`, `iat`, `nbf`, `exp` değerleridir. ClientProfile UUID'si, e-posta, ad,
+hash veya sağlık verisi taşınmaz. `expiresAt`, imzalı `exp` ile aynıdır.
+`Authorization: Bearer <access-token>` kullanılır; token/parola/Authorization
+başlığı veya giriş yanıtı loglanmaz. DTO `ToString` tokenı dökmez.
+
+`JwtAuthentication` ASP.NET Core JWT bearer ve authorization middleware'ini kurar.
+`HS256` imza, `at+jwt` türü, tam issuer/audience ve lifetime zorunludur;
+`ClockSkew = 0` ile fazladan beş dakika tanınmaz. `[Authorize]` isteyen kaynaklar
+geçersiz token için ortak `401`, eksik rol/yetki için ortak `403` döndürür.
+Gelecek endpointler kendi `[Authorize]` ve kaynak politikalarını açıkça uygulamalıdır.
+Genel kimlik deneme endpointi eklenmemiştir; middleware test controller'ı yalnız test host'unda yüklenir.
+
+Varsayılan login limiti bağlantı IP'si başına dakikada 10 istektir:
+`Auth:Login:RequestsPerMinute` / `Auth__Login__RequestsPerMinute`.
+Sayaç API sürecindedir, hesap varlığından bağımsızdır ve aşım `429 rate_limited`
+olur. Gövde sınırı 4096 byte (`413`), şekil/ek alan hataları `400`, yanlış içerik
+`415`tir. Auth yanıtları `Cache-Control: no-store` kullanır ve ortak hata zarfı korunur.
+
+### JWT ayarları
+
+`Auth:Jwt:Issuer`, `Auth:Jwt:Audience`, `Auth:Jwt:SigningKeyBase64` zorunludur.
+Anahtar Base64 ile kodlanan en az 32 kriptografik rastgele byte olmalıdır;
+örnek kurulum 64 byte üretir. Gerçek anahtar repo/appsettings veya komut
+geçmişine yazılmaz. Eksik/hatalı JWT ayarı varsa API istek sunmadan başlamayı reddeder.
+
+`backend/` içinde yalnız ilk kurulumda aşağıdakini çalıştırın. Mevcut anahtarı
+yeniden üretmeyin; değiştirmek mevcut JWT'lerin doğrulamasını bozar.
+
+```powershell
+$nutritionJwtKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))
+@{
+    'Auth:Jwt:Issuer' = 'smart-nutrition-api-local'
+    'Auth:Jwt:Audience' = 'smart-nutrition-clients-local'
+    'Auth:Jwt:SigningKeyBase64' = $nutritionJwtKey
+} | ConvertTo-Json -Compress | dotnet user-secrets set --project src/SmartNutrition.Api
+Remove-Variable nutritionJwtKey
+```
+
+Development, User Secrets'ı okur. Üretimde karşılıklar `Auth__Jwt__Issuer`,
+`Auth__Jwt__Audience`, `Auth__Jwt__SigningKeyBase64`; yetkili secret deposu/ortamdan
+sağlanmalıdır. Yerel issuer/audience üretim ortamı kararı değildir. Üretim HTTPS,
+güvenilir proxy, çok örnekli limit ve anahtar rotasyonu ayrıca yapılandırılır.
+
+Bu dilim stateless access token sağlar; yeni tablo veya migration gerekmez.
+Anlık iptal, refresh/logout, `/me`, cookie/istemci saklama, MFA ve parola sıfırlama
+henüz yoktur. İmzalı token süresi boyunca geçerli kalabilir; tam oturum iptali
+uygulanmış sayılmaz. Diyetisyen rolü tek başına sağlık verisine erişim sağlamaz.
 
 ## E-posta doğrulama ve SMTP
 
@@ -174,7 +239,7 @@ E-postayı veya tokenı terminal çıktısına/loga dökmeyin. Otomatik gerçek 
 ## Geliştirme ortamı
 
 Komutlar `backend/` içinde çalıştırılır:
-PostgreSQL'i aşağıdaki adımlarla hazırladıktan sonra API'yi başlatın.
+PostgreSQL ve yukarıdaki JWT User Secrets ayarlarını hazırladıktan sonra API'yi başlatın.
 
 ```powershell
 dotnet restore
@@ -193,8 +258,8 @@ dağıtım ortamında ayrıca yapılandırılır.
   hatalı veya erişilemezse `503 Unhealthy`. Bağlantı ayrıntılarını dışarı vermez.
 - `/openapi/v1.json` ve `/swagger`: yalnız `Development` ortamında sunulur.
 
-Health yolları operasyonel altyapı kontrolleridir. Swagger kayıt, e-posta doğrulama
-ve yeniden gönderim operasyonlarını gösterir; giriş veya MealLog endpointi içermez.
+Health yolları operasyonel altyapı kontrolleridir. Swagger kayıt, giriş, e-posta
+doğrulama ve yeniden gönderim operasyonlarını gösterir; MealLog endpointi içermez.
 
 ## PostgreSQL bağlantısı
 
@@ -271,7 +336,7 @@ $env:ConnectionStrings__DefaultConnection = '<connection-string>'
 
 `<connection-string>` yerine yetkili PostgreSQL bağlantınızı kullanın; gerçek
 değeri Git'e veya loglara eklemeyin. User Secrets geliştirme içindir, şifreli
-bir üretim secret deposu değildir. Ayar olmadan API/OpenAPI açılır, hazırlık kontrolü
+bir üretim secret deposu değildir. JWT ayarları geçerliyken DB ayarı olmadan API/OpenAPI açılır, hazırlık kontrolü
 `503` döner. Başlangıçta veritabanı/tablo oluşturulmaz; otomatik `EnsureCreated`
 veya `Migrate` çalıştırılmaz.
 
@@ -325,6 +390,12 @@ Bu test gerçek HTTP kayıt → SMTP teslimi → Mailpit'ten token okuma → yen
 yalnız kendi rastgele sentetik alıcısına ait Mailpit mesajlarını temizler.
 Diğer doğrulama testleri SMTP yerine kontrollü test göndericisi ve gerçek PostgreSQL
 ile süre sınırı, eşzamanlılık, cooldown, IP limiti ve hassas log davranışını sınar.
+Giriş testleri de aynı izole PostgreSQL şemalarını kullanır. Başarılı kayıt/doğrulama/giriş,
+yanlış parola, doğrulanmamış hesap, Admin engeli, Identity rehash ve IP sınırına ek olarak
+gerçek middleware ile bozuk/yanlış imzalı/süresi dolmuş/yanlış issuer-audience-algoritma-tür
+tokenları ve rol yetkilendirmesi sınanır. Test JWT anahtarları her factory için rastgele
+üretilir; geliştirici User Secrets anahtarı testlere taşınmaz. Eksik JWT ayarlarıyla
+başlangıcın reddi ve Kestrel gövde sınırları ayrıca test edilir.
 
 Bu değişken `AppDbContext`/`SELECT 1`/readiness testine ek olarak Auth PostgreSQL
 testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Model testleri sentetik
@@ -380,6 +451,7 @@ Başvuru: [ASP.NET Core health checks](https://learn.microsoft.com/en-us/aspnet/
 [Npgsql](https://www.npgsql.org/efcore/),
 [EF CLI](https://learn.microsoft.com/en-us/ef/core/cli/dotnet),
 [Identity parola altyapısı](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-10.0),
+[JWT bearer yapılandırması](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0),
 [Mailpit Docker](https://mailpit.axllent.org/docs/install/docker/),
 [MailKit](https://github.com/jstedfast/MailKit),
 [PostgreSQL Docker imajı](https://github.com/docker-library/docs/blob/master/postgres/README.md).

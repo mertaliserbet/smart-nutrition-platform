@@ -1,6 +1,6 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
-> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt ve e-posta doğrulamasının 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
+> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt, e-posta doğrulama ve JWT girişinin 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
 
 Mevcut geçerli alanlar korunur; kişisel program için `NutritionPlan.dietitianId` nullable yapılır. Yeni asgari alanlar aşağıda tanımlanır. Henüz kesinleşmemiş alt kayıt adları, enum değerleri ve saklama tercihleri **AÇIK** veya **ÖNERİ** olarak ayrılır; bunlar uygulama için onaylanmış kabul edilmez. Bir domain ilişkisi tanımlanması her ilişki için ayrı tablo/model oluşturulmasını gerektirmez.
 
@@ -48,6 +48,13 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 - Geçerlilik token üretiminden itibaren **30 dakika**dır; `now < emailVerificationExpiresAt` gerekir. Doğrulama, hash eşleşmesi + doğrulanmamış hesap + süre kontrolü ile tek atomik DB işleminde `isEmailVerified = true` yapar, hash ve süre sonunu temizler, `updatedAt`yi günceller. Son gönderim zamanı kalabilir. Eşzamanlı iki doğrulama birden başarılı olamaz.
 - Yeniden gönderim yeni token/hash üretir ve önceki tokenı geçersiz kılar. Aynı hesaba gönderim denemeleri arasında varsayılan 60 saniye gerekir; bu sınır DB'de atomik uygulanır ve yapılandırılabilir. Doğrulanmış/bulunmayan hesap için token üretilmez. SMTP hatası hesabı silmez veya doğrulamaz; kullanıcı yeniden gönderim isteyebilir.
 - Token için ayrı tablo veya düz metin outbox oluşturulmaz. Mevcut arka plan kuyruğu yalnız e-posta adreslerini bellekte tutar; yeniden başlatmada kalıcı teslim garantisi yoktur. SMTP/TLS ve hata davranışı `06/11`, yerel Mailpit kurulumu `backend/README.md` içindedir.
+
+### Giriş ve JWT — kalıcı model sınırı
+
+- Giriş mevcut User e-postası/Identity hash'i/doğrulama bayrağı/rolünü kullanır; User/ClientProfile ilişkisi ve alanları değişmez. `isEmailVerified = false` veya `role = admin` için access token üretilmez. Login yeni profil oluşturmaz veya kullanıcı kimliğini istemciden almaz.
+- `LoginUserResponse.accessToken: string`, `tokenType: string` (sabit `Bearer`), `expiresAt: instant` yalnız HTTP yanıt alanlarıdır; User sütunu veya yeni oturum tablosu değildir. JWT DB'ye saklanmaz; 15 dakikalık imzalı access token için migration gerekmez. Refresh/logout/iptal saklamasının şeması **AÇIK** kalır.
+- JWT `sub`, User UUID'sidir. Sonraki iş modülleri `clientId`yi güvenilir User → ClientProfile ilişkisinden çözer; token içindeki rol tek başına uzman doğrulaması, aktif ilişki veya veri paylaşım izni sağlamaz.
+- Identity `SuccessRehashNeeded` sonucunda yalnız başarılı ve girişe uygun hesabın `passwordHash`/`updatedAt` alanları güncellenebilir. Güncelleme önceki hash/doğrulama/rol koşuluyla atomiktir; yarışta başka bir parola değişikliği ezilmez ve token verilmez. Yanlış parola, doğrulanmamış hesap ve Admin için hash değiştirilmez.
 
 ## Beslenme ve günlük takip
 
@@ -164,6 +171,6 @@ Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve ö�
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
 - Nabız/adım/aktif enerji veri yapıları, platform/cihaz desteği ve manuel/cihaz örtüşme politikası; günlük zaman dilimi ve yeniden senkronizasyon anahtarları.
 - Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.
-- E-posta doğrulaması dışındaki Auth/MFA güvenlik kayıtları, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
+- Stateless JWT access token dışında kalan oturum/refresh/iptal ve MFA güvenlik kayıtları, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
 
 Sonraki ortak sözleşme adımı; açık alt kayıt adlarını `04`te, şema ayrıntılarını burada ve HTTP karşılıklarını `06`da iki geliştiricinin onayıyla eşgüdümlü tamamlamaktır. Kayıt/e-posta doğrulamasının kapanmış alanları bu açık listeye dahil değildir.

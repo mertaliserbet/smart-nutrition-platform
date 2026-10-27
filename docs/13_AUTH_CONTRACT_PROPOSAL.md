@@ -7,6 +7,18 @@
 inceleme adaylarıdır; çalışan API, kesin mock, migration veya tamamlanmış Auth
 olarak kullanılamaz. Her karar ayrı kabul edilebilir veya düzeltilebilir.
 
+**Güncel karar farkı — 27.10.2026:** Bu önerinin temeli `6351089`dur; sonradan
+kayıt/e-posta doğrulama ve JWT giriş görevleri kullanıcı tarafından ayrıca
+onaylanmış, `04/05/06/11/12`ye işlenmiştir. Mevcut giriş 15 dakikalık **JWT** ve
+`200 { accessToken, tokenType: "Bearer", expiresAt }` döndürür; hatalı/bulunmayan,
+doğrulanmamış veya Admin hesap aynı `401`i alır. Aşağıdaki opaque bearer/ayrı `403`
+ve refresh/cookie içeren yanıt önerileri mevcut giriş sözleşmesi değildir.
+E-posta doğrulaması artık 30 dakika ve `resend-verification` yoluyla uygulanmıştır;
+eski 24 saat/`email-verification-requests` önerileri geçerli kaynak sayılmaz.
+Mevcut hız limitleri ve teslim sınırları `06`dadır. `/me`, cookie/CSRF, refresh,
+logout/iptal, MFA ve sıfırlama önerileri henüz onaylanmış/uygulanmış sayılmaz;
+bu not A1–A8'in tamamına veya iki geliştiricinin ayrı onayına eşdeğer değildir.
+
 Dayanaklar: [kanonik adlar](04_NAMING_CONVENTIONS.md),
 [veri sözlüğü](05_DATA_DICTIONARY.md), [HTTP sözleşmesi](06_API_CONTRACT.md),
 [geliştirmeye hazırlık](12_TEAM_PLAN_AND_DECISIONS.md) ve

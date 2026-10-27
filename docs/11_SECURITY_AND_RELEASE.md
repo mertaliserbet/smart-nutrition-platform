@@ -14,7 +14,7 @@
 ## Teknik güvenlik kontrolü
 | Kontrol | Kabul yönü |
 |---|---|
-| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı aşağıda onaylı; oturum token/cookie, oturum süreleri ve MFA yöntemi açık |
+| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı ve 15 dakikalık JWT access aşağıda onaylı; refresh/logout/iptal, cookie ve MFA yöntemi açık |
 | Yetki | Her endpointin kendi rol/kaynak kuralı; danışan kendi kaydı, diyetisyen doğrulanmış uzman + aktif ilişki + kategori izni ve tahlilde ayrı açık onay. Kişisel program için ilişki aranmaz |
 | Sağlık verisi | TLS, aktarım/depoda güvenlik, en az ayrıcalık, audit |
 | İstemci | güvenli token saklama; ekran/log/cache ile veri sızıntısını sınırlama |
@@ -35,6 +35,27 @@
 - Mevcut sınırlı bellek kuyruğu kalıcı teslim sağlamaz. SMTP hatası/kuyruk doluluğu/yeniden başlatma durumunda hesap doğrulanmamış kalır; yeniden gönderim gerekir. Üretim teslim dayanıklılığı, çok API örneğinde ortak IP limitleri ve güvenilir proxy ayarları yayın öncesi ayrıca değerlendirilir. Mobil/web doğrulama ekranı/deep-link akışı bu backend adımında uygulanmamıştır.
 
 ## Geliştirme ve gerçek veri kapıları
+
+**Giriş/JWT güncellemesi — 27.10.2026:** `06`daki onaylı giriş yanıtı yalnız
+`accessToken`, sabit `tokenType: Bearer` ve UTC `expiresAt` içerir. Mevcut Identity
+hash'i doğrulanır; bulunmayan hesapta da eşdeğer parola doğrulama işi yapılır.
+Yanlış parola, olmayan kullanıcı, doğrulanmamış e-posta ve MFA'sız Admin aynı
+genel `401` yanıtını alır. Admin'e token üretimi ve Admin claim'inin middleware'de
+kabulü kapalıdır. Başarılı hesapta `SuccessRehashNeeded` güvenle güncellenir.
+
+JWT imzası `HS256`, anahtar en az 32 kriptografik rastgele byte'ın Base64
+karşılığıdır; anahtar/issuer/audience yalnız environment/User Secrets'tan alınır.
+Eksik/hatalı ayar fail-closed başlangıç hatasıdır. Middleware imza/algoritma/tür,
+issuer/audience ve zamanı doğrular; sıfır clock skew ile 15 dakikalık süre uzamaz.
+Token yalnız User UUID'si/rol ve gerekli standart claim'leri taşır; sağlık verisi,
+ad/e-posta, hash ve secret içermez. Parola, ham token, Authorization başlığı ve
+giriş yanıtı loglanmaz; JWT framework hata ayrıntıları yanıta/loga taşınmaz.
+
+Login varsayılan IP sınırı dakikada 10 istek ve gövde sınırı 4096 byte'tır.
+Üretimde HTTPS, güvenilir proxy, ortak çok örnekli limit ve anahtar saklama/rotasyonu
+ayrıca yapılandırılır. Mevcut access token stateless'tir; anlık iptal/refresh/logout,
+cookie/istemci saklama, MFA ve sıfırlama henüz sağlanmaz. Bu sınırlar korunmadan
+tam güvenli oturum/yayın tamamlandı denmez; rol tek başına sağlık kaydı yetkisi değildir.
 
 Ürün/teknoloji kararları onaylıdır; Auth/profil ve kategori/onay DTO'ları dahil teknik bağımlılıklar `12`nin hazırlık tablosundadır. İlgili şema kapanmadan gerçek yetki/oturum entegrasyonu tamamlandı sayılmaz. Sentetik tasarım/bağımsız altyapı çalışması gerçek sağlık verisi toplama veya yayın izni değildir.
 

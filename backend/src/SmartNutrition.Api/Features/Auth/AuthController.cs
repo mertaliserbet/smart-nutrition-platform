@@ -10,8 +10,28 @@ namespace SmartNutrition.Api.Features.Auth;
 [Route("api/v1/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(UserRegistrationService registration, EmailVerificationService verification,
-    VerificationEmailQueue emailQueue) : ControllerBase
+    VerificationEmailQueue emailQueue, UserLoginService login) : ControllerBase
 {
+    [AllowAnonymous]
+    [HttpPost("login")]
+    [Consumes("application/json")]
+    [RequestSizeLimit(4096)]
+    [EnableRateLimiting("login")]
+    [ProducesResponseType<LoginUserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Login(LoginUserRequest request, CancellationToken cancellationToken)
+    {
+        var response = await login.LoginAsync(request, cancellationToken);
+        if (response is not null) return Ok(response);
+        Response.Headers.WWWAuthenticate = "Bearer";
+        return Unauthorized(ApiErrors.Create(HttpContext, StatusCodes.Status401Unauthorized));
+    }
+
     [AllowAnonymous]
     [HttpPost("register")]
     [Consumes("application/json")]

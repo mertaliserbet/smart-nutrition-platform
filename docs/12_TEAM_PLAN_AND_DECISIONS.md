@@ -12,7 +12,7 @@ Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleş
 | **Uğur Çetin** | **Web uygulaması**, diyetisyen/admin paneli, **Auth** ve ilgili API'ler | Web ekran/servisleri; kimlik ve güvenli oturum backend'i; diyetisyen/plan/admin iş akışları ve ilgili endpointler |
 | **Ortak** | Gıda görüntü analizi, kalori/porsiyon modeli, kan/vitamin-laboratuvar AI/ML, ortak sözleşmeler, entegrasyon ve güvenlik | Her ortak modül için tek değişiklik lideri atanır; paralel çakışan kod yazılmaz |
 
-**Onaylı sınır:** Auth backend lideri Uğur, mobil auth UI/entegrasyonu Mert'tir; JWT gibi uygulama ayrıntıları ayrıca kararlaştırılır. Mevcut ayrıntılı modül paylaşımı önerisi korunur: `meal-logs`, `water-logs`, `activity-logs` backend liderliği Mert; `dietitian-relationships` ve `nutrition-plans` backend liderliği Uğur. Bu önerinin görev bazlı sınırları, özellikle kişisel program gibi iki tarafı etkileyen akışlar, sprint planında teyit edilir. Ortak AI endpointlerinin lideri her sprintte belirlenir. İkisi aynı C# dosyalarını paralel düzenlemez.
+**Onaylı sınır:** Auth backend lideri Uğur, mobil auth UI/entegrasyonu Mert'tir; görev bazlı açık kullanıcı talimatı mevcut Auth üzerinden çalışmaya izin verir ve genel sahiplik sınırını değiştirmez. JWT access kararı aşağıda kapanmıştır; diğer oturum ayrıntıları ayrıca kararlaştırılır. Mevcut ayrıntılı modül paylaşımı önerisi korunur: `meal-logs`, `water-logs`, `activity-logs` backend liderliği Mert; `dietitian-relationships` ve `nutrition-plans` backend liderliği Uğur. Bu önerinin görev bazlı sınırları, özellikle kişisel program gibi iki tarafı etkileyen akışlar, sprint planında teyit edilir. Ortak AI endpointlerinin lideri her sprintte belirlenir. İkisi aynı C# dosyalarını paralel düzenlemez.
 
 ## Kritik: aynı isimler için ekip protokolü
 
@@ -98,7 +98,7 @@ Aşağıdaki kararların tamamı **ONAYLI**dır. “Program” mevcut kanonik ka
 | No | Onaylı karar | Uygulama kuralı |
 |---|---|---|
 | 18 | Admin: doğrulama, kullanıcılar, şikâyetler, besin kataloğu, Audit Log ve sistem durumu | Özel sağlık verilerine varsayılan erişim yoktur. İstisnai erişim gerekçe, sınırlı yetki ve denetim izi gerektirir; mevcut `AuditEvent` kavramı korunur |
-| 19 | E-posta/şifre, e-posta doğrulama, şifre sıfırlama ve güvenli oturum; Admin MFA zorunlu | Kimlik ve oturum kontrolleri sunucuda uygulanır. MFA yöntemi, token/cookie yaklaşımı ve süreler açık teknik kararlardır |
+| 19 | E-posta/şifre, e-posta doğrulama, şifre sıfırlama ve güvenli oturum; Admin MFA zorunlu | Kimlik ve oturum kontrolleri sunucuda uygulanır. JWT access süresi 15 dakika olarak aşağıda kapanmıştır; MFA, refresh/logout/iptal ve cookie yaklaşımı açık kalır |
 | 20 | Flutter/Dart, React/TypeScript, ASP.NET Core/C# ve PostgreSQL | AI ihtiyacı olduğunda Python/FastAPI kullanılır. Mobil/web aynı versiyonlu backend API'yi kullanır; iş kuralları ve yetkilendirme backend'dedir, istemciler DB'ye doğrudan bağlanmaz |
 | 21 | Mert mobil ve ilgili API'ler; Uğur web, Auth ve ilgili API'ler; AI ortak | Yukarıdaki sahiplik sınırları geçerlidir. 27.10.2026 kullanıcı kararıyla ortak depodaki `main` üzerinde, her geliştiricinin kendi checkout'unda çalışılır; kullanıcı açıkça istemedikçe yeni dal/PR açılmaz. Ortak modülde tek değişiklik lideri ve ortak sözleşmelerde iki tarafın onayı zorunludur |
 | 22 | Premium UI/UX, ortak tasarım tokenları ve açık/koyu tema | Mobil ve webde iki tema desteklenir; görsel dil tutarlıdır. Flutter/React kodu paylaşılmaz; token karşılıkları eşdeğer tutulur. Renk, font ve kesin token değerleri henüz seçilmemiştir |
@@ -106,6 +106,17 @@ Aşağıdaki kararların tamamı **ONAYLI**dır. “Program” mevcut kanonik ka
 ### Açık kararlar ve teknik ayrıntılar
 
 **Kapanan Auth kararları — 27.10.2026:** Kullanıcının önceki onayıyla danışan kaydında zorunlu düz `displayName`, başlangıçta doğrulanmamış User ve `201 { id }` minimal yanıt kesinleşti. Bu görev onayıyla 8–128 Unicode/boşluk destekli kayıt politikası, 30 dakikalık kriptografik tek kullanımlık e-posta tokenı, yalnız hash saklama, `verify-email` için `204` ve varlık açıklamayan `resend-verification` için `202` sözleşmeleri `04/05/06/11`e işlendi. Varsayılan yapılandırılabilir yeniden gönderim sınırları hesap başına 60 saniye ve IP başına dakikada 5 istektir. Yerel test SMTP'si Mailpit'tir; üretim sağlayıcısı/kalıcı teslim ve istemci entegrasyonu açık kalır. Bu kararlar giriş, JWT, MFA veya şifre sıfırlama uygulandığı anlamına gelmez.
+
+**Sonraki giriş görevinin açık onayı — 27.10.2026:** Kullanıcı güvenli giriş ve
+15 dakikalık JWT access token istedi; ayrıca `{ email, password }` →
+`200 { accessToken, tokenType: "Bearer", expiresAt }` şemasını ve olmayan hesap,
+yanlış parola, doğrulanmamış e-posta ile Admin için aynı `401 unauthenticated`
+yanıtını açıkça onayladı. Bu JWT dilimi `04/05/06/11`e işlendi. IP başına dakikada
+10 istek yapılandırılabilir başlangıç limitidir. User/ClientProfile ve e-posta
+doğrulama alanları korunur; yeni tablo/migration eklenmez. `13`teki opaque token,
+doğrulanmamış hesap için ayrı `403` ve alternatif oturum yanıtı bu dilimde geçerli
+değildir. Bu kayıt, `13`ün tamamının veya Uğur'un ayrıca onay verdiğinin kaydı değildir.
+Refresh/logout/iptal, `/me`, MFA, sıfırlama ve istemci cookie/saklama entegrasyonu açık kalır.
 
 Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kararlaştırılmalıdır. Geçmiş verinin korunması, süresiz saklama kararı değildir; silme ve saklama kuralları yayın kapısının parçasıdır.
 
@@ -119,7 +130,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Besin ve AI kaynakları | Hibrit kataloğun kaynakları, birleştirme/öncelik kuralları ve lisansları; tarif hesaplama ve görünürlük; hazır model/API seçimi, veri seti ve değerlendirme ölçütleri. Fotoğraf saklama ve anonimleştirme ayrıca kararlaştırılır |
 | Laboratuvar | Test kod standardı, birim dönüşümleri, referans doğrulama kuralları, OCR sağlayıcısı ve hata kontrolü; opsiyonel ML için izinli veri ve bilimsel validasyon. OCR'nin manuel girişten sonra gelmesi ve kullanıcı onayı zorunluluğu kesindir |
 | Sağlık platformları | Android/iOS ilk önceliği, desteklenen OS/cihazlar, veri türlerinin platform karşılıkları, izin ve senkronizasyon ayrıntıları; adım/nabız gibi verilerin şeması ve kaynak bazlı tekilleştirme/örtüşme politikası. Tüm saatlerin doğrudan entegrasyonu garanti değildir |
-| Auth ve ortam | JWT/oturum tokenı/cookie seçimi, mobil güvenli saklama, oturum süreleri/iptali, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim ve Admin MFA yöntemi/kurtarma; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt ve e-posta doğrulama ayrıntıları yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
+| Auth ve ortam | Refresh/logout/iptal, cookie/istemci güvenli saklama, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim ve Admin MFA yöntemi/kurtarma; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt, e-posta doğrulama ve 15 dakikalık JWT giriş ayrıntıları yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
 | Tasarım ve kullanıcı kapsamı | Renk paleti, font, token değerleri, navigasyon ve 2–3 mobil ekran/web dashboard tasarım onayı; ülke/dil kapsamı, doğum tarihi zorunluluğu ve ücretli model. Açık/koyu tema desteği artık seçim beklemiyor |
 | Veri koruma ve yayın | Sağlık verisi, fotoğraf/OCR dosyaları ve PDF raporları için saklama, silme ve yedek politikaları; üçüncü taraf/yurt dışı aktarım, audit kapsamı ve istisnai Admin erişimi. `11_SECURITY_AND_RELEASE.md` yayın kapısı korunur |
 | Sprint ve modül liderliği | Ayrıntılı backend dosya/modül sınırları, ortak AI işlerinin tek değişiklik lideri ve teslim sırası; ilk sürüm koşulları korunarak kapasite planı. Öğün kayıtlarının sürümleme ihtiyacı açıktır; program sürüm geçmişi ise onaylıdır |
@@ -128,11 +139,11 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 
 **Durum: kısmen hazır.** Ürün, teknoloji, roller ve sahiplik sınırları belirli; bağımsız altyapı ve onaylı alanlara dayanan sentetik UI çalışmaları ayrı görevlerde başlayabilir. Ancak Auth, paylaşım ve program akışlarını kapsayan tam mobil–web–backend geliştirme/entegrasyonu henüz hazır değildir. Aşağıdaki açıklar ilgili özellikten önce iki geliştirici tarafından kapatılmalıdır; belgeyi güncellemek uygulama/test/yayın onayı değildir.
 
-`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevinde yalnız onaylanan kayıt/e-posta doğrulama parçaları bu ortak sözleşmelere işlenmiştir.
+`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevlerinde yalnız onaylanan kayıt/e-posta doğrulama/JWT giriş parçaları bu ortak sözleşmelere işlenmiştir.
 
 | Alan | Bulgu / gerekli ortak karar | Geliştirmeye etkisi |
 |---|---|---|
-| Auth ve profil | Register isteği/`201 { id }`, User doğrulama alanları ve verify/resend sözleşmesi kapanmıştır. `/me` kökü, refresh/logout oturum gövdeleri, oturum token/cookie ve MFA challenge/kurulum/kurtarma ile diğer güvenlik kayıtları açıktır | Kayıt/e-posta doğrulama backend adımı uygulanabilir; gerçek giriş, güvenli oturum ve Admin paneli entegrasyonundan önce kalan sözleşmeler kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
+| Auth ve profil | Register isteği/`201 { id }`, User doğrulama alanları, verify/resend ve 15 dakikalık JWT login sözleşmesi kapanmıştır. `/me`, refresh/logout/iptal, cookie/istemci saklama ve MFA challenge/kurulum/kurtarma ile diğer güvenlik kayıtları açıktır | Kayıt/e-posta doğrulama/JWT backend dilimleri uygulanabilir; tam oturum/istemci ve Admin paneli entegrasyonundan önce kalan sözleşmeler kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
 | Program sürümü ve geçiş | Öğelerin sürüm/alternatif bağları, miktar/gün biçimi, tam items DTO'su, arşivleme/değiştirme request'i açıktır; `06` ikinci aktif programa `409` döndürür | Sürüm geçmişi ve program değiştirme özelliği uygulanmadan önce kapanmalı; eski sahiplik silinerek veya iki aktif programla aşılmaz |

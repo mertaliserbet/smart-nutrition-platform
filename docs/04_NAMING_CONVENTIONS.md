@@ -99,6 +99,12 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - Sunucu içi alanlar C# `EmailVerificationTokenHash`, `EmailVerificationExpiresAt`, `EmailVerificationLastSentAt`; PostgreSQL karşılıkları `email_verification_token_hash`, `email_verification_expires_at`, `email_verification_last_sent_at` olur. Sözlükteki camelCase gösterimleri HTTP yanıt alanı ilanı değildir: bu üç alan ve `isEmailVerified` mevcut yanıtlara çıkmaz. Tip ve bütünlük `05`te, işlem yolları `06`dadır.
 - Ham token için `User.token`, `verificationCode` veya saklanan düz metin alternatif alan üretilmez. E-posta metnindeki “doğrulama kodu” API'deki `token` ile aynı değerdir; mobil/web ayrı ad veya şema üretmez.
 
+### Onaylı giriş ve JWT adları — 27.10.2026
+
+- Giriş `LoginUserRequest` / `LoginUserResponse` adlarını kullanır: istek `email`, `password`; yanıt `accessToken`, `tokenType`, `expiresAt`. Paralel `SignIn`/`Authenticate` DTO'su veya farklı istemci yanıt kökü üretilmez. Tam HTTP sözleşmesi `06`dadır.
+- JWT `sub` claim'i `User.id` değeridir; `clientId` veya `ClientProfile.id` değildir. `role` claim'i mevcut `client` / `dietitian` değerini taşır. `admin`, MFA hazır olana kadar token üretiminde ve kabulünde kapalıdır.
+- `accessToken` 15 dakikalık JWT'dir; e-posta doğrulama girdisi `token` ile karıştırılmaz. `tokenType` tam `Bearer`, `expiresAt` UTC instant'tır. JWT ve `expiresAt` yeni User sütunları değildir; oturum/refresh entity'si bu görevden türetilmez. JWT'nin standart `iss`, `aud`, `iat`, `nbf`, `exp` claim adları JSON/domain alanı diye yeniden adlandırılmaz.
+
 ## Başlangıç enum sözlüğü
 
 | Enum | JSON değerleri |

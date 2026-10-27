@@ -13,13 +13,18 @@ using SmartNutrition.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Password hashing only: no sign-in scheme, cookies, tokens or Identity endpoints.
+// Reuse Identity password hashing without adding default Identity endpoints or tables.
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
 builder.Services.AddOptions<RegistrationPasswordPolicy>()
     .Bind(builder.Configuration.GetSection(RegistrationPasswordPolicy.SectionName));
 builder.Services.AddScoped<UserRegistrationService>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddScoped<UserLoginService>();
+builder.Services.AddSingleton<LoginPasswordVerifier>();
+builder.Services.AddOptions<LoginOptions>().Bind(builder.Configuration.GetSection(LoginOptions.SectionName))
+    .Validate(options => options.RequestsPerMinute > 0).ValidateOnStart();
 builder.Services.AddOptions<EmailVerificationOptions>()
     .Bind(builder.Configuration.GetSection(EmailVerificationOptions.SectionName))
     .Validate(options => options.ResendCooldownSeconds > 0 && options.ResendRequestsPerMinute > 0 && options.QueueCapacity > 0)
@@ -38,6 +43,14 @@ builder.Services.AddRateLimiter(options =>
         _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = settings.ResendRequestsPerMinute, Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0, AutoReplenishment = true
+        }));
+    var loginSettings = builder.Configuration.GetSection(LoginOptions.SectionName).Get<LoginOptions>() ?? new();
+    options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = loginSettings.RequestsPerMinute, Window = TimeSpan.FromMinutes(1),
             QueueLimit = 0, AutoReplenishment = true
         }));
 });
@@ -94,6 +107,8 @@ app.UseStatusCodePages(context =>
     ApiErrors.WriteAsync(context.HttpContext, context.HttpContext.Response.StatusCode));
 app.UseHttpsRedirection();
 app.UseRateLimiter();
+app.UseAuthentication();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {

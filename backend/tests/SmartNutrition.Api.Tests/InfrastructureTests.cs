@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
 
@@ -15,8 +16,19 @@ namespace SmartNutrition.Api.Tests;
 public sealed class InfrastructureTests
 {
     [Theory]
+    [InlineData("Auth:Jwt:Issuer")]
+    [InlineData("Auth:Jwt:Audience")]
+    [InlineData("Auth:Jwt:SigningKeyBase64")]
+    public async Task MissingJwtConfigurationFailsClosedBeforeServingRequests(string missingSetting)
+    {
+        await using var factory = new ApiFactory(missingJwtSetting: missingSetting);
+        Assert.Throws<OptionsValidationException>(() => factory.CreateClient());
+    }
+
+    [Theory]
     [InlineData("verify-email", "token")]
     [InlineData("resend-verification", "email")]
+    [InlineData("login", "email")]
     public async Task OversizedVerificationRequestsReturnShared413OnRealKestrel(string route, string field)
     {
         // TestServer does not enforce Kestrel's request-size feature.
@@ -121,7 +133,19 @@ public sealed class InfrastructureTests
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
-        Assert.Equal(3, paths.EnumerateObject().Count());
+        Assert.Equal(4, paths.EnumerateObject().Count());
+        var login = paths.GetProperty("/api/v1/auth/login").GetProperty("post");
+        var loginSchema = login.GetProperty("requestBody").GetProperty("content").GetProperty("application/json").GetProperty("schema");
+        if (loginSchema.TryGetProperty("$ref", out var loginReference))
+            loginSchema = document.RootElement.GetProperty("components").GetProperty("schemas")
+                .GetProperty(loginReference.GetString()!.Split('/').Last());
+        Assert.Equal(["email", "password"], loginSchema.GetProperty("properties").EnumerateObject().Select(field => field.Name).Order().ToArray());
+        Assert.Equal(["email", "password"], loginSchema.GetProperty("required").EnumerateArray().Select(field => field.GetString()!).Order().ToArray());
+        var loginResponse = login.GetProperty("responses").GetProperty("200").GetProperty("content").GetProperty("application/json").GetProperty("schema");
+        if (loginResponse.TryGetProperty("$ref", out var responseReference))
+            loginResponse = document.RootElement.GetProperty("components").GetProperty("schemas")
+                .GetProperty(responseReference.GetString()!.Split('/').Last());
+        Assert.Equal(["accessToken", "expiresAt", "tokenType"], loginResponse.GetProperty("properties").EnumerateObject().Select(field => field.Name).Order().ToArray());
         Assert.True(paths.GetProperty("/api/v1/auth/verify-email").TryGetProperty("post", out _));
         Assert.True(paths.GetProperty("/api/v1/auth/resend-verification").TryGetProperty("post", out _));
         foreach (var (route, input, success) in new[]
@@ -169,7 +193,6 @@ public sealed class InfrastructureTests
 
     [Theory]
     [InlineData("/api/v1/meal-logs")]
-    [InlineData("/api/v1/auth/login")]
     [InlineData("/weatherforecast")]
     public async Task UnimplementedRoutes_UseTheSharedErrorFormat(string path)
     {
@@ -193,16 +216,19 @@ public sealed class InfrastructureTests
 
     private sealed class ApiFactory(
         string environment = "Production",
-        string? connectionString = null) : WebApplicationFactory<Program>
+        string? connectionString = null, string? missingJwtSetting = null) : WebApplicationFactory<Program>
     {
+        private readonly JwtTestSettings _jwt = new();
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment(environment);
             builder.ConfigureAppConfiguration((_, configuration) =>
-                configuration.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    ["ConnectionStrings:DefaultConnection"] = connectionString
-                }));
+            {
+                var settings = _jwt.Configuration;
+                settings["ConnectionStrings:DefaultConnection"] = connectionString;
+                if (missingJwtSetting is not null) settings[missingJwtSetting] = "";
+                configuration.AddInMemoryCollection(settings);
+            });
         }
     }
 }

@@ -8,7 +8,7 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 
 - Base path: `/api/v1`. JSON `camelCase`; enum değerleri `04_NAMING_CONVENTIONS.md` içindeki lowercase değerler.
 - İç `id`/FK alanları UUID string; zaman UTC ISO 8601 ör. `2026-10-15T12:30:00Z`, tarihler `YYYY-MM-DD`. `externalRecordId` sağlayıcının string kimliğidir, UUID olmak zorunda değildir. Decimal değerler JSON number, boolean true/false; birimler ve nullability `05`e uyar. Ölçümde `null` bilinmeyen, `0` gerçek sıfırdır.
-- Auth önerisi: kısa ömürlü access + yenilenebilir refresh token; secure storage/cookie ayrımı istemciye göre onaylanacak.
+- Onaylı giriş dilimi: 15 dakikalık JWT access token, `Authorization: Bearer <access-token>`. Refresh/logout, istemci secure storage/cookie stratejisi ve MFA ayrıca açık; bu özellikler mevcut giriş dilimine dahil değildir.
 - Auth olmayan/geçersiz oturum `401`, rol/ilişki yetkisiz `403`, bulunamayan `404`, doğrulama `400/422`, çakışma `409`, hız limiti `429`, iç hata `500`. Başka danışanın kaydına dair varlık bilgisi sızmaması için uygun yerde `404` kullanılır; aynı kaynak için davranış tutarlı tutulur.
 - Liste istekleri `page` (1'den başlayan pozitif integer), `pageSize` (pozitif integer, sunucu limiti); yanıt `{ items: [...], totalCount: integer }`. Varsayılanlar/üst limit **AÇIK**tır. `totalCount` yalnız yetkili filtrelenmiş kümenin sayısıdır. Boş liste `200` ve `items: []` döner.
 - Zaman filtresi desteklenen günlük kayıtlarda `from`/`to` UTC instant'tır; `from` dahil, `to` hariçtir; ikisi varsa `from < to` gerekir. Alanlar MealLog/WaterLog için `consumedAt`, ölçüm için `measuredAt`, aktivite için `startedAt`, tahlil için `collectedAt`tır. Yerel gün ve program uyum saat dilimi politikası **AÇIK**tır; istemci/sunucu ayrı ayrı varsaymaz.
@@ -52,7 +52,7 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 | Kimlik | `POST /api/v1/auth/register` | Yalnız danışan kaydı; `201 { id }`, otomatik giriş yok |
 | Kimlik | `POST /api/v1/auth/verify-email` | E-postadaki tek kullanımlık token ile doğrulama; `204` |
 | Kimlik | `POST /api/v1/auth/resend-verification` | Varlık açıklamayan yeniden gönderim isteği; `202` |
-| Kimlik | `POST /api/v1/auth/login` | Oturum |
+| Kimlik | `POST /api/v1/auth/login` | Doğrulanmış, Admin olmayan hesap için 15 dakikalık JWT access token |
 | Kimlik | `POST /api/v1/auth/refresh` | Token yenileme |
 | Kimlik | `POST /api/v1/auth/logout` | Oturum kapatma/refresh iptali |
 | Profil | `GET /api/v1/me` | Giriş yapan kullanıcının profili |
@@ -204,7 +204,7 @@ Geçerli birim/referans yoksa açıklama `unknown` ve sınırlılıkları yansı
 ## Kimlik, profil ve ilişki işlemlerinin sınırları
 
 - `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Çoklu rol ve diğer profil sözleşmeleri ayrıca açıktır.
-- `POST /auth/login`: `email`/`password`; `200` güvenli oturum sonucu. Refresh/logout mevcut yollarını korur. Token/cookie gövdesi, süreler, e-posta doğrulamasının erişim kapısı ve MFA challenge şekli **AÇIK**tır; örnek JWT alanları gerçek sözleşme diye eklenmez. Admin için MFA tamamlanmadan yetkili yönetim oturumu verilmez.
+- `POST /auth/login`: aşağıdaki JWT giriş şeması onaylıdır. E-posta doğrulanmadan veya Admin MFA akışı hazır olmadan token verilmez. Refresh/logout mevcut taslak yollarını korur; bu işlemler, cookie stratejisi ve MFA challenge gövdeleri henüz uygulanmaz.
 - `GET /me` yalnız kendi güvenli User ve mevcut profil alanlarını döndürür; profil yanıtının kök yapısı **AÇIK**tır. `PATCH /me` kapsamında `displayName`, danışanın nullable `birthDate`/`heightCm` alanları düzenlenebilir; `role`, `isVerified` veya MFA/secret alanı bu yoldan yükseltilemez. `licenseInfo` tipi açıkken keyfî JSON kabul edilmez.
 - `GET /dietitians` araması `query` ve pagination kullanabilir; uygun/doğrulanmış uzman profilleri için `id`, `displayName`, `isVerified` gibi paylaşılabilir alanlar sunulur; sağlık kaydı, özel belge veya hesap sırrı dönmez.
 - `POST /dietitian-relationships`: danışandan hedef `dietitianId`; `clientId` auth'tan. `201` kendi pending DietitianClientRelationship kaydı; GET aynı User'ın taraf olduğu ilişkileri `05` alanlarıyla listeler. Davet kodu biçimi/ömrü/istek alanı açıktır; ayrı kod modeli veya tek taraflı otomatik onay yolu üretilmez.
@@ -227,6 +227,23 @@ Bu üç işlem oturumsuzdur; doğrulama giriş/oturum veya sağlık verisi eriş
 - Varsayılan yeniden gönderim aralığı **hesap başına 60 saniye**dir; DB'de atomik kontrol edilir. Ayrıca doğrudan bağlantı IP'si başına **dakikada 5 istek** limiti hesap varlığından bağımsız uygulanır; aşım ortak hata zarfıyla `429`dur. Değerler `Auth:EmailVerification` üzerinden yapılandırılır. IP sayacı mevcut API sürecindedir; çok örnekli dağıtım/proxy için ortak limit ve güvenilir proxy yapılandırması ayrıca değerlendirilmelidir.
 - Verify/resend gövdeleri en fazla 4096 byte'tır (`413 payload_too_large`); desteklenmeyen içerik `415 unsupported_media_type`, beklenmeyen sunucu hatası `500 internal_error` ortak zarfı kullanır. Sınırlar token/e-posta değerini yanıta yansıtmaz.
 - SMTP ayarları environment/User Secrets'tan alınır; yerel geliştirmede yalnız loopback Mailpit kullanılır. E-posta metni tokenı ve 30 dakikalık süreyi içerir. İstemcilerin bağlantı/deep-link/UI entegrasyonu bu backend göreviyle uygulanmış sayılmaz. Kuyruk sınırlı ve bellektedir; yeniden başlatma/teslim hatasında yeniden gönderim gerekir. Kalıcı teslim/üretim e-posta sağlayıcısı kararı açıktır.
+
+### Onaylı giriş ve JWT sözleşmesi — 27.10.2026
+
+Kullanıcı bu görevde JWT + 15 dakika kararını, ayrıca aşağıdaki istek/yanıt ve ortak `401` davranışını açıkça onaylamıştır. `13`teki opaque token/alternatif yanıt önerileri bu giriş sözleşmesi yerine kullanılmaz.
+
+| İşlem | Request | Başarı / hata |
+|---|---|---|
+| `POST /api/v1/auth/login` | `LoginUserRequest`: `{ "email": "synthetic@example.test", "password": "<parola>" }`. İki alan zorunlu string; rol/kimlik veya başka alan alınmaz | `200` `LoginUserResponse`: `{ "accessToken": "<JWT>", "tokenType": "Bearer", "expiresAt": "<UTC ISO 8601>" }`. Bulunmayan hesap, yanlış parola, doğrulanmamış e-posta ve Admin için aynı genel `401 unauthenticated`. Şekil/eksik/boş girdi, geçersiz e-posta veya ek alan `400 invalid_request`; hız sınırı `429 rate_limited` |
+
+- Login mevcut Identity normalizer ile e-postayı kırpar/normalleştirir ve Identity PasswordHasher ile parolayı doğrular. Parola aynen korunur; girişte yeni kayıt karmaşıklığı/minimumu yeniden uygulanmaz. Hesap bulunmadığında da Identity parola hash doğrulaması yapılır; sahte User/oturum oluşturulmaz. Başarısızlık yanıtları hesap/doğrulama/MFA ayrımı veya gizli veri içermez.
+- Başarı yalnız `client`/`dietitian` ve `isEmailVerified = true` hesaplar içindir. Admin'e token verilmez; middleware imzası geçerli olsa dahi `admin` rolünü kabul etmez. Diyetisyen rolü tek başına uzman doğrulaması veya sağlık kaydı yetkisi değildir; ilgili kaynaklarda `05/11` kontrolleri ayrıca gerekir.
+- JWT **15 dakika** geçerlidir. `sub: string` mevcut User UUID'si, `role: string` kanonik roldür; ayrıca `iss`, `aud`, `iat`, `nbf`, `exp` standart claim'leri vardır. E-posta, ad, profil/sağlık verisi, hash veya secret claim'i yoktur. `expiresAt`, tokenın imzalı `exp` değeriyle aynı UTC anıdır; istemci claim çözümleyerek yetki vermez.
+- Token `HS256` ile imzalanır, türü `at+jwt`dir. İmzalama anahtarı (Base64, en az 32 kriptografik rastgele byte), issuer ve audience environment/User Secrets'tan alınır; eksik/hatalı yapılandırmada API başlamaz. Token/API yanıtı loglanmaz. Access token DB'ye yazılmaz.
+- ASP.NET Core JWT authentication/authorization middleware imza, izinli algoritma/tür, tam issuer/audience, zorunlu expiry ve zaman aralığını doğrular. `ClockSkew = 0`; varsayılan ek beş dakika tanınmaz. Yetkili kaynaklar `[Authorize]`/uygun kaynak politikalarını uygular. Kimlik `sub`dan alınır; User UUID'si ClientProfile UUID'si sayılmaz.
+- Yetki isteyen bir kaynağa eksik/geçersiz/süresi dolmuş token `401 unauthenticated`, geçerli kimlikle eksik rol/kaynak yetkisi `403 forbidden` olur. `WWW-Authenticate: Bearer` iç doğrulama ayrıntısı taşımaz; ortak hata zarfı korunur. Login ve auth hata yanıtları `Cache-Control: no-store` kullanır. Kimlik/rol deneme yolları yalnız test host'undadır; yeni genel API kaynağı eklenmez.
+- Login varsayılan limiti doğrudan bağlantı IP'si başına **dakikada 10 istek**tir (`Auth:Login:RequestsPerMinute`); hesap varlığından bağımsız ve API süreci içinde uygulanır. Çok örnekli ortak limit/proxy ve hesap bazlı saldırı kontrolleri ayrıca değerlendirilir; kalıcı hesap kilidi bu görevde eklenmez. Gövde sınırı 4096 byte: `413 payload_too_large`; yanlış içerik türü `415 unsupported_media_type`; beklenmeyen hata `500 internal_error`.
+- Refresh token/cookie/logout, anlık oturum/rol/parola değişikliği iptali, `/me`, MFA ve parola sıfırlama bu dilimde yoktur. Mevcut JWT, geçerli imza ve süresi boyunca kullanılabilir; tam oturum iptali sağlanmış sayılmaz. Yeni entity veya migration varsayılmaz.
 
 ### Henüz uygulanmamış kimlik işlemleri
 
@@ -306,8 +323,8 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 - Program arşivleme/değiştirme ve ilişkinin bitişindeki program davranışı; programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve gün/saat dilimi politikası açıktır. Tarihçe korumadan eski programı güncellemek onaylı çözüm değildir.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.
-- Auth oturum token/cookie ve MFA challenge/kurulum/kurtarma gövdeleri, `/me` profil kökü, oturum politikası, şifre sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt şeması/parola politikası ve e-posta doğrulama/yeniden gönderim sözleşmesi yukarıda onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.
+- Refresh/logout/iptal ve cookie stratejisi, MFA challenge/kurulum/kurtarma gövdeleri, `/me` profil kökü, şifre sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt/parola politikası, e-posta doğrulama/yeniden gönderim ve 15 dakikalık JWT giriş sözleşmesi yukarıda onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.
 - İlk sürüm yorum/cevap bildirimleri ve diyetisyen PDF raporları onaylı kapsamdır; bildirim/rapor DTO, teslim/dosya yetkilendirmesi ve moderasyon ayrıntıları açık olduğundan bu görevde tahminî yollar açılmaz. İzin dışı veri export edilmez. KVKK, silme, saklama ve audit için `11` kapısı korunur.
 - Sayısal hassasiyet/yuvarlama, metin/dosya/pagination limitleri, tekrar denemelerde idempotency ve güvenli silme ayrıntıları ortak onay bekler. Mevcut enumlar ve model adları değişmez.
 
-Kayıt/e-posta doğrulama ayrıntıları `04/05/11/12` ile eşgüdümlüdür. Diğer açık şema parçaları iki geliştiricinin onayıyla `04/05/06` ve OpenAPI/istemci tiplerinde birlikte tamamlanmalıdır; bu görev mobil/web entegrasyonu içermez.
+Kayıt/e-posta doğrulama/JWT giriş ayrıntıları `04/05/11/12` ile eşgüdümlüdür. Diğer açık şema parçaları iki geliştiricinin onayıyla `04/05/06` ve OpenAPI/istemci tiplerinde birlikte tamamlanmalıdır; bu görev mobil/web entegrasyonu içermez.

@@ -25,9 +25,11 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private readonly TimeProvider? _clock;
     private readonly IVerificationEmailSender? _sender;
     private readonly bool _useSmtp;
+    private readonly bool _includeAuthProbe;
     private readonly CaptureLoggerProvider _logs = new();
 
-    private RegistrationApiFactory(IInterceptor? interceptor, TimeProvider? clock, IVerificationEmailSender? sender, bool useSmtp)
+    private RegistrationApiFactory(IInterceptor? interceptor, TimeProvider? clock, IVerificationEmailSender? sender,
+        bool useSmtp, bool includeAuthProbe)
     {
         var builder = new NpgsqlConnectionStringBuilder(
             Environment.GetEnvironmentVariable(PostgresFactAttribute.ConnectionVariable))
@@ -41,12 +43,13 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         _clock = clock;
         _sender = sender;
         _useSmtp = useSmtp;
+        _includeAuthProbe = includeAuthProbe;
     }
 
     public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null,
-        TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false)
+        TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false)
     {
-        var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp);
+        var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe);
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -75,6 +78,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         .UseNpgsql(_testConnection).Options);
 
     public string Logs => string.Join(Environment.NewLine, _logs.Messages);
+    public JwtTestSettings Jwt { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -88,10 +92,11 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
                 ["Email:Smtp:FromAddress"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_FROM") : "",
                 ["Email:Smtp:TlsMode"] = _useSmtp ? "None" : "StartTls",
                 ["Email:Smtp:Username"] = "", ["Email:Smtp:Password"] = ""
-            }));
+            }.Concat(Jwt.Configuration)));
         builder.ConfigureLogging(logging => logging.ClearProviders().AddProvider(_logs));
         builder.ConfigureServices(services =>
         {
+            if (_includeAuthProbe) services.AddControllers().AddApplicationPart(typeof(LoginProbeController).Assembly);
             if (_interceptor is not null)
                 services.AddDbContext<AppDbContext>(options => options.AddInterceptors(_interceptor));
             if (_clock is not null)
