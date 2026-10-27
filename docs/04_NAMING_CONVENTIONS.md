@@ -74,7 +74,7 @@ Kod tanımlayıcıları İngilizce ve ASCII yazılır; Türkçe kullanıcı aray
 | PostgreSQL tablo/sütun | İngilizce, küçük `snake_case`; tablo çoğul, sütun alan adı | `meal_logs`, `client_id`, `consumed_at` |
 | REST kaynak adı | `/api/v1/` + çoğul `kebab-case`; yalnız `06`da tanımlı yollar | `/api/v1/meal-logs`; `/me`, `/auth`, `/dietitian` ve işlem yolları mevcut sözleşmeye göre korunur |
 | JSON fields | **her yerde `camelCase`** | `clientId`, `caloriesKcal` |
-| Git branch | `feature/`, `fix/`, `docs/` + kebab-case | `feature/client-meal-logs` |
+| Git dalı | Ortak çalışma dalı `main`; kullanıcı açıkça istemedikçe yeni dal veya PR açılmaz (`12`, 27.10.2026 kararı) | `main`; açıkça istenen istisna adlarında da geliştirme aracının adı kullanılmaz |
 
 **Platformlar arası eşleme:** C# `MealLog.ClientId` ↔ Dart/TypeScript `MealLog.clientId` ↔ JSON `clientId` ↔ PostgreSQL `meal_logs.client_id`. C# property yazımı JSON'a taşınmaz; Dart/TypeScript alanları backend'deki PascalCase ile gönderilmez. PostgreSQL adları JSON'a taşınmaz. Serileştirme ve DB eşlemesi bu dönüşümü açıkça korumalıdır.
 
@@ -124,7 +124,7 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 
 1. Yeni kavram gerekiyorsa mevcut terimin karşılığı mı, gerçek yeni domain kavramı mı kontrol et.
 2. Aynı kavramsa **mevcut adı yeniden kullan**. Yeni gerekliyse ad önerisini ekip onayına sun.
-3. Onay sonrası **önce bu sözlüğü**, sonra `05`, `06`, etkilenen UI/AI belgelerini **aynı PR/commit** içinde güncelle.
+3. Onay sonrası **önce bu sözlüğü**, sonra `05`, `06`, etkilenen UI/AI belgelerini **aynı commit** içinde güncelle.
 4. API breaking change ise sürüm/taşıma/istemci etkisini yaz ve iki geliştiriciden onay al.
 5. İki geliştirici de aynı commit'i çektikten sonra ilgili kod değişikliğine başlasın; diğer Codex'e çelişkili isim üretme görevi verme.
 

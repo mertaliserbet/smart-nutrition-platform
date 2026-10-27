@@ -1,6 +1,6 @@
-# 12 — Ekip görevleri, Codex koordinasyonu, yol haritası ve kararlar
+# 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
-**Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Auth sözleşme güncellemesi:** 27.10.2026 · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararların açık parçaları aşağıdadır.
+**Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Auth sözleşme güncellemesi:** 27.10.2026 · **Git akışı güncellemesi:** 27.10.2026 kullanıcı onayı · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararların açık parçaları aşağıdadır.
 
 Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleşen kısımlarını onaylı duruma taşır. Ürün kararının onaylanması, henüz uyarlanmamış veri şeması veya API tasarımının da onaylandığı anlamına gelmez. `04/05/06` kanonik ad, alan ve endpoint otoritesi olmaya devam eder; bu kararlarla çelişen veya eksik kalan sözleşmeler uygulama öncesinde ortak onayla güncellenmelidir. Bu dosya yeni entity, JSON alanı veya endpoint tanımlamaz.
 
@@ -10,7 +10,7 @@ Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleş
 |---|---|---|
 | **Mert Ali** | **Mobil uygulama**, kamera/görsel işleme entegrasyonu ve ilgili API'ler | Danışan mobil akışları, mobil diyetisyen başvurusu, mobil ekran/servisler ve ilgili danışan endpointleri; mobil auth UI/entegrasyonu |
 | **Uğur Çetin** | **Web uygulaması**, diyetisyen/admin paneli, **Auth** ve ilgili API'ler | Web ekran/servisleri; kimlik ve güvenli oturum backend'i; diyetisyen/plan/admin iş akışları ve ilgili endpointler |
-| **Ortak** | Gıda görüntü analizi, kalori/porsiyon modeli, kan/vitamin-laboratuvar AI/ML, ortak sözleşmeler, entegrasyon ve güvenlik | Her ortak modül için tek PR lideri atanır; paralel çakışan kod yazılmaz |
+| **Ortak** | Gıda görüntü analizi, kalori/porsiyon modeli, kan/vitamin-laboratuvar AI/ML, ortak sözleşmeler, entegrasyon ve güvenlik | Her ortak modül için tek değişiklik lideri atanır; paralel çakışan kod yazılmaz |
 
 **Onaylı sınır:** Auth backend lideri Uğur, mobil auth UI/entegrasyonu Mert'tir; JWT gibi uygulama ayrıntıları ayrıca kararlaştırılır. Mevcut ayrıntılı modül paylaşımı önerisi korunur: `meal-logs`, `water-logs`, `activity-logs` backend liderliği Mert; `dietitian-relationships` ve `nutrition-plans` backend liderliği Uğur. Bu önerinin görev bazlı sınırları, özellikle kişisel program gibi iki tarafı etkileyen akışlar, sprint planında teyit edilir. Ortak AI endpointlerinin lideri her sprintte belirlenir. İkisi aynı C# dosyalarını paralel düzenlemez.
 
@@ -20,18 +20,21 @@ Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleş
 2. `docs/05_DATA_DICTIONARY.md` → entity/alan/tip sözleşmesi.
 3. `docs/06_API_CONTRACT.md` → URI/DTO/JSON sözleşmesi.
 4. **Contract owner = iki kişi birlikte**; hiçbir Codex tek başına bir adı değiştirip diğerinin kullandığını geçersiz kılamaz.
-5. Yeni isim/alan/endpoint teklifi: **proposal → iki kişi onayı → 04+05+06 ve mevcut backend/istemci etkileri onaylı tek PR → main merge → ikisi de pull → entegrasyon**. Henüz kod olmayan bir alanda sözleşme önce tamamlanır; onaylı sözleşmeye göre ilk uygulama sonra yapılır. Böylece mevcut kodu etkileyen değişiklikte belge/kod birbirinden kopuk birleştirilmez.
+5. Yeni isim/alan/endpoint teklifi: **proposal → iki kişi onayı → 04+05+06 ve mevcut backend/istemci etkileri onaylı tek commit → ortak main'e push → ikisi de güncel main'i çeker → entegrasyon**. Henüz kod olmayan bir alanda sözleşme önce tamamlanır; onaylı sözleşmeye göre ilk uygulama sonra yapılır. Böylece mevcut kodu etkileyen değişiklikte belge/kod birbirinden kopuk yayımlanmaz.
 6. Doküman uyuşmazlığında **ilgili çelişkili alan için kod/DTO üretimini durdur ve raporla**. Yetki verilen diğer belge düzeltmeleri sürdürülebilir; “çalışsın diye farklı endpoint ekleme” yasak. Korunan sözleşme dosyası kendiliğinden değiştirilmez.
-7. PR açıklamasında açık alan: `Contract changed? Yes/No`; Yes ise kimin onayladığı ve etkilenen istemciler.
+7. Commit açıklamasında ve görev raporunda açık alan: `Contract changed? Yes/No`; Yes ise kimin onayladığı ve etkilenen istemciler.
 8. Aşağıdaki onaylı kararlar için yeni kavram/alan/endpoint gerekiyorsa önce mevcut `04/05/06` ile çakışma ve istemci etkisi raporlanır; ayrıntılı sözleşme iki tarafça onaylanmadan alternatif isim veya rota üretilmez.
 
-## Git ve Codex akışı
+## Git ve ortak çalışma akışı
 
-- Varsayılan `main` korunur; task/feature branchlerde çalış: `feature/client-meal-logs`, `feature/dietitian-client-list`, `docs/contracts`, `fix/...`.
-- Önce `git pull` ile main güncelle; görevin kapsamını ve ilgili dosya sahipliğini kontrol et.
-- Codex'e **tek görev**, kısa ve test edilebilir hedef, değiştirilecek alan, kullanılacak belgeler ve `başka bir şey yapma` sınırı ver.
-- Codex raporunu diğer geliştiriciyle paylaş; build/test ve contract etkisi incelensin; değişiklikleri küçük PR'larla birleştir. Ortak sözleşme değişikliklerinde iki tarafın onayı zorunludur.
-- Aynı branch'i aynı anda farklı Codex oturumlarına yazdırma. Geniş refactor/taşıma ayrı onaylı görev.
+**27.10.2026 kullanıcı kararı:** Ayrı task/feature branch ve PR zorunluluğu kaldırılmıştır. Ortak uzak depo **`https://github.com/mertaliserbet/smart-nutrition-platform.git`**, ortak çalışma dalı **`main`**dir. Kullanıcı açıkça farklı bir akış istemedikçe yeni dal veya PR açılmaz. Bu karar mevcut PR'ları birleştirme/kapatma veya eski dalları silme yetkisi vermez; bunlar ayrıca açık kullanıcı talimatı gerektirir.
+
+- Her geliştirici kendi yerel checkout'unda `main` üzerinde çalışır. Aynı fiziksel checkout'a iki oturum eşzamanlı yazmaz; ayrı checkout'larda aynı dosyaya dokunan işlerde tek dosya/değişiklik lideri belirlenir. Geniş refactor/taşıma ayrı onaylı görevdir.
+- Görev başında `git status`, etkin dal ve `git remote -v` kontrol edilir. `origin` adı ortak depo anlamına gelmez; URL yukarıdaki depoyla eşleşmelidir. Uğur'un mevcut checkout'unda ortak uzak depo `upstream`, kişisel fork `origin`dir; fork'un `main` dalı ortak kaynak sayılmaz.
+- Çalışma ağacı temizken ortak uzak depodan `main` alınır ve `git pull --ff-only <ortak-uzak-adı> main` ile güncellenir. Kaydedilmemiş kullanıcı değişiklikleri otomatik stash/reset ile kaldırılmaz. Önceden açılmış bir dalda bulunmak o dalın commitlerini `main`e taşıma veya mevcut PR'ı birleştirme izni değildir.
+- Görev küçük ve test edilebilir tutulur; kapsam, ilgili belgeler ve dosya sahipliği kontrol edilir. Değişiklikler küçük, görev kapsamlı commitlere ayrılır; ilgili build/test/statik analiz tamamlanır ve contract etkisi raporlanır. Ortak sözleşmelerde iki tarafın onayı zorunludur.
+- Push öncesi ortak `main` yeniden kontrol edilir. Uzak dal ilerlemişse yalnız henüz paylaşılmamış kendi commitleri güncel ortak `main` üzerine alınır ve ilgili kontroller tekrarlanır. Push reddini force push ile aşma; başkasının commitini silme veya uzak geçmişi yeniden yazma. Beklenmeyen dosya sahipliği/karar çakışması raporlanır.
+- Dal, commit başlığı, PR başlığı, dosya, klasör ve modül adlarında `codex` veya kullanılan geliştirme aracının adı kullanılmaz; adlar değişikliğin amacını ve proje kavramlarını anlatır. Bu tercih, kullanıcı açıkça ayrı dal/PR istediğinde de geçerlidir.
 
 ## Önerilen geliştirme sırası (onaylı kararlar doğrultusunda)
 
@@ -97,7 +100,7 @@ Aşağıdaki kararların tamamı **ONAYLI**dır. “Program” mevcut kanonik ka
 | 18 | Admin: doğrulama, kullanıcılar, şikâyetler, besin kataloğu, Audit Log ve sistem durumu | Özel sağlık verilerine varsayılan erişim yoktur. İstisnai erişim gerekçe, sınırlı yetki ve denetim izi gerektirir; mevcut `AuditEvent` kavramı korunur |
 | 19 | E-posta/şifre, e-posta doğrulama, şifre sıfırlama ve güvenli oturum; Admin MFA zorunlu | Kimlik ve oturum kontrolleri sunucuda uygulanır. MFA yöntemi, token/cookie yaklaşımı ve süreler açık teknik kararlardır |
 | 20 | Flutter/Dart, React/TypeScript, ASP.NET Core/C# ve PostgreSQL | AI ihtiyacı olduğunda Python/FastAPI kullanılır. Mobil/web aynı versiyonlu backend API'yi kullanır; iş kuralları ve yetkilendirme backend'dedir, istemciler DB'ye doğrudan bağlanmaz |
-| 21 | Mert mobil ve ilgili API'ler; Uğur web, Auth ve ilgili API'ler; AI ortak | Yukarıdaki sahiplik sınırları geçerlidir. Feature branch + PR akışı kullanılır; ortak modülde tek PR lideri ve ortak sözleşmelerde iki tarafın onayı zorunludur |
+| 21 | Mert mobil ve ilgili API'ler; Uğur web, Auth ve ilgili API'ler; AI ortak | Yukarıdaki sahiplik sınırları geçerlidir. 27.10.2026 kullanıcı kararıyla ortak depodaki `main` üzerinde, her geliştiricinin kendi checkout'unda çalışılır; kullanıcı açıkça istemedikçe yeni dal/PR açılmaz. Ortak modülde tek değişiklik lideri ve ortak sözleşmelerde iki tarafın onayı zorunludur |
 | 22 | Premium UI/UX, ortak tasarım tokenları ve açık/koyu tema | Mobil ve webde iki tema desteklenir; görsel dil tutarlıdır. Flutter/React kodu paylaşılmaz; token karşılıkları eşdeğer tutulur. Renk, font ve kesin token değerleri henüz seçilmemiştir |
 
 ### Açık kararlar ve teknik ayrıntılar
@@ -119,7 +122,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Auth ve ortam | JWT/oturum tokenı/cookie seçimi, mobil güvenli saklama, oturum süreleri/iptali, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim ve Admin MFA yöntemi/kurtarma; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt ve e-posta doğrulama ayrıntıları yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
 | Tasarım ve kullanıcı kapsamı | Renk paleti, font, token değerleri, navigasyon ve 2–3 mobil ekran/web dashboard tasarım onayı; ülke/dil kapsamı, doğum tarihi zorunluluğu ve ücretli model. Açık/koyu tema desteği artık seçim beklemiyor |
 | Veri koruma ve yayın | Sağlık verisi, fotoğraf/OCR dosyaları ve PDF raporları için saklama, silme ve yedek politikaları; üçüncü taraf/yurt dışı aktarım, audit kapsamı ve istisnai Admin erişimi. `11_SECURITY_AND_RELEASE.md` yayın kapısı korunur |
-| Sprint ve modül liderliği | Ayrıntılı backend dosya/modül sınırları, ortak AI işlerinin tek PR lideri ve teslim sırası; ilk sürüm koşulları korunarak kapasite planı. Öğün kayıtlarının sürümleme ihtiyacı açıktır; program sürüm geçmişi ise onaylıdır |
+| Sprint ve modül liderliği | Ayrıntılı backend dosya/modül sınırları, ortak AI işlerinin tek değişiklik lideri ve teslim sırası; ilk sürüm koşulları korunarak kapasite planı. Öğün kayıtlarının sürümleme ihtiyacı açıktır; program sürüm geçmişi ise onaylıdır |
 
 ## Geliştirmeye hazırlık ve sözleşme bulguları
 

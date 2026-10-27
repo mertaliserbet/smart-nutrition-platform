@@ -1,4 +1,4 @@
-# Codex ortak çalışma talimatları — Smart Nutrition Platform
+# Ortak çalışma talimatları — Smart Nutrition Platform
 
 > Baseline: `DOCS-V1` · 15.10.2026 · durum: **22 ürün/teknoloji kararı onaylı; ortak teknik sözleşmelerin açık parçaları onay bekliyor**. Hazırlık durumu ve sözleşme bulguları `docs/12_TEAM_PLAN_AND_DECISIONS.md` içindedir. Bu repo eski fitness uygulamasının devamı değildir. **Sıfırdan** geliştirilecek diyetisyen odaklı üründür.
 
@@ -14,8 +14,16 @@
 - **Alanlar/ilişkiler/değer tipleri**: `docs/05_DATA_DICTIONARY.md`.
 - **HTTP rotaları, JSON anahtarları, hata formatı**: `docs/06_API_CONTRACT.md`.
 - Backend C# entity adı, Flutter model adı ve web TypeScript tipi aynı kavramı anlatmalı; platformun dil kurallarına göre küçük sözdizimi farkları olabilir. JSON anahtarları `camelCase` olarak ortak kalır.
-- Bunlar **ortak ekip sözleşmeleri**dir. Üzerlerinde değişiklik gerektiren görevde önce çakışmayı raporla ve değişiklik önerisini sun. **Açık ekip onayı olmadan mevcut kanonik adları, endpointleri veya zorunlu alanları değiştirme.** Onaylı değişiklik tek PR/commit içinde doküman, backend, mobil ve web etkileriyle birlikte ele alınır.
-- Her iki Codex, `main` üzerinden aynı onaylı dokümantasyon sürümünü çekmeli. Ayrı branchlerde farklı sözleşme üretmeyin. Sözleşme değişince her iki geliştirici `git pull` ile eşitlenmeden entegrasyon yapılmasın.
+- Bunlar **ortak ekip sözleşmeleri**dir. Üzerlerinde değişiklik gerektiren görevde önce çakışmayı raporla ve değişiklik önerisini sun. **Açık ekip onayı olmadan mevcut kanonik adları, endpointleri veya zorunlu alanları değiştirme.** Onaylı değişiklik tek commit içinde doküman, backend, mobil ve web etkileriyle birlikte ele alınır.
+- Her iki geliştirme oturumu, ortak `main` üzerinden aynı onaylı dokümantasyon sürümünü çekmeli. Sözleşme değişince her iki geliştirici ortak uzak deponun `main` dalıyla eşitlenmeden entegrasyon yapılmasın.
+
+### Ortak Git akışı — 27.10.2026 kullanıcı kararı
+
+- **Ortak uzak depo:** `https://github.com/mertaliserbet/smart-nutrition-platform.git`. **Ortak çalışma dalı:** `main`. İki geliştirici de kendi yerel checkout'unda bu dalda çalışır. Kullanıcı açıkça farklı bir akış istemedikçe yeni dal veya PR açma; eski feature branch + PR zorunluluğu kaldırılmıştır.
+- Görev öncesi `git status`, dal ve uzak depo URL'sini kontrol et. `origin` adının ortak depoyu gösterdiğini varsayma; bu checkout'ta ortak depo `upstream`dir. Çalışma ağacı temizken ortak uzak depodan `main`i al ve `git pull --ff-only <ortak-uzak-adı> main` ile eşitlen. Kaydedilmemiş kullanıcı değişikliklerini otomatik stash/reset ile kaldırma.
+- Aynı fiziksel checkout'a iki oturum eşzamanlı yazmasın; ayrı checkout'larda da aynı dosyanın lideri tek kişi olsun. Küçük, görev kapsamlı commitler oluştur; push öncesi ortak `main`i yeniden kontrol et. Uzak dal ilerlemişse yalnız henüz paylaşılmamış kendi commitlerini güncel `main` üzerine al ve ilgili kontrolleri tekrarla. Force push yapma; başkasının commitini silme veya uzak geçmişi yeniden yazma.
+- Bu karar mevcut PR'ları birleştirme/kapatma veya eski dalları silme izni değildir; bu işlemler için kullanıcının ayrıca açık talimatı gerekir. Ayrıntılı akış `docs/12_TEAM_PLAN_AND_DECISIONS.md` içindedir.
+- **İsimlendirme tercihi:** Dal, commit başlığı, PR başlığı, dosya, klasör ve modül adlarında `codex` veya kullanılan geliştirme aracının adını kullanma; değişikliğin amacını anlatan proje terimleri kullan.
 
 ## 3. Görev kapsamı
 - Sadece istenen işi yap. İlgisiz ekran, teknoloji, paket, endpoint veya veri modeli ekleme.
