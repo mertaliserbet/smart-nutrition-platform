@@ -1,8 +1,9 @@
 # Smart Nutrition — Web
 
-Uğur'un web alanı için React/TypeScript + Vite başlangıcı. Giriş, şifre sıfırlama
-arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi.
-**Backend/API, gerçek Auth, hesap/oturum veya sağlık verisi entegrasyonu içermez.**
+Uğur'un web alanı için React/TypeScript + Vite uygulaması. E-posta doğrulama ve
+yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama
+arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi de bulunur.
+Giriş/oturum ve sağlık verisi entegrasyonu henüz tamamlanmamıştır.
 
 ## Çalıştırma
 
@@ -16,6 +17,38 @@ npm run lint
 npm test
 npm run build
 ```
+
+## E-posta doğrulama
+
+Giriş ekranındaki **E-postamı doğrula** bağlantısı `/eposta-dogrulama` ekranını açar.
+E-postadaki 43 karakterlik tek kullanımlık kod elle yapıştırılır; URL'den kod
+alınmaz ve sayfa açılışında doğrulama isteği gönderilmez. Yalnız kullanıcının
+gönderimiyle `POST /api/v1/auth/verify-email` çağrılır. Sadece `204` doğrulama
+başarısıdır; `422` geçersiz/süresi dolmuş kod, diğer hatalar ve ağ kesintisi
+güvenli mesajlarla gösterilir. Gönderilen kod hemen alandan temizlenir.
+
+**Yeni kod iste**, `POST /api/v1/auth/resend-verification` yoluna yalnız `email`
+gönderir. `202` hesap varlığını veya e-posta teslimini doğrulamaz; uygun hesap
+için gönderimin işleme alınabileceğini bildirir. Yeni kod eskisini geçersiz
+kılabileceğinden alandaki kod temizlenir. `429` sonrası kullanıcı bekleyip yeniden
+deneyebilir; sunucunun yapılandırılabilir sınırları istemcide sabit bir sayaçla taklit edilmez.
+
+Bu iki işlem oturumsuzdur; istekler cookie/Authorization içermez, önbelleğe
+alınmaz ve yönlendirme takip etmez. Kod ve e-posta kalıcı istemci depolamasına,
+URL'ye veya loga yazılmaz. Devam eden işlem tekrar gönderimi engeller; sayfadan
+ayrılınca istemci isteği iptal edilir. İptal sunucudaki işlemi geri almaz.
+Doğrulama otomatik giriş, uzman doğrulaması veya panel erişimi sağlamaz.
+
+Yerel geliştirmede backend'i `backend/README.md` adımlarıyla PostgreSQL,
+Mailpit ve JWT yapılandırmasıyla `http://127.0.0.1:5052` üzerinde çalıştırın.
+Vite geliştirme sunucusu yalnız bu iki API yolunu oraya proxy eder. Sentetik bir
+hesabı mevcut kayıt API'siyle oluşturup Mailpit'teki kodla ekranı kullanabilirsiniz;
+web kayıt formu bu dilime dahil değildir. Backend kapalıysa ekran bağlantı/işlem
+hatası gösterir. `npm run preview` API proxy'si sağlamaz; dağıtımda aynı origin
+altındaki bu API yolları backend'e yönlendirilmelidir. Üretime yayın `docs/11`
+koşullarını ayrıca gerektirir.
+
+## Panel önizlemesi
 
 `http://127.0.0.1:5173` giriş ekranını açar. Geliştirme sunucusundaki **Panel
 tasarımını incele** bağlantısı `/onizleme` alanına gider. Danışanlar ve bağlantı
@@ -58,20 +91,21 @@ veya klinik değerlendirme hesaplanmaz; günlük saat dilimi politikası seçilm
 
 `npm run build` sonrasında `npm run preview` üretim çıktısını yerelde gösterir.
 Üretim derlemesinde `/onizleme/*` yolları kapalıdır; giriş ekranında önizleme
-bağlantısı bulunmaz. Bu ayrım gerçek bir oturum/yetki sistemi değildir. Mert'in
-`6351089` commit'ine kadar backend ve mobil güncellemeleri yerel projeye
-alınmıştır. Backend ve mobil dosyaları bu web görevi kapsamında değiştirilmemiştir.
+bağlantısı bulunmaz. Bu ayrım gerçek bir oturum/yetki sistemi değildir.
+Backend ve mobil dosyaları bu web görevi kapsamında değiştirilmemiştir.
 
 ## Yapı
 
-- `src/features/auth/`: giriş/sıfırlama sunumu, yerel biçim/boş alan kontrolleri.
+- `src/features/auth/`: ortak Auth düzeni, giriş/sıfırlama sunumu, e-posta
+  doğrulama/yeniden gönderim ekranı ve oturumsuz API çağrıları.
 - `src/features/workspace/`: panel navigasyonu, genel bakış ve veri bekleyen alanlar.
 - `src/features/clients/`: danışan listesi/detayı, kapalı sözleşme alanlarının
   TypeScript karşılıkları, sentetik örnekler, kayıt sunumu ve önizleme durumları.
 - `src/core/components/`: kullanılan ortak marka/ikon ve boş durum bileşeni.
 - `src/core/theme/`: tek merkezde başlangıç tokenları, sistem/açık/koyu görünüm.
-- `src/test/`, `*.test.tsx`: formların istek/oturum üretmemesi, üretim önizleme
-  sınırı, erişilebilir form geri bildirimi, sayfa geçişi ve tema davranışları.
+- `src/test/`, `*.test.tsx`: giriş/sıfırlama sunum sınırı, doğrulama HTTP
+  gövdeleri/durumları, gizlilik/iptal/tekrar gönderim, üretim önizleme sınırı,
+  erişilebilir form geri bildirimi, sayfa geçişi ve tema davranışları.
 
 ## Ortak sözleşme ve devam sınırı
 
@@ -83,10 +117,9 @@ tipleri yalnız tanımlı alanları kullanır; fixture'lar üretim derlemesine d
 edilmez. Bilinmeyen danışan kimliğine mevcut bir örneğin verisi atanmaz;
 kayıt, öğün kalemi ve tahlil sonucu sahiplik bağlantıları görüntüleme öncesinde eşleştirilir.
 Bu istemci kontrolleri gerçek kaynak/yetki denetimi olarak sunulmaz.
-E-posta biçimi ve
-boş şifre yerel olarak kontrol edilir; açık parola politikası yerine minimum
-uzunluk/karmaşıklık kuralı seçilmez. Form geçerli olsa da istek, hesap kontrolü,
-e-posta veya token üretilmez; başarılı giriş/sıfırlama taklidi yapılmaz.
+Giriş/sıfırlama formlarında e-posta biçimi ve boş şifre yerel olarak kontrol
+edilir; kayıt parola politikası girişte uygulanmaz. Bu iki form geçerli olsa da
+istek, hesap kontrolü, e-posta veya token üretilmez; başarılı giriş/sıfırlama taklidi yapılmaz.
 Şifre gönderimde ve sayfa geçişinde temizlenir; saklanmaz veya loglanmaz.
 `isLoading` / `errorMessage` yalnız test edilebilir sunum girdileridir; yapay
 gecikme veya sahte ağ yanıtı yoktur.
@@ -98,12 +131,11 @@ başlangıç marka rengi `#386a5e`, 8/16/24/32 boşlukları ve 16px köşe değe
 nihai ortak tema/ekran onayı sayılmaz. Uzak font, analitik veya medya isteği yoktur.
 
 Backend altyapısı PostgreSQL bağlantısı, sağlık kontrolleri ve geliştirme
-OpenAPI/Swagger görünümünü ve User/ClientProfile kaydını içerir. `6351089` ile
-danışan kayıt endpointi `201 { id }` yanıtıyla hazırdır; giriş/oturum ve sağlık
-kayıtlarını okuyan endpointler henüz yoktur. Ortak Auth önerisi ayrı PR'dadır;
-incelemeye hazır olması sözleşme onayı değildir.
-Web bu altyapıya sahte bir giriş isteği göndermez. Sonraki adım Auth/profil
-sözleşmesini iki tarafla doğrulamak ve ilgili endpointler hazır olduğunda
-ilk gerçek giriş entegrasyonunu ayrı görevde yapmaktır.
+OpenAPI/Swagger görünümünü ve User/ClientProfile kaydını içerir. `6f808ff`
+seviyesinde kayıt, e-posta doğrulama/yeniden gönderim, 15 dakikalık JWT login ve
+`GET /auth/me` hesap özeti hazırdır. Bu web dilimi yalnız oturumsuz e-posta
+doğrulama/yeniden gönderim işlemlerini kullanır. Ortak Auth önerisinin tamamı
+onaylanmış sayılmaz. Sonraki adım istemci cookie/saklama, refresh/logout/iptal
+kararlarını iki tarafla kapatıp gerçek web girişini entegre etmektir.
 Admin MFA, başvuru/doğrulama ve açık DTO'lara bağlı program/görev/yorum ekranları
 bu başlangıca dahil değildir. Gerçek veri veya yayın için `docs/11` kapısı geçerlidir.

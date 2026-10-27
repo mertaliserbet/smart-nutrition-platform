@@ -1,12 +1,12 @@
 import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Brand, Icon } from '../../core/components/Icon'
-import { ThemeControl } from '../../core/theme/ThemeProvider'
+import { Icon } from '../../core/components/Icon'
+import { AuthLayout } from './AuthLayout'
 
 type AuthMode = 'login' | 'reset'
 
-// Local presence/format checks only. The server's password policy is still open.
+// Login/reset remain presentation-only until the client session contract is approved.
 function emailError(value: string) {
   if (!value.trim()) return 'E-posta adresinizi girin.'
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ? undefined : 'Geçerli bir e-posta adresi girin.'
@@ -76,32 +76,13 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
 export function AuthPage({ mode }: { mode: AuthMode }) {
   const isLogin = mode === 'login'
   return (
-    <div className="auth-layout">
-      <aside className="auth-story">
-        <Brand inverse />
-        <div className="story-copy">
-          <p className="eyebrow">BİRLİKTE, DAHA İYİ BİR TAKİP.</p>
-          <h2>Danışanınıza odaklanın.<br /><span>Bütünü bir arada görün.</span></h2>
-          <p>Beslenme kayıtları, programlar ve gelişim.<br />Diyetisyenlik pratiğiniz için sakin bir çalışma alanı.</p>
-          <div className="story-art" aria-hidden="true"><div className="art-orbit" /><Icon name="leaf" /><span className="art-dot" /></div>
-          <div className="story-note"><Icon name="shield" /><span>Paylaşım danışanın kontrolünde.<br /><strong>Her adımda, izinli erişim.</strong></span></div>
-        </div>
-        <p className="story-footer">SMART NUTRITION PLATFORM</p>
-      </aside>
-      <div className="auth-main">
-        <header className="auth-header"><span className="preview-badge">Arayüz önizlemesi</span><ThemeControl /></header>
-        <main id="main-content" className="auth-content">
-          {!isLogin && <Link to="/giris" className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
-          <span className="auth-icon"><Icon name={isLogin ? 'leaf' : 'link'} /></span>
-          <p className="eyebrow">DİYETİSYEN PANELİ</p>
-          <h1 tabIndex={-1}>{isLogin ? 'Tekrar hoş geldiniz.' : 'Şifrenizi mi unuttunuz?'}</h1>
-          <p className="auth-description">{isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}</p>
-          <div className="preview-note"><Icon name="info" /><p>Bu ekran bir arayüz önizlemesidir. {isLogin ? 'Hesap girişi henüz kullanılamıyor.' : 'Bu aşamada sıfırlama e-postası gönderilmez.'}</p></div>
-          <AuthForm key={mode} mode={mode} />
-          {isLogin && import.meta.env.DEV && <Link to="/onizleme" className="preview-link">Panel tasarımını incele<Icon name="arrow" /></Link>}
-        </main>
-        <footer className="auth-footer">Diyetisyen ve danışan arasında, daha güçlü bir bağ.</footer>
-      </div>
-    </div>
+    <AuthLayout isLogin={isLogin}
+      title={isLogin ? 'Tekrar hoş geldiniz.' : 'Şifrenizi mi unuttunuz?'}
+      description={isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
+      <div className="preview-note"><Icon name="info" /><p>Bu ekran bir arayüz önizlemesidir. {isLogin ? 'Hesap girişi henüz kullanılamıyor.' : 'Bu aşamada sıfırlama e-postası gönderilmez.'}</p></div>
+      <AuthForm key={mode} mode={mode} />
+      {isLogin && <Link to="/eposta-dogrulama" className="preview-link">E-postamı doğrula<Icon name="arrow" /></Link>}
+      {isLogin && import.meta.env.DEV && <Link to="/onizleme" className="preview-link">Panel tasarımını incele<Icon name="arrow" /></Link>}
+    </AuthLayout>
   )
 }

@@ -73,6 +73,8 @@ h1:focus { outline: none; }
 .auth-icon .icon { width: 26px; height: 26px; }
 .auth-content h1 { font-size: 30px; margin: 10px 0 12px; font-weight: 650; }
 .auth-description { color: var(--text-secondary); font-size: 13px; max-width: 370px; }
+.verification-resend { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.verification-resend h2 { font-size: 18px; }
 .preview-note { display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin: 24px 0; border-radius: 8px; background: var(--surface-subtle); font-size: 12px; color: var(--text-secondary); }
 .preview-note .icon { margin-top: 2px; width: 16px; height: 16px; }
 .form-field { margin-bottom: 22px; }
