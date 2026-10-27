@@ -60,7 +60,8 @@ public sealed class InfrastructureTests
             database.Model.GetEntityTypes().Select(entity => entity.Name).Order().ToArray());
         Assert.Collection(database.Database.GetMigrations(),
             migration => Assert.EndsWith("_AddAuthFoundation", migration),
-            migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration));
+            migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration),
+            migration => Assert.EndsWith("_AddUserEmailVerificationState", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -100,7 +101,18 @@ public sealed class InfrastructureTests
         response.EnsureSuccessStatusCode();
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
-        Assert.Empty(document.RootElement.GetProperty("paths").EnumerateObject());
+        var registration = Assert.Single(document.RootElement.GetProperty("paths").EnumerateObject());
+        Assert.Equal("/api/v1/auth/register", registration.Name);
+        Assert.True(registration.Value.TryGetProperty("post", out _));
+        var requestSchema = registration.Value.GetProperty("post").GetProperty("requestBody")
+            .GetProperty("content").GetProperty("application/json").GetProperty("schema");
+        if (requestSchema.TryGetProperty("$ref", out var reference))
+            requestSchema = document.RootElement.GetProperty("components").GetProperty("schemas")
+                .GetProperty(reference.GetString()!.Split('/').Last());
+        foreach (var field in new[] { "email", "password", "displayName", "role" })
+            Assert.True(requestSchema.GetProperty("properties").TryGetProperty(field, out _), $"Missing registration input: {field}");
+        foreach (var field in new[] { "email", "password", "displayName" })
+            Assert.Contains(requestSchema.GetProperty("required").EnumerateArray(), required => required.GetString() == field);
         using var swagger = await client.GetAsync("/swagger/index.html");
         Assert.Equal(HttpStatusCode.OK, swagger.StatusCode);
         Assert.Contains("Swagger UI", await swagger.Content.ReadAsStringAsync());

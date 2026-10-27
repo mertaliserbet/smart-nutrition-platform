@@ -44,6 +44,8 @@ public sealed class User
     [JsonIgnore]
     public string PasswordHash { get; private set; } = null!;
     public UserRole Role { get; private set; }
+    [JsonIgnore]
+    public bool IsEmailVerified { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 

@@ -31,6 +31,7 @@ public sealed class AuthFoundationTests
         Assert.Equal(TimeSpan.Zero, first.CreatedAt.Offset);
         Assert.Equal(Instant, first.CreatedAt);
         Assert.Equal(first.CreatedAt, first.UpdatedAt);
+        Assert.False(first.IsEmailVerified);
     }
 
     [Fact]
@@ -108,6 +109,7 @@ public sealed class AuthFoundationTests
         using var profileJson = JsonDocument.Parse(JsonSerializer.Serialize(profile, JsonSerializerOptions.Web));
 
         Assert.False(userJson.RootElement.TryGetProperty("passwordHash", out _));
+        Assert.False(userJson.RootElement.TryGetProperty("isEmailVerified", out _));
         Assert.False(userJson.RootElement.TryGetProperty("clientProfile", out _));
         Assert.False(profileJson.RootElement.TryGetProperty("user", out _));
         Assert.Equal(user.Id.ToString(), profileJson.RootElement.GetProperty("userId").GetString());
@@ -131,7 +133,7 @@ public sealed class AuthFoundationTests
 
         Assert.Equal("users", users.GetTableName());
         Assert.Equal("client_profiles", profiles.GetTableName());
-        Assert.Equal(["CreatedAt", "Email", "Id", "PasswordHash", "Role", "UpdatedAt"],
+        Assert.Equal(["CreatedAt", "Email", "Id", "IsEmailVerified", "PasswordHash", "Role", "UpdatedAt"],
             users.GetProperties().Select(property => property.Name).Order().ToArray());
         Assert.Equal(["BirthDate", "DisplayName", "HeightCm", "Id", "UserId"],
             profiles.GetProperties().Select(property => property.Name).Order().ToArray());
