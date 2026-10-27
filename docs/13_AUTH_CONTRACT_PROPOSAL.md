@@ -1,6 +1,6 @@
 # 13 — Auth ve profil sözleşmesi önerisi
 
-**Tarih:** 27.10.2026 · **Temel:** DOCS-V1, `main` / `80b9116`.
+**Tarih:** 27.10.2026 · **Güncel temel:** DOCS-V1, `main` / `6351089`.
 
 **Durum: ÖNERİ — Uğur ve Mert tarafından henüz onaylanmadı.** Bu belge mevcut
 `04/05/06` sözleşmelerini değiştirmez. Aşağıdaki alanlar, süreler ve ek yollar
@@ -14,30 +14,66 @@ Dayanaklar: [kanonik adlar](04_NAMING_CONVENTIONS.md),
 
 ## Mevcut durum ve çözülecek farklar
 
-- Backend'de `User`, `ClientProfile`, EF eşlemeleri, Identity parola hash'i ve
-  `UserRegistrationService` hazırlığı var. HTTP kayıt/giriş, kalıcı oturum,
-  e-posta doğrulaması ve MFA yok.
-- `PrepareAsync` hesap kaydetmez, profil oluşturmaz. `RegisterUserRequest`
-  yalnız `email`, `password`, nullable `role` kabul eder; profil alanlarını
-  reddeder. Mevcut hazırlık yalnız danışan rolünü kabul eder.
-- `RegistrationPasswordPolicy` tüm değerler açıkça yapılandırılmadan kapalıdır.
-  Testlerdeki sayılar ürün politikası olarak onaylanmamıştır.
+- Mert'in `6351089` commitinde `POST /api/v1/auth/register` uygulanmıştır.
+  Zorunlu girdiler `email`, `password`, `displayName`; isteğe bağlı `role`dur.
+  Yalnız danışan oluşturur. Başarılı yanıt **`201 { id }`** olup `id`, User UUID'sidir.
+- `RegisterAsync`, User ve ClientProfile'ı tek SaveChanges transaction'ında
+  kaydeder; profilin ayrı UUID'si ve User bağlantısı korunur. `PrepareAsync`
+  hesap kaydetmeyen yardımcı olarak durur. Kayıt yanıtı profil gövdesi taşımaz.
+- Kayıtta `birthDate`/`heightCm` alınmaz; profilde null kalır. Bu alanları isteğe
+  eklemek mevcut API'de desteklenmeyen alan hatasıdır.
+- `User.IsEmailVerified` ve `is_email_verified` migration'ı eklenmiş, başlangıç
+  false seçilmiştir. Alan entity JSON'una veya kayıt yanıtına çıkmaz.
+- `appsettings.json` kayıt politikası **8–128 Unicode kod noktası**, en az bir
+  farklı karakter ve dört karmaşıklık bayrağı false olacak şekilde yapılandırılmıştır.
+  Unicode skaler sayımı ve bozuk UTF-16 reddi kodda vardır.
+- Giriş/refresh/logout, `/me`, e-posta gönderimi/doğrulama ve MFA bu committe yoktur.
+  Kullanıcının bildirdiği sıradaki çalışma Mert'in e-posta doğrulamasıdır.
 - Mobil kayıt ekranında henüz ad alanı yok. Web ve mobil formlar önizlemedir.
 - `06` kayıt/`me` yanıt kökünü, token/cookie ayrımını ve güvenlik gövdelerini açık
-  bırakır. `12` bunları gerçek entegrasyonun giriş koşulu olarak tanımlar.
+  bırakır. `backend/README.md` uygulanmış kayıt kararlarını anlatır; `04/05/06`
+  bu committe güncellenmemiştir. Kodun varlığı ortak belge onayının kaydı değildir.
 - Ürün kararı diyetisyenin mobil/web başvurusunu içerir. Mevcut danışan kayıt
   hazırlığı bu başvuru akışının tamamlandığı veya kaldırıldığı anlamına gelmez.
+
+## Bu oturum için çakışmayı önleme sınırı
+
+Kullanıcının ilettiği çalışma bilgisi doğrultusunda kayıt ve e-posta doğrulaması
+Mert'in devam eden işidir. Bu, `12`deki genel Auth liderliğini kalıcı değiştiren
+bir ürün kararı değildir; aynı dosyaya eşzamanlı yazmayı önleyen görev sınırıdır.
+
+| Alan | Bu oturumdaki sınır |
+|---|---|
+| `backend/src/SmartNutrition.Api/Features/Auth/` | Mert'in kayıt/doğrulama çalışmasıyla çakışabilecek Controller, User, DTO ve service dosyaları değiştirilmez |
+| Backend `Data/`, migration/snapshot, `Program.cs`, ayarlar, Auth testleri ve `backend/README.md` | Mert'in görevi aynı altyapıya dokunabildiği için bu oturumda değiştirilmez; paralel migration üretilmez |
+| `mobile/` | Mert'in alanı; bu belge yalnız gereken istemci etkisini bildirir |
+| `apps/web/` | Uğur'un bağımsız alanı; gerçek Auth bağlantısı ilgili ortak yanıt/güvenlik kararıyla eşleştirildikten sonra ele alınır |
+| `docs/13_AUTH_CONTRACT_PROPOSAL.md` | Bu oturumun tek değişiklik dosyası; güncel kodla farkları ve henüz açık önerileri kaydeder |
+| `docs/04`, `05`, `06` | Ortak sözleşmeler; iki tarafın açık onayı olmadan güncellenmez |
+
+Yeni işe başlamadan `upstream/main` alınır, değişen dosyalar ve DTO'lar yeniden
+karşılaştırılır. Bir feature'ın farklı branch'te olması aynı dosyaya paralel
+yazma riskini çözmez; dosya sahipliği de kontrol edilir. E-posta doğrulaması
+henüz main'e gelmediyse endpoint/token şeması veya uygulama varmış gibi varsayılmaz.
+
+| Önceki öneriyle fark | Güncel kod | Bu revizyondaki karşılık |
+|---|---|---|
+| Kayıt yanıtını profil kökü yapmak | `201 { id }` | Kayıt yanıtı korunur; güvenli profil kökü yalnız gelecekteki `/me` için önerilir |
+| Yeni `emailVerifiedAt` alanı | Saklanan `isEmailVerified` boolean | Paralel doğrulama alanı önerisi çıkarıldı; `/me`de gösterim ayrıca onaylanır |
+| Kayıtta isteğe bağlı doğum tarihi/boy | Bu girdiler kabul edilmiyor | Kayıt gövdesine eklenmez; gelecekteki profil düzenlemesi ayrı ele alınır |
+| Minimum 15 parola ve eski UTF-16 sayımını düzeltme | Minimum 8; skaler sayım zaten uygulanmış | 15 yalnız ayrı politika değişikliği adayıdır; kodda yeniden sayım işi açılmaz |
+| Kayıtta rol/alan doğrulamasına `422` | Girdi/rol hatası `400`; parola hatası `422` | Mevcut hata ayrımı korunur |
 
 ## Onaya sunulan kararlar
 
 | Kod | Önerilen karar | Gerekçe ve etkisi |
 |---|---|---|
 | A1 | İlk çalışan kayıt dilimi yalnız danışan; hesap başına tek rol | Mevcut hazırlıkla uyumludur. Çoklu rol ve diyetisyen başvurusu ayrı akış olarak tasarlanır; public kayıt Admin veya doğrulanmış uzman oluşturmaz |
-| A2 | Kayıtta `displayName` zorunlu; `birthDate` ve `heightCm` isteğe bağlı | `User` ve `ClientProfile` birlikte oluşturulabilir. Yaş/boy temel hesap açılışını gereksiz yere engellemez |
-| A3 | Kayıt ve `GET/PATCH /me` aynı güvenli `{ user, clientProfile, dietitianProfile }` kökünü kullanır | Mobil ve web aynı JSON'u okur; hesap UUID'si ile profil UUID'si karışmaz |
+| A2 | Uygulanmış `email`, `password`, `displayName`, isteğe bağlı `role` kayıt gövdesini ortak belgelere geçir; doğum/boy kayıt gövdesine eklenmesin | Yeni danışanın User ve ClientProfile kaydı zaten atomiktir; değişiklik önerisi mevcut API'yi genişletmez |
+| A3 | Kayıt için mevcut `201 { id }` korunsun; gelecekteki `GET/PATCH /me` güvenli `{ user, clientProfile, dietitianProfile }` kökünü kullansın | Mobil ve web aynı yanıtı aynı işlemde okur; kayıt sonucundaki User UUID'si ClientProfile UUID'si sanılmaz |
 | A4 | Webde HttpOnly cookie; mobilde kısa ömürlü opaque bearer + dönen refresh token | Tek backend ve mevcut ASP.NET Core güvenlik bileşenleri kullanılır. Mobil tokenı çözümlemez; web tokenı JavaScript depolarına yazmaz |
 | A5 | Sunucuda izlenen, iptal edilebilir oturum ve tek kullanımlık refresh | Çıkış/parola sıfırlama ve eski refresh'in tekrar kullanımında erişim gerçekten kesilebilir |
-| A6 | Parola 15–128 Unicode karakter; zorunlu büyük/küçük harf/rakam/sembol yok | Uzun parola ve parola yöneticileri desteklenir; mevcut hash altyapısı korunur |
+| A6 | Uygulanmış 8–128 skaler politikası esas alınsın; minimumu 15 yapma önerisi ayrı değerlendirilip ancak iki taraf onaylarsa değiştirilsin | Aynı anda farklı istemci/parola kuralları üretilmez; mevcut hash ve uygulanmış Unicode sayımı korunur |
 | A7 | E-posta doğrulanmadan uygulama oturumu verilmez; doğrulama ve reset tokenları tek kullanımlık | Doğrulama bir oturum veya paylaşım onayı sayılmaz. Başarılı kayıttan sonra doğrulama akışı açılır |
 | A8 | Admin MFA için TOTP + tek kullanımlık kurtarma kodları; hazır olana kadar Admin oturumu kapalı | Zorunlu MFA, geçici bir parola giriş yolu ile atlanmaz. Kurulum/kurtarma gövdeleri ayrıca onaylanır |
 
@@ -53,27 +89,28 @@ HTTP tamamlamalarıdır; mevcut yol adları korunur.
 
 | İşlem | Önerilen girdiler ve yanıt | Kurallar |
 |---|---|---|
-| `POST /auth/register` | JSON: `email`, `password`, `displayName`; isteğe bağlı `role`, `birthDate`, `heightCm`. `201`: güvenli profil kökü | `role` gönderilmezse `client`; yalnız `client` kabul edilir. `birthDate`/`heightCm` gönderilmezse null. Oturum/token üretmez |
+| `POST /auth/register` | Mevcut JSON: `email`, `password`, `displayName`; isteğe bağlı `role`. Mevcut `201 { id }` | `role` gönderilmezse `client`; yalnız `client` kabul edilir. `birthDate`/`heightCm` kayıt girdisi değildir. Oturum/token üretmez |
 | `GET /me` | Gövdesiz; `200`: güvenli profil kökü | Kimlik doğrulama zorunlu; yalnız oturum sahibinin bilgisi |
 | `PATCH /me` | `displayName`, `birthDate`, `heightCm`; `200`: güncel güvenli profil kökü | Danışan kendi alanlarını düzenler. Gönderilmeyen korunur; nullable alan açık null ile temizlenir. Boş PATCH `400` |
 
-Önerilen güvenli profil kökü ve alan beyaz listesi:
+Yalnız gelecekteki `/me` için önerilen güvenli profil kökü ve alan beyaz listesi:
 
 | JSON anahtarı | Alanlar / anlam |
 |---|---|
-| `user` | Mevcut `id`, `email`, `role`, `createdAt`, `updatedAt`; **önerilen yeni alan** `emailVerifiedAt: instant?` |
+| `user` | Mevcut `id`, `email`, `role`, `createdAt`, `updatedAt`; saklanan `isEmailVerified: boolean` bilgisinin yalnız kendi `/me` DTO'sunda açılması **öneri**dir |
 | `clientProfile` | Kendi profili varsa mevcut `id`, `userId`, `displayName`, `birthDate`, `heightCm`; yoksa null |
 | `dietitianProfile` | Kendi uzman profili varsa mevcut `id`, `userId`, `displayName`, `isVerified`; yoksa null. `licenseInfo` şeması ve özel belgeler bu güvenli yanıta dahil edilmez |
 
 Yeni danışan kaydında `User` ve `ClientProfile` aynı transaction içinde kaydedilir;
-iki UUID sunucuda ayrı üretilir. Profil kaydı başarısızsa yarım hesap bırakılmaz.
-Mevcut profilsiz hesaplara sentetik profil veya varsayılan doğrulama atanmaz.
-Eski hesaplarda `emailVerifiedAt` başlangıçta null olur; otomatik doğrulanmış sayılmaz.
+iki UUID sunucuda ayrı üretilir. Bu davranış `6351089`da uygulanmıştır. Profil
+kaydı başarısızsa yarım hesap bırakılmaz. Mevcut profilsiz hesaplara sentetik
+profil veya varsayılan doğrulama atanmaz; mevcut migration'ın false başlangıcı
+korunur. User hesabı ve ClientProfile kimliği birbirinin yerine kullanılmaz.
 
-Önerilen `displayName` sınırı: dış boşlukları kırpıldıktan sonra 1–100 Unicode
-skaler değer. `birthDate` date-only, `heightCm` pozitif decimal/cm veya null'dır;
-bu görevle klinik boy aralığı, yaş sınırı veya günlük saat dilimi seçilmez.
-Hassasiyet/ileri tarih gibi genel veri kuralları ayrıca ortak değerlendirilir.
+Mevcut `displayName` doğrulaması boş/yalnız boşluk girdisini reddeder; bu belgede
+yeni uzunluk veya kırpma davranışı kesinleştirilmez. Gelecekteki profil düzenlemesi
+için `birthDate` date-only, `heightCm` pozitif decimal/cm veya null'dır; klinik boy
+aralığı, yaş sınırı, hassasiyet ve günlük saat dilimi ayrıca ortak değerlendirilir.
 
 E-posta için mevcut invariant normalizasyon ve PostgreSQL benzersiz indeksi
 korunur. Ön kontrolden sonra yarışla oluşan `ux_users_email` ihlali de `409 conflict`
@@ -81,9 +118,10 @@ olur. Bu mevcut durum kodu hesap varlığı hakkında bir sinyal taşıyabilir;
 mesaj genel tutulur ve kayıt hız sınırına alınır. Bu davranış değiştirilmek
 istenirse `06`daki başarı/çakışma davranışı birlikte yeniden onaylanmalıdır.
 
-`role`, `isVerified`, `emailVerifiedAt`, kimlikler veya `passwordHash` profil
-güncellemesinden değiştirilemez. Public kayıtta `dietitian`/`admin` rolü `422`,
-tanımsız JSON alanı veya biçimi `400` olur. Ayrı başvuru akışı onaylanmadan
+`role`, `isVerified`, `isEmailVerified`, kimlikler veya `passwordHash` profil
+güncellemesinden değiştirilemez. Mevcut public kayıtta `dietitian`/`admin` rolü,
+tanımsız JSON alanı/biçimi ve boş girdi `400`; parola politikası ihlali `422`dir.
+Ayrı başvuru akışı onaylanmadan
 diyetisyen rolüne geçiş veya başvuru endpointi uygulanmaz.
 
 ## A4–A5: Oturum taşıma, süre ve iptal
@@ -159,21 +197,30 @@ mevcut `/api/v1` sözleşmesi genişletilmez.
 
 ## A6–A8: Parola, e-posta ve yönetim güvenliği
 
-Parola önerisi 15–128 Unicode skaler değerdir; mobil, web ve C# aynı sayımı
-kullanır. Mevcut C# `Length`/`Distinct` kontrollerinin UTF-16 birimi sayması bu
-öneri onaylanırsa uyarlanmalıdır. Parola kırpılmaz/normalleştirilmez, sessizce
-kısaltılmaz; bozuk Unicode reddedilir. Parola yapıştırma ve yöneticiler desteklenir.
-Mevcut options karşılıkları `RequiredLength=15`, `MaximumLength=128`,
-`RequiredUniqueChars=1`, dört karmaşıklık bayrağı `false` olsun; eşsiz karakter
-kısıtı eklenmesin. Yaygın/sızmış parola engelleme listesinin kaynağı/lisansı
+Mevcut kayıt politikası 8–128 Unicode skaler değerdir; C# kodu artık `Rune` ile
+sayar ve bozuk UTF-16'yı reddeder. Mobil/web, entegrasyonda aynı sayımı kullanır.
+Mevcut options değerleri `RequiredLength=8`, `MaximumLength=128`,
+`RequiredUniqueChars=1`, dört karmaşıklık bayrağı `false`tur. Parola
+kırpılmaz/normalleştirilmez veya sessizce kısaltılmaz. Yapıştırma ve parola
+yöneticileri desteklenir. Bu oturum mevcut politikayı değiştirmez.
+
+**Ayrı güvenlik değerlendirmesi önerisi:** MFA kullanmayan hesaplarda minimumu
+15'e çıkarmak, uzunluğu öne çıkaran rehberle uyumludur; bu, mevcut 8 sınırının
+kendiliğinden değiştirilmesi veya istemcinin sunucudan farklı kural uygulaması
+anlamına gelmez. Politika değişirse Mert'le birlikte doküman, sunucu ve istemciler
+aynı karara taşınır. Yaygın/sızmış parola engelleme listesinin kaynağı/lisansı
 uygulama öncesi seçilsin; parola bir dış servise düz metin gönderilmesin.
-Bu başlangıç önerisi uzunluğu öne çıkaran rehberle uyumludur.
 [OWASP: parola ve kimlik doğrulama](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html).
+
+Aşağıdaki e-posta maddeleri Mert'in devam eden işine iletilecek **önerilerdir**;
+`6351089`da uygulanmış değildir. Doğrulama commitindeki gerçek alan/yol/süreler
+görülüp ortak karar karşılaştırılmadan ayrı bir uygulama veya istemci DTO'su
+hazırlanmaz.
 
 | İşlem | Önerilen davranış |
 |---|---|
 | Kayıt sonrası | Hesap/profil kalıcı kaydedilir; doğrulama e-postası güvenilir yeniden denemeyle gönderilir. Yanıtın başarısı teslim edilmiş e-posta veya oturum anlamına gelmez |
-| `POST /auth/verify-email` | Mevcut `{ token }`; 24 saat ömür; doğru amaç/hesap ve kullanılmamış token atomik tüketilir, `emailVerifiedAt` sunucuda yazılır; `204`. Geçersiz/süresi dolmuş/tüketilmiş token `422` |
+| `POST /auth/verify-email` | Mevcut taslak sözleşmedeki `{ token }`; 24 saat ömür önerisi; doğru amaç/hesap ve kullanılmamış token atomik tüketilir, mevcut `isEmailVerified` sunucuda true yapılır; `204`. Geçersiz/süresi dolmuş/tüketilmiş token `422` |
 | **Yeni öneri:** `POST /auth/email-verification-requests` | `{ email }`; tekrar doğrulama e-postası isteği. Hesap yok/doğrulanmış/bekliyor ayrımı göstermeyen `202`; yeni token eskisini geçersiz kılar |
 | `POST /auth/password-reset-requests` | Mevcut `{ email }`; hesap varlığını açıklamayan `202`; token 30 dakika ömürlü ve yalnız parola sıfırlama amaçlı |
 | `POST /auth/reset-password` | Mevcut `{ token, password }`; tokenı atomik tüketir, hash'i günceller ve tüm oturumları iptal eder; `204`. Otomatik giriş yapmaz; geçersiz token/parola `422` |
@@ -197,8 +244,8 @@ mobil deep-link/canlı host seçimi ayrıca kapanmadan e-posta akışı hazır s
 
 | Alan | Gereken değişiklik |
 |---|---|
-| `04/05/06` | Onaylanan profil kökü, e-posta doğrulama alanı, oturum/CSRF şekli, yeni iki yol ve güvenlik saklama şemasını eşgüdümlü işle; mevcut User/profil adlarını ve UUID anlamlarını koru |
-| Backend — Uğur | Request/response beyaz listeleri; atomik kayıt; parola politikası; Identity doğrulama/rehash; oturum/iptal; e-posta; rate limit ve sunucu yetkisi. Açık DietitianProfile/MFA şemalarına tahminî model ekleme |
+| `04/05/06` | Önce uygulanmış kayıt gövdesi, minimal `201 { id }`, `isEmailVerified` ve hata ayrımını iki tarafın onayıyla eşitle. Gelecekteki profil/oturum/CSRF ve önerilen iki ek yolu ayrı kararla işle |
+| Backend — görev bazında | Kayıt ve devam eden e-posta doğrulama işinde Mert'in dosyalarına paralel yazma. Oturum/rehash/iptal/reset/rate limit işleri için başlamadan dosya lideri belirle; açık DietitianProfile/MFA şemalarını tahminle kapatma |
 | Mobil — Mert | Kayıtta ad alanı; aynı güvenli profil/oturum alanları; e-posta doğrulama; Android/iOS güvenli saklama seçimi ve testleri; tek refresh; logout/reset sonrası hassas cache temizliği |
 | Web — Uğur | Cookie/CSRF ve ortak `/me`; gerçek rol kontrolüne göre yönlendirme. Danışan hesabına diyetisyen paneli açma; doğrulanmamış uzmanı danışan verisine geçirme |
 | `02/07/08/11/12` | Kabul edilen akış, güvenlik kapıları, mobil/web davranışı ve iki tarafın onayını kaydet |
@@ -229,7 +276,7 @@ Planlanan doğrulamalar (bu görevde çalıştırılmış test sonucu değildir)
 - Parola/hash/token yanıt veya loga çıkmaz; mevcut parola için rehash gerektiğinde
   doğrulamadan sonra güvenle güncellenir. Emoji ve bozuk UTF-16 sınırları test edilir.
 - Yanlış hesap/parola aynı güvenli hatayı döndürür; public Admin/uzman rolü ve
-  istemciden `isVerified`/`emailVerifiedAt` atama girişimleri reddedilir.
+  istemciden `isVerified`/`isEmailVerified` atama girişimleri reddedilir.
 - Webde CSRF/Origin, cookie bayrakları, dar CORS, yetkisiz tarayıcı istekleri ve
   localStorage/sessionStorage içine token yazılmaması doğrulanır.
 - Refresh yarışı/tekrar kullanım, süresi dolma, logout ve parola reseti eski access
