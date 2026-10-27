@@ -33,7 +33,7 @@ Mert mobil ve ilgili API'lerden; Uğur web, Auth ve ilgili API'lerden sorumludur
 
 | Başlık | Onaylı kapsam | Aşama / açık karar |
 |---|---|---|
-| Hesap (19) | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, profil ve güvenli oturum; Admin MFA | **MVP önceliği**; kayıt/e-posta doğrulama ve 15 dakikalık JWT login sözleşmeleri `06/12`de onaylı. Refresh/logout/iptal, cookie/istemci saklama, profil ve MFA ayrıntıları açık |
+| Hesap (19) | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, profil ve güvenli oturum; Admin MFA | **MVP önceliği**; kayıt/e-posta doğrulama, 15 dakikalık JWT login ve `GET /auth/me` kendi hesap özeti `06/12`de onaylı. Refresh/logout/iptal, cookie/istemci saklama, profil düzenleme/uzman profili ve MFA ayrıntıları açık |
 | Uzman ve ilişki (1–3) | Mobil/web başvuru, Admin doğrulaması; diyetisyen arama ve davet kodu, karşılıklı onay; en fazla bir aktif diyetisyen, geçmiş korunur | **İlk sürüm:** yönetim paneli webde. Başvuru belgeleri ve davet kodunun teknik yapısı açık; çoklu aktif diyetisyen mevcut kapsamda yok |
 | Beslenme programı (4–6) | Kişisel veya diyetisyen tarafından atanan `NutritionPlan`; toplamda tek aktif program; öğün alternatifleri ve sürüm geçmişi. Diyetisyen programını yalnız yetkili diyetisyen düzenler; gerçek tüketim serbestçe kaydedilip karşılaştırılır | Temel oluşturma/atama/görüntüleme **MVP önceliği**; alternatif/sürüm yapısı, program geçişi ve uyum hesabı ayrıntıları açık |
 | Öğün | Manuel öğün/besin ve miktar girişi, kalori/makro, düzeltme/silme; plan dışında tüketim de kaydedilir | **MVP önceliği**; gram/adet dönüşümü ayrıntısı açık. Barkod önceki bir geliştirme önerisidir, teslimi onaylanmış kapsam değildir |

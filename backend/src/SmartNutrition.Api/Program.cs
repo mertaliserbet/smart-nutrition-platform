@@ -22,6 +22,7 @@ builder.Services.AddScoped<UserRegistrationService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddScoped<UserLoginService>();
+builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
 builder.Services.AddOptions<LoginOptions>().Bind(builder.Configuration.GetSection(LoginOptions.SectionName))
     .Validate(options => options.RequestsPerMinute > 0).ValidateOnStart();

@@ -7,9 +7,10 @@ kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabit
 `POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir;
 doğrulama e-postası SMTP üzerinden arka planda gönderilir. `verify-email` ve
 `resend-verification` uçları hazırdır. `login`, doğrulanmış Admin olmayan hesaplara
-15 dakikalık JWT access token verir. Refresh/logout, MFA ve parola sıfırlama yoktur. `MealLog` ve
+15 dakikalık JWT access token verir. `GET /api/v1/auth/me` yalnız token sahibinin
+kendi hesap özetini döndürür. Refresh/logout, MFA ve parola sıfırlama yoktur. `MealLog` ve
 `MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
-Kayıt/e-posta doğrulama/JWT giriş şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
+Kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
 
 ## Yapı
 
@@ -52,7 +53,8 @@ Kaynak/ilişki/kategori yetkileri bu Auth temelinin yerine geçmez.
 `IPasswordHasher<User>` DI üzerinden ASP.NET Core Identity `PasswordHasher<User>`
 olarak sunulur; özel hash/salt algoritması veya ek Identity tablo takımı yoktur.
 User oluşturulurken yalnız hash saklanır; düz parola modelde tutulmaz ve kırpılmaz.
-Hash, e-posta doğrulama durumu/token metadata'sı ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
+Entity'nin hash, e-posta doğrulama durumu/token metadata'sı ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
+`isEmailVerified` yalnız aşağıdaki onaylı `CurrentUserResponse` içinde ayrıca sunulur.
 Entity'ler HTTP kayıt/me DTO'su değildir; kayıt yalnız aşağıdaki DTO'larla çalışır.
 Girişte `SuccessRehashNeeded`, yalnız doğrulanmış ve girişe uygun hesabın hash'ini
 önceki hash/rol/doğrulama koşuluyla günceller; eşzamanlı parola değişikliğini ezmez.
@@ -90,7 +92,8 @@ Başarı `201 { "id": "<User UUID>" }` döner. ClientProfile kimliği ayrı UUID
 doğum tarihi/boy toplanmaz ve nullable kalır. User'ın `is_email_verified` değeri
 başlangıçta `false`tur; istemci bunu atayamaz. Oturum tokenı, cookie veya otomatik giriş
 üretilmez. DB commit'inden sonra doğrulama e-postası kuyruğa alınır; ham doğrulama
-tokenı API yanıtına çıkmaz. `/me` henüz uygulanmadığından sahte Location verilmez.
+tokenı API yanıtına çıkmaz. Kayıt `Location` başlığı üretmez; yetkili `/auth/me`
+hesap özeti, oluşturulan kayıt kaynağı için ayrı GET detay yolu sayılmaz.
 Girdi/JSON/rol hataları `400 invalid_request`, parola politikası hataları
 `422 validation_failed`, desteklenmeyen içerik `415 unsupported_media_type`,
 beklenmeyen kayıt hataları `500 internal_error` olur. Tümü ortak
@@ -110,7 +113,7 @@ sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen de�
 içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
 Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
 `201 { id }` yanıtı ortak belgelere işlenmiştir. Diyetisyen başvurusu/çoklu rol,
-`/me`, refresh/logout/iptal ve istemci oturum sözleşmelerinin açık kısımları bu görevde uygulanmamıştır.
+Profil düzenleme/uzman profili, refresh/logout/iptal ve istemci oturum sözleşmelerinin açık kısımları uygulanmamıştır.
 
 ## Giriş ve JWT access token
 
@@ -170,9 +173,47 @@ sağlanmalıdır. Yerel issuer/audience üretim ortamı kararı değildir. Üret
 güvenilir proxy, çok örnekli limit ve anahtar rotasyonu ayrıca yapılandırılır.
 
 Bu dilim stateless access token sağlar; yeni tablo veya migration gerekmez.
-Anlık iptal, refresh/logout, `/me`, cookie/istemci saklama, MFA ve parola sıfırlama
+Anlık iptal, refresh/logout, cookie/istemci saklama, MFA ve parola sıfırlama
 henüz yoktur. İmzalı token süresi boyunca geçerli kalabilir; tam oturum iptali
 uygulanmış sayılmaz. Diyetisyen rolü tek başına sağlık verisine erişim sağlamaz.
+
+## Kendi hesap bilgileri
+
+`GET /api/v1/auth/me` yalnız mevcut JWT bearer authentication/authorization ile
+erişilir. İstek gövdesi ve query parametresi yoktur; `userId` kabul edilmez.
+Kimlik, middleware'in doğruladığı tek `sub` claim'indeki **User UUID'sidir**;
+ClientProfile kimliği veya özel istemci başlıkları hesap seçemez.
+
+Başarı `200`, `Cache-Control: no-store` ve yalnız şu beş alanı döndürür:
+
+```json
+{
+  "id": "<User UUID>",
+  "displayName": "Örnek danışan",
+  "email": "SYNTHETIC@EXAMPLE.TEST",
+  "role": "client",
+  "isEmailVerified": true
+}
+```
+
+`CurrentUserService`, User ve varsa ona ait ClientProfile'ı salt okunur tek
+projeksiyonla sorgular; yalnız onaylı alanları seçer. `displayName` profil yoksa
+açık null'dır; profilsiz client/dietitian için aynı DTO kullanılır. Yeni profil,
+DietitianProfile veya varsayılan ad oluşturulmaz. Email/ad/rol DB'den güncel alınır.
+Entity, parola hash'i, tokenlar, güvenlik metadata'sı ve diğer profil/sağlık alanları
+dönmez; hesap yanıtı loglanmaz. Okuma kayıtları veya `updatedAt`yi değiştirmez.
+
+Eksik/geçersiz/süresi dolmuş token ortak `401 unauthenticated` alır. Süresi
+bitmemiş tokenla da User silinmişse, e-posta doğrulaması kalkmışsa veya güncel rol
+token rolünden farklıysa aynı `401` döner. Admin MFA engeli korunur. İstemciden
+query/gövde gönderimi `400 invalid_request`, beklenmeyen DB/sunucu hatası ortak
+`500 internal_error` olur. Mevcut hata zarfı ve `WWW-Authenticate: Bearer` korunur.
+Bu endpointin DB kontrolü tüm kaynaklar için anlık oturum iptali değildir.
+
+Bu görevde açıkça istenen yol `/api/v1/auth/me`dir; eski uygulanmamış
+`GET /api/v1/me` taslağına alias eklenmedi. Profil düzenleme (`PATCH /api/v1/me`)
+ayrı açık taslaktır. Kayıt/giriş, User/ClientProfile alanları ve EF modeli değişmedi;
+yeni tablo, paket veya migration gerekmedi.
 
 ## E-posta doğrulama ve SMTP
 
@@ -259,7 +300,7 @@ dağıtım ortamında ayrıca yapılandırılır.
 - `/openapi/v1.json` ve `/swagger`: yalnız `Development` ortamında sunulur.
 
 Health yolları operasyonel altyapı kontrolleridir. Swagger kayıt, giriş, e-posta
-doğrulama ve yeniden gönderim operasyonlarını gösterir; MealLog endpointi içermez.
+doğrulama, yeniden gönderim ve kendi hesap okumasını gösterir; MealLog endpointi içermez.
 
 ## PostgreSQL bağlantısı
 
@@ -396,6 +437,12 @@ gerçek middleware ile bozuk/yanlış imzalı/süresi dolmuş/yanlış issuer-au
 tokenları ve rol yetkilendirmesi sınanır. Test JWT anahtarları her factory için rastgele
 üretilir; geliştirici User Secrets anahtarı testlere taşınmaz. Eksik JWT ayarlarıyla
 başlangıcın reddi ve Kestrel gövde sınırları ayrıca test edilir.
+Kendi hesap testleri, gerçek login tokenlarıyla `/auth/me` yanıtının beş alanını,
+iki kullanıcının veri izolasyonunu, query/gövde ile kimlik seçiminin reddini,
+profilsiz client/dietitian durumunu, geçersiz/süresi dolmuş tokenı ve silinmiş veya
+güncel rol/doğrulaması değişmiş hesabın `401` almasını sınar. Tüm kalıcı sentetik
+hesaplar yalnız test factory'sinin rastgele şemasındadır; silinmiş hesap senaryosu
+da bu şemayla sınırlıdır. Uygulama tabloları sıfırlanmaz veya silinmez.
 
 Bu değişken `AppDbContext`/`SELECT 1`/readiness testine ek olarak Auth PostgreSQL
 testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Model testleri sentetik

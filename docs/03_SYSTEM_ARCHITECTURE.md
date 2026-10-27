@@ -62,4 +62,4 @@ docs/                         # ortak sözleşmeler
 ## İzlenebilirlik / kalite
 API istek ID, merkezi yapılandırılmış log, health check, asgari performans ölçümleri, otomatik test ve gizli bilgilerin konfigürasyon yönetimi hedeflenir. Tanımlı olmayan deployment sağlayıcısı veya bulut maliyeti varsayma.
 
-Auth/profil kök yanıtı, kategori/consent kodları, program sürüm/alternatif ve geçiş, görev/yorum, OCR ve sync DTO'ları için `12` hazırlık tablosu modül giriş koşuludur. Queue, WebSocket, depolama sağlayıcısı, ORM/paket sürümü veya OCR iş modeli bu mimari çiziminden çıkarılmaz; ilgili sözleşme açıkken gerçek entegrasyon tamamlandı denmez.
+Profil düzenleme/uzman profili, kalan oturum işlemleri, kategori/consent kodları, program sürüm/alternatif ve geçiş, görev/yorum, OCR ve sync DTO'ları için `12` hazırlık tablosu modül giriş koşuludur. Kendi hesap okuması `GET /auth/me` için `06`daki onaylı beş alanlı DTO kullanılır. Queue, WebSocket, depolama sağlayıcısı, ORM/paket sürümü veya OCR iş modeli bu mimari çiziminden çıkarılmaz; ilgili sözleşme açıkken gerçek entegrasyon tamamlandı denmez.

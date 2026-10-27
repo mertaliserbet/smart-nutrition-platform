@@ -15,16 +15,24 @@ doğrulanmamış veya Admin hesap aynı `401`i alır. Aşağıdaki opaque bearer
 ve refresh/cookie içeren yanıt önerileri mevcut giriş sözleşmesi değildir.
 E-posta doğrulaması artık 30 dakika ve `resend-verification` yoluyla uygulanmıştır;
 eski 24 saat/`email-verification-requests` önerileri geçerli kaynak sayılmaz.
-Mevcut hız limitleri ve teslim sınırları `06`dadır. `/me`, cookie/CSRF, refresh,
+Mevcut hız limitleri ve teslim sınırları `06`dadır. Profil düzenleme, cookie/CSRF, refresh,
 logout/iptal, MFA ve sıfırlama önerileri henüz onaylanmış/uygulanmış sayılmaz;
 bu not A1–A8'in tamamına veya iki geliştiricinin ayrı onayına eşdeğer değildir.
+
+**Sonraki kendi hesap görevi — 27.10.2026:** Kullanıcının açık talimatıyla
+`GET /api/v1/auth/me`, düz `CurrentUserResponse` içinde yalnız `id`, nullable
+`displayName`, `email`, `role`, `isEmailVerified` döndürür. JWT sahibi User ve
+varsa kendi ClientProfile'ı sorgulanır; profil yoksa ad null'dır. Bu sözleşme
+`04/05/06/11/12`de kayıtlıdır. Aşağıdaki eski `GET /me` ve iç içe profil kökü
+önerileri bu endpointin yanıtı değildir; profil düzenleme/uzman profili önerileri
+açık kalır. Hesap okumasının kapanması tüm A3 veya A1–A8 paketinin onayı değildir.
 
 Dayanaklar: [kanonik adlar](04_NAMING_CONVENTIONS.md),
 [veri sözlüğü](05_DATA_DICTIONARY.md), [HTTP sözleşmesi](06_API_CONTRACT.md),
 [geliştirmeye hazırlık](12_TEAM_PLAN_AND_DECISIONS.md) ve
 [mevcut backend hazırlığı](../backend/README.md).
 
-## Mevcut durum ve çözülecek farklar
+## Önerinin 6351089 temelindeki durumu ve farkları (tarihsel)
 
 - Mert'in `6351089` commitinde `POST /api/v1/auth/register` uygulanmıştır.
   Zorunlu girdiler `email`, `password`, `displayName`; isteğe bağlı `role`dur.
@@ -70,8 +78,8 @@ henüz main'e gelmediyse endpoint/token şeması veya uygulama varmış gibi var
 
 | Önceki öneriyle fark | Güncel kod | Bu revizyondaki karşılık |
 |---|---|---|
-| Kayıt yanıtını profil kökü yapmak | `201 { id }` | Kayıt yanıtı korunur; güvenli profil kökü yalnız gelecekteki `/me` için önerilir |
-| Yeni `emailVerifiedAt` alanı | Saklanan `isEmailVerified` boolean | Paralel doğrulama alanı önerisi çıkarıldı; `/me`de gösterim ayrıca onaylanır |
+| Kayıt yanıtını profil kökü yapmak | `201 { id }` | Kayıt yanıtı korunur; eski geniş profil kökü önerisi mevcut `GET /auth/me` beş alanlı yanıtına uygulanmaz |
+| Yeni `emailVerifiedAt` alanı | Saklanan `isEmailVerified` boolean | Paralel alan önerisi çıkarıldı; güncel `GET /auth/me` bu boolean'ı kendi hesap DTO'sunda sunar |
 | Kayıtta isteğe bağlı doğum tarihi/boy | Bu girdiler kabul edilmiyor | Kayıt gövdesine eklenmez; gelecekteki profil düzenlemesi ayrı ele alınır |
 | Minimum 15 parola ve eski UTF-16 sayımını düzeltme | Minimum 8; skaler sayım zaten uygulanmış | 15 yalnız ayrı politika değişikliği adayıdır; kodda yeniden sayım işi açılmaz |
 | Kayıtta rol/alan doğrulamasına `422` | Girdi/rol hatası `400`; parola hatası `422` | Mevcut hata ayrımı korunur |
@@ -82,7 +90,7 @@ henüz main'e gelmediyse endpoint/token şeması veya uygulama varmış gibi var
 |---|---|---|
 | A1 | İlk çalışan kayıt dilimi yalnız danışan; hesap başına tek rol | Mevcut hazırlıkla uyumludur. Çoklu rol ve diyetisyen başvurusu ayrı akış olarak tasarlanır; public kayıt Admin veya doğrulanmış uzman oluşturmaz |
 | A2 | Uygulanmış `email`, `password`, `displayName`, isteğe bağlı `role` kayıt gövdesini ortak belgelere geçir; doğum/boy kayıt gövdesine eklenmesin | Yeni danışanın User ve ClientProfile kaydı zaten atomiktir; değişiklik önerisi mevcut API'yi genişletmez |
-| A3 | Kayıt için mevcut `201 { id }` korunsun; gelecekteki `GET/PATCH /me` güvenli `{ user, clientProfile, dietitianProfile }` kökünü kullansın | Mobil ve web aynı yanıtı aynı işlemde okur; kayıt sonucundaki User UUID'si ClientProfile UUID'si sanılmaz |
+| A3 | Kayıt için `201 { id }` korunur. Eski geniş `GET/PATCH /me` kökü önerisinden hesap okuması ayrılmış, `GET /auth/me` düz beş alanla onaylanmıştır; geniş profil/düzenleme önerisi açık kalır | Mobil ve web onaylı kendi hesap DTO'sunu kullanır; kayıt/hesap yanıtındaki User UUID'si ClientProfile UUID'si sanılmaz |
 | A4 | Webde HttpOnly cookie; mobilde kısa ömürlü opaque bearer + dönen refresh token | Tek backend ve mevcut ASP.NET Core güvenlik bileşenleri kullanılır. Mobil tokenı çözümlemez; web tokenı JavaScript depolarına yazmaz |
 | A5 | Sunucuda izlenen, iptal edilebilir oturum ve tek kullanımlık refresh | Çıkış/parola sıfırlama ve eski refresh'in tekrar kullanımında erişim gerçekten kesilebilir |
 | A6 | Uygulanmış 8–128 skaler politikası esas alınsın; minimumu 15 yapma önerisi ayrı değerlendirilip ancak iki taraf onaylarsa değiştirilsin | Aynı anda farklı istemci/parola kuralları üretilmez; mevcut hash ve uygulanmış Unicode sayımı korunur |
@@ -102,10 +110,11 @@ HTTP tamamlamalarıdır; mevcut yol adları korunur.
 | İşlem | Önerilen girdiler ve yanıt | Kurallar |
 |---|---|---|
 | `POST /auth/register` | Mevcut JSON: `email`, `password`, `displayName`; isteğe bağlı `role`. Mevcut `201 { id }` | `role` gönderilmezse `client`; yalnız `client` kabul edilir. `birthDate`/`heightCm` kayıt girdisi değildir. Oturum/token üretmez |
-| `GET /me` | Gövdesiz; `200`: güvenli profil kökü | Kimlik doğrulama zorunlu; yalnız oturum sahibinin bilgisi |
+| Önceki `GET /me` önerisi | Yerine güncel `GET /auth/me` beş alanlı düz yanıtı `06`da onaylıdır | Eski yol/iç içe kök uygulanmaz; yalnız JWT sahibinin kendi hesabı okunur |
 | `PATCH /me` | `displayName`, `birthDate`, `heightCm`; `200`: güncel güvenli profil kökü | Danışan kendi alanlarını düzenler. Gönderilmeyen korunur; nullable alan açık null ile temizlenir. Boş PATCH `400` |
 
-Yalnız gelecekteki `/me` için önerilen güvenli profil kökü ve alan beyaz listesi:
+Geniş profil görünümü/düzenlemesi için geçmiş öneri olan kök ve alan listesi
+(mevcut `GET /auth/me` yanıtını genişletmez; yeni uygulama için ayrıca onay gerekir):
 
 | JSON anahtarı | Alanlar / anlam |
 |---|---|

@@ -57,6 +57,16 @@ ayrıca yapılandırılır. Mevcut access token stateless'tir; anlık iptal/refr
 cookie/istemci saklama, MFA ve sıfırlama henüz sağlanmaz. Bu sınırlar korunmadan
 tam güvenli oturum/yayın tamamlandı denmez; rol tek başına sağlık kaydı yetkisi değildir.
 
+**Kendi hesap okuması — 27.10.2026:** `GET /api/v1/auth/me` yalnız doğrulanmış
+JWT bearer ile erişilir. User UUID'si tek `sub` claim'inden çözülür; istemciden
+userId alınmaz. Güncel User ve opsiyonel kendi ClientProfile'ından yalnız `id`,
+nullable `displayName`, `email`, `role`, `isEmailVerified` seçilir; entity/hash/token
+ve diğer profil/sağlık verileri serileştirilmez. Profil yoksa ad null'dır. Yanıt
+`Cache-Control: no-store` kullanır; yanıt içeriği veya hassas hesap verisi loglanmaz.
+Silinmiş hesap, artık doğrulanmamış e-posta veya tokenla uyuşmayan güncel rol için
+ortak `401` kullanılır; Admin MFA engeli korunur. Bu salt okunur kontrol yeni veri
+yazmaz veya diğer kaynaklar için anlık token iptali uygulandığı anlamına gelmez.
+
 Ürün/teknoloji kararları onaylıdır; Auth/profil ve kategori/onay DTO'ları dahil teknik bağımlılıklar `12`nin hazırlık tablosundadır. İlgili şema kapanmadan gerçek yetki/oturum entegrasyonu tamamlandı sayılmaz. Sentetik tasarım/bağımsız altyapı çalışması gerçek sağlık verisi toplama veya yayın izni değildir.
 
 Silme/retention, yedekten silme, rıza kanıtı, üçüncü taraf aktarımı, dosya erişimi ve istisnai Admin erişiminin uygulama ayrıntıları açıktır; süre, sağlayıcı, izin kodu veya hukuki dayanak bu belgeyle kendiliğinden seçilmez. Gerçek veri/yayın için aşağıdaki kapılar ayrıca tamamlanır.

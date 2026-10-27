@@ -1,6 +1,6 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
-> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt, e-posta doğrulama ve JWT girişinin 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
+> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt, e-posta doğrulama, JWT girişi ve kendi hesap özetinin 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
 
 Mevcut geçerli alanlar korunur; kişisel program için `NutritionPlan.dietitianId` nullable yapılır. Yeni asgari alanlar aşağıda tanımlanır. Henüz kesinleşmemiş alt kayıt adları, enum değerleri ve saklama tercihleri **AÇIK** veya **ÖNERİ** olarak ayrılır; bunlar uygulama için onaylanmış kabul edilmez. Bir domain ilişkisi tanımlanması her ilişki için ayrı tablo/model oluşturulmasını gerektirmez.
 
@@ -34,7 +34,7 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 
 | Entity | Temel alanlar | Not / kısıt |
 |---|---|---|
-| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i, doğrulama durumu ve token metadata'sı mevcut API yanıtlarına çıkmaz. Şifre sıfırlama, güvenli oturum ve Admin MFA kayıtları **AÇIK**tır |
+| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. Şifre sıfırlama, güvenli oturum ve Admin MFA kayıtları **AÇIK**tır |
 | `ClientProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `birthDate: date?`, `heightCm: decimal?` | `userId` → User ve unique; boy cm. Yaş/kişisel veri hassas ele alınır; doğum tarihi şimdilik isteğe bağlıdır |
 | `DietitianProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `licenseInfo: AÇIK?`, `isVerified: boolean` | `userId` → User ve unique; uzmanı Admin doğrular. Mobil/web başvuru, belge biçimi ve doğrulama geçmişinin yapısı **AÇIK**tır; `isVerified` istemcinin kendi değiştireceği bir alan değildir |
 | `DietitianClientRelationship` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `status: RelationshipStatus`, `requestedAt: instant`, `respondedAt: instant?`, `endedAt: instant?` | `clientId` → ClientProfile, `dietitianId` → DietitianProfile; danışan başına en fazla bir aktif ilişki. Karşılıklı onay gerekir; arama/davet kodu onayın yerine geçmez |
@@ -55,6 +55,30 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 - `LoginUserResponse.accessToken: string`, `tokenType: string` (sabit `Bearer`), `expiresAt: instant` yalnız HTTP yanıt alanlarıdır; User sütunu veya yeni oturum tablosu değildir. JWT DB'ye saklanmaz; 15 dakikalık imzalı access token için migration gerekmez. Refresh/logout/iptal saklamasının şeması **AÇIK** kalır.
 - JWT `sub`, User UUID'sidir. Sonraki iş modülleri `clientId`yi güvenilir User → ClientProfile ilişkisinden çözer; token içindeki rol tek başına uzman doğrulaması, aktif ilişki veya veri paylaşım izni sağlamaz.
 - Identity `SuccessRehashNeeded` sonucunda yalnız başarılı ve girişe uygun hesabın `passwordHash`/`updatedAt` alanları güncellenebilir. Güncelleme önceki hash/doğrulama/rol koşuluyla atomiktir; yarışta başka bir parola değişikliği ezilmez ve token verilmez. Yanlış parola, doğrulanmamış hesap ve Admin için hash değiştirilmez.
+
+### Kendi hesap özeti — mevcut veriden salt okunur DTO
+
+`CurrentUserResponse` ayrı bir kalıcı model değildir; migration veya User/ClientProfile
+alan değişikliği gerektirmez. `GET /api/v1/auth/me` yalnız aşağıdaki alanları seçer:
+
+| Alan | Tip / nullability | Kaynak |
+|---|---|---|
+| `id` | `uuid`, zorunlu | Doğrulanmış JWT `sub` ile bulunan `User.id`; ClientProfile UUID'si değildir |
+| `displayName` | `string?`, anahtar daima bulunur | O User'ın opsiyonel ClientProfile ilişkisindeki mevcut ad; profil yoksa null. Zorunlu profil adı alanının kendisi nullable yapılmaz |
+| `email` | `string`, zorunlu | User'ın DB'deki güncel e-postası |
+| `role` | `UserRole`, zorunlu | User'ın DB'deki güncel kanonik rolü |
+| `isEmailVerified` | `boolean`, zorunlu | User'ın sunucu tarafından tutulan doğrulama durumu |
+
+Hesap ID'si, tek ve geçerli `sub` claim'inden çözülür; istemci girdisi veya profil ID'si
+ile başka hesap seçilemez. User ve varsa kendi ClientProfile'ı tek salt okunur
+projeksiyonla sorgulanır. Hash/token/sağlık/profilin diğer alanları seçilmez; entity
+serileştirilmez. Profilsiz `client`/`dietitian` için aynı DTO ve null ad kullanılır;
+DietitianProfile veya yapay ad/varsayılan profil üretilmez.
+
+Bu işlemde hesap hâlâ bulunmalı, e-postası doğrulanmış olmalı ve güncel rolü tokenın
+izinli `client`/`dietitian` rolüyle eşleşmelidir; aksi durumda `06`daki ortak `401`
+uygulanır. Admin MFA engeli korunur. Bu kontrol yalnız kendi hesap okumasının
+güvencesidir; diğer endpointler için genel anlık oturum iptali anlamına gelmez.
 
 ## Beslenme ve günlük takip
 

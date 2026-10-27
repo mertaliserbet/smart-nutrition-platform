@@ -116,7 +116,18 @@ yanıtını açıkça onayladı. Bu JWT dilimi `04/05/06/11`e işlendi. IP baş�
 doğrulama alanları korunur; yeni tablo/migration eklenmez. `13`teki opaque token,
 doğrulanmamış hesap için ayrı `403` ve alternatif oturum yanıtı bu dilimde geçerli
 değildir. Bu kayıt, `13`ün tamamının veya Uğur'un ayrıca onay verdiğinin kaydı değildir.
-Refresh/logout/iptal, `/me`, MFA, sıfırlama ve istemci cookie/saklama entegrasyonu açık kalır.
+Bu giriş görevi sonunda refresh/logout/iptal, kendi hesap okuması, MFA, sıfırlama ve istemci cookie/saklama entegrasyonu açık kalmıştı; hesap okuması aşağıdaki sonraki görevde kapanmıştır.
+
+**Kendi hesap görevi — 27.10.2026:** Kullanıcı açıkça `GET /api/v1/auth/me` ve
+yalnız `id`, `displayName`, `email`, `role`, `isEmailVerified` alanlarından oluşan
+düz yanıtı istedi. Eski uygulanmamış `GET /api/v1/me` taslağı bu talimatla
+değiştirilmiştir; ikinci GET yolu eklenmez. Yanıt adı `CurrentUserResponse`;
+kimlik JWT `sub` → User UUID, ad opsiyonel ClientProfile'dan gelir ve profil
+yoksa null'dır. Kullanıcı DB'de yoksa veya güncel doğrulama/rolü uygun değilse
+ortak `401` uygulanır; Admin MFA engeli korunur. `04/05/06/11` eşitlenir; yeni
+kalıcı model/migration gerekmez. Bu yalnız hesap özetidir; profil düzenleme,
+uzman profili, refresh/logout/iptal, MFA ve sıfırlama açık kalır. `13`ün tüm
+önerileri veya diğer geliştiricinin ayrıca onayı bu kullanıcı talimatından çıkarılmaz.
 
 Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kararlaştırılmalıdır. Geçmiş verinin korunması, süresiz saklama kararı değildir; silme ve saklama kuralları yayın kapısının parçasıdır.
 
@@ -139,11 +150,11 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 
 **Durum: kısmen hazır.** Ürün, teknoloji, roller ve sahiplik sınırları belirli; bağımsız altyapı ve onaylı alanlara dayanan sentetik UI çalışmaları ayrı görevlerde başlayabilir. Ancak Auth, paylaşım ve program akışlarını kapsayan tam mobil–web–backend geliştirme/entegrasyonu henüz hazır değildir. Aşağıdaki açıklar ilgili özellikten önce iki geliştirici tarafından kapatılmalıdır; belgeyi güncellemek uygulama/test/yayın onayı değildir.
 
-`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevlerinde yalnız onaylanan kayıt/e-posta doğrulama/JWT giriş parçaları bu ortak sözleşmelere işlenmiştir.
+`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevlerinde yalnız onaylanan kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti parçaları bu ortak sözleşmelere işlenmiştir.
 
 | Alan | Bulgu / gerekli ortak karar | Geliştirmeye etkisi |
 |---|---|---|
-| Auth ve profil | Register isteği/`201 { id }`, User doğrulama alanları, verify/resend ve 15 dakikalık JWT login sözleşmesi kapanmıştır. `/me`, refresh/logout/iptal, cookie/istemci saklama ve MFA challenge/kurulum/kurtarma ile diğer güvenlik kayıtları açıktır | Kayıt/e-posta doğrulama/JWT backend dilimleri uygulanabilir; tam oturum/istemci ve Admin paneli entegrasyonundan önce kalan sözleşmeler kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
+| Auth ve profil | Register isteği/`201 { id }`, User doğrulama alanları, verify/resend, 15 dakikalık JWT login ve `GET /auth/me` beş alanlı hesap özeti kapanmıştır. Profil düzenleme/uzman profili, refresh/logout/iptal, cookie/istemci saklama ve MFA challenge/kurulum/kurtarma ile diğer güvenlik kayıtları açıktır | Kayıt/e-posta doğrulama/JWT/kendi hesap okuması backend dilimleri uygulanabilir; tam oturum/istemci ve Admin paneli entegrasyonundan önce kalan sözleşmeler kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
 | Program sürümü ve geçiş | Öğelerin sürüm/alternatif bağları, miktar/gün biçimi, tam items DTO'su, arşivleme/değiştirme request'i açıktır; `06` ikinci aktif programa `409` döndürür | Sürüm geçmişi ve program değiştirme özelliği uygulanmadan önce kapanmalı; eski sahiplik silinerek veya iki aktif programla aşılmaz |

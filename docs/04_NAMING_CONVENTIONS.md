@@ -10,7 +10,7 @@ Tip adları C#, Dart ve TypeScript'te `PascalCase` olarak aynıdır. Üçüncü 
 
 | Türkçe kavram | C#/Dart/TypeScript tip adı | Değişken/alan yazımı | Mevcut API karşılığı / sınır |
 |---|---|---|---|
-| Kullanıcı hesabı | `User` | `user` | `/me`; önceki `/users` admin önerisi `06`da tanımlı değildir |
+| Kullanıcı hesabı | `User` | `user` | Kendi hesap özeti: `GET /auth/me`; önceki `/users` admin önerisi `06`da tanımlı değildir |
 | Danışan profili | `ClientProfile` | `clientProfile` | `/dietitian/clients` (diyetisyen görünümü) |
 | Diyetisyen profili | `DietitianProfile` | `dietitianProfile` | `/dietitians` |
 | Diyetisyen–danışan ilişkisi | `DietitianClientRelationship` | `dietitianClientRelationship` | `/dietitian-relationships` |
@@ -72,7 +72,7 @@ Kod tanımlayıcıları İngilizce ve ASCII yazılır; Türkçe kullanıcı aray
 | Web TSX file | isim tutarlı; component `PascalCase.tsx`, helper `camelCase.ts` | `MealLogCard.tsx` |
 | Backend dosya | C# type ile `PascalCase.cs` | `MealLogService.cs` |
 | PostgreSQL tablo/sütun | İngilizce, küçük `snake_case`; tablo çoğul, sütun alan adı | `meal_logs`, `client_id`, `consumed_at` |
-| REST kaynak adı | `/api/v1/` + çoğul `kebab-case`; yalnız `06`da tanımlı yollar | `/api/v1/meal-logs`; `/me`, `/auth`, `/dietitian` ve işlem yolları mevcut sözleşmeye göre korunur |
+| REST kaynak adı | `/api/v1/` + çoğul `kebab-case`; yalnız `06`da tanımlı yollar | `/api/v1/meal-logs`; `/auth/me`, `/auth`, `/dietitian` ve açık profil düzenleme yolu `06`ya göre kullanılır |
 | JSON fields | **her yerde `camelCase`** | `clientId`, `caloriesKcal` |
 | Git dalı | Ortak çalışma dalı `main`; kullanıcı açıkça istemedikçe yeni dal veya PR açılmaz (`12`, 27.10.2026 kararı) | `main`; açıkça istenen istisna adlarında da geliştirme aracının adı kullanılmaz |
 
@@ -96,7 +96,7 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - Kayıt DTO'ları `RegisterUserRequest` / `RegisterUserResponse`; zorunlu düz `displayName`, `ClientProfile.displayName` alanına aittir. Başarıdaki `id`, `User.id` değeridir; `clientId` değildir. Tam şema `06`dadır.
 - `User.isEmailVerified` e-posta sahipliğidir; `DietitianProfile.isVerified` Admin'in uzman doğrulamasıdır. Bu iki alan eşanlamlı değildir; `emailConfirmed` / `isVerified` adıyla ikinci bir hesap alanı oluşturulmaz.
 - Doğrulama girdisi `VerifyEmailRequest.token`, yeniden gönderim girdisi `ResendVerificationRequest.email` olur. `token` yalnız bu işlemin girdisidir; oturum/access/refresh tokenı değildir ve yeni bir token entity'si oluşturulmaz.
-- Sunucu içi alanlar C# `EmailVerificationTokenHash`, `EmailVerificationExpiresAt`, `EmailVerificationLastSentAt`; PostgreSQL karşılıkları `email_verification_token_hash`, `email_verification_expires_at`, `email_verification_last_sent_at` olur. Sözlükteki camelCase gösterimleri HTTP yanıt alanı ilanı değildir: bu üç alan ve `isEmailVerified` mevcut yanıtlara çıkmaz. Tip ve bütünlük `05`te, işlem yolları `06`dadır.
+- Sunucu içi alanlar C# `EmailVerificationTokenHash`, `EmailVerificationExpiresAt`, `EmailVerificationLastSentAt`; PostgreSQL karşılıkları `email_verification_token_hash`, `email_verification_expires_at`, `email_verification_last_sent_at` olur. Sözlükteki camelCase gösterimleri HTTP yanıt alanı ilanı değildir: üç token metadata alanı yanıtlara çıkmaz. `isEmailVerified` yalnız aşağıdaki onaylı kendi hesap DTO'sunda açılır; entity JSON'u/kayıt/giriş yanıtı değişmez. Tip ve bütünlük `05`te, işlem yolları `06`dadır.
 - Ham token için `User.token`, `verificationCode` veya saklanan düz metin alternatif alan üretilmez. E-posta metnindeki “doğrulama kodu” API'deki `token` ile aynı değerdir; mobil/web ayrı ad veya şema üretmez.
 
 ### Onaylı giriş ve JWT adları — 27.10.2026
@@ -104,6 +104,11 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - Giriş `LoginUserRequest` / `LoginUserResponse` adlarını kullanır: istek `email`, `password`; yanıt `accessToken`, `tokenType`, `expiresAt`. Paralel `SignIn`/`Authenticate` DTO'su veya farklı istemci yanıt kökü üretilmez. Tam HTTP sözleşmesi `06`dadır.
 - JWT `sub` claim'i `User.id` değeridir; `clientId` veya `ClientProfile.id` değildir. `role` claim'i mevcut `client` / `dietitian` değerini taşır. `admin`, MFA hazır olana kadar token üretiminde ve kabulünde kapalıdır.
 - `accessToken` 15 dakikalık JWT'dir; e-posta doğrulama girdisi `token` ile karıştırılmaz. `tokenType` tam `Bearer`, `expiresAt` UTC instant'tır. JWT ve `expiresAt` yeni User sütunları değildir; oturum/refresh entity'si bu görevden türetilmez. JWT'nin standart `iss`, `aud`, `iat`, `nbf`, `exp` claim adları JSON/domain alanı diye yeniden adlandırılmaz.
+
+### Onaylı kendi hesap özeti — 27.10.2026
+
+- Kanonik işlem `GET /api/v1/auth/me`, yanıt DTO'su `CurrentUserResponse` olur; yeni `CurrentUser` entity'si/tablosu oluşturulmaz. Eski uygulanmamış `GET /api/v1/me` taslağı bu görevde kullanıcının açık yol talimatıyla değiştirilmiştir; ikinci GET alias'ı oluşturulmaz. `PATCH /api/v1/me` ayrı, henüz uygulanmamış profil düzenleme taslağıdır.
+- Yanıt düz kökte tam beş alan taşır: `id`, `displayName`, `email`, `role`, `isEmailVerified`. `id`, JWT `sub` ile seçilen `User.id`; `displayName`, varsa o User'a ait `ClientProfile.displayName`, yoksa açık `null`dır. `user`/`clientProfile` sarmalayıcısı veya farklı rol için alternatif yanıt kökü üretilmez. Birim/nullability ve erişim kuralları `05/06`dadır.
 
 ## Başlangıç enum sözlüğü
 

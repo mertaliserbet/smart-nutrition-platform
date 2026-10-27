@@ -10,7 +10,7 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 
 | Ekran | İçerik ve işlemler | İlgili API / açık bağımlılık |
 |---|---|---|
-| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `/me`; oturum/profil DTO'ları açık |
+| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. Uzman doğrulama durumu ve cookie/CSRF/refresh/istemci entegrasyonu ayrı açık bağımlılıktır |
 | Dashboard | aktif danışan sayısı, bekleyen istekler, son kayıtların özeti | `/dietitian-relationships`, `/dietitian/clients` |
 | Danışan Listesi | Aktif ilişkili danışanların sınırlı id/displayName listesi; izinli ek özetler ayrı kapsam | `/dietitian/clients`; bekleyen/bitmiş ilişki durumları `/dietitian-relationships`ten |
 | Danışan Detayı | hedefler, günlük/haftalık özet, ölçüm trendi | `/dietitian/clients/{clientId}/dashboard` |
@@ -23,7 +23,7 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 | Analiz ve PDF raporları | İzinli trend, program uyumu ve PDF; kapsam dışında kategori/tahlil eklenmez | Dashboard mevcut; uyum formülü, rapor DTO/dosya erişimi ve PDF endpointi açık |
 | Bildirimler | İlk sürüm yorum/cevap bildirimi ve onaylı tercih akışı | Bildirim modeli/kanalı/endpointleri açık; WebSocket varsayılmaz |
 | Bağlantı İstekleri | kabul/red ve ilişki sonlandırma | `/dietitian-relationships` |
-| Uzman Profili / Ayarlar | hesap/uzmanlık alanları, oturum ve bildirim tercihleri | `/me` |
+| Uzman Profili / Ayarlar | hesap/uzmanlık alanları, oturum ve bildirim tercihleri | `GET /auth/me` yalnız hesap özeti; uzmanlık/profil düzenleme ve tercihler bu DTO'ya eklenmez, ilgili açık şemalar ayrıca tamamlanır |
 
 ## Admin ekranları — onaylı kapsam, açık uygulama ayrıntıları
 Doğrulama, kullanıcı/hesap operasyonları, şikâyetler, besin kataloğu, Audit Log (`AuditEvent`) ve sistem durumu onaylı kapsamdır. İlk sürüm paneli webdedir; yönetim oturumu MFA gerektirir. Admin'in sağlık verilerini varsayılan okuma hakkı **yoktur**; destek/audit ekranı sağlık değerlerini topluca açamaz.

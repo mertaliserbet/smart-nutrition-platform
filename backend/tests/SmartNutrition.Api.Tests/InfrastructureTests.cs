@@ -133,7 +133,16 @@ public sealed class InfrastructureTests
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
-        Assert.Equal(4, paths.EnumerateObject().Count());
+        Assert.Equal(5, paths.EnumerateObject().Count());
+        var currentUser = paths.GetProperty("/api/v1/auth/me").GetProperty("get");
+        Assert.False(currentUser.TryGetProperty("requestBody", out _));
+        var currentUserSchema = currentUser.GetProperty("responses").GetProperty("200").GetProperty("content")
+            .GetProperty("application/json").GetProperty("schema");
+        if (currentUserSchema.TryGetProperty("$ref", out var currentUserReference))
+            currentUserSchema = document.RootElement.GetProperty("components").GetProperty("schemas")
+                .GetProperty(currentUserReference.GetString()!.Split('/').Last());
+        Assert.Equal(["displayName", "email", "id", "isEmailVerified", "role"],
+            currentUserSchema.GetProperty("properties").EnumerateObject().Select(field => field.Name).Order().ToArray());
         var login = paths.GetProperty("/api/v1/auth/login").GetProperty("post");
         var loginSchema = login.GetProperty("requestBody").GetProperty("content").GetProperty("application/json").GetProperty("schema");
         if (loginSchema.TryGetProperty("$ref", out var loginReference))

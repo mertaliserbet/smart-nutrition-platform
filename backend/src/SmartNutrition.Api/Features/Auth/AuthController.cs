@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SmartNutrition.Api.Infrastructure;
@@ -10,8 +12,23 @@ namespace SmartNutrition.Api.Features.Auth;
 [Route("api/v1/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(UserRegistrationService registration, EmailVerificationService verification,
-    VerificationEmailQueue emailQueue, UserLoginService login) : ControllerBase
+    VerificationEmailQueue emailQueue, UserLoginService login, CurrentUserService currentUser) : ControllerBase
 {
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [HttpGet("me")]
+    [ProducesResponseType<CurrentUserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Me(CancellationToken cancellationToken)
+    {
+        // This endpoint has no client-supplied identity, query parameters or request body.
+        if (Request.Query.Count != 0 || HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true)
+            return BadRequest(ApiErrors.Create(HttpContext, StatusCodes.Status400BadRequest));
+        var response = await currentUser.GetAsync(User, cancellationToken);
+        return response is null ? Challenge() : Ok(response);
+    }
+
     [AllowAnonymous]
     [HttpPost("login")]
     [Consumes("application/json")]

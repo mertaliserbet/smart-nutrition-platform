@@ -13,7 +13,7 @@ Yollar `/api/v1` tabanına göredir; method, alan ve yetki kaynağı `06`dır. *
 
 | Ekran | İçerik | Mevcut API / açık bağımlılık |
 |---|---|---|
-| Onboarding / Login / Register | E-posta/şifre, doğrulama, şifre sıfırlama, profil ve yasal bilgilendirme; izinleri gerektiğinde iste | `/auth/*`, `/me`; profil kökü ve oturum DTO'su açık |
+| Onboarding / Login / Register | E-posta/şifre, doğrulama, şifre sıfırlama, profil ve yasal bilgilendirme; izinleri gerektiğinde iste | `/auth/*`, `GET /auth/me`; kayıt/JWT giriş/kendi hesap özeti `06`da onaylı. Refresh/logout, profil düzenleme ve istemci entegrasyonu ayrı |
 | Ana Sayfa | Günlük enerji/makro, su, plan durumu, son öğün, bağlanan diyetisyen, CTA | `/meal-logs`, `/water-logs`, `/nutrition-plans/active` |
 | Beslenme Günlüğü | Gün bazlı öğünler, ekle/düzelt/sil, tarih filtresi | `/meal-logs`, `/food-items` |
 | Tarifler | Kendi özel tarifleri ve erişilebilir katalog; geçmiş tüketim değerlerini değiştirmeden kayıt | `/recipes`; bileşen/porsiyon/görünürlük AÇIK ŞEMA |
@@ -21,14 +21,14 @@ Yollar `/api/v1` tabanına göredir; method, alan ve yetki kaynağı `06`dır. *
 | Su | hızlı miktar ekleme, günlük toplam, hedef | `/water-logs` |
 | Planım / Kişisel program | Diyetisyensiz kişisel program oluştur/düzenle; atanmış programı/hedefleri salt okunur gör; tek aktif program, alternatif ve geçmiş | `/nutrition-plans`, `/nutrition-plans/active`; tam items/alternatif/sürüm ve program geçişi AÇIK ŞEMA |
 | Diyetisyenim | Doğrulanmış uzman ara, davet kodu/karşılıklı onay, ilişki durumu/geçmişi ve sonlandırma | `/dietitians`, `/dietitian-relationships`; davet kodu girdisi açık |
-| Diyetisyen başvurusu | Uzman başvurusu ve doğrulama durumunu gör; rol seçimi doğrulanmış yetki vermez | `/auth/*`, `/me` mevcut; başvuru belge/endpoint DTO'su açık |
+| Diyetisyen başvurusu | Uzman başvurusu ve doğrulama durumunu gör; rol seçimi doğrulanmış yetki vermez | `/auth/*`, `GET /auth/me` yalnız hesap özeti içindir; uzman başvuru/doğrulama durumu bu DTO'da yoktur. Başvuru belge/endpoint DTO'su açık |
 | Görevlerim | Atanan ClientTask, son tarih, durum ve isteğe bağlı hatırlatma | `/client-tasks`; durum geçiş yetkisi/son tarih/hatırlatma AÇIK ŞEMA |
 | Öğün yorumları/cevaplar | Kendi öğününde yorum/cevap ve bildirim akışı; ayrı sohbet yok | `06`daki `/meal-logs/{mealLogId}/comments` önerisi AÇIK ŞEMA; bildirim DTO/kanalı açık |
 | İlerleme | tarih aralığı, kilo/ölçümler, beslenme trendi | `/body-measurements`, `/meal-logs` |
 | Aktivite | manuel yürüyüş/koşu, süre/mesafe; kaynağı göster | `/activity-logs` |
 | Laboratuvar | Manuel değer/birim/aralık, sonuç geçmişi ve açıklama; ardından kullanıcı kontrol/onaylı PDF/fotoğraf OCR | `/lab-reports` ve insights; OCR yolu/yanıtı `06`da öneri, AÇIK ŞEMA |
 | Cihaz bağlantıları | açık izin, hangi veri toplanıyor, senkronize et/iptal et | `/wearable-connections` (sonraki faz) |
-| Profil ve gizlilik | Hesabım; kategori paylaşımı/tahlil açık onayı ve geri çekme; cihaz izinleri; veri indirme/hesap silme talepleri | `/me`, `/data-sharing-permissions`, `/consent-records`; silme/indirme uçları ve onay kanıtı henüz tam tanımlı değil |
+| Profil ve gizlilik | Hesabım; kategori paylaşımı/tahlil açık onayı ve geri çekme; cihaz izinleri; veri indirme/hesap silme talepleri | `GET /auth/me` kendi hesap özeti; profil düzenleme ayrı açık taslak. `/data-sharing-permissions`, `/consent-records`; silme/indirme uçları ve onay kanıtı henüz tam tanımlı değil |
 
 ## Kritik etkileşimler
 1. Kamera ve galeri izinleri sadece gerektiğinde istenir; reddedilirse manuel yemek kaydı devam eder.
