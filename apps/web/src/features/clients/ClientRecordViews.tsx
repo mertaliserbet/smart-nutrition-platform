@@ -1,6 +1,6 @@
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
-import type { BodyMeasurement, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
+import type { ActivityLog, BodyMeasurement, LabFlag, LabReport, LabResult, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
 
 const sourceLabels: Record<RecordSource, string> = {
   manual: 'Manuel kayıt', wearable: 'Cihaz aktarımı', ai_assisted: 'AI destekli kayıt',
@@ -60,4 +60,72 @@ export function BodyMeasurementList({ clientId, records }: { clientId: string; r
     <header className="record-header"><RecordTime at={record.measuredAt} /><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
     <dl className="record-quantities measurement-quantities"><Quantity label="Kilo" value={record.weightKg} unit="kg" /><Quantity label="Bel çevresi" value={record.waistCm} unit="cm" /><Quantity label="Vücut yağ oranı" value={record.bodyFatPercent} unit="%" /></dl>
   </article>)}<p className="record-footnote">Ölçümler kaydedildiği tarih ve birimle gösterilir. Bu ekran klinik değerlendirme veya hedef önerisi üretmez.</p></div>
+}
+
+export function ActivityLogList({ clientId, records }: { clientId: string; records: ActivityLog[] }) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+  if (visibleRecords.length === 0) return <EmptyState icon="activity" title="Henüz aktivite kaydı yok">Bu görünümde görüntülenebilecek aktivite kaydı bulunmuyor.</EmptyState>
+  return <div className="record-list" aria-label="Aktivite kayıtları">{visibleRecords.map((record) => <article className="activity-record" key={record.id} aria-labelledby={`activity-${record.id}`}>
+    <header className="record-header"><div><h3 id={`activity-${record.id}`}>{record.activityType}</h3><RecordTime at={record.startedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+    <dl className="record-quantities activity-quantities"><Quantity label="Süre" value={record.durationMinutes} unit="dk" /><Quantity label="Mesafe" value={record.distanceKm} unit="km" /><Quantity label="Enerji" value={record.caloriesKcal} unit="kcal" /></dl>
+  </article>)}</div>
+}
+
+const labFlagLabels: Record<LabFlag, string> = {
+  low: 'Alt referansın altında',
+  normal: 'Referans aralığında',
+  high: 'Üst referansın üzerinde',
+  unknown: 'Değerlendirilemiyor',
+}
+
+function LabResultRow({ result }: { result: LabResult }) {
+  const hasUnit = result.unit.trim().length > 0
+  const hasCompleteReference = result.referenceLow !== null && result.referenceHigh !== null
+    && Number.isFinite(result.referenceLow) && Number.isFinite(result.referenceHigh)
+    && result.referenceLow <= result.referenceHigh
+  // Preserve the supplied flag. Missing context can only suppress an assessment;
+  // the client never calculates a new clinical flag or interprets a one-sided range.
+  const displayedFlag = hasUnit && hasCompleteReference ? result.flag : 'unknown'
+  const unit = hasUnit ? result.unit : '(birim bilinmiyor)'
+  return (
+    <li className="lab-result" aria-labelledby={`lab-result-${result.id}`}>
+      <div className="lab-result-heading">
+        <h4 id={`lab-result-${result.id}`}>{result.testName}</h4>
+        {result.testCode && <span className="lab-test-code">Kayıttaki kod: {result.testCode}</span>}
+      </div>
+      <dl className="record-quantities lab-quantities">
+        <Quantity label="Sonuç" value={result.value} unit={unit} />
+        <Quantity label="Alt referans" value={result.referenceLow} unit={unit} />
+        <Quantity label="Üst referans" value={result.referenceHigh} unit={unit} />
+        <div><dt>Kayıttaki durum</dt><dd className={displayedFlag === 'unknown' ? 'unknown-value' : undefined}>{labFlagLabels[displayedFlag]}</dd></div>
+      </dl>
+    </li>
+  )
+}
+
+export function LabReportList({ clientId, records }: { clientId: string; records: LabReport[] }) {
+  const visibleReports = records.filter((report) => report.clientId === clientId)
+    .sort((a, b) => Date.parse(b.collectedAt) - Date.parse(a.collectedAt))
+  if (visibleReports.length === 0) return <EmptyState icon="lab" title="Henüz tahlil raporu yok">Bu görünümde görüntülenebilecek tahlil raporu bulunmuyor.</EmptyState>
+  return (
+    <div className="record-list" aria-label="Tahlil raporları">
+      {visibleReports.map((report) => {
+        const results = report.results.filter((result) => result.labReportId === report.id)
+        return (
+          <article className="lab-record" key={report.id} aria-labelledby={`lab-report-${report.id}`}>
+            <header className="record-header">
+              <div><h3 id={`lab-report-${report.id}`}>{report.labName?.trim() || 'Laboratuvar belirtilmemiş'}</h3><RecordTime at={report.collectedAt} /></div>
+              <span className="neutral-badge">Laboratuvar raporu</span>
+            </header>
+            {results.length > 0
+              ? <ul className="lab-results" aria-label="Rapor sonuçları">{results.map((result) => <LabResultRow key={result.id} result={result} />)}</ul>
+              : <p className="record-note">Bu raporda görüntülenebilecek sonuç yok.</p>}
+            {report.note && <p className="record-note"><Icon name="info" />{report.note}</p>}
+          </article>
+        )
+      })}
+      <p className="record-footnote">Değerler ve referanslar rapordaki birimle gösterilir. Eksik birim veya referansta değerlendirme yapılmaz. Referans aralığı genel sağlık hükmü değildir; bu görünüm tanı veya tedavi önerisi üretmez.</p>
+    </div>
+  )
 }
