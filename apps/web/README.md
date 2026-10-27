@@ -21,7 +21,7 @@ npm run build
 tasarımını incele** bağlantısı `/onizleme` alanına gider. Danışanlar ve bağlantı
 istekleri arasında gezinilebilir. Danışanlar bölümü altı sentetik danışanla
 Türkçe arama ve A–Z/Z–A sıralama sunar. Kayıt bağlantıları danışan detayındaki
-salt okunur öğün, su, ölçüm ve aktivite örneklerini açar. Arama/sıralama URL'de korunur;
+salt okunur öğün, su, ölçüm, aktivite ve tahlil örneklerini açar. Arama/sıralama URL'de korunur;
 detay ekranından listeye dönüşte arama geri gelir.
 
 Danışan detayındaki **Aktiviteler** bağlantısı `?kayit=aktiviteler` görünümünü
@@ -31,6 +31,17 @@ açar. Aktivite türü, başlangıç zamanı, kaynak, süre (dk), mesafe (km) ve
 Örnekler manuel kaynaklıdır; cihaz/senkronizasyon veya provider DTO'su üretilmez.
 Enerji aktif/toplam kalori olarak yorumlanmaz; adım/nabız, günlük toplam,
 hedef veya egzersiz programı eklenmez.
+
+**Tahliller** bağlantısı `?kayit=tahliller` görünümünü açar. `LabReport`/`LabResult`
+alanlarıyla laboratuvar, örnek alma zamanı, not, test/değer/birim, varsa test kodu
+ve alt/üst referanslar gösterilir. Raporlar en yeni örnek alma anı önce olacak
+şekilde sıralanır. Rapor–danışan ve sonuç–rapor bağlantıları eşleştirilir.
+Gerçek sıfır referans korunur; eksik sınır **Bilinmiyor** olarak kalır. İstemci
+`flag` hesaplamaz: kayıttaki `unknown` korunur; birim eksik, referans eksik veya
+ters ise değerlendirme gösterilmez. Sentetik analit ve aralıklar klinik eşik
+değildir. Bu salt okunur görünüm tanı, LabInsight, OCR, grafik, dosya yükleme veya
+PDF raporu üretmez. Gerçek diyetisyen erişimi kategori iznine ek olarak tahlil
+açık onayının sunucuda doğrulanmasını gerektirir; UI senaryosu bu yetkiyi vermez.
 
 Liste ve detay ekranlarındaki **Önizleme senaryosu** seçimi; örnek kayıt,
 bağlantısız, boş, paylaşım kapalı, yükleniyor ve hata görünümlerini açar.
@@ -48,7 +59,7 @@ veya klinik değerlendirme hesaplanmaz; günlük saat dilimi politikası seçilm
 `npm run build` sonrasında `npm run preview` üretim çıktısını yerelde gösterir.
 Üretim derlemesinde `/onizleme/*` yolları kapalıdır; giriş ekranında önizleme
 bağlantısı bulunmaz. Bu ayrım gerçek bir oturum/yetki sistemi değildir. Mert'in
-`80b9116` commit'ine kadar backend ve mobil güncellemeleri yerel projeye
+`6351089` commit'ine kadar backend ve mobil güncellemeleri yerel projeye
 alınmıştır. Backend ve mobil dosyaları bu web görevi kapsamında değiştirilmemiştir.
 
 ## Yapı
@@ -67,10 +78,10 @@ alınmıştır. Backend ve mobil dosyaları bu web görevi kapsamında değişti
 `docs/04`, `05`, `06` değiştirilmemiştir. Yeni endpoint, sözleşme dışı domain
 modeli, oturum DTO'su, paylaşım kategorisi veya açık şemadan kesin mock
 oluşturulmamıştır. Danışan liste girdisi yalnız `id` ve `displayName` içerir;
-doğum tarihi, boy, User veya Dashboard kök DTO'su varsayılmaz. Öğün/su/ölçüm/aktivite
+doğum tarihi, boy, User veya Dashboard kök DTO'su varsayılmaz. Öğün/su/ölçüm/aktivite/tahlil
 tipleri yalnız tanımlı alanları kullanır; fixture'lar üretim derlemesine dahil
 edilmez. Bilinmeyen danışan kimliğine mevcut bir örneğin verisi atanmaz;
-kayıt ve öğün kalemi sahiplik bağlantıları görüntüleme öncesinde eşleştirilir.
+kayıt, öğün kalemi ve tahlil sonucu sahiplik bağlantıları görüntüleme öncesinde eşleştirilir.
 Bu istemci kontrolleri gerçek kaynak/yetki denetimi olarak sunulmaz.
 E-posta biçimi ve
 boş şifre yerel olarak kontrol edilir; açık parola politikası yerine minimum
@@ -87,8 +98,10 @@ başlangıç marka rengi `#386a5e`, 8/16/24/32 boşlukları ve 16px köşe değe
 nihai ortak tema/ekran onayı sayılmaz. Uzak font, analitik veya medya isteği yoktur.
 
 Backend altyapısı PostgreSQL bağlantısı, sağlık kontrolleri ve geliştirme
-OpenAPI/Swagger görünümünü, User/ClientProfile ve kayıt doğrulama hazırlığını
-içerir; gerçek kayıt, oturum ve iş endpointleri henüz yoktur.
+OpenAPI/Swagger görünümünü ve User/ClientProfile kaydını içerir. `6351089` ile
+danışan kayıt endpointi `201 { id }` yanıtıyla hazırdır; giriş/oturum ve sağlık
+kayıtlarını okuyan endpointler henüz yoktur. Ortak Auth önerisi ayrı PR'dadır;
+incelemeye hazır olması sözleşme onayı değildir.
 Web bu altyapıya sahte bir giriş isteği göndermez. Sonraki adım Auth/profil
 sözleşmesini iki tarafla doğrulamak ve ilgili endpointler hazır olduğunda
 ilk gerçek giriş entegrasyonunu ayrı görevde yapmaktır.

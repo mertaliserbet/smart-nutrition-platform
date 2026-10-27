@@ -1,4 +1,4 @@
-import type { ActivityLog, BodyMeasurement, ClientProfileListItem, MealLog, WaterLog } from './clientTracking.types'
+import type { ActivityLog, BodyMeasurement, ClientProfileListItem, LabReport, MealLog, WaterLog } from './clientTracking.types'
 
 // Fictional, development-only presentation fixtures. No dashboard, permission,
 // category, Auth or open-schema API response is defined here.
@@ -55,5 +55,30 @@ export function getPreviewRecords(clientId: string) {
       durationMinutes: 12, distanceKm: 0, caloriesKcal: 0, source: 'manual',
       externalRecordId: null, wearableConnectionId: null },
   ]
-  return { mealLogs, waterLogs, bodyMeasurements, activityLogs }
+  const labReports: LabReport[] = [
+    {
+      id: id(12), clientId, collectedAt: '2026-10-18T07:00:00Z', labName: null,
+      note: null, createdAt: '2026-10-18T08:00:00Z',
+      results: [{ id: id(13), labReportId: id(12), testCode: null,
+        testName: 'Örnek analit A', value: 12.3, unit: 'birim',
+        referenceLow: null, referenceHigh: null, flag: 'unknown' }],
+    },
+    {
+      id: id(14), clientId, collectedAt: '2026-10-25T07:00:00Z',
+      labName: 'Örnek laboratuvar', createdAt: '2026-10-25T08:00:00Z',
+      note: 'Bu rapor ve referanslar yalnız tasarımı incelemek için hazırlanmış sentetik örneklerdir.',
+      results: [
+        { id: id(15), labReportId: id(14), testCode: null,
+          testName: 'Örnek analit A', value: 0, unit: 'birim',
+          referenceLow: 0, referenceHigh: 5, flag: 'normal' },
+        { id: id(16), labReportId: id(14), testCode: null,
+          testName: 'Örnek analit B', value: 12.3, unit: 'birim',
+          referenceLow: 10, referenceHigh: 20, flag: 'unknown' },
+        { id: id(17), labReportId: id(14), testCode: null,
+          testName: 'Örnek analit C', value: 1.2, unit: 'birim',
+          referenceLow: 0, referenceHigh: null, flag: 'unknown' },
+      ],
+    },
+  ]
+  return { mealLogs, waterLogs, bodyMeasurements, activityLogs, labReports }
 }

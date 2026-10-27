@@ -3,10 +3,18 @@ import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
 import { getPreviewRecords, previewClients } from './clientTracking.preview'
 import type { ClientProfileListItem } from './clientTracking.types'
-import { ActivityLogList, BodyMeasurementList, MealLogList, WaterLogList } from './ClientRecordViews'
+import { ActivityLogList, BodyMeasurementList, LabReportList, MealLogList, WaterLogList } from './ClientRecordViews'
 import { TrackingPreviewControl, TrackingPreviewState } from './TrackingPreviewState'
 import type { TrackingPreviewScenario } from './TrackingPreviewState'
 import './clientTracking.css'
+
+const recordViews = {
+  ogunler: { label: 'Öğün günlüğü', title: 'Öğün günlüğü', icon: 'leaf' },
+  su: { label: 'Su kayıtları', title: 'Su kayıtları', icon: 'water' },
+  olcumler: { label: 'Ölçümler', title: 'Ölçüm geçmişi', icon: 'chart' },
+  aktiviteler: { label: 'Aktiviteler', title: 'Aktivite geçmişi', icon: 'activity' },
+  tahliller: { label: 'Tahliller', title: 'Tahlil geçmişi', icon: 'lab' },
+} as const
 
 function ClientDetailsContent({ client }: { client: ClientProfileListItem }) {
   const [scenario, setScenario] = useState<TrackingPreviewScenario>('sample')
@@ -14,8 +22,15 @@ function ClientDetailsContent({ client }: { client: ClientProfileListItem }) {
   const location = useLocation()
   const listSearch = typeof location.state?.listSearch === 'string' ? location.state.listSearch : ''
   const selectedView = searchParams.get('kayit')
-  const view = selectedView === 'su' || selectedView === 'olcumler' || selectedView === 'aktiviteler' ? selectedView : 'ogunler'
+  const view = selectedView && Object.hasOwn(recordViews, selectedView) ? selectedView as keyof typeof recordViews : 'ogunler'
   const records = scenario === 'sample' ? getPreviewRecords(client.id) : undefined
+  const recordContent = records && {
+    ogunler: <MealLogList clientId={client.id} records={records.mealLogs} />,
+    su: <WaterLogList clientId={client.id} records={records.waterLogs} />,
+    olcumler: <BodyMeasurementList clientId={client.id} records={records.bodyMeasurements} />,
+    aktiviteler: <ActivityLogList clientId={client.id} records={records.activityLogs} />,
+    tahliller: <LabReportList clientId={client.id} records={records.labReports} />,
+  }[view]
   return (
     <>
       <Link className="text-link client-back" to={{ pathname: '/onizleme/danisanlar', search: listSearch }}><Icon name="back" />Danışan listesine dön</Link>
@@ -23,14 +38,11 @@ function ClientDetailsContent({ client }: { client: ClientProfileListItem }) {
       <TrackingPreviewControl scenario={scenario} onChange={setScenario} />
       <section className="card" aria-labelledby="records-title">
         <nav className="record-navigation" aria-label="Kayıt türü">
-          <Link to="?kayit=ogunler" state={{ listSearch }} aria-current={view === 'ogunler' ? 'page' : undefined}><Icon name="leaf" />Öğün günlüğü</Link>
-          <Link to="?kayit=su" state={{ listSearch }} aria-current={view === 'su' ? 'page' : undefined}><Icon name="water" />Su kayıtları</Link>
-          <Link to="?kayit=olcumler" state={{ listSearch }} aria-current={view === 'olcumler' ? 'page' : undefined}><Icon name="chart" />Ölçümler</Link>
-          <Link to="?kayit=aktiviteler" state={{ listSearch }} aria-current={view === 'aktiviteler' ? 'page' : undefined}><Icon name="activity" />Aktiviteler</Link>
+          {Object.entries(recordViews).map(([key, entry]) => <Link key={key} to={`?kayit=${key}`} state={{ listSearch }} aria-current={view === key ? 'page' : undefined}><Icon name={entry.icon} />{entry.label}</Link>)}
         </nav>
-        <header className="card-header"><div><h2 id="records-title">{view === 'su' ? 'Su kayıtları' : view === 'olcumler' ? 'Ölçüm geçmişi' : view === 'aktiviteler' ? 'Aktivite geçmişi' : 'Öğün günlüğü'}</h2><p>Kaynak, zaman ve birim bilgileriyle örnek kayıtlar.</p></div><span className="neutral-badge">Örnek veri</span></header>
+        <header className="card-header"><div><h2 id="records-title">{recordViews[view].title}</h2><p>Kaynak, zaman ve birim bilgileriyle örnek kayıtlar.</p></div><span className="neutral-badge">Örnek veri</span></header>
         <TrackingPreviewState scenario={scenario} scope="records" onShowSample={() => setScenario('sample')}>
-          {records && (view === 'su' ? <WaterLogList clientId={client.id} records={records.waterLogs} /> : view === 'olcumler' ? <BodyMeasurementList clientId={client.id} records={records.bodyMeasurements} /> : view === 'aktiviteler' ? <ActivityLogList clientId={client.id} records={records.activityLogs} /> : <MealLogList clientId={client.id} records={records.mealLogs} />)}
+          {recordContent}
         </TrackingPreviewState>
       </section>
       <div className="inline-note"><Icon name="shield" /><p>Gerçek kayıtlarda doğrulanmış uzman, aktif ilişki ve ilgili paylaşım izni sunucuda denetlenmelidir. Bu önizleme erişim yetkisi vermez; tahliller için ayrıca açık onay gerekir.</p></div>
