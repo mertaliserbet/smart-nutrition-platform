@@ -1,4 +1,4 @@
-import type { BodyMeasurement, ClientProfileListItem, MealLog, WaterLog } from './clientTracking.types'
+import type { ActivityLog, BodyMeasurement, ClientProfileListItem, MealLog, WaterLog } from './clientTracking.types'
 
 // Fictional, development-only presentation fixtures. No dashboard, permission,
 // category, Auth or open-schema API response is defined here.
@@ -47,5 +47,13 @@ export function getPreviewRecords(clientId: string) {
     { id: id(9), clientId, measuredAt: '2026-10-25T06:00:00Z', weightKg: 72.1,
       waistCm: null, bodyFatPercent: null, source: 'manual' },
   ]
-  return { mealLogs, waterLogs, bodyMeasurements }
+  const activityLogs: ActivityLog[] = [
+    { id: id(10), clientId, activityType: 'Yürüyüş (örnek)', startedAt: '2026-10-25T07:00:00Z',
+      durationMinutes: 35.5, distanceKm: 3.2, caloriesKcal: null, source: 'manual',
+      externalRecordId: null, wearableConnectionId: null },
+    { id: id(11), clientId, activityType: 'Esneme (örnek)', startedAt: '2026-10-25T15:00:00Z',
+      durationMinutes: 12, distanceKm: 0, caloriesKcal: 0, source: 'manual',
+      externalRecordId: null, wearableConnectionId: null },
+  ]
+  return { mealLogs, waterLogs, bodyMeasurements, activityLogs }
 }

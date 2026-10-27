@@ -21,8 +21,16 @@ npm run build
 tasarımını incele** bağlantısı `/onizleme` alanına gider. Danışanlar ve bağlantı
 istekleri arasında gezinilebilir. Danışanlar bölümü altı sentetik danışanla
 Türkçe arama ve A–Z/Z–A sıralama sunar. Kayıt bağlantıları danışan detayındaki
-salt okunur öğün, su ve ölçüm örneklerini açar. Arama/sıralama URL'de korunur;
+salt okunur öğün, su, ölçüm ve aktivite örneklerini açar. Arama/sıralama URL'de korunur;
 detay ekranından listeye dönüşte arama geri gelir.
+
+Danışan detayındaki **Aktiviteler** bağlantısı `?kayit=aktiviteler` görünümünü
+açar. Aktivite türü, başlangıç zamanı, kaynak, süre (dk), mesafe (km) ve enerji
+(kcal) yalnız kayıttaki değerlerle gösterilir; en yeni başlangıç önce gelir.
+`activityType` sözleşmedeki serbest metindir, yeni aktivite enumu tanımlanmaz.
+Örnekler manuel kaynaklıdır; cihaz/senkronizasyon veya provider DTO'su üretilmez.
+Enerji aktif/toplam kalori olarak yorumlanmaz; adım/nabız, günlük toplam,
+hedef veya egzersiz programı eklenmez.
 
 Liste ve detay ekranlarındaki **Önizleme senaryosu** seçimi; örnek kayıt,
 bağlantısız, boş, paylaşım kapalı, yükleniyor ve hata görünümlerini açar.
@@ -40,9 +48,8 @@ veya klinik değerlendirme hesaplanmaz; günlük saat dilimi politikası seçilm
 `npm run build` sonrasında `npm run preview` üretim çıktısını yerelde gösterir.
 Üretim derlemesinde `/onizleme/*` yolları kapalıdır; giriş ekranında önizleme
 bağlantısı bulunmaz. Bu ayrım gerçek bir oturum/yetki sistemi değildir. Mert'in
-`3a5bd94` commit'indeki backend altyapısı incelenmiştir; değişiklikleri yalnız
-`backend/` altındadır ve bu web çalışmasıyla dosya çakışması bulunmamaktadır.
-Backend dosyaları bu web görevi kapsamında değiştirilmemiştir.
+`80b9116` commit'ine kadar backend ve mobil güncellemeleri yerel projeye
+alınmıştır. Backend ve mobil dosyaları bu web görevi kapsamında değiştirilmemiştir.
 
 ## Yapı
 
@@ -60,7 +67,7 @@ Backend dosyaları bu web görevi kapsamında değiştirilmemiştir.
 `docs/04`, `05`, `06` değiştirilmemiştir. Yeni endpoint, sözleşme dışı domain
 modeli, oturum DTO'su, paylaşım kategorisi veya açık şemadan kesin mock
 oluşturulmamıştır. Danışan liste girdisi yalnız `id` ve `displayName` içerir;
-doğum tarihi, boy, User veya Dashboard kök DTO'su varsayılmaz. Öğün/su/ölçüm
+doğum tarihi, boy, User veya Dashboard kök DTO'su varsayılmaz. Öğün/su/ölçüm/aktivite
 tipleri yalnız tanımlı alanları kullanır; fixture'lar üretim derlemesine dahil
 edilmez. Bilinmeyen danışan kimliğine mevcut bir örneğin verisi atanmaz;
 kayıt ve öğün kalemi sahiplik bağlantıları görüntüleme öncesinde eşleştirilir.
@@ -80,7 +87,8 @@ başlangıç marka rengi `#386a5e`, 8/16/24/32 boşlukları ve 16px köşe değe
 nihai ortak tema/ekran onayı sayılmaz. Uzak font, analitik veya medya isteği yoktur.
 
 Backend altyapısı PostgreSQL bağlantısı, sağlık kontrolleri ve geliştirme
-OpenAPI/Swagger görünümünü içerir; Auth, oturum ve iş endpointleri henüz yoktur.
+OpenAPI/Swagger görünümünü, User/ClientProfile ve kayıt doğrulama hazırlığını
+içerir; gerçek kayıt, oturum ve iş endpointleri henüz yoktur.
 Web bu altyapıya sahte bir giriş isteği göndermez. Sonraki adım Auth/profil
 sözleşmesini iki tarafla doğrulamak ve ilgili endpointler hazır olduğunda
 ilk gerçek giriş entegrasyonunu ayrı görevde yapmaktır.

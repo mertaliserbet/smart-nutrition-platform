@@ -47,3 +47,16 @@ export type BodyMeasurement = {
   bodyFatPercent: number | null
   source: RecordSource
 }
+
+export type ActivityLog = {
+  id: string
+  clientId: string
+  activityType: string
+  startedAt: string
+  durationMinutes: number | null
+  distanceKm: number | null
+  caloriesKcal: number | null
+  source: RecordSource
+  externalRecordId: string | null
+  wearableConnectionId: string | null
+}

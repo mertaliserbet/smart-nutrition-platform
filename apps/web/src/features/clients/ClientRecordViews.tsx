@@ -1,6 +1,6 @@
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
-import type { BodyMeasurement, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
+import type { ActivityLog, BodyMeasurement, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
 
 const sourceLabels: Record<RecordSource, string> = {
   manual: 'Manuel kayıt', wearable: 'Cihaz aktarımı', ai_assisted: 'AI destekli kayıt',
@@ -60,4 +60,14 @@ export function BodyMeasurementList({ clientId, records }: { clientId: string; r
     <header className="record-header"><RecordTime at={record.measuredAt} /><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
     <dl className="record-quantities measurement-quantities"><Quantity label="Kilo" value={record.weightKg} unit="kg" /><Quantity label="Bel çevresi" value={record.waistCm} unit="cm" /><Quantity label="Vücut yağ oranı" value={record.bodyFatPercent} unit="%" /></dl>
   </article>)}<p className="record-footnote">Ölçümler kaydedildiği tarih ve birimle gösterilir. Bu ekran klinik değerlendirme veya hedef önerisi üretmez.</p></div>
+}
+
+export function ActivityLogList({ clientId, records }: { clientId: string; records: ActivityLog[] }) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+  if (visibleRecords.length === 0) return <EmptyState icon="activity" title="Henüz aktivite kaydı yok">Bu görünümde görüntülenebilecek aktivite kaydı bulunmuyor.</EmptyState>
+  return <div className="record-list" aria-label="Aktivite kayıtları">{visibleRecords.map((record) => <article className="activity-record" key={record.id} aria-labelledby={`activity-${record.id}`}>
+    <header className="record-header"><div><h3 id={`activity-${record.id}`}>{record.activityType}</h3><RecordTime at={record.startedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+    <dl className="record-quantities activity-quantities"><Quantity label="Süre" value={record.durationMinutes} unit="dk" /><Quantity label="Mesafe" value={record.distanceKm} unit="km" /><Quantity label="Enerji" value={record.caloriesKcal} unit="kcal" /></dl>
+  </article>)}</div>
 }

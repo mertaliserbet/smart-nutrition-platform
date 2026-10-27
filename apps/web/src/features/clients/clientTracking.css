@@ -33,7 +33,7 @@
 .record-navigation a[aria-current='page'] { background: var(--surface); color: var(--brand-primary); border-color: var(--border); font-weight: 600; }
 .record-navigation a:hover { color: var(--brand-primary); }
 .record-list { display: grid; gap: 18px; padding: 22px 24px; list-style: none; margin: 0; }
-.meal-record, .measurement-record { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.meal-record, .measurement-record, .activity-record { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .record-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface-page); }
 .record-header h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
 .record-list time { display: flex; align-items: flex-start; gap: 6px; color: var(--text-secondary); font-size: 11px; }
@@ -57,7 +57,7 @@
 .water-record > .neutral-badge { margin-left: auto; }
 .water-icon { display: grid; place-items: center; width: 44px; height: 48px; border-radius: 12px; background: var(--tone-blue-bg); color: var(--tone-blue-text); flex-shrink: 0; }
 .water-icon .icon { width: 25px; height: 25px; }
-.measurement-quantities { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 20px; margin: 0; }
+.measurement-quantities, .activity-quantities { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 20px; margin: 0; }
 
 @media (max-width: 1100px) { .record-quantities { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 700px) {
@@ -82,7 +82,7 @@
   .meal-items { padding-inline: 16px; }
   .record-quantities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .record-note { padding-inline: 16px; }
-  .measurement-quantities { padding: 16px; }
+  .measurement-quantities, .activity-quantities { padding: 16px; }
   .water-record { flex-wrap: wrap; padding: 16px; gap: 12px; }
   .water-record > .neutral-badge { margin-left: 56px; }
 }
