@@ -91,6 +91,14 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - `RecordSource` manuel/cihaz/AI destekli kaynağı, `FoodItem.dataSource` besin veri kaynağını, `WearableConnection.provider` platform sağlayıcısını ifade eder; bu alanlar eşanlamlı sayılmaz. `externalRecordId` dış kaynak kimliğidir; tekilleştirmede sağlayıcıyla bağlantısı `05/06`da netleştirilmelidir.
 - Adet/gram dönüşümü, nabız/adım alanları, aktif kalori ayrımı, görev son tarihi, paylaşım kategorileri ve kişisel makro hedefleri için yeni alan veya birim anahtarı bu belgede üretilmez. `null` bilinmeyen, `0` gerçek sıfırdır; eksik değerler yeni ad veya sahte sıfırla gizlenmez.
 
+### Onaylı kayıt ve e-posta doğrulama adları — 27.10.2026
+
+- Kayıt DTO'ları `RegisterUserRequest` / `RegisterUserResponse`; zorunlu düz `displayName`, `ClientProfile.displayName` alanına aittir. Başarıdaki `id`, `User.id` değeridir; `clientId` değildir. Tam şema `06`dadır.
+- `User.isEmailVerified` e-posta sahipliğidir; `DietitianProfile.isVerified` Admin'in uzman doğrulamasıdır. Bu iki alan eşanlamlı değildir; `emailConfirmed` / `isVerified` adıyla ikinci bir hesap alanı oluşturulmaz.
+- Doğrulama girdisi `VerifyEmailRequest.token`, yeniden gönderim girdisi `ResendVerificationRequest.email` olur. `token` yalnız bu işlemin girdisidir; oturum/access/refresh tokenı değildir ve yeni bir token entity'si oluşturulmaz.
+- Sunucu içi alanlar C# `EmailVerificationTokenHash`, `EmailVerificationExpiresAt`, `EmailVerificationLastSentAt`; PostgreSQL karşılıkları `email_verification_token_hash`, `email_verification_expires_at`, `email_verification_last_sent_at` olur. Sözlükteki camelCase gösterimleri HTTP yanıt alanı ilanı değildir: bu üç alan ve `isEmailVerified` mevcut yanıtlara çıkmaz. Tip ve bütünlük `05`te, işlem yolları `06`dadır.
+- Ham token için `User.token`, `verificationCode` veya saklanan düz metin alternatif alan üretilmez. E-posta metnindeki “doğrulama kodu” API'deki `token` ile aynı değerdir; mobil/web ayrı ad veya şema üretmez.
+
 ## Başlangıç enum sözlüğü
 
 | Enum | JSON değerleri |

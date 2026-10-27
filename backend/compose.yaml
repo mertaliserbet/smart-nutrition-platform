@@ -20,6 +20,15 @@ services:
       retries: 10
       start_period: 5s
 
+  mailpit:
+    image: axllent/mailpit:v1.32.0
+    container_name: smart-nutrition-mailpit
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    environment:
+      MP_MAX_MESSAGES: 500
+
 volumes:
   postgres-data:
     name: smart-nutrition-postgres-data

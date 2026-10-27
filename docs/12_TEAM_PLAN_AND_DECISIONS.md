@@ -1,6 +1,6 @@
 # 12 — Ekip görevleri, Codex koordinasyonu, yol haritası ve kararlar
 
-**Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararlar açık.
+**Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Auth sözleşme güncellemesi:** 27.10.2026 · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararların açık parçaları aşağıdadır.
 
 Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleşen kısımlarını onaylı duruma taşır. Ürün kararının onaylanması, henüz uyarlanmamış veri şeması veya API tasarımının da onaylandığı anlamına gelmez. `04/05/06` kanonik ad, alan ve endpoint otoritesi olmaya devam eder; bu kararlarla çelişen veya eksik kalan sözleşmeler uygulama öncesinde ortak onayla güncellenmelidir. Bu dosya yeni entity, JSON alanı veya endpoint tanımlamaz.
 
@@ -102,6 +102,8 @@ Aşağıdaki kararların tamamı **ONAYLI**dır. “Program” mevcut kanonik ka
 
 ### Açık kararlar ve teknik ayrıntılar
 
+**Kapanan Auth kararları — 27.10.2026:** Kullanıcının önceki onayıyla danışan kaydında zorunlu düz `displayName`, başlangıçta doğrulanmamış User ve `201 { id }` minimal yanıt kesinleşti. Bu görev onayıyla 8–128 Unicode/boşluk destekli kayıt politikası, 30 dakikalık kriptografik tek kullanımlık e-posta tokenı, yalnız hash saklama, `verify-email` için `204` ve varlık açıklamayan `resend-verification` için `202` sözleşmeleri `04/05/06/11`e işlendi. Varsayılan yapılandırılabilir yeniden gönderim sınırları hesap başına 60 saniye ve IP başına dakikada 5 istektir. Yerel test SMTP'si Mailpit'tir; üretim sağlayıcısı/kalıcı teslim ve istemci entegrasyonu açık kalır. Bu kararlar giriş, JWT, MFA veya şifre sıfırlama uygulandığı anlamına gelmez.
+
 Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kararlaştırılmalıdır. Geçmiş verinin korunması, süresiz saklama kararı değildir; silme ve saklama kuralları yayın kapısının parçasıdır.
 
 | Alan | Açık ayrıntı / sonraki işlem |
@@ -114,7 +116,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Besin ve AI kaynakları | Hibrit kataloğun kaynakları, birleştirme/öncelik kuralları ve lisansları; tarif hesaplama ve görünürlük; hazır model/API seçimi, veri seti ve değerlendirme ölçütleri. Fotoğraf saklama ve anonimleştirme ayrıca kararlaştırılır |
 | Laboratuvar | Test kod standardı, birim dönüşümleri, referans doğrulama kuralları, OCR sağlayıcısı ve hata kontrolü; opsiyonel ML için izinli veri ve bilimsel validasyon. OCR'nin manuel girişten sonra gelmesi ve kullanıcı onayı zorunluluğu kesindir |
 | Sağlık platformları | Android/iOS ilk önceliği, desteklenen OS/cihazlar, veri türlerinin platform karşılıkları, izin ve senkronizasyon ayrıntıları; adım/nabız gibi verilerin şeması ve kaynak bazlı tekilleştirme/örtüşme politikası. Tüm saatlerin doğrudan entegrasyonu garanti değildir |
-| Auth ve ortam | JWT/token/cookie seçimi, mobil güvenli saklama, oturum süreleri/iptali, e-posta servisi ve Admin MFA yöntemi/kurtarma; paket ve çalışma zamanı sürümleri, dağıtım sağlayıcısı, altyapı ve maliyet |
+| Auth ve ortam | JWT/oturum tokenı/cookie seçimi, mobil güvenli saklama, oturum süreleri/iptali, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim ve Admin MFA yöntemi/kurtarma; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt ve e-posta doğrulama ayrıntıları yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
 | Tasarım ve kullanıcı kapsamı | Renk paleti, font, token değerleri, navigasyon ve 2–3 mobil ekran/web dashboard tasarım onayı; ülke/dil kapsamı, doğum tarihi zorunluluğu ve ücretli model. Açık/koyu tema desteği artık seçim beklemiyor |
 | Veri koruma ve yayın | Sağlık verisi, fotoğraf/OCR dosyaları ve PDF raporları için saklama, silme ve yedek politikaları; üçüncü taraf/yurt dışı aktarım, audit kapsamı ve istisnai Admin erişimi. `11_SECURITY_AND_RELEASE.md` yayın kapısı korunur |
 | Sprint ve modül liderliği | Ayrıntılı backend dosya/modül sınırları, ortak AI işlerinin tek PR lideri ve teslim sırası; ilk sürüm koşulları korunarak kapasite planı. Öğün kayıtlarının sürümleme ihtiyacı açıktır; program sürüm geçmişi ise onaylıdır |
@@ -123,11 +125,11 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 
 **Durum: kısmen hazır.** Ürün, teknoloji, roller ve sahiplik sınırları belirli; bağımsız altyapı ve onaylı alanlara dayanan sentetik UI çalışmaları ayrı görevlerde başlayabilir. Ancak Auth, paylaşım ve program akışlarını kapsayan tam mobil–web–backend geliştirme/entegrasyonu henüz hazır değildir. Aşağıdaki açıklar ilgili özellikten önce iki geliştirici tarafından kapatılmalıdır; belgeyi güncellemek uygulama/test/yayın onayı değildir.
 
-`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. Bu incelemede `04/05/06` değiştirilmemiştir.
+`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevinde yalnız onaylanan kayıt/e-posta doğrulama parçaları bu ortak sözleşmelere işlenmiştir.
 
 | Alan | Bulgu / gerekli ortak karar | Geliştirmeye etkisi |
 |---|---|---|
-| Auth ve profil | `06`da register/me kök yanıtı, refresh/logout oturum gövdeleri, token/cookie ve MFA challenge/kurulum/kurtarma açıktır; `05` güvenlik kayıtlarını kesinleştirmemiştir | Gerçek giriş, güvenli oturum ve Admin paneli entegrasyonundan önce kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
+| Auth ve profil | Register isteği/`201 { id }`, User doğrulama alanları ve verify/resend sözleşmesi kapanmıştır. `/me` kökü, refresh/logout oturum gövdeleri, oturum token/cookie ve MFA challenge/kurulum/kurtarma ile diğer güvenlik kayıtları açıktır | Kayıt/e-posta doğrulama backend adımı uygulanabilir; gerçek giriş, güvenli oturum ve Admin paneli entegrasyonundan önce kalan sözleşmeler kapanmalı; farklı istemci oturum DTO'ları uydurulamaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
 | Program sürümü ve geçiş | Öğelerin sürüm/alternatif bağları, miktar/gün biçimi, tam items DTO'su, arşivleme/değiştirme request'i açıktır; `06` ikinci aktif programa `409` döndürür | Sürüm geçmişi ve program değiştirme özelliği uygulanmadan önce kapanmalı; eski sahiplik silinerek veya iki aktif programla aşılmaz |

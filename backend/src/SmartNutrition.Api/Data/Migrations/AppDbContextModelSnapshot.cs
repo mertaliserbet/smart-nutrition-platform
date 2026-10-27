@@ -77,6 +77,19 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasColumnName("email")
                         .UseCollation("users_email_case_insensitive");
 
+                    b.Property<DateTimeOffset?>("EmailVerificationExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_verification_expires_at");
+
+                    b.Property<DateTimeOffset?>("EmailVerificationLastSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("email_verification_last_sent_at");
+
+                    b.Property<string>("EmailVerificationTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("email_verification_token_hash");
+
                     b.Property<bool>("IsEmailVerified")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -104,9 +117,15 @@ namespace SmartNutrition.Api.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_users_email");
 
+                    b.HasIndex("EmailVerificationTokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ux_users_email_verification_token_hash");
+
                     b.ToTable("users", null, t =>
                         {
                             t.HasCheckConstraint("ck_users_email_not_blank", "btrim(email) <> ''");
+
+                            t.HasCheckConstraint("ck_users_email_verification", "(email_verification_token_hash IS NULL AND email_verification_expires_at IS NULL) OR (email_verification_token_hash IS NOT NULL AND email_verification_token_hash ~ '^[0-9A-F]{64}$' AND email_verification_expires_at IS NOT NULL AND email_verification_last_sent_at IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_users_password_hash_not_blank", "btrim(password_hash) <> ''");
 

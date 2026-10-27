@@ -4,10 +4,11 @@ Tek ASP.NET Core Web API projesi ve bir xUnit test projesi. Hedef .NET 10;
 oluşturma ortamı SDK 10.0.401. `global.json`, kararlı .NET 10 SDK feature band'lerini
 kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabitlendi.
 
-`POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir.
-Giriş, kullanıcı oturumu, JWT, MFA veya e-posta gönderimi yoktur. `MealLog` ve
+`POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir;
+doğrulama e-postası SMTP üzerinden arka planda gönderilir. `verify-email` ve
+`resend-verification` uçları hazırdır. Giriş, kullanıcı oturumu, JWT veya MFA yoktur. `MealLog` ve
 `MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
-Bu görevde onaylanan kayıt şeması aşağıdadır; ortak `04/05/06` belgeleri değiştirilmemiştir.
+Kayıt/e-posta doğrulama şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
 
 ## Yapı
 
@@ -18,7 +19,7 @@ Bu görevde onaylanan kayıt şeması aşağıdadır; ortak `04/05/06` belgeleri
 - `Infrastructure/ApiErrors.cs`: `error: { code, message }, requestId` hata zarfı.
 - `tests/SmartNutrition.Api.Tests/`: gerçek uygulama host'u ile altyapı testleri.
 - `.config/dotnet-tools.json`: projeye özel `dotnet-ef`; global kurulum gerekmez.
-- `compose.yaml`: yalnız yerel geliştirme için bağımsız PostgreSQL 17.
+- `compose.yaml`: yalnız yerel geliştirme için PostgreSQL 17 ve Mailpit SMTP.
 - `Features/MealLogs/`: MealLog/MealLogItem alanları, yerel bütünlük kuralları ve MealType.
 - `Features/Auth/`: User/ClientProfile modelleri, EF eşlemeleri, kayıt doğrulamaları ve AuthController.
 - `Models/UserRole.cs`: mevcut `client`, `dietitian`, `admin` değerleri.
@@ -49,7 +50,7 @@ kimlik kullanılır; gelecekte oturumdaki doğrulanmış User bu bağlantıyla �
 `IPasswordHasher<User>` DI üzerinden ASP.NET Core Identity `PasswordHasher<User>`
 olarak sunulur; özel hash/salt algoritması veya ek Identity tablo takımı yoktur.
 User oluşturulurken yalnız hash saklanır; düz parola modelde tutulmaz ve kırpılmaz.
-Hash, e-posta doğrulama durumu ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
+Hash, e-posta doğrulama durumu/token metadata'sı ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
 Entity'ler HTTP kayıt/me DTO'su değildir; kayıt yalnız aşağıdaki DTO'larla çalışır.
 Parola doğrulamasında gelecekte `SuccessRehashNeeded` sonucu da ele alınmalıdır.
 
@@ -84,8 +85,9 @@ silme yapmaz (`NO ACTION`); bu, nihai hesap silme/saklama politikasının yerine
 
 Başarı `201 { "id": "<User UUID>" }` döner. ClientProfile kimliği ayrı UUID'dir;
 doğum tarihi/boy toplanmaz ve nullable kalır. User'ın `is_email_verified` değeri
-başlangıçta `false`tur; istemci bunu atayamaz. Token, cookie, otomatik giriş veya
-doğrulama e-postası üretilmez. `/me` henüz uygulanmadığından sahte Location verilmez.
+başlangıçta `false`tur; istemci bunu atayamaz. Oturum tokenı, cookie veya otomatik giriş
+üretilmez. DB commit'inden sonra doğrulama e-postası kuyruğa alınır; ham doğrulama
+tokenı API yanıtına çıkmaz. `/me` henüz uygulanmadığından sahte Location verilmez.
 Girdi/JSON/rol hataları `400 invalid_request`, parola politikası hataları
 `422 validation_failed`, desteklenmeyen içerik `415 unsupported_media_type`,
 beklenmeyen kayıt hataları `500 internal_error` olur. Tümü ortak
@@ -104,8 +106,70 @@ Parola kırpılmaz/normalize edilmez veya loglanmaz; Unicode geçerliliği ve uz
 sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen değerleri
 içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
 Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
-`201 { id }` yanıtı ortak belgelere ayrı görevde işlenmelidir. `06`daki diyetisyen
-başvurusu/rol anlatımı da mevcut yalnız danışan kayıt kuralıyla uyarlanmalıdır.
+`201 { id }` yanıtı ortak belgelere işlenmiştir. Diyetisyen başvurusu/çoklu rol,
+`/me`, giriş ve oturum sözleşmelerinin açık kısımları bu görevde uygulanmamıştır.
+
+## E-posta doğrulama ve SMTP
+
+- `POST /api/v1/auth/verify-email`: `{ "token": "<e-postadaki-token>" }`.
+  Başarı gövdesiz `204`; geçersiz/süresi dolmuş/kullanılmış/eski token `422 validation_failed`.
+- `POST /api/v1/auth/resend-verification`: `{ "email": "synthetic@example.test" }`.
+  Geçerli e-posta için hesap yoksa, doğrulanmışsa veya gönderim aralığındaysa da aynı
+  gövdesiz `202` döner. Eksik/bozuk JSON veya geçersiz e-posta `400 invalid_request`.
+- İki uçta 4096 byte istek sınırı vardır; fazla gövde `413`, yanlış içerik türü `415`.
+  Hatalar ortak `error: { code, message }, requestId` zarfındadır. Auth yanıtları
+  `Cache-Control: no-store` kullanır; ham token yanıta/loga yazılmaz.
+
+Token kriptografik 32 byte'tan üretilir (43 Base64URL karakteri); 30 dakika ve tek
+kullanımlıktır. DB yalnız SHA-256 hash'i ve UTC süre/gönderim metadata'sını saklar.
+Doğrulama tek atomik SQL güncellemesiyle tokenı tüketir; eşzamanlı tekrar reddedilir.
+Yeni gönderim önceki tokenı geçersiz kılar. E-posta metni doğrulama kodunu içerir;
+mobil/web bağlantı ve ekran entegrasyonu henüz yapılmamıştır.
+
+`Auth:EmailVerification` ayarları: `ResendCooldownSeconds = 60` (DB'de hesap başına),
+`ResendRequestsPerMinute = 5` (bağlantı IP'si başına), `QueueCapacity = 100`.
+Ortam karşılıkları ör. `Auth__EmailVerification__ResendCooldownSeconds`.
+IP aşımı `429 rate_limited` olur; sayaç API sürecindedir. Ters proxy ve birden çok
+API örneği için güvenilir proxy/ortak limit dağıtım öncesi ele alınmalıdır.
+
+SMTP HTTP isteğinden bağımsız, sınırlı bellek kuyruğunda işlenir; yeniden gönderim
+isteği hesap sorgulamadan kuyruğa alınır. SMTP hatası veya kuyruk doluluğu `201/202`
+yanıtını değiştirmez ve hesabı doğrulamaz. Kuyruk kalıcı değildir; yeniden başlatma
+veya gönderim hatasında yeniden gönderim gerekir. Son gönderim zamanı SMTP'den
+önce ayrılır; başarısız denemeden sonra da 60 saniyelik aralık geçerlidir. Log yalnız
+genel hata bilgisi içerir; alıcı/token/SMTP istisna içeriği eklenmez.
+
+### Yerel Mailpit kurulumu
+
+PostgreSQL için mevcut `.env` korunarak `backend/` içinde:
+
+```powershell
+docker compose up -d --wait --wait-timeout 60 mailpit
+@{
+    'Email:Smtp:Host' = '127.0.0.1'
+    'Email:Smtp:Port' = '1025'
+    'Email:Smtp:FromAddress' = 'no-reply@smart-nutrition.local'
+    'Email:Smtp:TlsMode' = 'None'
+} | ConvertTo-Json -Compress | dotnet user-secrets set --project src/SmartNutrition.Api
+```
+
+Servis `mailpit`, konteyner `smart-nutrition-mailpit`, sabit imaj `axllent/mailpit:v1.32.0`.
+SMTP `127.0.0.1:1025`, posta kutusu arayüzü `http://127.0.0.1:8025`.
+Her iki port yalnız loopback'e açıktır. Dış iletim yapılandırılmamıştır; sentetik
+alıcılara yapılan yerel gönderimler Mailpit'te görüntülenir. SMTP protokol logu açılmaz.
+Mailpit kalıcı volume kullanmaz; geliştirme posta kutusu konteyner ömrüyle sınırlıdır.
+
+API Development ortamında başlatılır. SMTP ayarları repoda tutulmaz;
+`Email:Smtp:Host`, `Port`, `FromAddress`, `TlsMode`, gerekiyorsa `Username` ve
+`Password` User Secrets/environment üzerinden sağlanır. Ortam örneği:
+`Email__Smtp__Password`. Gerçek kimlik bilgilerini komut geçmişine veya repoya yazmayın.
+Varsayılan `StartTls` zorunlu TLS kullanır; `SslOnConnect` de desteklenir.
+`None` yalnız Development ortamında loopback sunucu için kabul edilir.
+Üretim SMTP sağlayıcısı, kimlik bilgileri ve kalıcı teslim altyapısı ayrıca hazırlanmalıdır.
+
+Kayıt sonrası Mailpit e-postasındaki token `verify-email` isteğinde kullanılır;
+başarıdan sonra aynı token tekrar `422` dönmelidir. Bu işlem oturum açmaz.
+E-postayı veya tokenı terminal çıktısına/loga dökmeyin. Otomatik gerçek SMTP testi aşağıdadır.
 
 ## Geliştirme ortamı
 
@@ -129,8 +193,8 @@ dağıtım ortamında ayrıca yapılandırılır.
   hatalı veya erişilemezse `503 Unhealthy`. Bağlantı ayrıntılarını dışarı vermez.
 - `/openapi/v1.json` ve `/swagger`: yalnız `Development` ortamında sunulur.
 
-Health yolları operasyonel altyapı kontrolleridir. Swagger yalnız kayıt operasyonunu
-ve onaylanan giriş/yanıt alanlarını gösterir; giriş veya MealLog endpointi içermez.
+Health yolları operasyonel altyapı kontrolleridir. Swagger kayıt, e-posta doğrulama
+ve yeniden gönderim operasyonlarını gösterir; giriş veya MealLog endpointi içermez.
 
 ## PostgreSQL bağlantısı
 
@@ -149,6 +213,7 @@ Docker Desktop Linux konteynerleriyle çalışmalıdır. Compose kaynakları:
 | Kalıcı volume | `smart-nutrition-postgres-data` |
 | Host bağlantısı | `127.0.0.1:5433` |
 | Veritabanı / kullanıcı | `smart_nutrition` / `smart_nutrition` |
+| Yerel SMTP / posta kutusu | `smart-nutrition-mailpit`, `127.0.0.1:1025` / `http://127.0.0.1:8025` |
 
 Host portu yalnız loopback'e açılır. `5432` üzerindeki başka PostgreSQL
 kurulumlarına dokunulmaz. `5433` doluysa Compose portu ile bağlantı dizesindeki
@@ -229,7 +294,7 @@ parola hatalı veya ayar eksikse readiness `503 Unhealthy`, liveness `200 Health
 döner. Hata yanıtı bağlantı dizesini ve sağlayıcı hata ayrıntılarını içermez.
 
 Varsayılan `dotnet test` DB gerektirmeyen testleri çalıştırır; gerçek PostgreSQL
-testi açık gerekçeyle **atlanır**. Docker kurulumuyla gerçek testi de çalıştırmak için
+ve Mailpit testleri açık gerekçeyle **atlanır**. Docker kurulumuyla PostgreSQL testlerini çalıştırmak için
 `backend/` içinde, `.env` parolasını ekrana yazmadan şu adımları kullanın:
 
 ```powershell
@@ -242,6 +307,24 @@ try { dotnet test } finally {
     Remove-Variable nutritionPassword, nutritionPasswordLine
 }
 ```
+
+Gerçek SMTP testini de çalıştırmak için yukarıdaki `try { dotnet test }` bloğundan
+önce şu değişkenleri tanımlayın; aynı `finally` bloğunda bu değişkenleri de kaldırın:
+
+```powershell
+$env:SMART_NUTRITION_TEST_MAILPIT_URL = 'http://127.0.0.1:8025'
+$env:SMART_NUTRITION_TEST_SMTP_HOST = '127.0.0.1'
+$env:SMART_NUTRITION_TEST_SMTP_PORT = '1025'
+$env:SMART_NUTRITION_TEST_SMTP_FROM = 'no-reply@smart-nutrition.local'
+# finally bloğuna eklenir:
+# Remove-Item Env:SMART_NUTRITION_TEST_MAILPIT_URL, Env:SMART_NUTRITION_TEST_SMTP_HOST, Env:SMART_NUTRITION_TEST_SMTP_PORT, Env:SMART_NUTRITION_TEST_SMTP_FROM
+```
+
+Bu test gerçek HTTP kayıt → SMTP teslimi → Mailpit'ten token okuma → yeniden gönderim
+→ eski token reddi → doğrulama → tekrar reddi akışını sınar. Tokenı çıktıya yazmaz;
+yalnız kendi rastgele sentetik alıcısına ait Mailpit mesajlarını temizler.
+Diğer doğrulama testleri SMTP yerine kontrollü test göndericisi ve gerçek PostgreSQL
+ile süre sınırı, eşzamanlılık, cooldown, IP limiti ve hassas log davranışını sınar.
 
 Bu değişken `AppDbContext`/`SELECT 1`/readiness testine ek olarak Auth PostgreSQL
 testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Model testleri sentetik
@@ -263,6 +346,8 @@ gerekir (mevcut PostgreSQL 17 Docker imajında vardır). Mevcut harf/Unicode far
 otomatik birleştirilmez veya silinmez. Çakışmalar ayrı kararla çözülmelidir.
 `AddUserEmailVerificationState`, `users.is_email_verified` boolean alanını `false`
 varsayılanıyla ekler; mevcut hesap/profil verilerini silmez.
+`AddEmailVerificationTokens`, yalnız üç nullable token metadata sütununu, hash unique
+indeksini ve metadata bütünlük kontrolünü ekler; mevcut hesap/profil verisini silmez.
 Başlangıçta otomatik migration veya `EnsureCreated` çalışmaz.
 Veritabanını değiştirmeden bağlamı ve mevcut migration listesini kontrol edin:
 
@@ -275,7 +360,7 @@ Yerel User Secrets bağlantısıyla geliştirme veritabanına uygulamak için:
 
 ```powershell
 $env:DOTNET_ENVIRONMENT = 'Development'
-dotnet ef database update AddUserEmailVerificationState --project src/SmartNutrition.Api
+dotnet ef database update AddEmailVerificationTokens --project src/SmartNutrition.Api
 dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api
 ```
 
@@ -295,4 +380,6 @@ Başvuru: [ASP.NET Core health checks](https://learn.microsoft.com/en-us/aspnet/
 [Npgsql](https://www.npgsql.org/efcore/),
 [EF CLI](https://learn.microsoft.com/en-us/ef/core/cli/dotnet),
 [Identity parola altyapısı](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-10.0),
+[Mailpit Docker](https://mailpit.axllent.org/docs/install/docker/),
+[MailKit](https://github.com/jstedfast/MailKit),
 [PostgreSQL Docker imajı](https://github.com/docker-library/docs/blob/master/postgres/README.md).

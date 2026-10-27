@@ -1,6 +1,6 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
-> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Bu güncelleme yalnız veri sözlüğünü değiştirir; HTTP sözleşmesi `06_API_CONTRACT.md` ayrıca uyarlanmalıdır.
+> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt ve e-posta doğrulamasının 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
 
 Mevcut geçerli alanlar korunur; kişisel program için `NutritionPlan.dietitianId` nullable yapılır. Yeni asgari alanlar aşağıda tanımlanır. Henüz kesinleşmemiş alt kayıt adları, enum değerleri ve saklama tercihleri **AÇIK** veya **ÖNERİ** olarak ayrılır; bunlar uygulama için onaylanmış kabul edilmez. Bir domain ilişkisi tanımlanması her ilişki için ayrı tablo/model oluşturulmasını gerektirmez.
 
@@ -34,10 +34,20 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 
 | Entity | Temel alanlar | Not / kısıt |
 |---|---|---|
-| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `createdAt: instant`, `updatedAt: instant` | E-posta unique; hash/secret API yanıtına çıkmaz. E-posta doğrulama, şifre sıfırlama, güvenli oturum ve zorunlu Admin MFA için güvenlik kayıtlarının ayrıntıları **AÇIK**tır |
+| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i, doğrulama durumu ve token metadata'sı mevcut API yanıtlarına çıkmaz. Şifre sıfırlama, güvenli oturum ve Admin MFA kayıtları **AÇIK**tır |
 | `ClientProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `birthDate: date?`, `heightCm: decimal?` | `userId` → User ve unique; boy cm. Yaş/kişisel veri hassas ele alınır; doğum tarihi şimdilik isteğe bağlıdır |
 | `DietitianProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `licenseInfo: AÇIK?`, `isVerified: boolean` | `userId` → User ve unique; uzmanı Admin doğrular. Mobil/web başvuru, belge biçimi ve doğrulama geçmişinin yapısı **AÇIK**tır; `isVerified` istemcinin kendi değiştireceği bir alan değildir |
 | `DietitianClientRelationship` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `status: RelationshipStatus`, `requestedAt: instant`, `respondedAt: instant?`, `endedAt: instant?` | `clientId` → ClientProfile, `dietitianId` → DietitianProfile; danışan başına en fazla bir aktif ilişki. Karşılıklı onay gerekir; arama/davet kodu onayın yerine geçmez |
+
+### Onaylı kayıt ve e-posta doğrulama bütünlüğü
+
+- Kayıtta User ile ClientProfile farklı UUID'lerle tek transaction içinde oluşturulur; `ClientProfile.userId` güvenilir User kimliğinden atanır ve unique zorunlu FK'dir. `displayName` zorunlu/boş olamaz; `birthDate` ve `heightCm` kayıt sırasında alınmaz, null kalır. Çoklu rol/profil ve diğer profil uçları bu kararla kapanmaz.
+- E-posta dış boşlukları kırpılır, Identity `UpperInvariantLookupNormalizer` kullanılır; PostgreSQL harf duyarsız, aksanı ayırt eden ICU collation ve unique indeks ile yarışan mükerrer kayıtları da reddeder. Parola kırpılmaz/normalize edilmez; Identity `PasswordHasher<User>` kullanılır. İlk sürüm politika ayrıntıları `06/11`dedir.
+- Token, kriptografik rastgele 32 byte'tan üretilen 43 karakter Base64URL değeridir (256 bit). Yalnız SHA-256 hash'i saklanır: `emailVerificationTokenHash`, PostgreSQL `varchar(64)`, 64 büyük harfli hexadecimal karakter ve null olmayan değerler için unique indeks. Ham token DB'ye, API yanıtına veya log/audit'e yazılmaz.
+- Hesap başına tek güncel token vardır. `emailVerificationExpiresAt` ve `emailVerificationLastSentAt` nullable UTC `timestamptz` alanlarıdır. İlk üretim öncesi üç metadata alanı null'dır. Hash doluysa süre sonu ve son gönderim zamanı dolu olmak zorundadır; hash yoksa süre sonu da null'dır. Son gönderim zamanı, SMTP'den önce atomik ayrılan **gönderim denemesi** zamanıdır; teslim kanıtı değildir.
+- Geçerlilik token üretiminden itibaren **30 dakika**dır; `now < emailVerificationExpiresAt` gerekir. Doğrulama, hash eşleşmesi + doğrulanmamış hesap + süre kontrolü ile tek atomik DB işleminde `isEmailVerified = true` yapar, hash ve süre sonunu temizler, `updatedAt`yi günceller. Son gönderim zamanı kalabilir. Eşzamanlı iki doğrulama birden başarılı olamaz.
+- Yeniden gönderim yeni token/hash üretir ve önceki tokenı geçersiz kılar. Aynı hesaba gönderim denemeleri arasında varsayılan 60 saniye gerekir; bu sınır DB'de atomik uygulanır ve yapılandırılabilir. Doğrulanmış/bulunmayan hesap için token üretilmez. SMTP hatası hesabı silmez veya doğrulamaz; kullanıcı yeniden gönderim isteyebilir.
+- Token için ayrı tablo veya düz metin outbox oluşturulmaz. Mevcut arka plan kuyruğu yalnız e-posta adreslerini bellekte tutar; yeniden başlatmada kalıcı teslim garantisi yoktur. SMTP/TLS ve hata davranışı `06/11`, yerel Mailpit kurulumu `backend/README.md` içindedir.
 
 ## Beslenme ve günlük takip
 
@@ -154,6 +164,6 @@ Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve ö�
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
 - Nabız/adım/aktif enerji veri yapıları, platform/cihaz desteği ve manuel/cihaz örtüşme politikası; günlük zaman dilimi ve yeniden senkronizasyon anahtarları.
 - Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.
-- Auth/MFA güvenlik kayıtları, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
+- E-posta doğrulaması dışındaki Auth/MFA güvenlik kayıtları, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
 
-Sonraki ortak sözleşme adımı; açık alt kayıt adlarını `04`te, şema ayrıntılarını burada ve HTTP karşılıklarını `06`da iki geliştiricinin onayıyla eşgüdümlü tamamlamaktır. Bu görev yalnız `05`i günceller; diğer belgelerdeki eski açık karar/alan açıklamaları yerinde kalmıştır.
+Sonraki ortak sözleşme adımı; açık alt kayıt adlarını `04`te, şema ayrıntılarını burada ve HTTP karşılıklarını `06`da iki geliştiricinin onayıyla eşgüdümlü tamamlamaktır. Kayıt/e-posta doğrulamasının kapanmış alanları bu açık listeye dahil değildir.

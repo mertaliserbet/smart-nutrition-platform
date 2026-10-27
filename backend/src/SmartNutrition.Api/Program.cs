@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,28 @@ builder.Services.AddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>
 builder.Services.AddOptions<RegistrationPasswordPolicy>()
     .Bind(builder.Configuration.GetSection(RegistrationPasswordPolicy.SectionName));
 builder.Services.AddScoped<UserRegistrationService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddOptions<EmailVerificationOptions>()
+    .Bind(builder.Configuration.GetSection(EmailVerificationOptions.SectionName))
+    .Validate(options => options.ResendCooldownSeconds > 0 && options.ResendRequestsPerMinute > 0 && options.QueueCapacity > 0)
+    .ValidateOnStart();
+builder.Services.AddOptions<SmtpOptions>().Bind(builder.Configuration.GetSection(SmtpOptions.SectionName));
+builder.Services.AddScoped<IVerificationEmailSender, SmtpVerificationEmailSender>();
+builder.Services.AddScoped<EmailVerificationService>();
+builder.Services.AddSingleton<VerificationEmailQueue>();
+builder.Services.AddHostedService(services => services.GetRequiredService<VerificationEmailQueue>());
+builder.Services.AddRateLimiter(options =>
+{
+    var settings = builder.Configuration.GetSection(EmailVerificationOptions.SectionName).Get<EmailVerificationOptions>() ?? new();
+    options.OnRejected = (context, _) => new ValueTask(ApiErrors.WriteAsync(context.HttpContext, StatusCodes.Status429TooManyRequests));
+    options.AddPolicy("resend-verification", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = settings.ResendRequestsPerMinute, Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0, AutoReplenishment = true
+        }));
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -59,10 +83,17 @@ if (builder.Environment.IsDevelopment())
 var app = builder.Build();
 
 app.UseExceptionHandler(handler => handler.Run(context =>
-    ApiErrors.WriteAsync(context, StatusCodes.Status500InternalServerError)));
+{
+    var status = context.Features.Get<IExceptionHandlerFeature>()?.Error is BadHttpRequestException
+        { StatusCode: StatusCodes.Status413PayloadTooLarge }
+        ? StatusCodes.Status413PayloadTooLarge
+        : StatusCodes.Status500InternalServerError;
+    return ApiErrors.WriteAsync(context, status);
+}));
 app.UseStatusCodePages(context =>
     ApiErrors.WriteAsync(context.HttpContext, context.HttpContext.Response.StatusCode));
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 
 if (app.Environment.IsDevelopment())
 {

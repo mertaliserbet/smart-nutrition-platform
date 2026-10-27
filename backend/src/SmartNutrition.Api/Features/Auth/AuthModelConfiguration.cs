@@ -16,12 +16,17 @@ internal static class AuthModelConfiguration
             table.HasCheckConstraint("ck_users_email_not_blank", "btrim(email) <> ''");
             table.HasCheckConstraint("ck_users_password_hash_not_blank", "btrim(password_hash) <> ''");
             table.HasCheckConstraint("ck_users_role", "role IN ('client', 'dietitian', 'admin')");
+            table.HasCheckConstraint("ck_users_email_verification", "(email_verification_token_hash IS NULL AND email_verification_expires_at IS NULL) OR (email_verification_token_hash IS NOT NULL AND email_verification_token_hash ~ '^[0-9A-F]{64}$' AND email_verification_expires_at IS NOT NULL AND email_verification_last_sent_at IS NOT NULL)");
         });
         users.HasKey(user => user.Id).HasName("pk_users");
         users.Property(user => user.Id).HasColumnName("id").ValueGeneratedNever();
         users.Property(user => user.Email).HasColumnName("email").UseCollation(EmailCollation).IsRequired();
         users.Property(user => user.PasswordHash).HasColumnName("password_hash").IsRequired();
         users.Property(user => user.IsEmailVerified).HasColumnName("is_email_verified").HasDefaultValue(false).IsRequired();
+        users.Property(user => user.EmailVerificationTokenHash).HasColumnName("email_verification_token_hash").HasMaxLength(64);
+        users.Property(user => user.EmailVerificationExpiresAt).HasColumnName("email_verification_expires_at");
+        users.Property(user => user.EmailVerificationLastSentAt).HasColumnName("email_verification_last_sent_at");
+        users.HasIndex(user => user.EmailVerificationTokenHash).IsUnique().HasDatabaseName("ux_users_email_verification_token_hash");
         users.Property(user => user.Role).HasColumnName("role").IsRequired()
             .HasConversion(role => role.ToString().ToLowerInvariant(), value => Enum.Parse<UserRole>(value, true));
         users.Property(user => user.CreatedAt).HasColumnName("created_at").IsRequired();

@@ -49,7 +49,9 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 
 | Alan | Method + route | Rol / anlam |
 |---|---|---|
-| Kimlik | `POST /api/v1/auth/register` | Kayıt (rol doğrulama politikası ayrı) |
+| Kimlik | `POST /api/v1/auth/register` | Yalnız danışan kaydı; `201 { id }`, otomatik giriş yok |
+| Kimlik | `POST /api/v1/auth/verify-email` | E-postadaki tek kullanımlık token ile doğrulama; `204` |
+| Kimlik | `POST /api/v1/auth/resend-verification` | Varlık açıklamayan yeniden gönderim isteği; `202` |
 | Kimlik | `POST /api/v1/auth/login` | Oturum |
 | Kimlik | `POST /api/v1/auth/refresh` | Token yenileme |
 | Kimlik | `POST /api/v1/auth/logout` | Oturum kapatma/refresh iptali |
@@ -201,18 +203,37 @@ Geçerli birim/referans yoksa açıklama `unknown` ve sınırlılıkları yansı
 
 ## Kimlik, profil ve ilişki işlemlerinin sınırları
 
-- Mevcut `POST /auth/register`: e-posta/şifre ve rol bilgisi; `201` güvenli hesap/profil bilgisi hedeflenir, passwordHash dönmez. Public kayıt Admin rolü veya doğrulanmış uzman yetkisi vermez; diyetisyeni Admin doğrular. Kayıtta profil oluşturma alanları ve çoklu rol politikası açık olduğundan tam register DTO'su henüz kapanmış değildir.
+- `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Çoklu rol ve diğer profil sözleşmeleri ayrıca açıktır.
 - `POST /auth/login`: `email`/`password`; `200` güvenli oturum sonucu. Refresh/logout mevcut yollarını korur. Token/cookie gövdesi, süreler, e-posta doğrulamasının erişim kapısı ve MFA challenge şekli **AÇIK**tır; örnek JWT alanları gerçek sözleşme diye eklenmez. Admin için MFA tamamlanmadan yetkili yönetim oturumu verilmez.
 - `GET /me` yalnız kendi güvenli User ve mevcut profil alanlarını döndürür; profil yanıtının kök yapısı **AÇIK**tır. `PATCH /me` kapsamında `displayName`, danışanın nullable `birthDate`/`heightCm` alanları düzenlenebilir; `role`, `isVerified` veya MFA/secret alanı bu yoldan yükseltilemez. `licenseInfo` tipi açıkken keyfî JSON kabul edilmez.
 - `GET /dietitians` araması `query` ve pagination kullanabilir; uygun/doğrulanmış uzman profilleri için `id`, `displayName`, `isVerified` gibi paylaşılabilir alanlar sunulur; sağlık kaydı, özel belge veya hesap sırrı dönmez.
 - `POST /dietitian-relationships`: danışandan hedef `dietitianId`; `clientId` auth'tan. `201` kendi pending DietitianClientRelationship kaydı; GET aynı User'ın taraf olduğu ilişkileri `05` alanlarıyla listeler. Davet kodu biçimi/ömrü/istek alanı açıktır; ayrı kod modeli veya tek taraflı otomatik onay yolu üretilmez.
 - Mevcut accept/reject/end işlemleri gövdesizdir, `200` güncel ilişki döner. Kabul/red ilgili diyetisyene, sonlandırma ilişkinin taraflarına açıktır; kabulde karşılıklı onay ve tek aktif sınırı atomik kontrol edilir. Başka aktif ilişki `409 active_relationship_conflict`, geçersiz durum `409 conflict`; bitmiş ilişkinin tekrar bitirilmesi mevcut sonucu döndürebilir. Geçmiş silinmez; her geçişin tam idempotency politikası **AÇIK**tır.
 
-| Eksik kimlik işlemi | Request | Response / sınır |
+### Onaylı kayıt ve e-posta doğrulama sözleşmesi — 27.10.2026
+
+Bu üç işlem oturumsuzdur; doğrulama giriş/oturum veya sağlık verisi erişimi sağlamaz. JSON `application/json`, yanıtlar `Cache-Control: no-store` kullanır. Entity'ler doğrudan yanıt olarak serileştirilmez.
+
+| Method + route | Request | Response / hata |
 |---|---|---|
-| `POST /api/v1/auth/verify-email` | `token: string` | `204`; geçersiz/süresi dolmuş token `422`. Token üretim/saklama, süre ve metin/bağlantı akışı **AÇIK**tır |
+| `POST /api/v1/auth/register` | `RegisterUserRequest`: zorunlu `email: string`, `password: string`, `displayName: string`; isteğe bağlı `role: UserRole?` (gönderilmez/null ise `client`, yalnız `client` kabul edilir) | `201` `RegisterUserResponse`: yalnız `{ "id": "<User UUID>" }`. User + ClientProfile atomik oluşturulur; `isEmailVerified = false`. Bozuk/eksik/boş zorunlu alan, geçersiz e-posta veya rol, tanımsız/salt okunur alan `400 invalid_request`; parola politikası `422 validation_failed`; normalleştirilmiş mükerrer/yarışan e-posta `409 conflict`; beklenmeyen hata `500 internal_error` |
+| `POST /api/v1/auth/verify-email` | `VerifyEmailRequest`: `{ "token": "<e-postadaki token>" }`; alan zorunlu string | Başarı `204`, boş gövde. Null/boş/yanlış biçimli, bulunmayan, süresi dolmuş, yeniden gönderimle geçersiz kılınmış veya kullanılmış token aynı `422 validation_failed` olur. Eksik alan, bozuk JSON, yanlış JSON tipi veya ek alan `400 invalid_request` |
+| `POST /api/v1/auth/resend-verification` | `ResendVerificationRequest`: `{ "email": "synthetic@example.test" }`; zorunlu geçerli e-posta string | `202`, boş gövde. Hesap yoksa, zaten doğrulanmışsa veya hesap gönderim aralığındaysa da aynı sonuç. Geçersiz/eksik girdi veya ek alan `400 invalid_request`; IP sınırı `429 rate_limited` |
+
+- Kayıt `displayName` girdisini düz alır; iç içe `profile`/`clientProfile`, `userId`, `clientId`, `passwordHash` veya doğrulama alanı kabul etmez. ClientProfile'ın kimliği User kimliğinden ayrıdır; doğum tarihi/boy null kalır. Yanıt e-posta, hash, doğrulama tokenı, access/refresh token veya cookie içermez; otomatik giriş olmaz. `/me` henüz uygulanmadığından hayalî `Location` üretilmez.
+- E-posta kırpılır ve Identity normalizer ile normalleştirilir; harf duyarsız unique indeks yarış durumunu da korur. İlk sürüm parola politikası **8–128 Unicode kod noktası**dır; boşluk/Unicode desteklenir, karakter türü zorunluluğu yoktur. Parola kırpılmaz veya normalize edilmez; politika `Auth:RegistrationPasswordPolicy` ile merkezi yapılandırılır, hash Identity PasswordHasher ile saklanır.
+- Token kriptografik 256 bit rastgele, 43 karakter Base64URL'dir; **30 dakika**, tek kullanımlık ve yalnız e-posta doğrulama amaçlıdır. DB'de yalnız SHA-256 hash'i ve `05`teki UTC metadata tutulur. Başarı atomik olarak doğrular ve tokenı tüketir; sürenin tam bittiği an geçersizdir. Yeni gönderim önceki tokenı iptal eder. Ham token istek/yanıt loglarına veya hata detaylarına konmaz.
+- Başarılı kayıt DB commit'inden sonra doğrulama gönderimini kuyruğa alır. Yeniden gönderim HTTP yolu da hesap sorgulamadan aynı kuyruğa yazar; SMTP süresi hesap varlığını açığa çıkarmaz. SMTP hatası/kuyruk doluluğu, başarılı kaydın `201` veya geçerli yeniden gönderimin `202` sonucunu değiştirmez; hesap doğrulanmamış kalır. Bu yanıtlar SMTP teslim makbuzu değildir.
+- Varsayılan yeniden gönderim aralığı **hesap başına 60 saniye**dir; DB'de atomik kontrol edilir. Ayrıca doğrudan bağlantı IP'si başına **dakikada 5 istek** limiti hesap varlığından bağımsız uygulanır; aşım ortak hata zarfıyla `429`dur. Değerler `Auth:EmailVerification` üzerinden yapılandırılır. IP sayacı mevcut API sürecindedir; çok örnekli dağıtım/proxy için ortak limit ve güvenilir proxy yapılandırması ayrıca değerlendirilmelidir.
+- Verify/resend gövdeleri en fazla 4096 byte'tır (`413 payload_too_large`); desteklenmeyen içerik `415 unsupported_media_type`, beklenmeyen sunucu hatası `500 internal_error` ortak zarfı kullanır. Sınırlar token/e-posta değerini yanıta yansıtmaz.
+- SMTP ayarları environment/User Secrets'tan alınır; yerel geliştirmede yalnız loopback Mailpit kullanılır. E-posta metni tokenı ve 30 dakikalık süreyi içerir. İstemcilerin bağlantı/deep-link/UI entegrasyonu bu backend göreviyle uygulanmış sayılmaz. Kuyruk sınırlı ve bellektedir; yeniden başlatma/teslim hatasında yeniden gönderim gerekir. Kalıcı teslim/üretim e-posta sağlayıcısı kararı açıktır.
+
+### Henüz uygulanmamış kimlik işlemleri
+
+| İşlem | Request | Response / sınır |
+|---|---|---|
 | `POST /api/v1/auth/password-reset-requests` | `email: string` | `202`, gövdesiz; hesabın varlığını açıklamayan aynı sonuç. Bildirim servisi, limit/süre ayrıntıları **AÇIK**tır |
-| `POST /api/v1/auth/reset-password` | `token: string`, `password: string` | `204`; geçersiz/süresi dolmuş token veya parola kuralı `422`. Parola politikası ve mevcut oturumların iptal ayrıntısı **AÇIK**tır |
+| `POST /api/v1/auth/reset-password` | `token: string`, `password: string` | `204`; geçersiz/süresi dolmuş token veya parola kuralı `422`. Sıfırlama tokenı/akışı ve mevcut oturumların iptal ayrıntısı **AÇIK**tır; kayıt parola politikası yukarıda onaylıdır |
 
 Bu token/password alanları yalnız HTTP kimlik girdileridir; User modeline düz metin secret alanı eklemez. Admin MFA doğrulama/kurulum/kurtarma ve diyetisyen başvuru/doğrulama endpointlerinin gövdeleri ilgili güvenlik/başvuru şeması tamamlanınca tanımlanır; sağlık verisi yetkisiyle karıştırılmaz.
 
@@ -285,8 +306,8 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 - Program arşivleme/değiştirme ve ilişkinin bitişindeki program davranışı; programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve gün/saat dilimi politikası açıktır. Tarihçe korumadan eski programı güncellemek onaylı çözüm değildir.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.
-- Auth token/cookie ve MFA challenge/kurulum/kurtarma gövdeleri, kayıt/profil kök şekli, parola/oturum politikası, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Admin MFA ve karşılıklı ilişki onayı gereksinimleri kesinleşmiştir.
+- Auth oturum token/cookie ve MFA challenge/kurulum/kurtarma gövdeleri, `/me` profil kökü, oturum politikası, şifre sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt şeması/parola politikası ve e-posta doğrulama/yeniden gönderim sözleşmesi yukarıda onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.
 - İlk sürüm yorum/cevap bildirimleri ve diyetisyen PDF raporları onaylı kapsamdır; bildirim/rapor DTO, teslim/dosya yetkilendirmesi ve moderasyon ayrıntıları açık olduğundan bu görevde tahminî yollar açılmaz. İzin dışı veri export edilmez. KVKK, silme, saklama ve audit için `11` kapısı korunur.
 - Sayısal hassasiyet/yuvarlama, metin/dosya/pagination limitleri, tekrar denemelerde idempotency ve güvenli silme ayrıntıları ortak onay bekler. Mevcut enumlar ve model adları değişmez.
 
-Bu görev yalnız `06`yı günceller. `04/05`te bu dosyanın önceki eksiklerini anlatan kontrol notları ve `12`deki açık teknik ayrıntılar değiştirilmemiştir. Sonraki ortak adım; açık şema parçalarını iki geliştiricinin onayıyla `04/05/06` ve OpenAPI/istemci tiplerinde eşgüdümlü tamamlamaktır.
+Kayıt/e-posta doğrulama ayrıntıları `04/05/11/12` ile eşgüdümlüdür. Diğer açık şema parçaları iki geliştiricinin onayıyla `04/05/06` ve OpenAPI/istemci tiplerinde birlikte tamamlanmalıdır; bu görev mobil/web entegrasyonu içermez.

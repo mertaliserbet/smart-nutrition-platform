@@ -14,7 +14,7 @@
 ## Teknik güvenlik kontrolü
 | Kontrol | Kabul yönü |
 |---|---|
-| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. Token/cookie, süre ve MFA yöntemi açık |
+| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı aşağıda onaylı; oturum token/cookie, oturum süreleri ve MFA yöntemi açık |
 | Yetki | Her endpointin kendi rol/kaynak kuralı; danışan kendi kaydı, diyetisyen doğrulanmış uzman + aktif ilişki + kategori izni ve tahlilde ayrı açık onay. Kişisel program için ilişki aranmaz |
 | Sağlık verisi | TLS, aktarım/depoda güvenlik, en az ayrıcalık, audit |
 | İstemci | güvenli token saklama; ekran/log/cache ile veri sızıntısını sınırlama |
@@ -24,6 +24,15 @@
 | Cihaz API'leri | açık izin, veri kapsamı, geri çekme, dedup |
 
 Özel sağlık verisi sunan rol, listelerin totalCount/özetleri ve rapor dosyaları dahil kaynak kapsamını kontrol eder. Sahiplik/flag/rol gibi sunucu alanları istemci girdisiyle değiştirilemez. Başvuru/rol seçimi uzman doğrulaması değildir; Admin MFA tamamlanmadan yönetim oturumu verilmez. Gizli doğrulama/MFA/refresh bilgileri profil yanıtına veya audit metadata'sına konmaz.
+
+### Kayıt ve e-posta doğrulama güvenliği — 27.10.2026
+
+- Onaylı kayıt: yalnız danışan, zorunlu `email`/`password`/`displayName`, `201 { id }`; User/ClientProfile atomik oluşturulur. Başlangıçta e-posta doğrulanmamıştır; otomatik giriş/token/cookie verilmez. İlk sürüm parola politikası 8–128 Unicode kod noktası, boşluk destekli ve karakter türü zorunluluğu olmadan merkezi yapılandırılır. Parola kırpılmaz/normalize edilmez; Identity PasswordHasher kullanılır.
+- E-posta tokenı kriptografik rastgele 256 bittir; 30 dakika geçerlidir ve tek kullanımlıktır. Yalnız SHA-256 hash'i DB'de tutulur. Ham token yalnız geçici işlem belleğinde ve SMTP ile iletilen e-posta içeriğinde bulunur; API yanıtına, request-body loguna, SMTP protokol loguna, audit'e veya DB hata ayrıntısına yazılmaz. İstek DTO'ları loglarda destructure edilmez; EF hassas veri loglaması/Npgsql hata detayı kapalı tutulur.
+- Doğrulama ve tüketme tek atomik DB güncellemesidir; eşzamanlı tekrar, geçersiz, süresi dolmuş veya önceki gönderimden kalan token aynı `422` olur. Yeni gönderim eski tokenı geçersiz kılar. Bu akış parola sıfırlama veya oturum açma yetkisi vermez.
+- Yeniden gönderim geçerli e-posta için hesap varlığı/doğrulanmışlık/gönderim aralığından bağımsız gövdesiz `202` döner. Hesap sorgusu ve SMTP arka plandadır. Varsayılan hesap başına 60 saniye DB kontrolü ve bağlantı IP'si başına 5 istek/dakika HTTP sınırı uygulanır; IP aşımında `429`. SMTP hata mesajı veya alıcı bilgisi loglanmaz. Kayıttaki mevcut mükerrer e-posta `409` sözleşmesi korunur; yeniden gönderim kuralıyla karıştırılmaz.
+- SMTP host/port/gönderen ve kimlik bilgileri environment/User Secrets üzerinden yönetilir. TLS zorunludur (`StartTls`/`SslOnConnect`); `None` yalnız Development + loopback SMTP için kabul edilir. Yerel Mailpit SMTP/UI portları yalnız localhost'a açılır, dış iletim yapılandırılmaz; sentetik test e-postaları kullanılır. Üretim sağlayıcısı ve TLS/secret dağıtımı ayrıca hazırlanır.
+- Mevcut sınırlı bellek kuyruğu kalıcı teslim sağlamaz. SMTP hatası/kuyruk doluluğu/yeniden başlatma durumunda hesap doğrulanmamış kalır; yeniden gönderim gerekir. Üretim teslim dayanıklılığı, çok API örneğinde ortak IP limitleri ve güvenilir proxy ayarları yayın öncesi ayrıca değerlendirilir. Mobil/web doğrulama ekranı/deep-link akışı bu backend adımında uygulanmamıştır.
 
 ## Geliştirme ve gerçek veri kapıları
 

@@ -5,9 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using SmartNutrition.Api.Data;
+using SmartNutrition.Api.Features.Auth;
 
 namespace SmartNutrition.Api.Tests;
 
@@ -20,9 +22,12 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private readonly string _adminConnection;
     private readonly string _testConnection;
     private readonly IInterceptor? _interceptor;
+    private readonly TimeProvider? _clock;
+    private readonly IVerificationEmailSender? _sender;
+    private readonly bool _useSmtp;
     private readonly CaptureLoggerProvider _logs = new();
 
-    private RegistrationApiFactory(IInterceptor? interceptor)
+    private RegistrationApiFactory(IInterceptor? interceptor, TimeProvider? clock, IVerificationEmailSender? sender, bool useSmtp)
     {
         var builder = new NpgsqlConnectionStringBuilder(
             Environment.GetEnvironmentVariable(PostgresFactAttribute.ConnectionVariable))
@@ -33,11 +38,15 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         builder.SearchPath = _schema;
         _testConnection = builder.ConnectionString;
         _interceptor = interceptor;
+        _clock = clock;
+        _sender = sender;
+        _useSmtp = useSmtp;
     }
 
-    public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null)
+    public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null,
+        TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false)
     {
-        var factory = new RegistrationApiFactory(interceptor);
+        var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp);
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -69,12 +78,33 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Production");
+        builder.UseEnvironment(_useSmtp ? "Development" : "Production");
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
-            new Dictionary<string, string?> { ["ConnectionStrings:DefaultConnection"] = _testConnection }));
+            new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = _testConnection,
+                ["Email:Smtp:Host"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_HOST") : "",
+                ["Email:Smtp:Port"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_PORT") : "587",
+                ["Email:Smtp:FromAddress"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_FROM") : "",
+                ["Email:Smtp:TlsMode"] = _useSmtp ? "None" : "StartTls",
+                ["Email:Smtp:Username"] = "", ["Email:Smtp:Password"] = ""
+            }));
         builder.ConfigureLogging(logging => logging.ClearProviders().AddProvider(_logs));
-        if (_interceptor is not null)
-            builder.ConfigureServices(services => services.AddDbContext<AppDbContext>(options => options.AddInterceptors(_interceptor)));
+        builder.ConfigureServices(services =>
+        {
+            if (_interceptor is not null)
+                services.AddDbContext<AppDbContext>(options => options.AddInterceptors(_interceptor));
+            if (_clock is not null)
+            {
+                services.RemoveAll<TimeProvider>();
+                services.AddSingleton(_clock);
+            }
+            if (_sender is not null)
+            {
+                services.RemoveAll<IVerificationEmailSender>();
+                services.AddSingleton(_sender);
+            }
+        });
     }
 
     public override async ValueTask DisposeAsync()

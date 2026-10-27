@@ -34,7 +34,7 @@ public sealed class RegisterUserRequest : IValidatableObject
             yield return new ValidationResult("Only client registration is available.", ["role"]);
     }
 
-    private static bool IsValidEmail(string email)
+    internal static bool IsValidEmail(string email)
     {
         try
         {

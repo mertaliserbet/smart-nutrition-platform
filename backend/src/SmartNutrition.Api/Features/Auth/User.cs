@@ -46,6 +46,12 @@ public sealed class User
     public UserRole Role { get; private set; }
     [JsonIgnore]
     public bool IsEmailVerified { get; private set; }
+    [JsonIgnore]
+    public string? EmailVerificationTokenHash { get; private set; }
+    [JsonIgnore]
+    public DateTimeOffset? EmailVerificationExpiresAt { get; private set; }
+    [JsonIgnore]
+    public DateTimeOffset? EmailVerificationLastSentAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 

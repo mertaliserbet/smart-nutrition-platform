@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +14,23 @@ namespace SmartNutrition.Api.Tests;
 
 public sealed class InfrastructureTests
 {
+    [Theory]
+    [InlineData("verify-email", "token")]
+    [InlineData("resend-verification", "email")]
+    public async Task OversizedVerificationRequestsReturnShared413OnRealKestrel(string route, string field)
+    {
+        // TestServer does not enforce Kestrel's request-size feature.
+        await using var factory = new ApiFactory();
+        factory.UseKestrel(0);
+        using var client = factory.CreateClient();
+        using var response = await client.PostAsJsonAsync("/api/v1/auth/" + route,
+            new Dictionary<string, string> { [field] = new('A', 5000) });
+        Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
+        using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal("payload_too_large", body.RootElement.GetProperty("error").GetProperty("code").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(body.RootElement.GetProperty("requestId").GetString()));
+    }
+
     [Fact]
     public async Task Liveness_DoesNotRequireDatabaseConfiguration()
     {
@@ -61,7 +79,8 @@ public sealed class InfrastructureTests
         Assert.Collection(database.Database.GetMigrations(),
             migration => Assert.EndsWith("_AddAuthFoundation", migration),
             migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration),
-            migration => Assert.EndsWith("_AddUserEmailVerificationState", migration));
+            migration => Assert.EndsWith("_AddUserEmailVerificationState", migration),
+            migration => Assert.EndsWith("_AddEmailVerificationTokens", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -101,7 +120,25 @@ public sealed class InfrastructureTests
         response.EnsureSuccessStatusCode();
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
-        var registration = Assert.Single(document.RootElement.GetProperty("paths").EnumerateObject());
+        var paths = document.RootElement.GetProperty("paths");
+        Assert.Equal(3, paths.EnumerateObject().Count());
+        Assert.True(paths.GetProperty("/api/v1/auth/verify-email").TryGetProperty("post", out _));
+        Assert.True(paths.GetProperty("/api/v1/auth/resend-verification").TryGetProperty("post", out _));
+        foreach (var (route, input, success) in new[]
+        {
+            ("verify-email", "token", "204"), ("resend-verification", "email", "202")
+        })
+        {
+            var operation = paths.GetProperty("/api/v1/auth/" + route).GetProperty("post");
+            Assert.True(operation.GetProperty("responses").TryGetProperty(success, out _));
+            var schema = operation.GetProperty("requestBody").GetProperty("content").GetProperty("application/json").GetProperty("schema");
+            if (schema.TryGetProperty("$ref", out var schemaReference))
+                schema = document.RootElement.GetProperty("components").GetProperty("schemas")
+                    .GetProperty(schemaReference.GetString()!.Split('/').Last());
+            Assert.Equal(input, Assert.Single(schema.GetProperty("properties").EnumerateObject()).Name);
+            Assert.Contains(schema.GetProperty("required").EnumerateArray(), required => required.GetString() == input);
+        }
+        var registration = paths.EnumerateObject().Single(path => path.Name == "/api/v1/auth/register");
         Assert.Equal("/api/v1/auth/register", registration.Name);
         Assert.True(registration.Value.TryGetProperty("post", out _));
         var requestSchema = registration.Value.GetProperty("post").GetProperty("requestBody")
