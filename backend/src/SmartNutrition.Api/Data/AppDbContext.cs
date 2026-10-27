@@ -1,8 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using SmartNutrition.Api.Features.Auth;
 
 namespace SmartNutrition.Api.Data;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    // Entity mappings are added here with their approved feature implementation.
+    public DbSet<User> Users => Set<User>();
+    public DbSet<ClientProfile> ClientProfiles => Set<ClientProfile>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        AuthModelConfiguration.Configure(modelBuilder);
+    }
 }

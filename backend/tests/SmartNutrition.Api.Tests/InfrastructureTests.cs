@@ -1,11 +1,13 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SmartNutrition.Api.Data;
+using SmartNutrition.Api.Features.Auth;
 
 namespace SmartNutrition.Api.Tests;
 
@@ -47,15 +49,21 @@ public sealed class InfrastructureTests
     }
 
     [Fact]
-    public async Task Context_UsesPostgresWithoutBusinessEntitiesOrMigrations()
+    public async Task Context_UsesPostgresWithOnlyTheAuthFoundationAndIdentityPasswordHasher()
     {
         await using var factory = new ApiFactory();
         await using var scope = factory.Services.CreateAsyncScope();
         var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", database.Database.ProviderName);
-        Assert.Empty(database.Model.GetEntityTypes());
-        Assert.Empty(database.Database.GetMigrations());
+        Assert.Equal([typeof(ClientProfile).FullName!, typeof(User).FullName!],
+            database.Model.GetEntityTypes().Select(entity => entity.Name).Order().ToArray());
+        Assert.Collection(database.Database.GetMigrations(),
+            migration => Assert.EndsWith("_AddAuthFoundation", migration),
+            migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration));
+        Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
+        Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
+        Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
     }
 
     [PostgresFact]

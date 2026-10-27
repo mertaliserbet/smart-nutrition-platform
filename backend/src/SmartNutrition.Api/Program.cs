@@ -1,12 +1,21 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SmartNutrition.Api.Data;
+using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Password hashing only: no sign-in scheme, cookies, tokens or Identity endpoints.
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
+builder.Services.AddOptions<RegistrationPasswordPolicy>()
+    .Bind(builder.Configuration.GetSection(RegistrationPasswordPolicy.SectionName));
+builder.Services.AddScoped<UserRegistrationService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
