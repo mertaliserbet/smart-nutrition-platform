@@ -37,8 +37,8 @@ Teknoloji seçimi onaylıdır; gösterilen klasör düzeni bir yerleşim planıd
 ## İki geliştiricili çalışma
 1. Her geliştirici önce kökteki [`AGENTS.md`](AGENTS.md) dosyasını okur.
 2. **Aynı isimler** için [`docs/04_NAMING_CONVENTIONS.md`](docs/04_NAMING_CONVENTIONS.md), **aynı veri şeması** için [`docs/05_DATA_DICTIONARY.md`](docs/05_DATA_DICTIONARY.md), **aynı API** için [`docs/06_API_CONTRACT.md`](docs/06_API_CONTRACT.md) temel alınır.
-3. Ortak uzak depo `mertaliserbet/smart-nutrition-platform`, ortak çalışma dalı `main`dir. Her geliştirici kendi yerel checkout'unda güncel ortak `main` üzerinde çalışır; kullanıcı açıkça istemedikçe yeni dal veya PR açılmaz.
-4. Görevler küçük commitlere bölünür; değişiklik özeti + test sonucu verilir. Görev ve push öncesi ortak `main` kontrol edilir; aynı dosyaya paralel yazılmaz, force push yapılmaz. Ayrıntılar [`ekip planında`](docs/12_TEAM_PLAN_AND_DECISIONS.md) yer alır.
+3. Ortak uzak depo `mertaliserbet/smart-nutrition-platform`, entegrasyon dalı `main`dir. 28.10.2026 kullanıcı kararıyla her yeni iş güncel ortak `main`den açılan görev/feature branch'inde yapılır ve ortak `main`e PR oluşturulur. Bu checkout'ta ortak depo `upstream`, kişisel fork `origin`dir; görev branch'i fork'a push edilir. Kullanıcı açıkça istemedikçe `main`e doğrudan push yapılmaz.
+4. Görevler küçük commitlere bölünür; değişiklik özeti + test sonucu verilir. Görev ve push/PR öncesi ortak `main` kontrol edilir; aynı dosyaya paralel yazılmaz, force push yapılmaz. Ayrıntılar [`ekip planında`](docs/12_TEAM_PLAN_AND_DECISIONS.md) yer alır.
 5. Sözleşme değişikliği iki geliştirici tarafından onaylanır ve tek ortak commit ile gerçekleştirilir. Mevcut PR'ları birleştirme/kapatma ve eski dalları silme ayrıca açık kullanıcı talimatı gerektirir.
 6. Dal, commit/PR başlığı, dosya, klasör ve modül adlarında geliştirme aracının adı kullanılmaz; amaç ve proje kavramları esas alınır.
 

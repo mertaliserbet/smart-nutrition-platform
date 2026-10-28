@@ -74,7 +74,7 @@ Kod tanımlayıcıları İngilizce ve ASCII yazılır; Türkçe kullanıcı aray
 | PostgreSQL tablo/sütun | İngilizce, küçük `snake_case`; tablo çoğul, sütun alan adı | `meal_logs`, `client_id`, `consumed_at` |
 | REST kaynak adı | `/api/v1/` + çoğul `kebab-case`; yalnız `06`da tanımlı yollar | `/api/v1/meal-logs`; `/auth/me`, `/auth`, `/dietitian` ve açık profil düzenleme yolu `06`ya göre kullanılır |
 | JSON fields | **her yerde `camelCase`** | `clientId`, `caloriesKcal` |
-| Git dalı | Ortak çalışma dalı `main`; kullanıcı açıkça istemedikçe yeni dal veya PR açılmaz (`12`, 27.10.2026 kararı) | `main`; açıkça istenen istisna adlarında da geliştirme aracının adı kullanılmaz |
+| Git dalı | Güncel ortak `main`den görev/feature branch'i açılır ve ortak `main`e PR oluşturulur (`12`, 28.10.2026 kullanıcı kararı) | `feature/web-registration`; dal adında geliştirme aracının adı kullanılmaz |
 
 **Platformlar arası eşleme:** C# `MealLog.ClientId` ↔ Dart/TypeScript `MealLog.clientId` ↔ JSON `clientId` ↔ PostgreSQL `meal_logs.client_id`. C# property yazımı JSON'a taşınmaz; Dart/TypeScript alanları backend'deki PascalCase ile gönderilmez. PostgreSQL adları JSON'a taşınmaz. Serileştirme ve DB eşlemesi bu dönüşümü açıkça korumalıdır.
 
