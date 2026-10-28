@@ -97,6 +97,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       description={isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
       {!isLogin && <div className="preview-note"><Icon name="info" /><p>Bu ekran bir arayüz önizlemesidir. Bu aşamada sıfırlama e-postası gönderilmez.</p></div>}
       <AuthForm key={mode} mode={mode} />
+      {isLogin && <Link to="/kayit" className="preview-link">Danışan hesabı oluştur<Icon name="arrow" /></Link>}
       {isLogin && <Link to="/eposta-dogrulama" className="preview-link">E-postamı doğrula<Icon name="arrow" /></Link>}
       {isLogin && <Link to="/hesabim" className="preview-link">Hesabımı aç<Icon name="arrow" /></Link>}
       {isLogin && import.meta.env.DEV && <Link to="/onizleme" className="preview-link">Panel tasarımını incele<Icon name="arrow" /></Link>}

@@ -1,6 +1,6 @@
 # Smart Nutrition — Web
 
-Uğur'un web alanı için React/TypeScript + Vite uygulaması. E-posta doğrulama ve
+Uğur'un web alanı için React/TypeScript + Vite uygulaması. Danışan kaydı, e-posta doğrulama ve
 yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama
 arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi de bulunur.
 W2 ortak onayıyla gerçek web cookie girişi, hesap özeti ve sunucuda çıkış bağlıdır.
@@ -57,6 +57,30 @@ PEM özel anahtarı kaynak depoya taşınmaz. Vite her iki yol birlikte verilinc
 destekler; cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
 API proxy'si gerekir; Vite preview API proxy'si sağlamaz.
 
+## Danışan kaydı
+
+Girişteki **Danışan hesabı oluştur** bağlantısı `/kayit` ekranını açar. Form,
+`POST /api/v1/auth/register` yoluna yalnız `displayName`, `email`, `password`
+gönderir; yalnız danışan kaydı desteklenir. Ad/e-posta kırpılır; parola aynen
+korunur. Parola uzunluğu onaylı 8–128 Unicode kod noktası kuralıyla kontrol
+edilir; sunucu doğrulaması geçerliliğini korur. Yalnız `201 { id }` başarıdır.
+Ardından e-posta doğrulama ekranına bağlantı gösterilir; otomatik giriş yapılmaz
+ve e-posta teslimi kesinleşmiş sayılmaz.
+
+Parola gönderim başında temizlenir; form işlem sürerken tekrar gönderilemez.
+409/422/diğer HTTP hataları ve sonucu belirsiz ağ hataları güvenli metinle
+gösterilir; sunucu gövdesi kullanıcıya yansıtılmaz. İstek cookie/Authorization
+taşımaz; kayıt bilgileri kalıcı depolama, URL veya loga yazılmaz. Sayfadan
+ayrılınca istek iptal edilir; iptal sunucudaki kaydı geri almaz. Alanlar geri
+dönüşte boştur. Geliştirme proxy'si kayıt yolunu da `http://127.0.0.1:5052`
+API'sine iletir. Üretimde aynı origin HTTPS altında API yönlendirmesi gerekir.
+
+Bu dilimde `npm run typecheck`, `npm run lint`, `npm test` (**95 test**) ve
+`npm run build` başarılıdır. Kayıt testleri sentetik fetch yanıtlarıyla başarı,
+parola sınırları, HTTP/ağ hataları, çift gönderim ve iptal davranışını doğrular;
+bu sonuç gerçek API/SMTP uçtan uca testinin yerine geçmez. Tarayıcıda form ve
+zorunlu alan odağı ayrıca kontrol edilmiştir.
+
 ## E-posta doğrulama akışı
 
 W2 doğrulaması: `npm run typecheck`, `npm run lint`, `npm test` (**72 test**) ve
@@ -86,9 +110,9 @@ Doğrulama otomatik giriş, uzman doğrulaması veya panel erişimi sağlamaz.
 
 Yerel geliştirmede backend'i `backend/README.md` adımlarıyla PostgreSQL,
 Mailpit ve JWT yapılandırmasıyla `http://127.0.0.1:5052` üzerinde çalıştırın.
-Vite geliştirme sunucusu yalnız bu iki API yolunu oraya proxy eder. Sentetik bir
-hesabı mevcut kayıt API'siyle oluşturup Mailpit'teki kodla ekranı kullanabilirsiniz;
-web kayıt formu bu dilime dahil değildir. Backend kapalıysa ekran bağlantı/işlem
+Vite geliştirme sunucusu kayıt ve bu iki doğrulama API yolunu oraya proxy eder. Sentetik bir
+hesabı `/kayit` ekranıyla oluşturup Mailpit'teki kodla doğrulayabilirsiniz.
+Backend kapalıysa ekran bağlantı/işlem
 hatası gösterir. `npm run preview` API proxy'si sağlamaz; dağıtımda aynı origin
 altındaki bu API yolları backend'e yönlendirilmelidir. Üretime yayın `docs/11`
 koşullarını ayrıca gerektirir.

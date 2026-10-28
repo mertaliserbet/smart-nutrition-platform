@@ -13,6 +13,7 @@ export default defineConfig({
     host: certificate ? 'localhost' : '127.0.0.1', strictPort: true,
     ...(certificate && key ? { https: { cert: readFileSync(certificate), key: readFileSync(key) } } : {}),
     proxy: {
+      '/api/v1/auth/register': { target: 'http://127.0.0.1:5052' },
       '/api/v1/auth/verify-email': { target: 'http://127.0.0.1:5052' },
       '/api/v1/auth/resend-verification': { target: 'http://127.0.0.1:5052' },
       '/api/v1/auth/csrf': { target: 'https://localhost:7099', secure: true },
