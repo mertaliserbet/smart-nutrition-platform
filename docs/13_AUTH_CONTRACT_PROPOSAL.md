@@ -1,12 +1,18 @@
 # 13 — Auth ve profil sözleşmesi önerisi
 
-**Tarih:** 27.10.2026 · **İlk öneri temeli:** DOCS-V1 / `6351089` · **Güncel inceleme temeli:** `main` / `bedce49`.
+**Tarih:** 28.10.2026 · **İlk öneri temeli:** DOCS-V1 / `6351089` · **Güncel inceleme temeli:** ortak `main` / `9e05ef7`.
 
 **Durum: KISMEN ONAYLI.** 27.10.2026 tarihinde kullanıcı W2-C1–C7 için
 “İki tarafın ortak onayı var; uygula” diyerek Uğur–Mert ortak onayını teyit etti.
 W2 ad/alan/HTTP kuralları `04/05/06`ya, güvenlik ve hazırlık durumu `11/12`ye
 işlenir; normatif kaynaklar bunlardır. Diğer A1–A8 adaylarının onayı bu kayıttan
 türetilmez; aşağıdaki tarihsel öneriler çalışan API sözleşmesi sayılmaz.
+
+**Sıradaki karar:** Aşağıdaki P1–P7 parola sıfırlama paketi **ÖNERİDİR; Uğur–Mert
+ortak onayı bekleniyor.** Bu belge değişikliği uygulama veya `04/05/06` değişikliği
+onayı değildir. [Web kayıt PR'ı #5](https://github.com/mertaliserbet/smart-nutrition-platform/pull/5)
+inceleme için açıktır; bu bağımsız öneri ortak
+`main`den hazırlanmıştır ve PR #5'in birleştirildiğini varsaymaz.
 
 **Güncel karar farkı — 27.10.2026:** Bu önerinin temeli `6351089`dur; sonradan
 kayıt/e-posta doğrulama ve JWT giriş görevleri kullanıcı tarafından ayrıca
@@ -34,7 +40,203 @@ Dayanaklar: [kanonik adlar](04_NAMING_CONVENTIONS.md),
 [geliştirmeye hazırlık](12_TEAM_PLAN_AND_DECISIONS.md) ve
 [mevcut backend hazırlığı](../backend/README.md).
 
-## Sıradaki web giriş dilimi — 27.10.2026, onay bekleyen seçim
+## Sıradaki Auth dilimi — P1–P7 parola sıfırlama önerisi (28.10.2026)
+
+**Mevcut durum ve çakışma:** `06`da iki reset yolu ve temel HTTP gövdeleri
+bulunur; süre, saklama, kötüye kullanım ve iptal ayrıntıları açıktır. Backend'de
+reset DTO/service/metadata yoktur; web `/sifremi-unuttum` ekranı yalnız
+önizlemedir. `WebSessionService.RevokeAllAsync` User kilidi ve transaction ile
+web oturumlarını iptal edebilir. Mevcut JWT middleware'i imza/claim/süreyi
+doğrular; genel bir parola değişikliği iptali yapmaz. Yalnız parola hash'ini
+değiştirmek veya web satırlarını kapatmak, eski mobil/API JWT'sini iptal etmez.
+
+Öneri aşağıdaki yedi kararın **birlikte** onaylanmasını ister. Özellikle P4,
+`06`daki mevcut stateless JWT davranışını değiştirir; onaysız eklenemez. Sağlık
+erişimi, uzman başvurusu, profil düzenleme, Admin MFA veya mobil refresh tasarımı
+bu paketle kapanmaz. Aşağıdaki adlar adaydır; `04/05/06` henüz bunları tanımlamaz.
+
+### P1 — mevcut HTTP yolları ve hesap kapsamı
+
+Tüm yollar `/api/v1` tabanındadır. Yeni yol veya genişletilmiş login/me yanıtı
+önerilmez. İki reset işlemi oturumsuzdur; varsa cookie/bearer kimliği hedef
+hesabı seçmez. Reset isteği mevcut hesabı kilitlemez veya oturumlarını kapatmaz.
+
+| İşlem / aday DTO | İstek | Önerilen sonuç |
+|---|---|---|
+| `POST /auth/password-reset-requests` — `PasswordResetRequest` | Yalnız zorunlu `email: string`; mevcut Identity normalizasyonu | Geçerli e-postada gövdesiz `202`; olmayan, doğrulanmamış, Admin veya gönderim aralığındaki hesapta da aynı sonuç. Eksik/boş/geçersiz e-posta, yanlış JSON tipi veya ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
+| `POST /auth/reset-password` — `ResetPasswordRequest` | Yalnız zorunlu string `token`, `password`; hesap ID/e-posta/rol alınmaz | Atomik başarıdan sonra gövdesiz `204`; geçersiz/boş/yanlış biçimli/süresi dolmuş/tüketilmiş kod veya parola politikası ihlali aynı genel `422 validation_failed`. Eksik alan, null/yanlış JSON tipi veya ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
+
+İlk dilimde yalnız e-postası doğrulanmış `client`/`dietitian` hesaplara reset
+e-postası üretilmesi önerilir. Doğrulanmamış kullanıcı önce mevcut e-posta
+doğrulamasını tamamlar; Admin kurtarma ayrıca MFA ile ele alınır. Reset, e-posta
+doğrulamasını/rolü/MFA durumunu değiştirmez. Bu kapsam tercihi de ortak onaya
+tabidir; farklı yanıtla hesap türü veya varlığı açıklanmaz.
+
+Her iki yol JSON `application/json`, en fazla 4096 byte ve `Cache-Control:
+no-store` kullanır. Desteklenmeyen query `400`, gövde aşımı `413`, yanlış içerik
+türü `415`, beklenmeyen DB/altyapı hatası genel `500 internal_error` olur.
+Token, parola ve hesap durumu hata zarfına, loga veya response header'a yansımaz;
+başarıda cookie/access/refresh token, `Location` veya hesap gövdesi verilmez.
+
+### P2 — amaçla sınırlı kod ve User alan adayları
+
+Kod kriptografik rastgele 32 byte'tan 43 karakter Base64URL olarak üretilir;
+30 dakika, tek kullanım ve yalnız parola sıfırlama amaçlıdır. E-posta doğrulama
+kodu, access token veya CSRF tokenı yerine geçmez. Hash aday gösterimi, UTF-8
+`password-reset:v1:` öneki + ham kodun SHA-256 sonucunun 64 büyük hex karakteridir.
+Ham kod yalnız geçici işlem belleği ve yerel/uygun SMTP içeriğinde bulunur.
+
+| `User` alan adayı | C# / PostgreSQL | Kural |
+|---|---|---|
+| `passwordResetTokenHash` | `string?` / `password_reset_token_hash` nullable `varchar(64)` | Null değilken unique; ham kod saklanmaz |
+| `passwordResetExpiresAt` | `DateTimeOffset?` / `password_reset_expires_at` nullable `timestamptz` | Hash ile birlikte null/non-null; `now < expiresAt`, tam bitiş anında geçersiz |
+| `passwordResetLastSentAt` | `DateTimeOffset?` / `password_reset_last_sent_at` nullable `timestamptz` | Gönderim aralığını atomik denetler; kod tüketilince hemen silinmez |
+| `credentialsVersion` | `long` / `credentials_version` non-null `bigint`, başlangıç `0` | Negatif olamaz; P4 için monoton artan güvenlik sürümü |
+
+Kod varsa lastSentAt dolu ve expiresAt > lastSentAt olmalıdır. Bu dört alan
+entity JSON'una, kayıt/login/me DTO'larına veya mobil profil modeline eklenmez.
+Migration yalnız bu sütunları/indeksleri/kısıtları ekler; eski hesapları silmez,
+parolalarını değiştirmez veya doğrulanmış saymaz. Ek bir reset entity'si,
+token tablosu veya genel job modeli önerilmez.
+
+### P3 — sıfırlama, iptal ve login yarışları tek bütünlük kuralı
+
+Sunucu mevcut 8–128 Unicode kod noktası politikasını ve Identity PasswordHasher'ı
+kullanır; parola kırpılmaz/normalize edilmez. Parola doğrulaması başarısızsa kod
+tüketilmez. Başarılı işlemde hash ile bulunan hedef User satırı kilitlenir;
+kodun hash'i, süresi, rolü ve e-posta doğrulaması kilit altında yeniden denetlenir.
+Aynı transaction içinde parola hash'i ve `updatedAt` güncellenir,
+credentialsVersion bir artırılır, reset hash/expiry temizlenir ve
+`WebSessionService.RevokeAllAsync` ile tüm web oturumları iptal edilir. Sürüm
+taşması veya herhangi bir DB hatası tüm işlemi geri alır. `204` yalnız commit
+sonrası verilir; otomatik giriş yapılmaz.
+
+JWT login ve web login aynı User kilidi altında doğruladıkları hash/rol/
+doğrulanmışlık/sürümü tekrar karşılaştırır. Reset arada kazanırsa eski parola
+kontrolüne dayanarak yeni sürümle kimlik üretilemez; genel `401` olur. Reset
+öncesi üretilmiş kimlik reset sonrası P4 ile reddedilir. Başarılı Identity rehash
+gerçek parola değişikliği değildir ve credentialsVersion artırmaz.
+
+İki eşzamanlı resetten yalnız biri `204`, diğeri `422` alır. Yeni kod üretimi de
+aynı User kilidini ve cooldown kontrolünü kullanır; eski kodun tüketimiyle
+yarışta tek bir sıralı sonuç oluşur. Başarı sonrası kullanıcıya parolası/kodu
+içermeyen bilgilendirme e-postası gönderimi işleme alınır; SMTP hatası commit
+edilmiş reseti geri almaz ve sahte işlem hatası üretmez.
+
+### P4 — web ve mobil/API JWT'sinde sıfırlama sonrası iptal
+
+**Önerilen seçim: eski JWT'nin kalan 15 dakikasını beklemeden sunucuda reddet.**
+Onaylı login gövdesi, üç alanlı yanıt, HS256/tür/issuer/audience ve 15 dakika
+ömür korunur; JWT'ye tek bir `credentialsVersion` claim'i eklenmesi önerilir.
+Claim, negatif olmayan `long`un invariant ondalık **string** gösterimidir
+(`"0"`, `"1"`; sıfır dışında başta sıfır yoktur); boş/tekrarlı/işaretli/kesirli/
+taşan değer veya eksik claim yetkili istekte `401` olur.
+İstemci bu claim'i çözerek yetki vermez veya sürüm karşılaştırmaz.
+
+İmza ve mevcut claim/süre kontrollerinden sonra **her bearer authentication**
+güncel User kaydından id/rol/doğrulanmışlık/credentialsVersion okur. Hesap yoksa,
+rol/doğrulanmışlık uygun değilse veya sürüm eşleşmiyorsa ortak `401` olur;
+kontrol yalnız `GET /auth/me` ile sınırlanmaz. DB hatasında genel `500` ile erişim
+kapalı kalır. Olumlu sonucu cache'leyip reset sonrası erişim penceresi açılmaz.
+Kaynak/aktif ilişki/kategori/tahlil onayı kontrolleri ayrıca geçerlidir.
+
+Web cookie biçimi aynı kalır; iptal edilen AuthSession her istekte mevcut W2
+DB kontrolüyle reddedilir. Commit'ten önce yetkilendirilmiş bir istek tamamlanabilir;
+iptal commit'ten sonra başlayan yeni kimlik kontrolleri için geçerlidir. Gelecekteki
+gerçek parola, rol, e-posta veya doğrulama güvenlik yazmaları aynı kilit/transaction
+içinde sürümü artırıp web oturumlarını iptal etmelidir; bu öneri yeni yazma
+endpointleri oluşturmaz.
+
+**Entegrasyon etkisi:** Stateless JWT davranışı değişir; her bearer isteğine DB
+okuması eklenir. Claim'siz eski JWT'ler geçişte `401` alacağından mevcut mobil/API
+kullanıcıları yeniden giriş yapar. Mobil login JSON'u ve secure storage seçimi
+değişmez; Mert bu geçişi ve `401`de hassas hesap görünümünün temizlenmesini
+doğrulamalıdır. Çok örnekte aynı güncel DB kullanılır; karma eski/yeni middleware
+çalıştırılarak reset açılmaz. Önce tüm API örnekleri ve istemciler uyarlanır,
+sonra reset akışı açılır. Üretim dağıtım sağlayıcısı bu belgede seçilmez.
+
+Yalnız cookie'yi iptal edip mevcut JWT'nin süresini bekleme veya sadece ekrandan
+çıkış seçimi bu paketin önerilen çözümü değildir. Mobil refresh/logout tasarımı
+ayrı açık kalır; web logout tek başına credentialsVersion artırmaz.
+
+### P5 — kötüye kullanım, yerel teslim ve metadata temizliği
+
+Başlangıç önerisi: reset talebi IP başına dakikada 5; reset tüketme IP başına
+dakikada 10 istek; uygun hesapta yeni kod üretimi en az 60 saniye arayla.
+İki IP sayacı hesap varlığından bağımsız, cooldown ise DB'de User kilidiyle
+uygulanır. Süre/limitler ayrı `Auth:PasswordReset` ayarıyla merkezi yönetilir;
+mevcut login ve e-posta doğrulama limitleri değiştirilmez. Bu değerler de onay
+adayıdır; aşağıdaki tarihsel reset/saat limitleri bu dilime ayrıca eklenmez.
+
+Talep HTTP yolu hesap sorgusu/SMTP beklemeden sınırlı bellek kuyruğuna e-posta
+işini bırakır; her geçerli adres aynı `202` yolunu kullanır. Kuyruk kapasitesi
+başlangıç 100; doluluk/SMTP hatası `202`yi teslim makbuzuna dönüştürmez.
+Worker yalnız uygun hesapta atomik kod üretir; yeni kod eskiyi geçersiz kılar.
+Doğrulama ve reset amaçları karıştırılmaz. Protokol/gövde/ham exception logu
+açılmaz; genel hata/kapasite olayı secret veya alıcı içermez.
+
+Yerelde mevcut loopback Mailpit kullanılır. Kalıcı teslim, güvenilir proxy ve
+çok örnekli ortak IP sayaçları üretim kapısıdır; bellek kuyruğu bunları tamamlamış
+sayılmaz. Kötüye kullanım denemesi hesabı kilitlemez veya mevcut parolayı geçersiz
+kılmaz. Süresi dolmuş kodun hash/expiry metadata'sı 10 dakikalık temizlikte
+silinir; 24 saati geçmiş lastSentAt temizlenir. Temizlik User/ClientProfile,
+sağlık veya audit satırlarını silmez; kesintide süresi dolmuş kod yine reddedilir.
+
+### P6 — istemci deneyimi ve kodun taşınması
+
+Webde mevcut `/sifremi-unuttum`, onay sonrası e-postayla kod isteme ekranına
+bağlanır; bağlantı gönderildi iddiası yerine hesabı açıklamayan `202` mesajı
+gösterilir. Ayrı formda e-postadaki kod ve iki kez yeni parola alınır; ikinci
+parola yalnız istemcide eşleşme kontrolüdür, HTTP gövdesine eklenmez. Kod elle
+yapıştırılır; URL/query/fragment, kalıcı depolama veya analitik ile taşınmaz.
+E-posta bağlantısı/deep-link ayrı onay olmadan üretilmez; sayfa açılışı/görüntüleme
+reset veya kod tüketimi tetiklemez.
+
+İstemciler reset isteklerinde cookie/Authorization göndermez; web
+`credentials: omit`, `cache: no-store`, `redirect: error` kullanır. Gönderimde
+kod ve iki parola alanı temizlenir; çift gönderim engellenir, sayfadan ayrılınca
+istek iptal edilir ve geç yanıt UI'yi geri getiremez. İptal sunucudaki commit'i
+geri almaz; ağ kesilirse tamamlanmış reset iddiası gösterilmez. Yalnız `204`
+sonrası normal girişe yönlendirilir. Eski web/mobil kimliğinin yeni isteği `401`
+alınca hassas görünüm temizlenir; otomatik refresh/reset tekrarı yapılmaz.
+
+Mobil aynı iki HTTP gövdesini kullanabilir; ekran/secure storage uygulaması
+Mert'in alanıdır. Bu öneri mobil dosyalarını değiştirme izni değildir.
+
+### P7 — ortak onay, tek değişiklik lideri ve kabul kapısı
+
+Uğur web/Auth değişiklik lideri önerilir; Mert mobil JWT/`401` etkisini ve ortak
+sözleşmeyi onaylar. Onaydan sonra `04` aday adları/claim'i, `05` dört alanı,
+`06` HTTP ve JWT iptalini, `11/12` güvenlik/hazırlık durumunu içerir. Backend
+model/migration, iki login yolu, bearer middleware, reset/SMTP/temizlik ve test
+etkileri; mevcut web ve mobil entegrasyon notları aynı onaylı committe ele alınır.
+İki geliştirici ortak `main` sürümüne eşitlenmeden entegrasyon yapılmaz.
+
+Uygulamada doğrulanacak kabul kontrolleri (bu belge görevinde çalıştırılmadı):
+
+- Olmayan/doğrulanmamış/Admin/uygun/cooldown hesaplarının aynı talep yanıtı;
+  IP limitinin hesaptan bağımsızlığı, SMTP hatası/kuyruk doluluğu ve temiz loglar.
+- Doğrulama kodunun reset yerine geçmemesi; tam 30 dakika sınırı, yeni kodla
+  rotasyon, tüketim tekrarı, iki eşzamanlı reset ve parola kuralında kodun korunması.
+- Unicode/boşluk politikası, DB rollback'te hash/sürüm/oturumların korunması;
+  reset–JWT login, reset–web login ve kod üretimi yarışları; rehash'in iptal üretmemesi.
+- Eski cookie ve JWT'nin reset sonrası yeni istekte reddi; yeni parola ile giriş,
+  farklı hesabın etkilenmemesi, claim eksik/bozuk/tekrarlı ve DB kesintisi.
+- Gerçek PostgreSQL + Mailpit ile web kod isteme → reset → yeniden giriş;
+  mobil aynı JSON parse/`401` davranışı; kod/parolanın URL/depolama/loga girmemesi.
+
+Kaynaklar: [OWASP parola sıfırlama](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html)
+hesap varlığını gizleyen talep, tek kullanımlık/süreli kod, normal girişe dönüş
+ve oturum iptalini; [OWASP oturum yönetimi](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
+parola/kurtarma sonrası yeniden kimlik doğrulamayı destekler. Süre/limitler,
+User alanları ve credentialsVersion tasarımı bu repo için **öneridir**;
+kaynaklar bunları veya ortak ekip onayını kendiliğinden belirlemez.
+
+| Alt karar | Uğur | Mert |
+|---|---|---|
+| P1–P7: HTTP/kapsam, kod/metadata, atomik reset, JWT+cookie iptali, limit/teslim/temizlik, istemciler ve kabul kapısı | Bekliyor | Bekliyor |
+
+## Web giriş dilimi — 27.10.2026 tarihsel seçim kaydı
 
 **İnceleme temeli: `main` / `bedce49`.** Oturumsuz web e-posta doğrulama ve
 yeniden gönderim tamamlanmıştır. Gerçek web girişi hâlâ istemci saklama kararı
@@ -433,6 +635,10 @@ ayrı refresh endpointi değildir. Önceki ayrıntılı öneri Git geçmişinde 
 
 ## A6–A8: Parola, e-posta ve yönetim güvenliği
 
+**Tarihsel bölüm sınırı:** Parola sıfırlama için güncel, henüz onaysız aday
+P1–P7'dir. Aşağıdaki eski reset/saat limitleri veya “tüm oturumları iptal”
+ifadesi P4'teki JWT değişikliği onaylanmadan uygulanmış sözleşme sayılamaz.
+
 Mevcut kayıt politikası 8–128 Unicode skaler değerdir; C# kodu artık `Rune` ile
 sayar ve bozuk UTF-16'yı reddeder. Mobil/web, entegrasyonda aynı sayımı kullanır.
 Mevcut options değerleri `RequiredLength=8`, `MaximumLength=128`,
@@ -538,3 +744,4 @@ W2 için ayrı kayıt:
 
 İlk hazırlama talebi uygulama onayı değildi; sonraki açık kullanıcı teyidi yalnız
 W2-C1–C7'yi kapatmıştır. Diğer öneriler ve üretim yayın kapıları açık kalır.
+28.10.2026 P1–P7 parola sıfırlama paketi için henüz ortak onay kaydı yoktur.
