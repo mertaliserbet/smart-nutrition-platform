@@ -53,8 +53,11 @@ npm run dev
 Üst dizini önce oluşturun ve yalnız geliştirme hesabının erişimini sağlayın.
 PEM özel anahtarı kaynak depoya taşınmaz. Vite her iki yol birlikte verilince
 `https://localhost:5173` üzerinde çalışır; API sertifikasını normal doğrular
-(`secure:true`), kontrolü kapatmaz. HTTP önizleme eski görsel/e-posta yollarını
-destekler; cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
+(`secure:true`), kontrolü kapatmaz. HTTPS modunda kayıt, doğrulama ve yeniden
+kod isteme de doğrudan `https://localhost:7099` adresine gider; API'nin HTTP →
+HTTPS yönlendirmesi `redirect:error` kullanan bu istekleri kesmez. HTTP önizleme,
+backend'in yalnız `http` profiliyle görsel/kayıt/e-posta yollarını destekler;
+cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
 API proxy'si gerekir; Vite preview API proxy'si sağlamaz.
 
 ## Danışan kaydı
@@ -72,14 +75,25 @@ Parola gönderim başında temizlenir; form işlem sürerken tekrar gönderileme
 gösterilir; sunucu gövdesi kullanıcıya yansıtılmaz. İstek cookie/Authorization
 taşımaz; kayıt bilgileri kalıcı depolama, URL veya loga yazılmaz. Sayfadan
 ayrılınca istek iptal edilir; iptal sunucudaki kaydı geri almaz. Alanlar geri
-dönüşte boştur. Geliştirme proxy'si kayıt yolunu da `http://127.0.0.1:5052`
-API'sine iletir. Üretimde aynı origin HTTPS altında API yönlendirmesi gerekir.
+dönüşte boştur. Geliştirme proxy'si kayıt yolunu HTTP modunda `http://127.0.0.1:5052`,
+HTTPS modunda `https://localhost:7099` API'sine iletir. Üretimde aynı origin HTTPS
+altında API yönlendirmesi gerekir.
 
 Bu dilimde `npm run typecheck`, `npm run lint`, `npm test` (**95 test**) ve
 `npm run build` başarılıdır. Kayıt testleri sentetik fetch yanıtlarıyla başarı,
-parola sınırları, HTTP/ağ hataları, çift gönderim ve iptal davranışını doğrular;
-bu sonuç gerçek API/SMTP uçtan uca testinin yerine geçmez. Tarayıcıda form ve
-zorunlu alan odağı ayrıca kontrol edilmiştir.
+parola sınırları, HTTP/ağ hataları, çift gönderim ve iptal davranışını doğrular.
+
+28.10.2026 uçtan uca doğrulamada geçici PostgreSQL 17 ve Mailpit v1.32.0 ile
+`dotnet build SmartNutrition.Backend.slnx --no-restore` (0 uyarı/hata) ve
+`dotnet test SmartNutrition.Backend.slnx --no-restore` (**214 geçti, 0 atlandı**)
+başarılıdır. Güvenilir HTTPS Vite/Kestrel üzerinde tarayıcıyla sentetik kayıt,
+doğrulanmamış hesabın giriş reddi, gerçek SMTP e-postası, yeniden gönderim,
+eski/kullanılmış kodun reddi, yeni kodla doğrulama, giriş, hesap yenileme ve
+çıkış sonrası korunan hesap yolunun girişe dönmesi doğrulanmıştır. Bu test,
+HTTPS geliştirme proxy'sindeki `307` yönlendirme hatasını ortaya çıkarmış ve
+yukarıdaki doğrudan HTTPS hedefiyle giderildiğini doğrulamıştır. Yalnız geçici
+veritabanı/posta kutusu ve sentetik hesap kullanılmıştır; üretim yayın kapısı
+`docs/11` kapsamında ayrıca geçerlidir.
 
 ## E-posta doğrulama akışı
 
@@ -109,8 +123,10 @@ ayrılınca istemci isteği iptal edilir. İptal sunucudaki işlemi geri almaz.
 Doğrulama otomatik giriş, uzman doğrulaması veya panel erişimi sağlamaz.
 
 Yerel geliştirmede backend'i `backend/README.md` adımlarıyla PostgreSQL,
-Mailpit ve JWT yapılandırmasıyla `http://127.0.0.1:5052` üzerinde çalıştırın.
-Vite geliştirme sunucusu kayıt ve bu iki doğrulama API yolunu oraya proxy eder. Sentetik bir
+Mailpit ve JWT yapılandırmasıyla HTTP kullanımında `http://127.0.0.1:5052`
+üzerinde (`http` profili) çalıştırın. HTTPS kullanımında yukarıdaki W2
+kurulumuyla `https://localhost:7099` hedeflenir. Vite geliştirme sunucusu kayıt
+ve bu iki doğrulama API yolunu ilgili hedefe proxy eder. Sentetik bir
 hesabı `/kayit` ekranıyla oluşturup Mailpit'teki kodla doğrulayabilirsiniz.
 Backend kapalıysa ekran bağlantı/işlem
 hatası gösterir. `npm run preview` API proxy'si sağlamaz; dağıtımda aynı origin

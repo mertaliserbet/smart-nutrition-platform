@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs'
 const certificate = process.env.SMART_NUTRITION_HTTPS_CERT
 const key = process.env.SMART_NUTRITION_HTTPS_KEY
 if (Boolean(certificate) !== Boolean(key)) throw new Error('Both development HTTPS certificate paths are required.')
+// Anonymous auth also stays on HTTPS when the API HTTPS profile redirects HTTP.
+const anonymousAuthTarget = certificate ? 'https://localhost:7099' : 'http://127.0.0.1:5052'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,9 +15,9 @@ export default defineConfig({
     host: certificate ? 'localhost' : '127.0.0.1', strictPort: true,
     ...(certificate && key ? { https: { cert: readFileSync(certificate), key: readFileSync(key) } } : {}),
     proxy: {
-      '/api/v1/auth/register': { target: 'http://127.0.0.1:5052' },
-      '/api/v1/auth/verify-email': { target: 'http://127.0.0.1:5052' },
-      '/api/v1/auth/resend-verification': { target: 'http://127.0.0.1:5052' },
+      '/api/v1/auth/register': { target: anonymousAuthTarget, secure: true },
+      '/api/v1/auth/verify-email': { target: anonymousAuthTarget, secure: true },
+      '/api/v1/auth/resend-verification': { target: anonymousAuthTarget, secure: true },
       '/api/v1/auth/csrf': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/web-session': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/me': { target: 'https://localhost:7099', secure: true },
