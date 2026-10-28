@@ -1,6 +1,6 @@
 # Smart Nutrition — Web
 
-Uğur'un web alanı için React/TypeScript + Vite uygulaması. E-posta doğrulama ve
+Uğur'un web alanı için React/TypeScript + Vite uygulaması. Danışan kaydı, e-posta doğrulama ve
 yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama
 arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi de bulunur.
 W2 ortak onayıyla gerçek web cookie girişi, hesap özeti ve sunucuda çıkış bağlıdır.
@@ -53,9 +53,47 @@ npm run dev
 Üst dizini önce oluşturun ve yalnız geliştirme hesabının erişimini sağlayın.
 PEM özel anahtarı kaynak depoya taşınmaz. Vite her iki yol birlikte verilince
 `https://localhost:5173` üzerinde çalışır; API sertifikasını normal doğrular
-(`secure:true`), kontrolü kapatmaz. HTTP önizleme eski görsel/e-posta yollarını
-destekler; cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
+(`secure:true`), kontrolü kapatmaz. HTTPS modunda kayıt, doğrulama ve yeniden
+kod isteme de doğrudan `https://localhost:7099` adresine gider; API'nin HTTP →
+HTTPS yönlendirmesi `redirect:error` kullanan bu istekleri kesmez. HTTP önizleme,
+backend'in yalnız `http` profiliyle görsel/kayıt/e-posta yollarını destekler;
+cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
 API proxy'si gerekir; Vite preview API proxy'si sağlamaz.
+
+## Danışan kaydı
+
+Girişteki **Danışan hesabı oluştur** bağlantısı `/kayit` ekranını açar. Form,
+`POST /api/v1/auth/register` yoluna yalnız `displayName`, `email`, `password`
+gönderir; yalnız danışan kaydı desteklenir. Ad/e-posta kırpılır; parola aynen
+korunur. Parola uzunluğu onaylı 8–128 Unicode kod noktası kuralıyla kontrol
+edilir; sunucu doğrulaması geçerliliğini korur. Yalnız `201 { id }` başarıdır.
+Ardından e-posta doğrulama ekranına bağlantı gösterilir; otomatik giriş yapılmaz
+ve e-posta teslimi kesinleşmiş sayılmaz.
+
+Parola gönderim başında temizlenir; form işlem sürerken tekrar gönderilemez.
+409/422/diğer HTTP hataları ve sonucu belirsiz ağ hataları güvenli metinle
+gösterilir; sunucu gövdesi kullanıcıya yansıtılmaz. İstek cookie/Authorization
+taşımaz; kayıt bilgileri kalıcı depolama, URL veya loga yazılmaz. Sayfadan
+ayrılınca istek iptal edilir; iptal sunucudaki kaydı geri almaz. Alanlar geri
+dönüşte boştur. Geliştirme proxy'si kayıt yolunu HTTP modunda `http://127.0.0.1:5052`,
+HTTPS modunda `https://localhost:7099` API'sine iletir. Üretimde aynı origin HTTPS
+altında API yönlendirmesi gerekir.
+
+Bu dilimde `npm run typecheck`, `npm run lint`, `npm test` (**95 test**) ve
+`npm run build` başarılıdır. Kayıt testleri sentetik fetch yanıtlarıyla başarı,
+parola sınırları, HTTP/ağ hataları, çift gönderim ve iptal davranışını doğrular.
+
+28.10.2026 uçtan uca doğrulamada geçici PostgreSQL 17 ve Mailpit v1.32.0 ile
+`dotnet build SmartNutrition.Backend.slnx --no-restore` (0 uyarı/hata) ve
+`dotnet test SmartNutrition.Backend.slnx --no-restore` (**214 geçti, 0 atlandı**)
+başarılıdır. Güvenilir HTTPS Vite/Kestrel üzerinde tarayıcıyla sentetik kayıt,
+doğrulanmamış hesabın giriş reddi, gerçek SMTP e-postası, yeniden gönderim,
+eski/kullanılmış kodun reddi, yeni kodla doğrulama, giriş, hesap yenileme ve
+çıkış sonrası korunan hesap yolunun girişe dönmesi doğrulanmıştır. Bu test,
+HTTPS geliştirme proxy'sindeki `307` yönlendirme hatasını ortaya çıkarmış ve
+yukarıdaki doğrudan HTTPS hedefiyle giderildiğini doğrulamıştır. Yalnız geçici
+veritabanı/posta kutusu ve sentetik hesap kullanılmıştır; üretim yayın kapısı
+`docs/11` kapsamında ayrıca geçerlidir.
 
 ## E-posta doğrulama akışı
 
@@ -85,10 +123,12 @@ ayrılınca istemci isteği iptal edilir. İptal sunucudaki işlemi geri almaz.
 Doğrulama otomatik giriş, uzman doğrulaması veya panel erişimi sağlamaz.
 
 Yerel geliştirmede backend'i `backend/README.md` adımlarıyla PostgreSQL,
-Mailpit ve JWT yapılandırmasıyla `http://127.0.0.1:5052` üzerinde çalıştırın.
-Vite geliştirme sunucusu yalnız bu iki API yolunu oraya proxy eder. Sentetik bir
-hesabı mevcut kayıt API'siyle oluşturup Mailpit'teki kodla ekranı kullanabilirsiniz;
-web kayıt formu bu dilime dahil değildir. Backend kapalıysa ekran bağlantı/işlem
+Mailpit ve JWT yapılandırmasıyla HTTP kullanımında `http://127.0.0.1:5052`
+üzerinde (`http` profili) çalıştırın. HTTPS kullanımında yukarıdaki W2
+kurulumuyla `https://localhost:7099` hedeflenir. Vite geliştirme sunucusu kayıt
+ve bu iki doğrulama API yolunu ilgili hedefe proxy eder. Sentetik bir
+hesabı `/kayit` ekranıyla oluşturup Mailpit'teki kodla doğrulayabilirsiniz.
+Backend kapalıysa ekran bağlantı/işlem
 hatası gösterir. `npm run preview` API proxy'si sağlamaz; dağıtımda aynı origin
 altındaki bu API yolları backend'e yönlendirilmelidir. Üretime yayın `docs/11`
 koşullarını ayrıca gerektirir.
