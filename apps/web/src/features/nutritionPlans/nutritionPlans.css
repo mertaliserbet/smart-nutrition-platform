@@ -1,0 +1,15 @@
+.nutrition-panel { margin-top: 32px; }
+.nutrition-card, .nutrition-editor, .nutrition-history { margin: 24px 0; padding: 24px; }
+.nutrition-editor { border: 1px solid var(--border); border-radius: var(--radius-medium); background: var(--surface); }
+.nutrition-editor fieldset { margin: 20px 0; padding: 20px; border: 1px solid var(--border); border-radius: 12px; min-width: 0; }
+.nutrition-editor legend { font-weight: 600; padding: 0 8px; }
+.nutrition-editor input, .nutrition-editor select, .nutrition-editor textarea { max-width: 100%; }
+.nutrition-editor select { min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-primary); }
+.plan-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.plan-grid label { display: flex; flex-direction: column; gap: 8px; }
+.plan-targets { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 20px; }
+.plan-targets dd { margin: 0; }
+.plan-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.plan-meals { display: grid; gap: 16px; padding-left: 24px; }
+.nutrition-history article { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 20px; }
+@media (max-width: 600px) { .plan-grid { grid-template-columns: 1fr; } .nutrition-card, .nutrition-editor, .nutrition-history { padding: 16px; } .nutrition-editor fieldset { padding: 12px; } }

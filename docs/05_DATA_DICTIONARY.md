@@ -1,5 +1,44 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 29.10.2026 N1–N3 onaylı program verisi
+
+`16` N1–N3 ortak onayı kullanıcı tarafından teyit edildi. Programın aşağıdaki
+şeması ve kuralları eski miktar/gün/alternatif/sürüm açık notlarının yerini alır.
+
+- NutritionPlan id/clientId/dietitianId?/title/status/startDate/endDate?/
+  dailyCaloriesTargetKcal?/dailyWaterTargetMl?/createdAt alanlarına ek
+  `versionNumber: integer` tutar; ilk değer 1. Yanıt ayrıca güncel
+  `versionId: uuid` taşır; sürüm satırından türetilir, ikinci FK oluşturulmaz.
+- Güncel items `jsonb` dizisidir; 1–100 kalem. Her kalemde sunucunun ürettiği
+  id/nutritionPlanId UUID'leri, dayOfWeek: integer? (ISO 1–7; null her gün),
+  mealType: mevcut MealType, description: string (kırpılmış 1–2000 Unicode
+  kod noktası), recommendedQuantity: string? (kırpılmış 1–200; boş null),
+  sortOrder: integer (>=0, aynı sürümde tek), recipeId: uuid? (ilk dilimde
+  yalnız null), alternativeGroupId: uuid? bulunur. Grup yerel UUID'dir;
+  en az iki üye aynı gün ve mealType'a ait olur; ayrı tablo/FK değildir.
+- title kırpılmış 1–120; PostgreSQL text. Tarihler date ve endDate >= startDate.
+  Hedefler nullable pozitif decimal/numeric, kcal ve mL; otomatik hesap veya
+  yuvarlama yoktur. Status draft/active/archived; aktiflik tarihten bağımsızdır.
+- Yeni NutritionPlanVersion: id: uuid, nutritionPlanId: uuid FK,
+  versionNumber: integer (>0), recordedByUserId: uuid FK User, createdAt:
+  instant, snapshot: jsonb object. Snapshot yalnız title/tarihler/hedefler/items
+  içerir; sunucu modeli SnapshotJson özelliğini snapshot sütununa eşler.
+  recordedByUserId yanıtta açılmaz. (nutritionPlanId,versionNumber) unique.
+- Program→ClientProfile/nullable DietitianProfile ve sürüm→User/Program FK'leri
+  NO ACTION. Programda status=active için clientId kısmi unique indeksi vardır.
+  Sürüm içerikleri uygulamada sonradan değiştirilemez; her geçerli PATCH yeni
+  satır ve yeni item UUID'leri oluşturur. Önceki JSONB içeriği değişmez.
+- Program güncel içerik ve sürüm ekleme aynı transaction'da; User →
+  ClientProfile → program kilit sırasıyla kaydedilir. İzin geri çekme ve
+  ilişki bitişi aynı ClientProfile kilidini kullanır. Yeni yazma commit'inden
+  önce aktif ilişki/izin yeniden kontrol edilir. Zamanlar UTC mikro saniyedir.
+- Aktif ilişki bitince yalnız o diyetisyenin bu danışana atanmış active
+  programı aynı transaction'da archived olur; kişisel programa dokunulmaz,
+  sahiplik/geçmiş korunur. Danışan kendi tüm program/geçmişini okumaya devam
+  eder. Genel sahipler arası replace akışı bu dilimin dışındadır.
+
+HTTP DTO, null/atlanmış alan ve erişim ayrıntıları `06`daki N1–N3 bölümündedir.
+
 ## 29.10.2026 R1–R3 onaylı ilişki/paylaşım verisi
 
 `15` R1–R3 ortak onayı kullanıcı tarafından teyit edildi. Mevcut
@@ -174,20 +213,21 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 | `MealLogItem` | `id: uuid`, `mealLogId: uuid`, `foodItemId: uuid?`, `recipeId: uuid?`, `displayName: string`, `quantityGrams: decimal?`, `caloriesKcal: decimal?`, `proteinGrams: decimal?`, `carbsGrams: decimal?`, `fatGrams: decimal?`, `isEstimated: boolean` | `recipeId` → Recipe yeni opsiyonel bağlantıdır. Değerler tüketilen kalemin toplamıdır; katalogdaki gram temeliyle karıştırılmaz. Katalog dışı giriş mümkündür; null porsiyon/besin değeri bilinmiyor demektir |
 | `FoodAnalysis` | `id: uuid`, `clientId: uuid`, `status: FoodAnalysisStatus`, `createdAt: instant`, `completedAt: instant?`, `modelVersion: string?`, `suggestions: list<object>?`, `errorCode: string?` | Bir tahmin **otomatik kayıt değildir**. Öneri tipi aşağıda açıklanır; özel medya saklama politikası gerekir |
 | `WaterLog` | `id: uuid`, `clientId: uuid`, `amountMl: decimal`, `consumedAt: instant`, `source: RecordSource` | Miktar mL; günlük toplam hesaplanır |
-| `NutritionPlan` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid?`, `title: string`, `status: NutritionPlanStatus`, `startDate: date`, `endDate: date?`, `dailyCaloriesTargetKcal: decimal?`, `dailyWaterTargetMl: decimal?`, `createdAt: instant` | **Değişiklik:** `dietitianId` nullable; null ise kişisel program, dolu ise diyetisyen programı. İkisi birlikte danışan başına en fazla bir aktif program sınırına tabidir |
-| `NutritionPlanItem` | `id: uuid`, `nutritionPlanId: uuid`, `dayOfWeek: integer?`, `mealType: MealType`, `description: string`, `recommendedQuantity: AÇIK?`, `sortOrder: integer`, `recipeId: uuid?` | Her satır tavsiyedir; tüketim kaydı değildir. `recipeId` → Recipe opsiyonel bağlantıdır; sıralama negatife düşmez. Miktarın metin mi değer/birim mi olacağı, gün numaraları ve boş günün anlamı **AÇIK**tır |
+| `NutritionPlan` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid?`, `title: string`, `status: NutritionPlanStatus`, `startDate: date`, `endDate: date?`, `dailyCaloriesTargetKcal: decimal?`, `dailyWaterTargetMl: decimal?`, `createdAt: instant`, `versionNumber: integer` | dietitianId null ise kişisel; toplamda tek active. Güncel sürümün versionId'si yanıta eklenir; items JSONB. N1–N3 sınırları yukarıdadır |
+| `NutritionPlanItem` | `id: uuid`, `nutritionPlanId: uuid`, `dayOfWeek: integer?`, `mealType: MealType`, `description: string`, `recommendedQuantity: string?`, `sortOrder: integer`, `recipeId: uuid?`, `alternativeGroupId: uuid?` | Her satır tavsiyedir. ISO gün 1–7/null her gün, miktar serbest öneri metni; recipeId ilk dilimde yalnız null. Aynı gün/öğün bağlamında en az iki alternatif |
+| `NutritionPlanVersion` | `id: uuid`, `nutritionPlanId: uuid`, `versionNumber: integer`, `recordedByUserId: uuid`, `createdAt: instant`, `snapshot: object` | Değişmeyen JSONB içerik; actor kimliği yalnız sunucudadır. Program/number unique; sürüm metadata ve snapshot DTO'ları `06`da |
 | `BodyMeasurement` | `id: uuid`, `clientId: uuid`, `measuredAt: instant`, `weightKg: decimal?`, `waistCm: decimal?`, `bodyFatPercent: decimal?`, `source: RecordSource` | Kilo kg, bel cm, yağ oranı yüzde. En az bir ölçüm bulunur; istenmeyen ölçüm zorunlu yapılmaz; kaynak ve geçmiş korunur |
 | `ActivityLog` | `id: uuid`, `clientId: uuid`, `activityType: string`, `startedAt: instant`, `durationMinutes: decimal?`, `distanceKm: decimal?`, `caloriesKcal: decimal?`, `source: RecordSource`, `externalRecordId: string?`, `wearableConnectionId: uuid?` | Süre dakika, mesafe km, enerji kcal. `wearableConnectionId` → WearableConnection yeni opsiyonel kaynak bağlantısıdır. Aktivite izleme, antrenman programı değildir |
 
 ### Kişisel program, hedefler ve sürüm ilişkileri
 
 - `NutritionPlan.clientId` her iki program türünde de zorunludur ve programın danışanını belirler. Kişisel programda `dietitianId = null` olur; sahte diyetisyen kaydı/UUID'si oluşturulmaz. Kullanıcının diyetisyen ilişkisi bulunmaması program oluşturmayı engellemez.
-- Diyetisyen programını yalnız yetkili diyetisyen düzenler; kişisel programı kendi danışanı düzenler. Diyetisyen programı oluşturma, atama ve düzenlemede aynı danışanla aktif ilişki gerekir. Eski programdaki diyetisyen referansı ilişki bitince null yapılarak sahiplik değiştirilmez; geçmiş erişim izni sağlamaz. İlişki bitince programın otomatik arşivlenmesi/devam etmesi ve kişisel programla geçişi **AÇIK**tır.
+- Diyetisyen programını yalnız sahibi olan yetkili diyetisyen düzenler; kişisel programı kendi danışanı düzenler. Diyetisyende aktif ilişki ve nutrition_plans izni gerekir. Aktif ilişki bitince o uzmanın active programı archived olur; dietitianId null yapılmaz ve eski uzmana erişim sağlamaz. Danışanın kendi geçmiş okuması sürer. Genel replace/geçiş akışı açıktır.
 - `endDate` varsa `startDate`ten önce olamaz. Aktiflik `status = active` ile belirlenir; tarih aralığı tek aktif sınırını delmek için kullanılmaz. Aynı danışanın kişisel ve diyetisyen programları aynı anda aktif olamaz.
 - Program hedefi ile gerçekleşen `MealLogItem`/`WaterLog` toplamları ayrı tutulur. Danışan gerçek tüketimini kaydederek programı veya diyetisyen hedefini değiştirmez. Kişisel kalori/makro/su önerileri düzenlenebilir; öneri hesaplama yöntemi ve programsız hedeflerin saklanacağı yer **AÇIK**tır. Kişisel program hedefleri mevcut nullable hedef alanlarını kullanabilir; makro hedeflerinin alan adları henüz kesinleşmemiştir.
 - **Sürüm ilişkisi:** Bir `NutritionPlan`ın 1:N geçmiş sürümü bulunur; her sürüm o andaki başlık, tarih, hedef ve `NutritionPlanItem` içerik/alternatiflerini geri getirilebilir biçimde korur. Revizyon geçmiş sürümü değiştirmez. Her sürümün program bağlantısı, kararlı ayıracı, kaydeden `User` bağlantısı ve kayıt zamanı gerekir. Geçmiş sürümler ayrı aktif program sayılmaz; tüketim karşılaştırması doğru tarih/sürüme dayanmalıdır.
 - **Öğün alternatifi ilişkisi:** Aynı programın aynı sürümü ve gün/öğün bağlamındaki `NutritionPlanItem` önerileri alternatif olabilir. Alternatifler birlikte zorunlu tüketim veya toplanacak ayrı öğünler gibi değerlendirilmez; başka danışanın/programın öğesi aynı gruba bağlanamaz. Kullanıcının bir alternatifi seçmesi programı düzenlemesi anlamına gelmez.
-- Sürümün ayrı tablo mu snapshot mı olacağı, sürüm kimliğinin alan adı/tipi, öğelerin sürüme bağlanacağı alan ve alternatif grubunun gösterimi **AÇIK**tır. `04`te adı bulunmayan yeni sürüm/alternatif entity'si kesinleştirilmez; mevcut `nutritionPlanId` korunur. Bu teknik ayrıntılar onaylanmadan yalnız güncel öğeleri yerinde değiştirip sürüm geçmişi tamamlandı denemez.
+- N1–N3 ile ayrı NutritionPlanVersion tablosu ve değişmeyen JSONB snapshot onaylıdır. Öğeler ilgili snapshot içinde nutritionPlanId ve tarihsel item UUID'leriyle korunur; alternativeGroupId yereldir. Yalnız güncel içeriği yerinde değiştirip geçmiş kaydını atlamak onaylı değildir.
 
 ### Tarif, görev ve yorum ilişkileri
 

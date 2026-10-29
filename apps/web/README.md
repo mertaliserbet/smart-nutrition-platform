@@ -1,5 +1,27 @@
 # Smart Nutrition — Web
 
+## Gerçek program oluşturma ve atama — N1–N3
+
+Doğrulanmış uzman `/calisma-alani/danisanlar/{clientId}` detayında
+nutrition_plans izni varsa gerçek programları okur. “Yeni program oluştur”
+boş hedeflerle taslak açar; gün, öğün, miktar ve en az iki aynı gün/öğün
+alternatifi girilebilir. Taslak kaydetme otomatik atama değildir; “Programı
+etkinleştir” açık atamadır. İkinci active 409'u gösterir ve taslağı korur.
+Kendi programını düzenleme yeni sürüm kaydeder; geçmiş salt okunur açılır.
+Arşivleme açık işlemdir. Kişisel/başka uzmanın programında yazma düğmesi yoktur.
+
+İzin kaybolunca içerik/form/geçmiş kaldırılır; temel danışan adı kalabilir.
+İstek değişimi eski veriyi gizler, okumalar ve sayfadan ayrılınca yazma yanıtı
+iptal edilir. Yazma otomatik tekrarlanmaz; ağ hatasında yeniden kontrol istenir.
+HTTPS proxy'ye `/api/v1/nutrition-plans` eklendi; yerel W2 kurulumu aynıdır.
+Yeni paket yoktur. Flutter değişmedi; sözleşme ve sunum sırası `docs/16`dadır.
+
+**Doğrulama:** 128 web testi; typecheck, lint ve production build geçti.
+Bileşen testleri doğru gövde/CSRF, açık aktivasyon, 409, salt okunurluk,
+alternatif doğrulama, eski snapshot, yetki kaybı ve iptal davranışını kapsar.
+Backend'in 250 testi gerçek geçici PostgreSQL/Mailpit'te ayrıca geçti;
+tam canlı tarayıcı/mobil ortak sunum provası henüz yapılmadı.
+
 ## Gerçek diyetisyen çalışma alanı — R1–R3
 
 `/hesabim` ve doğrulanmış başvuru durumundan `/calisma-alani` açılır.
@@ -17,8 +39,8 @@ Cookie yazmalarında girişte yakalanan CSRF kullanılır; geçersiz bağlamda
 özel görünüm kaldırılır ve yazma otomatik tekrarlanmaz. Sayfa/filtre değişimi
 eski veriyi hemen gizler ve önceki okumayı iptal eder.
 
-Eski `/onizleme` geliştirme alanı ayrı sentetik görünüm olarak kalır. Gerçek
-program oluşturma/atama ve sağlık kayıtları bu pakette açılmaz. Mobil danışan
+Eski `/onizleme` geliştirme alanı ayrı sentetik görünüm olarak kalır. Program
+oluşturma/atama sonraki N1–N3 diliminde eklendi; diğer sağlık kayıtları açık. Mobil danışan
 talebi/izin ekranları Mert'in alanıdır; backend sözleşmeleri `04/05/06`dadır.
 
 R1–R3 sonrası typecheck/lint ve 115 web testi başarılıdır; tüm backend
@@ -45,8 +67,8 @@ CSRF/yetki yanıtı özel başvuru listesini kaldırır; yazma otomatik tekrarla
 HTTPS sertifikası/proxy kurulumu aşağıdaki W2 adımlarıyla aynıdır. Yeni
 dietitians ve admin/dietitians API yolları HTTPS backend'e proxy edilir.
 Admin yerel kurulum ve MFA yenileme komutu `backend/README.md`dedir.
-Uzman onayı sağlık verisi yetkisi veya çalışan danışan/program paneli değildir;
-gerçek danışan bağlantısı ve program modülü sonraki dilimdir. Flutter değişmedi.
+Uzman onayı tek başına sağlık verisi yetkisi değildir; gerçek danışan bağlantısı
+R1–R3, program modülü N1–N3 ile ayrıca eklendi. Flutter değişmedi.
 
 Uğur'un web alanı için React/TypeScript + Vite uygulaması. Danışan kaydı, e-posta doğrulama ve
 yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama

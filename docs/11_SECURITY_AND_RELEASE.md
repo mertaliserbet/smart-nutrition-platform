@@ -1,5 +1,32 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 29.10.2026 N1–N3 program erişimi ve geçmişi
+
+`16` ortak onayıyla program API'sinde her işlemde User→profil, e-posta/rol,
+uzman doğrulaması ve kaynak sahipliği kontrol edilir. Danışanın kendi
+program/geçmiş okuması ilişkisizdir; atanmış programı yazamaz. Diyetisyen
+aktif ilişki + açık nutrition_plans izniyle okur, yalnız kendi programını
+yazar. Admin sağlık erişimi kazanmaz. Başka danışan veya başka programa ait
+sürüm varlığı 404 ile gizlenir; izin kapalıysa 403. Yanıtlar no-store.
+
+Yazma, izin geri çekme ve ilişki bitişi aynı ClientProfile kilidiyle
+serileştirilir; program güncel içerik ve yeni snapshot tek transaction'dır.
+Eski snapshot değişmez, recordedByUserId HTTP'de açılmaz. Aktif ilişki bitince
+yalnız o uzmanın active atanmış programı aynı işlemde arşivlenir; rollback
+testi hem ilişkiyi hem programı korur. Tek active DB indeksiyle de korunur.
+Cookie yazması CSRF/Origin ister; istemci yazmayı otomatik tekrarlamaz.
+
+Webde izin/yetki kaybında program içerikleri/form/geçmiş kaldırılır; temel
+danışan kimliği ayrı kalabilir. Sayfa/istek değişiminde eski sağlık verisi
+gizlenir, geç yanıt ve iptal edilmiş yazma başarı göstermez. Program hedefi
+otomatik doldurulmaz; alternatifler gerçek tüketim/toplam değildir.
+POST/PATCH 128 KiB; sırlar ve program gövdeleri uygulama loguna yazılmaz.
+
+250 backend testi gerçek geçici PostgreSQL/Mailpit'te atlamasız, 128 web testi
+başarılıdır. Bu doğrulama kalıcı sağlık verisi kullanma veya yayın onayı
+değildir. Tam erişim/izin audit'i, saklama/silme/aktarım politikası ve diğer
+sağlık kategorilerinin rıza gereksinimleri aşağıdaki yayın kapısında kalır.
+
 ## 29.10.2026 R1–R3 erişim güncellemesi
 
 `15` ortak onayıyla doğrulanmış uzman/aktif ilişki/ilk kategori için backend

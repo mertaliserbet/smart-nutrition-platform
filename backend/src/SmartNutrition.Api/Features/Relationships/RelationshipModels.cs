@@ -87,8 +87,8 @@ public sealed record RelationshipResponse(Guid Id, Guid ClientId, Guid Dietitian
 public sealed class InvitationCodeResponse(string code, DateTimeOffset expiresAt)
 { public string InvitationCode { get; } = code; public DateTimeOffset ExpiresAt { get; } = expiresAt; }
 
-internal sealed class ResourceOperationException(int statusCode) : Exception("Resource operation could not be completed.")
-{ public int StatusCode { get; } = statusCode; }
+internal sealed class ResourceOperationException(int statusCode, string? code = null) : Exception("Resource operation could not be completed.")
+{ public int StatusCode { get; } = statusCode; public string? Code { get; } = code; }
 
 // Match PostgreSQL timestamp microseconds before returning a newly persisted instant.
 // This keeps first and repeated responses identical without changing measurement precision.

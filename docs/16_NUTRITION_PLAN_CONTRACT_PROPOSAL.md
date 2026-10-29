@@ -1,8 +1,9 @@
 # 16 — 29 Ekim beslenme programı oluşturma ve atama dilimi
 
-**Tarih:** 29.10.2026 · **Durum: ÖNERİ; N1–N3 ortak onayı bekleniyor.**
-Lider Uğur; backend ve web. Flutter kaynakları değişmez. B1–B3 ve R1–R3
-onayları bu paketin onayı değildir; `04/05/06` onaysız değiştirilmez.
+**Tarih:** 29.10.2026 · **Durum: N1–N3 ORTAK ONAYLI.** Kullanıcı
+“N1–N3 için ortak onay var; uygula.” yanıtıyla Uğur–Mert onayını teyit etti.
+Lider Uğur; backend ve web. Flutter kaynakları değişmez. Güncel normatif
+kaynak `04/05/06`dır; bu karar diğer açık sağlık/yayın paketlerine yayılmaz.
 
 ## N1 — program öğeleri ve istek/yanıt
 
@@ -111,4 +112,28 @@ ve alt kayıt kimliği, tek aktif program yarışı/DB indeksi, atomik sürüm v
 rollback, eski snapshot değişmezliği, ilişki bitişinde atanmışın arşivlenmesi,
 literal active rotası, CSRF, gerçek web istek/hata/iptal/409 ve salt okunurluk.
 
-**Ortak onay kaydı:** Henüz alınmadı; öneriden uygulama/DTO/mock üretilmez.
+**Ortak onay kaydı:** Kullanıcının açık teyidi: “N1–N3 için ortak onay var; uygula.”
+
+**Uygulama ve doğrulama:** Backend/web birlikte uygulandı; Flutter kaynakları
+değişmedi. Geçici PostgreSQL + Mailpit üzerinde 250 backend testi (0 atlama),
+128 web testi, typecheck/lint ve production build geçti. Migration
+`AddNutritionPlansAndVersions` mevcut şemaya program/sürüm tablolarını ekler.
+Kabul senaryoları gerçek HTTP/DB testleri ve web bileşen/istek testleriyle
+doğrulandı; tam canlı tarayıcı/mobil sunum provası henüz yapılmadı.
+
+## Sentetik sunum sırası
+
+1. Webde uzman başvurusu, e-posta doğrulaması ve ayrı MFA Admin onayı.
+2. Doğrulanmış uzman girişi; çalışma alanında davet kodu üretimi.
+3. Danışan API/mobil tarafında pending talep; uzman webde kabul eder.
+   Danışan nutrition_plans iznini ayrıca açar. Kabul tek başına izin vermez.
+4. Webde gerçek danışanı aç; boş hedeflerle taslak oluştur, gün/miktar ve
+   istenirse aynı öğünde iki alternatif göster. Kaydetme sonrası açıkça
+   etkinleştir; danışan GET active üzerinden atanmış programı salt okunur okur.
+5. İçeriği değiştirip yeni sürüm kaydet; eski sürümü geçmişten aç. Başka aktif
+   program varsa 409'u göster; otomatik program değiştirme yapılmaz.
+6. İlişkiyi sonlandır; atanmış active programın archived olduğunu ve danışanın
+   geçmişi okuyabildiğini doğrula. Eski uzmanın yeni erişimi reddedilir.
+
+Bu sıra yalnız sentetik hesap/veriyle kullanılır. Yerel Admin, HTTPS ve DB
+kurulumu backend/web README'lerindedir; gerçek sağlık verisi/yayın kapısı `11`dir.

@@ -1,14 +1,23 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+**N1–N3 durumu (29.10.2026):** Gerçek danışan detayında izinli program
+listesi, taslak formu, gün/miktar/alternatif grupları, kendi atadığı programı
+düzenleme, açık etkinleştirme/arşivleme ve salt okunur sürüm geçmişi API'ye
+bağlıdır. Kişisel/başka uzmanın programı salt okunur; hedefler boş başlar.
+Paylaşım kapalıyken program verisi/formu gösterilmez; temel kimlik kalır.
+409'da taslak korunur, atama başarı mesajı çıkmaz. 128 web testi ve üretim
+derlemesi başarılı; tam tarayıcı/mobil ortak sunum provası ayrıca yapılır.
+Flutter kaynakları bu Uğur çalışmasında değiştirilmedi.
+
 **R1–R3 durumu (29.10.2026):** `/calisma-alani` gerçek uzman doğrulaması,
 danışan listesi/sınırlı detayı, bağlantı durumları ve davet kodu işlemleriyle
-API'ye bağlıdır. Mevcut sentetik sağlık önizlemesi ayrı kalır. Tam program
-ve sağlık bileşeni DTO'ları bu minimal dashboard onayıyla kesinleşmez.
+API'ye bağlıdır. Mevcut sentetik sağlık önizlemesi ayrı kalır. Program
+DTO'ları sonraki N1–N3 ortak onayıyla kesinleşti; diğer sağlık bileşenleri açık.
 
 **29.10.2026 B1–B3 durumu:** Uzman başvurusu, kendi başvuru durumu, ayrı
 MFA'lı Admin girişi ve başvuru inceleme/onay ekranları gerçek API'ye bağlıdır.
 Yollar ve kurulum `apps/web/README.md`dedir. Bu dilimde Admin sağlık verisi
-görmez; diyetisyen takip paneli hâlâ sentetik önizlemedir. Aşağıdaki eski
+görmez; diyetisyen takip paneli R/N teslimleriyle gerçek API'ye bağlandı. Aşağıdaki eski
 başvuru/MFA açık notları için güncel normatif istisna `06`nın B1–B3 bölümüdür.
 
 ## Ürün odağı

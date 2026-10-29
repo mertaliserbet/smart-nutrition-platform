@@ -88,6 +88,7 @@ public sealed class InfrastructureTests
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", database.Database.ProviderName);
         Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(User).FullName!,
             typeof(SmartNutrition.Api.Features.Dietitians.AuditEvent).FullName!, typeof(SmartNutrition.Api.Features.Dietitians.DietitianProfile).FullName!,
+            typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlan).FullName!, typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion).FullName!,
             typeof(SmartNutrition.Api.Features.Relationships.DataSharingPermission).FullName!, typeof(SmartNutrition.Api.Features.Relationships.DietitianClientRelationship).FullName!],
             database.Model.GetEntityTypes().Select(entity => entity.Name).Order().ToArray());
         Assert.Collection(database.Database.GetMigrations(),
@@ -97,7 +98,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddEmailVerificationTokens", migration),
             migration => Assert.EndsWith("_AddWebAuthSessions", migration),
             migration => Assert.EndsWith("_AddDietitianApplicationsAndAdminMfa", migration),
-            migration => Assert.EndsWith("_AddRelationshipsAndSharingPermissions", migration));
+            migration => Assert.EndsWith("_AddRelationshipsAndSharingPermissions", migration),
+            migration => Assert.EndsWith("_AddNutritionPlansAndVersions", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -143,7 +145,9 @@ public sealed class InfrastructureTests
             "/api/v1/auth/register", "/api/v1/auth/resend-verification", "/api/v1/auth/verify-email", "/api/v1/auth/web-session",
             "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me", "/api/v1/dietitians/me/invitation-code",
             "/api/v1/dietitian-relationships", "/api/v1/dietitian-relationships/{relationshipId}/accept", "/api/v1/dietitian-relationships/{relationshipId}/reject", "/api/v1/dietitian-relationships/{relationshipId}/end",
-            "/api/v1/data-sharing-permissions", "/api/v1/data-sharing-permissions/{dataSharingPermissionId}", "/api/v1/dietitian/clients", "/api/v1/dietitian/clients/{clientId}/dashboard" }.Order(),
+            "/api/v1/data-sharing-permissions", "/api/v1/data-sharing-permissions/{dataSharingPermissionId}", "/api/v1/dietitian/clients", "/api/v1/dietitian/clients/{clientId}/dashboard",
+            "/api/v1/nutrition-plans", "/api/v1/nutrition-plans/active", "/api/v1/nutrition-plans/{nutritionPlanId}", "/api/v1/nutrition-plans/{nutritionPlanId}/activate", "/api/v1/nutrition-plans/{nutritionPlanId}/archive",
+            "/api/v1/nutrition-plans/{nutritionPlanId}/versions", "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}" }.Order(),
             paths.EnumerateObject().Select(path => path.Name).Order());
         Assert.True(paths.GetProperty("/api/v1/auth/csrf").TryGetProperty("get", out _));
         var webSession = paths.GetProperty("/api/v1/auth/web-session");

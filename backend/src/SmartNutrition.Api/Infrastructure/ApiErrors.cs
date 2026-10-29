@@ -2,7 +2,7 @@ namespace SmartNutrition.Api.Infrastructure;
 
 internal static class ApiErrors
 {
-    public static object Create(HttpContext context, int statusCode)
+    public static object Create(HttpContext context, int statusCode, string? codeOverride = null)
     {
         var (code, message) = statusCode switch
         {
@@ -19,12 +19,14 @@ internal static class ApiErrors
             _ => ("invalid_request", "The request could not be processed.")
         };
 
+        if (statusCode == 409 && codeOverride == "active_nutrition_plan_conflict")
+            (code, message) = (codeOverride, "An active nutrition plan already exists.");
         return new { error = new { code, message }, requestId = context.TraceIdentifier };
     }
 
-    public static Task WriteAsync(HttpContext context, int statusCode)
+    public static Task WriteAsync(HttpContext context, int statusCode, string? codeOverride = null)
     {
         context.Response.StatusCode = statusCode;
-        return context.Response.WriteAsJsonAsync(Create(context, statusCode));
+        return context.Response.WriteAsJsonAsync(Create(context, statusCode, codeOverride));
     }
 }

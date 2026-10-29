@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useWorkspaceRead } from '../workspace/workspaceSession'
 import { getClientDashboard, getClients } from './relationshipApi'
 import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './relationshipApi'
+import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
 
 export function LiveClientsPage() {
   const [input, setInput] = useState(''); const [query, setQuery] = useState(''); const [sort, setSort] = useState('asc'); const [page, setPage] = useState(1)
@@ -31,6 +32,7 @@ export function LiveClientDetailsPage() {
   return <><div className="page-heading"><h1 tabIndex={-1}>Danışan detayı</h1></div>
     {state.pending && <p role="status">Danışan okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}
     {state.data && <section className="card"><h2>{state.data.displayName}</h2><p>Aktif danışan bağlantınız bulunuyor.</p></section>}
+    {state.data && <NutritionPlanPanel key={state.data.clientId} clientId={state.data.clientId} />}
     <Link className="text-link" to="/calisma-alani/danisanlar">Danışan listesine dön</Link>
   </>
 }

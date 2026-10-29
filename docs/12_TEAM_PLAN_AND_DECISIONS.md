@@ -1,5 +1,39 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 29.10.2026 N1–N3 ortak onayı ve Uğur teslim durumu
+
+Kullanıcı “N1–N3 için ortak onay var; uygula.” yanıtıyla `16` paketini
+teyit etti. Lider Uğur; backend ve web birlikte uygulandı. Kişisel/atanmış
+NutritionPlan, gün/miktar/alternatifler, değişmeyen sürümler, tek active DB
+kuralı, web taslak oluşturma/düzenleme ve açık etkinleştirme/arşivleme hazırdır.
+Aktif ilişki bitince o uzmanın active atanmış programı atomik arşivlenir;
+danışan geçmiş okuması sürer. `04/05/06/11` aynı uygulama commit'indedir.
+
+**Uğur'un 29 Ekim dilimi:** B1–B3 başvuru/Admin, R1–R3 ilişki/davet/izinli
+temel danışan görünümü ve N1–N3 program oluşturma/atama tamamlandı.
+Bu teslim tüm mobil aşamasının veya gerçek yayının tamamlandığı anlamına
+gelmez. Flutter kaynakları değiştirilmedi; mobil kabul/izin ve atanmış
+program ekranları Mert'in entegrasyonuyla ayrıca doğrulanmalıdır.
+
+**Mert entegrasyon notu:** ortak main'i çek; program yanıtında yeni
+versionId/versionNumber, item'da dayOfWeek/recommendedQuantity/
+alternativeGroupId alanlarını karşıla. Nullable anahtarlar açık null kalır.
+Client create'te clientId/dietitianId gönderme; item kimliklerini request'e
+koyma. GET active ve versions/archive yolları, 403/404/409 davranışı `06`da.
+Danışan yalnız kişisel programını yazar; atanmış programı salt okunur okur.
+Mevcut danışan register/JWT/Auth gövdeleri değişmedi. Flutter'a bu görevde
+uyarlama yapılmadı; aynı sözleşmeden bağımsız model/yol üretilmemelidir.
+
+**Doğrulama:** geçici PostgreSQL + Mailpit'te 250 backend testi, 0 atlama;
+128 web testi, typecheck/lint ve production build başarılı. Sürüm rollback,
+DB tek aktif yarışı, izin geri çekme, ilişki/program atomik arşivi ve web
+salt okunurluk/açık atama/409/iptal davranışı test edildi. Tarayıcıda tam
+canlı mobil–web uçtan uca prova yapılmadı.
+
+**Sonraki tek adım:** Mert'in güncel ortak sözleşmeyle mobil bağlantı/izin ve
+atanmış program okumasını bağlayıp sentetik hesaplarla ortak sunum provası.
+Tarif/yorum/görev/OCR/diğer kategori ve yayın kapıları açık kalır.
+
 ## 29.10.2026 R1–R3 ortak onayı
 
 Kullanıcı “R1–R3 için ortak onay var; uygula.” yanıtıyla `15` paketini
@@ -13,8 +47,8 @@ Mevcut danışan register/JWT şekli korunur. ClientProfile/DietitianProfile
 UUID'leri User UUID'si değildir. Davet kodu pending talep oluşturur; danışan
 izni olmadan program erişimi açılmaz. Tam HTTP/veri kaynağı `04/05/06`dır.
 
-Sonraki program paketi `16_NUTRITION_PLAN_CONTRACT_PROPOSAL.md` N1–N3'tür;
-ayrı ortak onay alınmadan uygulama/DTO/mock üretilmez.
+Bu R1–R3 kaydından sonra `16` N1–N3 ayrıca onaylandı ve uygulandı;
+güncel program durumu yukarıdaki N1–N3 bölümündedir.
 
 ## 29.10.2026 B1–B3 ortak onayı ve kapsam
 
@@ -209,14 +243,14 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Auth ve profil | Register/verify/resend, JWT login, beş alanlı hesap özeti ve W2 web cookie/CSRF/iptal kapanmıştır. Profil düzenleme/uzman profili, mobil refresh/iptal/saklama, sıfırlama ve MFA challenge/kurulum/kurtarma açıktır | Onaylı web oturumu uygulanabilir; gerçek uzman/Admin paneli ve yayın için kalan sözleşmeler kapanmalı. Mobil JWT gövdesi korunur; farklı istemci DTO'su uydurulamaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
-| Program sürümü ve geçiş | Öğelerin sürüm/alternatif bağları, miktar/gün biçimi, tam items DTO'su, arşivleme/değiştirme request'i açıktır; `06` ikinci aktif programa `409` döndürür | Sürüm geçmişi ve program değiştirme özelliği uygulanmadan önce kapanmalı; eski sahiplik silinerek veya iki aktif programla aşılmaz |
+| Program sürümü ve geçiş | N1–N3 ile gün/miktar/alternatif/snapshot/DTO, archive ve ilişki bitişinde active atanmışı arşivleme kapandı. Genel atomik replace, programsız/makro hedef ve uyum hesabı açık | Onaylı backend/web uygulandı; mobil aynı main'e göre entegre olur. Başka aktif program sahibinin açık durdurması gerekir; iki aktif veya sahiplik silme yok |
 | Tarif, görev ve yorum | Tarif bileşen/porsiyon/görünürlük, görev durum/geçiş/son tarih/hatırlatma, yorum kanonik adı/moderasyonu ve bildirim DTO/kanalları açık | Metadata/yol taslakları tam feature sözleşmesi sayılmaz. İlk sürüm yorum/cevap/bildirim şartı nedeniyle bunların onayı ilk sürüm planında önceliklidir |
 | OCR, lab ve cihaz | OCR taslak/onay kanıtı ve sync gövdeleri, adım/nabız/aktif enerji modelleri, kaynak örtüşmesi; LabInsight method/limitations ve değişen tahlil geçmişi açık | Manuel girişi engellemez; bu entegrasyonlara başlanmadan ilgili veri/HTTP parçası kapatılmalı. Yeni genel job/ölçüm modeli uydurulmaz |
 | Eski sözleşme kontrol notları | `04`, `05`teki tek aktif kuralları/nullable dietitianId ve yeni kaynakları hâlâ eksik sayıyor, ConsentRecord endpoint kararı yok diyor; `05`, güncel `06`daki kişisel program, kaynak yolları, PATCH ve makro alanlarını eski halleriyle anlatıyor | `04/05/06` için ayrı, iki tarafça onaylı düzeltme gerekir. Bu inceleme bu üç dosyada değişiklik yapma onayı değildir |
 | Sürüm kapsamı ifadesi | `06`nın sonundaki ilk sürüm bildirimleri ve PDF raporlarını aynı cümlede anması takvimi belirsizleştiriyor | Karar 2/7 ilk sürüm web paneli ve yorum/cevap/bildirim şartıdır; karar 17 PDF kapsamını onaylar, yayın tarihini sabitlemez. `01`deki aşama ayrımı esas alınır; `06` ifadesi ortak onayla netleştirilmeli |
 | Tasarım, kaynak ve yayın | Renk/font/token değerleri, katalog lisans/sağlayıcısı, model verisi/validasyon, hassasiyet/saat dilimi, saklama/silme/dağıtım açık | Tasarımın nihai onayı ilgili ekran kodundan; sağlayıcı/veri kararı ilgili entegrasyondan önce alınır. Gerçek veri/yayın için `11` kapısı ayrıca tamamlanır |
 
-Her kapatılan karar için iki tarafın onayı, etkilenen belgeler/istemciler ve doğrulama sonucu kaydedilir. **Sonraki tek adım:** Auth/profil ve paylaşım sözleşmelerinin ortak onayını tamamlayıp ilk uçtan uca akışın kapsamını sabitlemek; ardından ilgili açık program/yorum şemasını aynı hazırlık ölçütüyle kapatmak.
+Her kapatılan karar için iki tarafın onayı, etkilenen belgeler/istemciler ve doğrulama sonucu kaydedilir. Bu tablonun eski B/R açıkları için üstteki 29.10 kayıtları günceldir; Uğur 29 Ekim teslimi sonrası tek adım mobil entegrasyonla ortak sentetik sunum provasıdır. Kalan özellikler ayrı sözleşme/onay dilimidir.
 
 ## İlk Codex görevi (kod yazdırmadan — başlangıç incelemesi)
 

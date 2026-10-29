@@ -1,5 +1,25 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 29.10.2026 N1–N3 ortak onay güncellemesi
+
+Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Aşağıdaki
+program ad/şeması artık onaylıdır; programla ilgili eski açık notların yerini alır.
+`NutritionPlan` ve `NutritionPlanItem`, mevcut `MealType` ve
+`NutritionPlanStatus` değerleri korunur. Ayrı PersonalPlan/AssignedPlan yoktur.
+
+- Yeni kanonik kalıcı model `NutritionPlanVersion`; tablo
+  `nutrition_plan_versions`. Her programın değişmeyen içerik sürümleridir.
+- `NutritionPlanSnapshot`: title/startDate/endDate/dailyCaloriesTargetKcal/
+  dailyWaterTargetMl/items. Sahiplik veya güncel status geçmiş içeriğe eklenmez.
+- `NutritionPlanResponse`: mevcut alanlar + `versionId`, `versionNumber`.
+  `NutritionPlanVersionInfo`: id/nutritionPlanId/versionNumber/createdAt;
+  `NutritionPlanVersionResponse`: aynı metadata + snapshot.
+- `CreateNutritionPlanRequest`, `PatchNutritionPlanRequest`,
+  `NutritionPlanItemRequest` ortak JSON adlarını kullanır. Item'a nullable
+  `alternativeGroupId` eklenir; ayrı alternatif entity'si yaratılmaz.
+- `recordedByUserId` yalnız sunucudadır; istemci DTO'suna taşınmaz.
+  Tam alan/tip ve HTTP davranışı `05/06`dadır. Flutter kaynakları değişmez.
+
 ## 29.10.2026 R1–R3 ortak onay güncellemesi
 
 Kullanıcı `15` için “R1–R3 için ortak onay var; uygula.” yanıtını verdi.
@@ -61,8 +81,9 @@ Tip adları C#, Dart ve TypeScript'te `PascalCase` olarak aynıdır. Üçüncü 
 | Besin katalog girdisi | `FoodItem` | `foodItem` | `/food-items` |
 | Görsel besin analizi | `FoodAnalysis` | `foodAnalysis` | `/food-analyses` |
 | Su kaydı | `WaterLog` | `waterLog` | `/water-logs` |
-| Beslenme planı / programı | `NutritionPlan` | `nutritionPlan` | `/nutrition-plans`; kişisel program işlemleri için `05/06` uyarlaması bekleniyor |
+| Beslenme planı / programı | `NutritionPlan` | `nutritionPlan` | `/nutrition-plans`; N1–N3 kişisel/atanmış program sözleşmesi `05/06`da onaylı |
 | Plan öğesi | `NutritionPlanItem` | `nutritionPlanItem` | `NutritionPlan.items` altında |
+| Program içerik sürümü | `NutritionPlanVersion` | `nutritionPlanVersion` | `/nutrition-plans/{nutritionPlanId}/versions`; salt okunur geçmiş |
 | Vücut ölçümü | `BodyMeasurement` | `bodyMeasurement` | `/body-measurements` |
 | Aktivite kaydı | `ActivityLog` | `activityLog` | `/activity-logs` |
 | Tahlil raporu | `LabReport` | `labReport` | `/lab-reports` |
@@ -80,7 +101,7 @@ Bu bölüm yalnız kavram adlarını netleştirir; yeni entity/tablo zorunluluğ
 
 | Kavram | Ortak ad | Anlam / sınır |
 |---|---|---|
-| Kişisel beslenme programı | `NutritionPlan` | Diyetisyensiz danışanın oluşturduğu program da aynı kavramdır. `PersonalPlan`, `PersonalNutritionPlan` veya `ClientPlan` adlı eşanlamlı model üretilmez; sahiplik ve düzenleme yetkisinin veri yapısı açıktır |
+| Kişisel beslenme programı | `NutritionPlan` | Diyetisyensiz danışanın oluşturduğu program da aynı kavramdır. `PersonalPlan`, `PersonalNutritionPlan` veya `ClientPlan` adlı eşanlamlı model üretilmez; N1–N3 sahiplik ve düzenleme kuralları `05/06`dadır |
 | Özel tarif | `Recipe` | Tarif kavramıdır; katalog besini `FoodItem` ve gerçek tüketim kalemi `MealLogItem` ile karıştırılmaz. İçerik, porsiyon, hesaplama ve katalog bağlantısının yapısı ayrıca kararlaştırılır |
 | Diyetisyenin danışana atadığı görev | `ClientTask` | Danışan görevidir; C# asenkron `Task` tipi, antrenman programı veya yalnız bildirim anlamında kullanılmaz. Alanlar, durum değerleri ve geçişler henüz tanımlı değildir |
 | Kategori bazlı veri paylaşım izni | `DataSharingPermission` | Danışanın hangi veri kategorisini hangi diyetisyenle paylaşabildiği kavramıdır. Mevcut `ConsentRecord` izin/rıza geçmişini ifade eder; erişim izni ile rıza kaydı eşanlamlı değildir. Aralarındaki ilişki ve kategori listesi açıktır |
@@ -91,7 +112,7 @@ Bu bölüm yalnız kavram adlarını netleştirir; yeni entity/tablo zorunluluğ
 
 - **Rol, hesap ve profil:** `Client`, `Dietitian`, `Admin` rol kavramlarıdır; JSON rol değerleri `client`, `dietitian`, `admin`dir. Hesap `User`, danışan profili `ClientProfile`, diyetisyen profili `DietitianProfile`dır. Ayrı bir `Client`/`Dietitian` entity'si veya `AdminUser` modeli türetilmez. Çoklu rol/profil kuralı açıktır; mobil/web üzerinden başvuru yeni kullanıcı rolü oluşturmaz.
 - **Kimlikler ve ilişki:** `userId` hesap kimliğidir; `clientId` → `ClientProfile.id`, `dietitianId` → `DietitianProfile.id`. Birbirlerinin yerine kullanılmaz. `DietitianClientRelationship` arama/davet kodu ve karşılıklı onayla kurulan ilişkiyi temsil eder; danışanın en fazla bir aktif diyetisyeni olur, geçmiş korunur. Davet kodunun teknik yapısı açık kalır.
-- **Program, plan ve tüketim:** Ürün metnindeki “plan/program” aynı `NutritionPlan` kavramıdır. Kişisel ve diyetisyen programları toplamında en fazla bir aktif program vardır; öğün alternatifleri ve sürüm geçmişi desteklenir. `NutritionPlanItem` tavsiye, `MealLog` gerçek tüketim, `MealLogItem` tüketilen kalemdir. Danışan diyetisyen programını/hedeflerini değiştiremez; gerçek tüketimi serbestçe kaydeder. Kişisel hedefler düzenlenebilir; sahiplik, hedef, alternatif ve sürüm yapıları `05/06`da ayrıca belirlenir.
+- **Program, plan ve tüketim:** Ürün metnindeki “plan/program” aynı `NutritionPlan` kavramıdır. Kişisel ve diyetisyen programları toplamında en fazla bir aktif program vardır; öğün alternatifleri ve sürüm geçmişi desteklenir. `NutritionPlanItem` tavsiye, `MealLog` gerçek tüketim, `MealLogItem` tüketilen kalemdir. Danışan diyetisyen programını/hedeflerini değiştiremez; gerçek tüketimi serbestçe kaydeder. N1–N3 sahiplik, gün/miktar/alternatif ve sürüm yapıları `05/06`da onaylıdır; programsız/makro hedefler açıktır.
 - **Besin, tarif ve AI:** `FoodItem` hibrit kataloğun besin girdisidir; sağlayıcı değişince eşanlamlı entity adı oluşturulmaz. `Recipe` tarif, `FoodAnalysis` fotoğraf/galeri analizidir. Tahmini kalori/makro ve porsiyon kullanıcı onayından geçer; analiz otomatik tüketim kaydı değildir. Sürekli kamera analizi sonraki aşamadır.
 - **Tahlil ve açıklama:** Manuel giriş ve daha sonra kullanıcı onaylı PDF/fotoğraf OCR aynı `LabReport`/`LabResult` kavramlarını kullanır; giriş yöntemi ayrı rapor entity'si oluşturmaz. `LabInsight` açıklayıcı değerlendirmedir; tanı/tedavi değildir. Geçerli birim/aralık yoksa `LabResult.flag` değeri `unknown` olur; ML opsiyoneldir. PDF dışa aktarma raporu ile laboratuvar raporu aynı kavram sayılmaz.
 - **Aktivite ve ölçüm:** `ActivityLog` fiziksel aktivite kaydı, `BodyMeasurement` vücut ölçümü, `WearableConnection` sağlık platformu bağlantısıdır. Health Connect/HealthKit'ten gelen adım, mesafe, egzersiz, süre, aktif kalori ve nabız kapsamı onaylıdır; bunların tümünün `ActivityLog` içine konacağı varsayılmaz. Kaynak/geçmiş ve tekilleştirme korunur; ayrı sağlık verilerinin model ve birim adları açık kalır. Antrenör veya antrenman programı kavramı eklenmez.
@@ -184,7 +205,7 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 - Her görevde önce bu sözlük, ilgili `05/06` bölümü ve `12` kararı eşleştirilir. Mevcut kavram bulunduğunda aynı kök ad kullanılır; mobil/web, kişisel/diyetisyen veya manuel/AI/cihaz ayrımı tek başına eşanlamlı entity üretmez.
 - Her platform kendi diline uygun modeli tutar; kavram, JSON anahtarları, enum değerleri ve kimlik anlamları ortak kalır. Aynı platformda aynı sözleşmenin kopya modelleri veya farklı alan adlarıyla paralel sürümleri üretilmez.
 - Feature-based yapı ve tek sorumluluk ilkesi korunur. Her küçük metot/widget için dosya, her model için gereksiz service/repository/arayüz katmanı veya derin klasör açılması bu sözlüğün gereği değildir. Ortak bileşen/servis gerçek tekrar, sorumluluk veya test ihtiyacı olduğunda çıkarılır.
-- Yorum/cevap, bildirim, program sürümü/öğün alternatifi, başvuru/davet ve PDF raporu gibi onaylı özelliklerin ayrı entity gerektirip gerektirmediği bu adlandırma güncellemesiyle belirlenmez. Sözlükte olmayan yeni ad veya alias sessizce oluşturulmaz; teklif ve çakışma raporu hazırlanır.
+- Yorum/cevap, bildirim ve PDF raporu gibi kalan özelliklerin ayrı entity gerektirip gerektirmediği bu adlandırma güncellemesiyle belirlenmez. B/R/N ortak onayları başvuru/davet ve program sürüm/alternatif yapısını kapatmıştır; sözlükte olmayan diğer ad/alias için teklif ve ortak onay gerekir.
 
 ## Değişiklik yönetimi — kritik
 
@@ -197,7 +218,7 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 ## `05/06` uyum kontrolü ve açık konular
 
 - Mevcut ortak model adları ve enum değerleri korunmuştur. `/users` yalnız eski bir admin önerisidir; `06`da endpoint olarak tanımlı değildir. Bu dosyadaki kaynak adları method, payload veya erişim yetkisi onayı yerine geçmez.
-- `05` tek aktif ilişki/program kuralını hâlâ öneri/açık karar olarak gösterir; `12` karar 1 ve 4 bunları onaylamıştır. Birden fazla aktif diyetisyen artık açık seçenek değildir; gelecekte değiştirmek yeni ürün/sözleşme onayı gerektirir.
-- `05`teki zorunlu `NutritionPlan.dietitianId`, diyetisyen sahipliği ve `06`daki diyetisyenle sınırlı plan işlemleri kişisel program kararıyla çelişir. Yeni model adıyla dolanılmaz; sahiplik, zorunluluk ve yetki tasarımı ortak sözleşmede çözülmelidir.
+- Tek aktif ilişki/program kuralları onaylıdır; R/N dilimleri DB unique indeksleriyle uygular. Birden fazla aktif diyetisyen veya program gelecekte yeni ürün/sözleşme onayı gerektirir.
+- NutritionPlan.dietitianId nullable ve kişisel/atanmış sahiplik N1–N3 ile `05/06`da eşitlendi. Ayrı PersonalPlan modeli üretilmez.
 - `Recipe`, `ClientTask` ve `DataSharingPermission` adlarının ayrıntılı veri/API karşılıkları henüz yoktur. `ConsentRecord` tek başına diyetisyen/kategori bazlı erişim yapısını tanımlamaz. Alanlar, ilişkiler, kategori/durum değerleri ve endpointler için öneri ve iki tarafın onayı gerekir.
-- Program alternatifleri/sürümleri, kişisel hedefler, yorum/cevap/bildirim, davet/başvuru ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. `ActivityLog` sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir. Besin kaynağı veya lab test kodu için uydurma sabitler eklenmez.
+- Program dışı/makro kişisel hedefler, yorum/cevap/bildirim ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile kapandı. ActivityLog sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir.

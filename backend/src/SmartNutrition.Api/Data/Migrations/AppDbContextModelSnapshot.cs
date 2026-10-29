@@ -297,6 +297,127 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal?>("DailyCaloriesTargetKcal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_calories_target_kcal");
+
+                    b.Property<decimal?>("DailyWaterTargetMl")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_water_target_ml");
+
+                    b.Property<Guid?>("DietitianId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("dietitian_id");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<string>("ItemsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("items");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id")
+                        .HasName("pk_nutrition_plans");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_nutrition_plans_active_client")
+                        .HasFilter("status = 'active'");
+
+                    b.HasIndex("DietitianId")
+                        .HasDatabaseName("ix_nutrition_plans_dietitian_id");
+
+                    b.ToTable("nutrition_plans", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_nutrition_plans_dates", "end_date IS NULL OR end_date >= start_date");
+
+                            t.HasCheckConstraint("ck_nutrition_plans_items", "jsonb_typeof(items) = 'array' AND jsonb_array_length(items) BETWEEN 1 AND 100");
+
+                            t.HasCheckConstraint("ck_nutrition_plans_status", "status IN ('draft','active','archived') AND version_number > 0");
+
+                            t.HasCheckConstraint("ck_nutrition_plans_targets", "(daily_calories_target_kcal IS NULL OR (daily_calories_target_kcal > 0 AND daily_calories_target_kcal < 'Infinity'::numeric)) AND (daily_water_target_ml IS NULL OR (daily_water_target_ml > 0 AND daily_water_target_ml < 'Infinity'::numeric))");
+
+                            t.HasCheckConstraint("ck_nutrition_plans_title", "char_length(btrim(title)) BETWEEN 1 AND 120");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("NutritionPlanId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("nutrition_plan_id");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recorded_by_user_id");
+
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("snapshot");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id")
+                        .HasName("pk_nutrition_plan_versions");
+
+                    b.HasIndex("RecordedByUserId")
+                        .HasDatabaseName("ix_plan_versions_actor_id");
+
+                    b.HasIndex("NutritionPlanId", "VersionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ux_plan_versions_number");
+
+                    b.ToTable("nutrition_plan_versions", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_plan_versions_snapshot", "version_number > 0 AND jsonb_typeof(snapshot) = 'object'");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Relationships.DataSharingPermission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -440,6 +561,39 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasConstraintName("fk_dietitian_profiles_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlan", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_nutrition_plans_client_id");
+
+                    b.HasOne("SmartNutrition.Api.Features.Dietitians.DietitianProfile", null)
+                        .WithMany()
+                        .HasForeignKey("DietitianId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_nutrition_plans_dietitian_id");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.NutritionPlans.NutritionPlan", null)
+                        .WithMany()
+                        .HasForeignKey("NutritionPlanId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_plan_versions_plan_id");
+
+                    b.HasOne("SmartNutrition.Api.Features.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_plan_versions_actor_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Relationships.DataSharingPermission", b =>

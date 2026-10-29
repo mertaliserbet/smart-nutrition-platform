@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Features.Relationships;
+using SmartNutrition.Api.Features.NutritionPlans;
 
 namespace SmartNutrition.Api.Data;
 
@@ -14,6 +15,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<DietitianClientRelationship> DietitianClientRelationships => Set<DietitianClientRelationship>();
     public DbSet<DataSharingPermission> DataSharingPermissions => Set<DataSharingPermission>();
+    public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
+    public DbSet<NutritionPlanVersion> NutritionPlanVersions => Set<NutritionPlanVersion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,5 +27,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         AuditEvent.Configure(modelBuilder);
         DietitianClientRelationship.Configure(modelBuilder);
         DataSharingPermission.Configure(modelBuilder);
+        NutritionPlan.Configure(modelBuilder);
+        NutritionPlanVersion.Configure(modelBuilder);
     }
 }

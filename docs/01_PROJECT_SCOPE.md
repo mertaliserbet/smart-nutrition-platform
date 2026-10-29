@@ -1,9 +1,17 @@
 # 01 — Proje kapsamı ve ürün vizyonu
 
+**N1–N3 teslimi (29.10.2026):** Kullanıcı ortak onayıyla kişisel/atanmış
+program oluşturma, gün/miktar/alternatif öğünler, değişmeyen sürüm geçmişi,
+tek aktif program ve webde açık atama/arşivleme uygulanmıştır. Uğur'un
+29 Ekim web/Auth/backend dilimi B1–B3 + R1–R3 + N1–N3 olarak tamamlandı.
+Flutter bu çalışmada değişmedi; mobil entegrasyon ve ortak sunum provası
+ayrıca yapılır. Aşağıdaki B/R tarihli durum notları kendi teslim anlarını
+anlatır; güncel program sözleşmesi `04/05/06` ve teslim kaydı `12`dedir.
+
 **R1–R3 uygulama güncellemesi (29.10.2026):** Kullanıcı ortak onayıyla
 gerçek ilişki/davet/karşılıklı onay, tek aktif DB kuralı, temel aktif danışan
 listesi/detayı ve ilk nutrition_plans izin kategorisi uygulanmıştır. Program
-içeriği/sürüm/atama ve diğer sağlık kategorileri ayrı onay/dilim olarak kalır;
+içeriği/sürüm/atama daha sonra N1–N3 ile kapandı; diğer sağlık kategorileri açık kalır;
 aşağıdaki tarihsel ilişki/davet açık notları bu R1–R3 alt kapsamı için önceki durumu anlatır.
 
 **29.10.2026 uygulama güncellemesi:** Kullanıcı `14` B1–B3 ortak onayını
@@ -11,7 +19,7 @@ teyit etti. Uğur kapsamında ayrı diyetisyen başvurusu, mesleki açıklama,
 başvuru durumu, TOTP/kurtarma kodlu Admin web oturumu ve audit'li uzman
 onayı uygulanmıştır. Aşağıdaki eski başvuru/MFA açık notları bu dilim için
 tarihsel durumdur; ret/geri alma, diğer Auth/sağlık sözleşmeleri ve yayın
-kapısı korunur. İlişki/davet/paylaşım ve program atama henüz tamamlanmamıştır.
+kapısı korunur. İlişki/davet/paylaşım ve program atama sonraki R/N teslimlerinde tamamlandı.
 Flutter kaynakları bu çalışmanın dışında kalır.
 
 **Sürüm:** DOCS-V1 · **Durum:** `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 karar doğrultusunda ürün kapsamı onaylı; ayrıntılı şema, uygulama ve yayın takvimi kararları açık. Eski fitness projesinden hiçbir kod, şema veya ekran devralınmaz.

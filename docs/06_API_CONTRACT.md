@@ -1,10 +1,18 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 29.10.2026 N1–N3 ortak onaylı program dilimi
+
+Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Normatif
+istek/yanıt ve yetki kaynağı aşağıdaki **NutritionPlan — kişisel/atanmış
+program sözleşmesi** bölümüdür; eski program şeması açık notları kapanmıştır.
+`04/05` aynı değişiklikte güncellenir. Mobil register/JWT gövdeleri değişmez;
+Mert yeni program alan/yollarını kullanmadan ortak main sürümünü çeker.
+
 ## 29.10.2026 R1–R3 ortak onaylı ilişki/paylaşım dilimi
 
 Kullanıcı `15` R1–R3 için ortak onayı teyit etti. Bu bölüm eski davet/kategori
-açık notlarının bu dilimini kapatır; tahlil/diğer sağlık ve program DTO'ları
-ayrıca onaylanır. Yollar `/api/v1` tabanına göredir.
+açık notlarının bu dilimini kapatır; tahlil/diğer sağlık DTO'ları ayrıca
+onaylanır. Program DTO'ları N1–N3 bölümündedir. Yollar `/api/v1` tabanına göredir.
 
 | İşlem | Onaylı gövde/yanıt ve sınır |
 |---|---|
@@ -13,7 +21,7 @@ ayrıca onaylanır. Yollar `/api/v1` tabanına göredir.
 | `GET /dietitian-relationships` | Kendi ilişkileri; zorunlu page/pageSize, opsiyonel mevcut status. `200 { items, totalCount }`, requestedAt azalan/id |
 | `POST /dietitian-relationships/{relationshipId}/accept` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→active, respondedAt atanır; ikinci aktif 409; aynı active sonucu tekrar 200 |
 | `POST /dietitian-relationships/{relationshipId}/reject` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→rejected; aynı rejected sonucu tekrar 200 |
-| `POST /dietitian-relationships/{relationshipId}/end` | Gövde/query yok; ilişkinin iki tarafı kendi pending/active ilişkisini ended yapar; endedAt atanır. Pending'de respondedAt null; aynı ended tekrar 200 |
+| `POST /dietitian-relationships/{relationshipId}/end` | Gövde/query yok; ilişkinin iki tarafı kendi pending/active ilişkisini ended yapar; endedAt atanır. Pending'de respondedAt null; aynı ended tekrar 200. N3 ile aktif ilişki bittiğinde o uzmanın active atanmış programı aynı transaction'da archived olur |
 | `GET /data-sharing-permissions` | Zorunlu relationshipId/page/pageSize; iki taraf yalnız kendi ilişki izin durumunu `{ items, totalCount }` içinde okur |
 | `GET /data-sharing-permissions/{dataSharingPermissionId}` | Gövde/query yok; kendi ilişkisinin mevcut izin kaydı |
 | `POST /data-sharing-permissions` | Mevcut relationshipId/category/isGranted ve nullable consentRecordId. Yalnız danışan, aktif ilişki. category yalnız nutrition_plans, consentRecordId yalnız null. `201` mevcut DataSharingPermission; aynı kategori 409 |
@@ -226,20 +234,64 @@ Aşağıdaki POST alanlarında `?` isteğe bağlı/nullable alanı gösteren dok
 
 ## NutritionPlan — kişisel/atanmış program sözleşmesi
 
+**N1–N3 ortak onaylı ve backend/webde uygulanmıştır.** Yollar `/api/v1`
+tabanındadır. JWT veya W2 cookie; yalnız client/dietitian. Admin kapalıdır.
+Cookie yazmalarında CSRF/Origin/HTTPS, karışık bearer/cookie'de 400 gerekir.
+
 | İşlem | Request | Response / erişim |
 |---|---|---|
-| `POST /api/v1/nutrition-plans` | Danışan: `title`, `startDate`; nullable `endDate`, `dailyCaloriesTargetKcal`, `dailyWaterTargetMl`; `items` kısmı aşağıdaki şema sınırına bağlıdır. Diyetisyen bunlara hedef `clientId` ekler | `201` NutritionPlan; başlangıç `status: draft`. Danışanda `clientId` sunucudan, `dietitianId: null`; diyetisyende `dietitianId` kendi profilinden atanır. Başkasına kişisel program veya başkası adına diyetisyen programı oluşturulamaz |
-| `GET /api/v1/nutrition-plans` | Pagination; diyetisyen için hedef `clientId` gerekir; danışanın kapsamı kendi profilidir | `200 { items, totalCount }`; diyetisyen aktif ilişki ve uygun kategori izniyle kişisel/atanmış programları okuyabilir; bu okuma düzenleme hakkı vermez |
+| `POST /api/v1/nutrition-plans` | Zorunlu title/startDate/items; nullable endDate/dailyCaloriesTargetKcal/dailyWaterTargetMl. Diyetisyen ayrıca clientId gönderir; danışan clientId (null dahil) ve dietitianId göndermez | `201 NutritionPlanResponse`, Location; draft, versionNumber=1. Kişiselde dietitianId=null, atanmışta oturumdaki uzman profil UUID'si |
+| `GET /api/v1/nutrition-plans` | page/pageSize zorunlu; diyetisyende clientId zorunlu. Danışan yalnız kendi kapsamı için page/pageSize gönderir | `200 { items: NutritionPlanResponse[], totalCount }`; createdAt azalan/id. Diyetisyen aktif ilişki + nutrition_plans izniyle kişisel/atanmış tüm programları okur |
 | `GET /api/v1/nutrition-plans/{nutritionPlanId}` | Gövdesiz | `200` yetkili program detayı; danışan kendi, diyetisyen yalnız izinli danışanının programını okur |
 | `GET /api/v1/nutrition-plans/active` | Gövdesiz; danışanın kendi kapsamı | `200` tek aktif kişisel veya atanmış NutritionPlan; yoksa `404`. Kişisel/atanmış için iki ayrı aktif program yolu yoktur |
-| `PATCH /api/v1/nutrition-plans/{nutritionPlanId}` | Yukarıdaki düzenlenebilir alanların değişenleri; `clientId`/`dietitianId` değiştirilemez. Aktif etme için PATCH değil mevcut activate işlemi kullanılır | `200` güncel program. Kişisel programı kendi danışanı; atanmış programı yalnız `dietitianId`si eşleşen, aktif/yetkili diyetisyen düzenler. Danışanın atanmış programı/hedefleri değiştirme girişimi `403` |
+| `PATCH /api/v1/nutrition-plans/{nutritionPlanId}` | Yalnız title/startDate/endDate/iki hedef/items. Atlanmış korunur; nullable alan açık null ile temizlenir; title/startDate/items null olamaz. Items verilirse tüm koleksiyon değişir | `200 NutritionPlanResponse`, her geçerli kaydetmede yeni versionId ve artan versionNumber. Güncel item UUID'leri yeniden üretilir; eski snapshot değişmez |
 | `POST /api/v1/nutrition-plans/{nutritionPlanId}/activate` | Gövdesiz; aynı düzenleme yetkisi | `200` aktif program. Başka aktif program varsa `409 active_nutrition_plan_conflict`; hedef zaten tek aktif programsa `200`. Tarihleri farklı olsa da iki active program kabul edilmez |
+| `POST /api/v1/nutrition-plans/{nutritionPlanId}/archive` | Gövdesiz; aynı düzenleme yetkisi | `200 NutritionPlanResponse`, archived; tekrarda değişmeyen 200. Başka program etkinleşmez. Status işlemleri içerik sürümünü artırmaz |
+| `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions` | page/pageSize zorunlu; programla aynı okuma yetkisi | `200 { items: NutritionPlanVersionInfo[], totalCount }`, versionNumber azalan. Metadata id/nutritionPlanId/versionNumber/createdAt |
+| `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}` | Gövde/query yok; sürüm mutlaka bu programa ait olmalı | `200 NutritionPlanVersionResponse`: aynı metadata + snapshot. Başka programın sürüm UUID'si 404 |
 
-NutritionPlan yanıtındaki kesin alanlar: `id`, `clientId`, nullable `dietitianId`, `title`, `status`, `startDate`, nullable `endDate`, `dailyCaloriesTargetKcal`, `dailyWaterTargetMl`, `createdAt`, `items`. Item için `id`, `nutritionPlanId`, `mealType`, `description`, `sortOrder` ve nullable `recipeId` ortak alanlardır; kimlikler sunucudan gelir. Tarih/ölçüm tipleri ve pozitiflik kuralları `05`e uyar; `endDate < startDate` `422`dir.
+NutritionPlanResponse eksiksiz alanları: id/clientId/dietitianId/title/status/
+startDate/endDate/dailyCaloriesTargetKcal/dailyWaterTargetMl/createdAt/items/
+versionId/versionNumber. Nullable alanlar yanıtta atlanmaz. DietitianId
+User değil DietitianProfile kimliğidir. title kırpılmış 1–120; hedefler null
+veya pozitif decimal kcal/mL, tarihler date ve endDate >= startDate.
 
-**AÇIK ŞEMA:** `dayOfWeek` numaraları/null anlamı, `recommendedQuantity` biçimi, öğün alternatiflerinin gruplaması, sürüm kimliği/snapshot ve `items` zorunluluğu/nihai gövdesi açık olduğundan bu tablo tam plan DTO onayı değildir. PATCH geçmiş sürümü yeniden yazamaz; sürüm yapısı onaylanmadan geçmiş tutmadan plan güncellemesi tamamlandı sayılmaz. Makro hedefleri veya programsız kişisel hedefler için yeni alan/endpoint türetilmez.
+Items 1–100 kalem; request'te zorunlu mealType/description/sortOrder;
+nullable dayOfWeek/recommendedQuantity/recipeId/alternativeGroupId atlanabilir.
+mealType mevcut enumdur; description kırpılmış 1–2000 Unicode kod noktası;
+sortOrder >=0 ve aynı sürümde tek. dayOfWeek ISO 1–7, null her gün;
+recommendedQuantity kırpılmış 1–200 metin, boş null. RecipeId ilk dilimde
+yalnız null/atlanmış; dolu değer 422. AlternativeGroupId boş olmayan UUID;
+aynı grupta aynı gün/mealType'a ait en az iki üye gerekir. Item yanıtı bu
+yedi alanı ve sunucunun ürettiği id/nutritionPlanId'yi taşır; bu kimlikler
+request'te kabul edilmez. Alternatifler birlikte tüketilecek toplam değildir.
 
-Aktivasyon başka programı sessizce arşivlemez ve kişisel/atanmış sahipliğini değiştirmez. Açıkça onaylanacak program değiştirme/arşivleme akışında eski durum değişimi ve yeni aktivasyon atomik olmalıdır; bunun request'i ve durum geçişleri **AÇIK**tır. İlişkinin sona ermesi eski `dietitianId`yi null yapmaz; programın devam/arşiv davranışı ayrıca kararlaştırılır. Danışan gerçek tüketimini kaydetmek için programdan izin almak zorunda değildir.
+Snapshot yalnız title/startDate/endDate/dailyCaloriesTargetKcal/
+dailyWaterTargetMl/items; eski item ve grup kimlikleri korunur. RecordedByUserId
+yalnız sunucudadır. Başarılı PATCH birebir tekrar gönderilse bile yeni sürüm
+oluşturur; istemci yazmayı otomatik tekrarlamaz. Program+snapshot atomik kaydolur.
+
+Danışan kendi tüm program/geçmişini ilişkisiz okuyabilir; yalnız kişisel
+programını düzenler/etkinleştirir/arşivler. Atanmış program salt okunurdur.
+Doğrulanmış diyetisyen aktif ilişki + nutrition_plans izniyle okur; yalnız
+dietitianId'si kendisi olan programı yazar. Kendi kayıtlarında yanlış sahiplik
+403; izin kapalıysa 403; ilişkisiz/başka danışanın kaynağında varlık açıklamayan
+404. User/ClientProfile/program kilitleri altında yazmadan önce yetki yeniden
+kontrol edilir; izin geri çekme ve ilişki sonlandırmayla yarış serileştirilir.
+
+POST/PATCH JSON gövdesi 128 KiB. Eksik/ek alan, biçim/tip, boş PATCH, request'te
+id/status/kimlik değiştirme 400; değer sınırları veya zorunlu alan null 422;
+boyut aşımı 413, yanlış medya 415. Liste/sürüm listesi dışında query alınmaz.
+Paging ortak sınırları kullanır. Yanıtlar no-store; hata ortak error/requestId
+biçiminde, aktif çakışması yalnız `409 active_nutrition_plan_conflict` kodudur.
+
+Etkinleştirme draft/archived→active; arşivleme draft/active→archived olabilir.
+İkinci active DB kısmi unique ile de engellenir. Başka aktif program sessizce
+arşivlenmez; mevcut sahibi açıkça durdurur. Genel atomik replace/geçiş yolu
+bu dilimde açılmaz. Aktif ilişki bittiğinde yalnız o uzmanın o danışana ait
+active atanmış programı aynı transaction'da archived olur. Sahiplik/içerik/
+geçmiş değişmez; kişisel program etkilenmez, danışan geçmişi okur. Eski uzman
+yeni isteklerde erişemez. Makro/programsız hedef ve uyum hesabı açık kalır.
 
 ## Recipe, ClientTask ve DataSharingPermission yolları
 
@@ -274,7 +326,7 @@ ClientTask yanıtı: `id`, `clientId`, `dietitianId`, `description`, `status`, `
 
 Rıza oluşturmak tek başına paylaşım izni oluşturmaz; DataSharingPermission ilgili onaya ayrıca bağlanır. Yalnız doğru endpoint çağrıldı diye kullanıcıya gösterilmemiş metne açık onay verilmiş sayılmaz. Kanıt/tür/kapsam tasarımı `05/11` ile tamamlanır; otomatik rıza veya genel tek checkbox varsayılmaz.
 
-## Açık şemaya bağlı yorum, sürüm ve OCR işlemleri
+## Açık şemaya bağlı yorum ve OCR işlemleri
 
 Bu bölümdeki yollar **önerilen HTTP karşılıklarıdır**; `04/05`te açık olan kanonik alt kayıt adları ve tam DTO'lar onaylanmadan uygulama/mock üretimine dayanak değildir.
 
@@ -282,7 +334,6 @@ Bu bölümdeki yollar **önerilen HTTP karşılıklarıdır**; `04/05`te açık 
 |---|---|---|
 | `GET /api/v1/meal-logs/{mealLogId}/comments` | Pagination; `200 { items, totalCount }`. Yorum alan önerisi `05`teki `id`, `mealLogId`, `authorUserId`, `text`, `createdAt`, nullable `parentCommentId` | Danışan kendi öğünü; diyetisyen aktif ilişki ve öğün/yorum için uygun kategori izniyle. Kanonik yorum modeli/yanıtının nihai onayı beklenir |
 | `POST /api/v1/meal-logs/{mealLogId}/comments` | Önerilen gövde `text`, nullable `parentCommentId`; yazar auth'tan. Onay sonrası `201` yorum | Cevap için aynı POST önerilir; ayrı REST yolu varsayılmaz, kalıcı yorum/cevap modeli `04/05` onayına bağlıdır. Başka öğünün ebeveyni `422/404`; döngü kurulamaz. Cevap derinliği ve moderasyon açık; düzenleme/silme yolları henüz eklenmez |
-| `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions` | Programla aynı okuma yetkisi; `200` sürüm listesi hedeflenir | Sürüm kimliği/tipi, payload ve pagination ayrıntıları açık; hayalî versionId veya güncel programı geçmişmiş gibi dönen mock oluşturulmaz. Eski sürümü değiştiren endpoint eklenmez |
 | `POST /api/v1/lab-reports/ocr` | Önerilen yükleme: multipart `document` dosyası (PDF/fotoğraf); danışanın kendi kapsamı | Kabul edilen dosya tür/limitleri, senkron/asenkron iş, OCR taslak/id/durum/response yapısı ve onay kaydı AÇIK ŞEMA. Bunlar seçilmeden `200/202`, jobId veya yeni durum enumu kesinleştirilmez |
 
 OCR yalnız taslak çıkarır; tamamlanmış LabReport veya klinik değerlendirme üretmez. Kullanıcı test/değer/birim/tarih/referansı kontrol edip düzeltir ve açıkça onayladıktan sonra mevcut `POST /lab-reports` gövdesiyle doğrulanmış kayıt oluşturulur. OCR işi tamamlandı diye otomatik POST/insight tetiklenmez. Kullanıcı onayının sunucuda kanıtlanacağı tasarım açık olduğundan yeni `isConfirmed`/`ocrJobId` alanı bu belgede uydurulmaz. Dosya yükleme hataları `413/415`, yetki hataları ortak kurallara uyar.
@@ -481,8 +532,8 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 
 ## Kalan açık kararlar ve belge uyumu
 
-- `04/05`te açık olan sürüm/alternatif/yorum ad ve veri yapıları, tarif bileşenleri/görünürlük/geçmişi, görev durum/geçiş/son tarih/hatırlatma ve kategori kodları tamamlanmalıdır. İlgili yolların açık request/response parçaları onaylanmadan şema kapanmış sayılmaz.
-- Program arşivleme/değiştirme ve ilişkinin bitişindeki program davranışı; programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve gün/saat dilimi politikası açıktır. Tarihçe korumadan eski programı güncellemek onaylı çözüm değildir.
+- Yorum ad/veri yapıları, tarif bileşenleri/görünürlük/geçmişi, görev durum/geçiş/son tarih/hatırlatma ve nutrition_plans dışı kategori kodları açık kalır. N1–N3 program sürüm/alternatif DTO'su bu listeden çıkarılmıştır.
+- Genel atomik program replace/geçişi, programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve yerel gün/saat dilimi politikası açıktır. N1–N3 arşivleme ve aktif ilişki bitişinde atanmışı arşivleme onaylıdır.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.
 - Mobil refresh/iptal/saklama, MFA challenge/kurulum/kurtarma, profil düzenleme/uzman profili, sıfırlama, diyetisyen başvuru/doğrulama ve davet kodu ayrıntıları açıktır. Kayıt/e-posta doğrulama, JWT giriş/hesap özeti ve W2 web cookie/CSRF/iptal onaylıdır; Admin MFA ve karşılıklı ilişki onayı gereksinimleri korunur.

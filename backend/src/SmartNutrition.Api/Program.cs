@@ -10,6 +10,7 @@ using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Features.Relationships;
+using SmartNutrition.Api.Features.NutritionPlans;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
@@ -32,6 +33,7 @@ builder.Services.AddScoped<AdminMfaService>();
 builder.Services.AddScoped<DietitianApplicationService>();
 builder.Services.AddScoped<RelationshipAccessService>();
 builder.Services.AddScoped<RelationshipService>();
+builder.Services.AddScoped<NutritionPlanService>();
 builder.Services.AddSingleton<RelationshipMutationLimits>();
 builder.Services.AddOptions<RelationshipLimitOptions>().Bind(builder.Configuration.GetSection("Relationships:Limits"))
     .Validate(options => options.RequestsPerMinute > 0 && options.InvitationCodesPerMinute > 0).ValidateOnStart();
@@ -145,7 +147,7 @@ app.UseExceptionHandler(handler => handler.Run(context =>
         ? StatusCodes.Status413PayloadTooLarge
         : StatusCodes.Status500InternalServerError;
     if (status == 401 && context.Request.Headers.ContainsKey("Authorization")) context.Response.Headers.WWWAuthenticate = "Bearer";
-    return ApiErrors.WriteAsync(context, status);
+    return ApiErrors.WriteAsync(context, status, (error as ResourceOperationException)?.Code);
 }));
 app.UseStatusCodePages(context =>
     ApiErrors.WriteAsync(context.HttpContext, context.HttpContext.Response.StatusCode));

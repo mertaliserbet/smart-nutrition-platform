@@ -1,5 +1,32 @@
 # Smart Nutrition — Ortak Backend
 
+## Program oluşturma, atama ve sürümler — N1–N3
+
+`docs/16` ortak onayıyla `Features/NutritionPlans/` eklendi. Backend dizininde
+`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
+komutu `AddNutritionPlansAndVersions` migration'ını uygular. Program ve
+değişmeyen sürüm tabloları, nullable uzman FK'si, tek active client indeksi,
+sürüm numarası unique ve alan check'leri eklenir; mevcut tablolar silinmez.
+
+Danışan kendi kişisel programını oluşturur/yazar; atanmış programı salt okunur
+okur. Doğrulanmış uzman aktif ilişki + nutrition_plans izniyle okur ve yalnız
+kendi programını oluşturur/düzenler/etkinleştirir/arşivler. POST draft döner;
+atama açık activate çağrısıdır. Başka active program 409 verir; gizli geçiş
+yoktur. Her geçerli PATCH yeni snapshot ve item UUID'leri oluşturur; status
+değişimi içerik sürümünü artırmaz. Aktif ilişki bitişinde o uzmanın active
+programı aynı transaction'da arşivlenir, danışan geçmiş erişimi sürer.
+
+Tam yollar/payload ve mobil null/kimlik kuralları `docs/04/05/06`dadır.
+Gün/miktar/alternatifler desteklenir; recipeId bu dilimde yalnız null.
+Klinik hedefler otomatik hesaplanmaz. Cookie yazmaları W2 CSRF/Origin ister.
+Program yazması, izin geri çekme ve ilişki bitişi ortak ClientProfile kilidi
+altında güncel yetkiyle yürür; sunucu kaydeden kimliğini yanıta açmaz.
+
+Doğrulama: geçici PostgreSQL/Mailpit ile **250 test geçti, 0 atlandı**.
+Yeni dilimde sahiplik, değişmeyen snapshot, alt kayıt erişimi, tek active
+yarışı/DB indeksi, atomik rollback, izin geri çekme ve CSRF test edildi.
+Test verileri sentetik ve geçicidir. Flutter entegrasyonu bu görevde yapılmadı.
+
 ## İlişki/davet ve ilk paylaşım kategorisi — R1–R3
 
 `docs/15` ortak onayıyla `Features/Relationships/` eklenmiştir. Yeni migration
@@ -28,7 +55,7 @@ sortOrder asc/desc destekler. İlişki listesi ayrıca mevcut status filtresi al
 Talep/kod üretimi hem hesap hem doğrudan IP için 5/dakika; ayrı ayarlar
 `Relationships__Limits__RequestsPerMinute` ve `InvitationCodesPerMinute`.
 Sayaçlar süreç içidir; çok örnekli dağıtım/proxy, tam izin audit'i ve gerçek
-yayın için `docs/11` kapısı korunur. Program içerik/sürüm/atama ayrı dilimdir.
+yayın için `docs/11` kapısı korunur. Program içerik/sürüm/atama sonraki N1–N3 diliminde eklendi.
 
 Doğrulama: PostgreSQL/Mailpit ile 240 backend testi geçti, 0 atlandı; kod
 rotasyonu/expiry/tek kullanım ve rollback, kabul yarışı, ham DB indeksi,

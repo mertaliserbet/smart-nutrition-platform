@@ -77,6 +77,7 @@ internal static class WebSessionAuthentication
             path?.StartsWith("/api/v1/admin/", StringComparison.Ordinal) == true;
         var account = path is "/api/v1/auth/me" or "/api/v1/dietitians/me";
         var resource = path?.StartsWith("/api/v1/dietitian-relationships", StringComparison.Ordinal) == true ||
+            path?.StartsWith("/api/v1/nutrition-plans", StringComparison.Ordinal) == true ||
             path?.StartsWith("/api/v1/data-sharing-permissions", StringComparison.Ordinal) == true ||
             path?.StartsWith("/api/v1/dietitian/clients", StringComparison.Ordinal) == true || path == "/api/v1/dietitians/me/invitation-code";
         if (web || account || resource)
