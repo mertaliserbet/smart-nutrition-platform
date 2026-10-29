@@ -6,6 +6,10 @@ import { AccountPage } from './features/auth/AccountPage'
 import { RegistrationPage } from './features/auth/RegistrationPage'
 import { WorkspacePreview } from './features/workspace/WorkspacePreview'
 import { ThemeProvider } from './core/theme/ThemeProvider'
+import { AdminLoginPage } from './features/auth/AdminLoginPage'
+import { DietitianApplicationPage } from './features/dietitians/DietitianApplicationPage'
+import { DietitianStatusPage } from './features/dietitians/DietitianStatusPage'
+import { AdminDietitiansPage } from './features/dietitians/AdminDietitiansPage'
 
 function RouteFocus() {
   const { pathname } = useLocation()
@@ -28,6 +32,10 @@ export default function App() {
         <Route path="/sifremi-unuttum" element={<AuthPage key="reset" mode="reset" />} />
         <Route path="/eposta-dogrulama" element={<EmailVerificationPage />} />
         <Route path="/hesabim" element={<AccountPage />} />
+        <Route path="/uzman-basvurusu" element={<DietitianApplicationPage />} />
+        <Route path="/uzman/basvuru-durumu" element={<DietitianStatusPage />} />
+        <Route path="/yonetici-giris" element={<AdminLoginPage />} />
+        <Route path="/yonetim/uzmanlar" element={<AdminDietitiansPage />} />
         {import.meta.env.DEV && <Route path="/onizleme/*" element={<WorkspacePreview />} />}
         <Route path="*" element={
           <main id="main-content" className="not-found">

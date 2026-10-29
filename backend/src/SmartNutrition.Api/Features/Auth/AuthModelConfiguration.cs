@@ -31,6 +31,9 @@ internal static class AuthModelConfiguration
             .HasConversion(role => role.ToString().ToLowerInvariant(), value => Enum.Parse<UserRole>(value, true));
         users.Property(user => user.CreatedAt).HasColumnName("created_at").IsRequired();
         users.Property(user => user.UpdatedAt).HasColumnName("updated_at").IsRequired();
+        users.Property(user => user.TotpSecretProtected).HasColumnName("totp_secret_protected");
+        users.Property(user => user.LastUsedTotpStep).HasColumnName("last_used_totp_step");
+        users.Property(user => user.MfaRecoveryCodeHashes).HasColumnName("mfa_recovery_code_hashes").HasColumnType("text[]").IsRequired();
         // Case-insensitive equality and uniqueness are enforced by the same column collation.
         users.HasIndex(user => user.Email).IsUnique().HasDatabaseName("ux_users_email");
 

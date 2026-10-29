@@ -87,9 +87,11 @@ export function AccountPage() {
       <dl className="account-details">
         <dt>Ad</dt><dd>{account.displayName ?? 'Belirtilmemiş'}</dd>
         <dt>E-posta</dt><dd>{account.email}</dd>
-        <dt>Hesap türü</dt><dd>{account.role === 'client' ? 'Danışan' : 'Diyetisyen'}</dd>
+        <dt>Hesap türü</dt><dd>{account.role === 'client' ? 'Danışan' : account.role === 'admin' ? 'Yönetici' : 'Diyetisyen'}</dd>
         <dt>E-posta doğrulaması</dt><dd>Doğrulandı</dd>
       </dl>
+      {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
+      {account.role === 'dietitian' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
       <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>
     </section>}
     {logoutFailed && <button className="button button-primary form-submit" disabled={pending} onClick={() => { void signOut() }}>Çıkışı tekrar dene</button>}

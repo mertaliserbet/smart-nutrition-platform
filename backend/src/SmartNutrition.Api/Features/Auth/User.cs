@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using SmartNutrition.Api.Models;
+using SmartNutrition.Api.Features.Dietitians;
 
 namespace SmartNutrition.Api.Features.Auth;
 
@@ -54,6 +55,33 @@ public sealed class User
     public DateTimeOffset? EmailVerificationLastSentAt { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    [JsonIgnore] public string? TotpSecretProtected { get; private set; }
+    [JsonIgnore] public long? LastUsedTotpStep { get; private set; }
+    [JsonIgnore] public string[] MfaRecoveryCodeHashes { get; private set; } = [];
+    [JsonIgnore] public DietitianProfile? DietitianProfile { get; private set; }
+
+    internal void AttachDietitianProfile(DietitianProfile profile)
+    {
+        if (Role != UserRole.Dietitian || DietitianProfile is not null)
+            throw new InvalidOperationException("An eligible dietitian account is required.");
+        DietitianProfile = profile;
+    }
+
+    internal void ConfigureAdminMfa(string protectedSecret, string[] recoveryHashes, DateTimeOffset now)
+    {
+        if (Role != UserRole.Admin || string.IsNullOrWhiteSpace(protectedSecret) || recoveryHashes.Length != 10)
+            throw new InvalidOperationException("An administrator MFA setup is required.");
+        TotpSecretProtected = protectedSecret;
+        LastUsedTotpStep = null;
+        MfaRecoveryCodeHashes = recoveryHashes;
+        IsEmailVerified = true; // Local operator explicitly establishes the initial administrator identity.
+        UpdatedAt = now;
+    }
+
+    internal void ConsumeTotp(long step) => LastUsedTotpStep = step;
+    internal void ConsumeRecoveryCode(string hash) =>
+        MfaRecoveryCodeHashes = MfaRecoveryCodeHashes.Where(value => value != hash).ToArray();
 
     [JsonIgnore]
     public ClientProfile? ClientProfile { get; private set; }

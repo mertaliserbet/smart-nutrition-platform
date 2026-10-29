@@ -79,21 +79,23 @@ public sealed class InfrastructureTests
     }
 
     [Fact]
-    public async Task Context_UsesPostgresWithOnlyTheAuthFoundationAndIdentityPasswordHasher()
+    public async Task Context_UsesPostgresWithApprovedAuthExpertAndAuditModelsAndIdentityPasswordHasher()
     {
         await using var factory = new ApiFactory();
         await using var scope = factory.Services.CreateAsyncScope();
         var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", database.Database.ProviderName);
-        Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(User).FullName!],
+        Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(User).FullName!,
+            typeof(SmartNutrition.Api.Features.Dietitians.AuditEvent).FullName!, typeof(SmartNutrition.Api.Features.Dietitians.DietitianProfile).FullName!],
             database.Model.GetEntityTypes().Select(entity => entity.Name).Order().ToArray());
         Assert.Collection(database.Database.GetMigrations(),
             migration => Assert.EndsWith("_AddAuthFoundation", migration),
             migration => Assert.EndsWith("_EnforceCaseInsensitiveEmails", migration),
             migration => Assert.EndsWith("_AddUserEmailVerificationState", migration),
             migration => Assert.EndsWith("_AddEmailVerificationTokens", migration),
-            migration => Assert.EndsWith("_AddWebAuthSessions", migration));
+            migration => Assert.EndsWith("_AddWebAuthSessions", migration),
+            migration => Assert.EndsWith("_AddDietitianApplicationsAndAdminMfa", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -134,7 +136,11 @@ public sealed class InfrastructureTests
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
-        Assert.Equal(7, paths.EnumerateObject().Count());
+        Assert.Equal(new[] { "/api/v1/admin/dietitians", "/api/v1/admin/dietitians/{dietitianId}/verify",
+            "/api/v1/auth/admin-web-session", "/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/me",
+            "/api/v1/auth/register", "/api/v1/auth/resend-verification", "/api/v1/auth/verify-email", "/api/v1/auth/web-session",
+            "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me" }.Order(),
+            paths.EnumerateObject().Select(path => path.Name).Order());
         Assert.True(paths.GetProperty("/api/v1/auth/csrf").TryGetProperty("get", out _));
         var webSession = paths.GetProperty("/api/v1/auth/web-session");
         Assert.True(webSession.TryGetProperty("post", out _));

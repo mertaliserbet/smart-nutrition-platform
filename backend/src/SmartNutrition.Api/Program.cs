@@ -8,10 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
+using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
-var builder = WebApplication.CreateBuilder(args);
+var adminSetup = args.Length == 3 && args[0] == "--initialize-admin";
+var builder = WebApplication.CreateBuilder(adminSetup ? [] : args);
 
 // Reuse Identity password hashing without adding default Identity endpoints or tables.
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
@@ -25,6 +27,10 @@ builder.Services.AddWebSessionAuthentication(builder.Configuration, builder.Envi
 builder.Services.AddScoped<UserLoginService>();
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
+builder.Services.AddScoped<AdminMfaService>();
+builder.Services.AddScoped<DietitianApplicationService>();
+builder.Services.AddOptions<DietitianApplicationOptions>().Bind(builder.Configuration.GetSection("Dietitians:Application"))
+    .Validate(options => options.RequestsPerMinute > 0).ValidateOnStart();
 builder.Services.AddOptions<LoginOptions>().Bind(builder.Configuration.GetSection(LoginOptions.SectionName))
     .Validate(options => options.RequestsPerMinute > 0).ValidateOnStart();
 builder.Services.AddOptions<EmailVerificationOptions>()
@@ -48,6 +54,10 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0, AutoReplenishment = true
         }));
     var loginSettings = builder.Configuration.GetSection(LoginOptions.SectionName).Get<LoginOptions>() ?? new();
+    var applicationSettings = builder.Configuration.GetSection("Dietitians:Application").Get<DietitianApplicationOptions>() ?? new();
+    options.AddPolicy("dietitian-application", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = applicationSettings.RequestsPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
     options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions
@@ -103,6 +113,13 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+if (adminSetup)
+{
+    Environment.ExitCode = await AdminBootstrap.RunAsync(app.Services, args[1], args[2]);
+    await app.DisposeAsync();
+    return;
+}
 
 app.Use(async (context, next) =>
 {

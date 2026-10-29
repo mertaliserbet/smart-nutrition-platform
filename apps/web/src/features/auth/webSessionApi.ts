@@ -1,7 +1,8 @@
 export type LoginUserRequest = { email: string; password: string }
 export type CurrentUserResponse = {
-  id: string; displayName: string | null; email: string; role: 'client' | 'dietitian'; isEmailVerified: boolean
+  id: string; displayName: string | null; email: string; role: 'client' | 'dietitian' | 'admin'; isEmailVerified: boolean
 }
+export type AdminLoginRequest = LoginUserRequest & { mfaCode: string }
 export type CsrfTokenResponse = { requestToken: string }
 
 export class WebSessionError extends Error {
@@ -9,7 +10,7 @@ export class WebSessionError extends Error {
   constructor(status: number, message: string) { super(message); this.status = status }
 }
 
-async function request(path: string, expected: number, signal: AbortSignal, method = 'GET', token?: string, body?: LoginUserRequest) {
+async function request(path: string, expected: number, signal: AbortSignal, method = 'GET', token?: string, body?: LoginUserRequest | AdminLoginRequest) {
   let response: Response
   try {
     response = await fetch(`/api/v1/auth/${path}`, {
@@ -34,14 +35,14 @@ async function readJson(response: Response): Promise<unknown> {
   catch { throw new WebSessionError(500, 'Sunucu yanıtı doğrulanamadı. Lütfen tekrar deneyin.') }
 }
 
-function account(value: unknown): CurrentUserResponse {
+function account(value: unknown, allowAdmin = true): CurrentUserResponse {
   if (typeof value !== 'object' || value === null) throw new WebSessionError(500, 'Hesap bilgileri doğrulanamadı.')
   const data = value as Record<string, unknown>
   if (Object.keys(data).sort().join(',') !== 'displayName,email,id,isEmailVerified,role' ||
     typeof data.id !== 'string' || !/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(data.id) ||
     /^0{8}-0{4}-0{4}-0{4}-0{12}$/.test(data.id) || typeof data.email !== 'string' || !data.email ||
     (data.displayName !== null && typeof data.displayName !== 'string') ||
-    (data.role !== 'client' && data.role !== 'dietitian') || data.isEmailVerified !== true)
+    (data.role !== 'client' && data.role !== 'dietitian' && !(allowAdmin && data.role === 'admin')) || data.isEmailVerified !== true)
     throw new WebSessionError(500, 'Hesap bilgileri doğrulanamadı.')
   return data as CurrentUserResponse
 }
@@ -56,7 +57,14 @@ export async function getCsrf(signal: AbortSignal): Promise<string> {
 
 export async function login(requestBody: LoginUserRequest, signal: AbortSignal) {
   const token = await getCsrf(signal)
-  return account(await readJson(await request('web-session', 200, signal, 'POST', token, requestBody)))
+  return account(await readJson(await request('web-session', 200, signal, 'POST', token, requestBody)), false)
+}
+
+export async function adminLogin(requestBody: AdminLoginRequest, signal: AbortSignal) {
+  const token = await getCsrf(signal)
+  const result = account(await readJson(await request('admin-web-session', 200, signal, 'POST', token, requestBody)))
+  if (result.role !== 'admin') throw new WebSessionError(500, 'Yönetici oturumu doğrulanamadı.')
+  return result
 }
 
 export async function getAccount(signal: AbortSignal) {

@@ -8,8 +8,37 @@ using SmartNutrition.Api.Models;
 namespace SmartNutrition.Api.Features.Auth;
 
 public sealed class WebSessionService(AppDbContext database, ILookupNormalizer normalizer,
-    IPasswordHasher<User> hasher, LoginPasswordVerifier verifier, TimeProvider clock, CurrentUserService currentUser)
+    IPasswordHasher<User> hasher, LoginPasswordVerifier verifier, TimeProvider clock, CurrentUserService currentUser,
+    AdminMfaService mfa)
 {
+    public async Task<(AuthSession Session, ClaimsPrincipal Principal, CurrentUserResponse Account)?> AdminLoginAsync(
+        AdminLoginRequest request, CancellationToken cancellationToken)
+    {
+        Validator.ValidateObject(request, new(request), true);
+        var email = normalizer.NormalizeEmail(request.Email!.Trim())!;
+        var candidate = await database.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Email == email, cancellationToken);
+        var verified = verifier.Verify(hasher, candidate, request.Password!);
+        if (candidate is null || verified == PasswordVerificationResult.Failed ||
+            candidate.Role != UserRole.Admin || !candidate.IsEmailVerified) return null;
+        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {candidate.Id} FOR UPDATE")
+            .SingleOrDefaultAsync(cancellationToken);
+        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.Role != UserRole.Admin ||
+            !locked.IsEmailVerified || !mfa.TryConsume(locked, request.MfaCode!, clock.GetUtcNow())) return null;
+        var now = clock.GetUtcNow();
+        if (verified == PasswordVerificationResult.SuccessRehashNeeded)
+            await database.Users.Where(x => x.Id == locked.Id).ExecuteUpdateAsync(setters => setters
+                .SetProperty(x => x.PasswordHash, hasher.HashPassword(locked, request.Password!)).SetProperty(x => x.UpdatedAt, now), cancellationToken);
+        var session = new AuthSession(locked.Id, now, isMfaVerified: true);
+        database.AuthSessions.Add(session);
+        await database.SaveChangesAsync(cancellationToken);
+        var principal = CreatePrincipal(session, UserRole.Admin);
+        var account = await currentUser.GetAsync(principal, cancellationToken);
+        if (account is null) return null;
+        await transaction.CommitAsync(cancellationToken);
+        return (session, principal, account);
+    }
+
     public async Task<(AuthSession Session, ClaimsPrincipal Principal, CurrentUserResponse Account)?> LoginAsync(
         LoginUserRequest request, CancellationToken cancellationToken)
     {
@@ -56,8 +85,8 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         if (principal.Identity?.IsAuthenticated != true || subjects.Length != 1 || sessions.Length != 1 || roles.Length != 1 ||
             !Guid.TryParseExact(subjects[0].Value, "D", out userId) || userId == Guid.Empty ||
             !Guid.TryParseExact(sessions[0].Value, "D", out sessionId) || sessionId == Guid.Empty ||
-            roles[0].Value is not ("client" or "dietitian")) return false;
-        role = roles[0].Value == "client" ? UserRole.Client : UserRole.Dietitian;
+            roles[0].Value is not ("client" or "dietitian" or "admin")) return false;
+        role = Enum.Parse<UserRole>(roles[0].Value, true);
         return true;
     }
 
@@ -67,6 +96,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         var now = clock.GetUtcNow();
         return await database.AuthSessions.AsNoTracking().AnyAsync(session => session.Id == sessionId && session.UserId == userId &&
             session.RevokedAt == null && session.IdleExpiresAt > now && session.AbsoluteExpiresAt > now &&
+            (role != UserRole.Admin || session.IsMfaVerified) &&
             database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role), cancellationToken);
     }
 
@@ -78,6 +108,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         var idle = now.AddMinutes(30);
         return await database.AuthSessions.Where(session => session.Id == sessionId && session.UserId == userId && session.RevokedAt == null &&
             session.IdleExpiresAt > now && session.AbsoluteExpiresAt > now &&
+            (role != UserRole.Admin || session.IsMfaVerified) &&
             database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role))
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(session => session.LastSeenAt, session => session.LastSeenAt > now ? session.LastSeenAt : now)

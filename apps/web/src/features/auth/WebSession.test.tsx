@@ -116,7 +116,7 @@ describe('web cookie session', () => {
     expect(screen.queryByText(userAccount.email)).not.toBeInTheDocument()
   })
 
-  it.each([{ ...userAccount, role: 'admin' }, { ...userAccount, accessToken: 'forbidden' }, { ...userAccount, isEmailVerified: false }])(
+  it.each([{ ...userAccount, role: 'operator' }, { ...userAccount, accessToken: 'forbidden' }, { ...userAccount, isEmailVerified: false }])(
     'rejects an unexpected account response', async invalid => {
       vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(Response.json(invalid))
       page('/hesabim')

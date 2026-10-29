@@ -1,5 +1,30 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 29.10.2026 B1–B3 onaylı veri güncellemesi
+
+Kullanıcı `14` B1–B3 için ortak onayı teyit etti. Aşağıdaki alanlar, eski
+başvuru/MFA açık notlarının bu dilimdeki yerini alır; diğer şemalar açık kalır.
+
+| Model / alan | Onaylı tip ve kalıcı karşılık |
+|---|---|
+| `DietitianProfile` | Mevcut id/userId/displayName/isVerified; `licenseInfo: string` zorunlu. displayName kırpılmış 1–120, licenseInfo 1–2000 Unicode kod noktası; PostgreSQL text, DB check. userId unique/FK, NO ACTION; isVerified başlangıç false |
+| `User.totpSecretProtected` | string?, text; User UUID'sine bağlı Data Protection purpose ile şifreli Base32 TOTP anahtarı |
+| `User.lastUsedTotpStep` | 64 bit integer?, bigint; başarılı TOTP adımı monoton ilerler |
+| `User.mfaRecoveryCodeHashes` | list<string>, text[]; boş başlangıç; kurulumda 10 kodun SHA-256 hash'i; tüketilen çıkarılır |
+| `AuthSession.isMfaVerified` | boolean, is_mfa_verified; varsayılan false. Admin cookie'si için true gerekir; normal kullanıcı oturumunda false |
+| `AuditEvent` | Mevcut alanlar; metadata fiziksel JSONB, bu onay olayında null. action dietitian_verified, resourceType DietitianProfile, resourceId uzman profil UUID'si; actorUserId MFA'lı Admin |
+
+Başvuru User(role=dietitian, isEmailVerified=false) ve profili tek transaction'da
+oluşturur; ClientProfile oluşturmaz. Bu dilimde tek rol vardır; mevcut danışan
+hesabı değiştirilmez. auth/me'de diyetisyen adı kendi DietitianProfile'ından,
+danışan adı ClientProfile'dan gelir; profil yoksa null kalır. Admin beş alanlı
+yanıtı yalnız geçerli MFA cookie oturumuyla alabilir; MFA alanları seçilmez.
+
+TOTP/kurtarma tüketimi ve oturum ekleme User satır kilidi + tek transaction;
+oturum başarısızsa tüketim geri alınır. Admin onayı, hedef User/profil kilidi
+ve AuditEvent aynı transaction'dadır; tekrar onay ikinci audit olayı oluşturmaz.
+Admin'in sağlık verisi erişimi açılmaz. Kayıt/JWT mobil gövdeleri değişmez.
+
 > Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt, e-posta doğrulama, JWT girişi ve kendi hesap özetinin 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
 
 Mevcut geçerli alanlar korunur; kişisel program için `NutritionPlan.dietitianId` nullable yapılır. Yeni asgari alanlar aşağıda tanımlanır. Henüz kesinleşmemiş alt kayıt adları, enum değerleri ve saklama tercihleri **AÇIK** veya **ÖNERİ** olarak ayrılır; bunlar uygulama için onaylanmış kabul edilmez. Bir domain ilişkisi tanımlanması her ilişki için ayrı tablo/model oluşturulmasını gerektirmez.

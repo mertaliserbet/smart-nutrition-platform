@@ -1,5 +1,11 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+**29.10.2026 B1–B3 durumu:** Uzman başvurusu, kendi başvuru durumu, ayrı
+MFA'lı Admin girişi ve başvuru inceleme/onay ekranları gerçek API'ye bağlıdır.
+Yollar ve kurulum `apps/web/README.md`dedir. Bu dilimde Admin sağlık verisi
+görmez; diyetisyen takip paneli hâlâ sentetik önizlemedir. Aşağıdaki eski
+başvuru/MFA açık notları için güncel normatif istisna `06`nın B1–B3 bölümüdür.
+
 ## Ürün odağı
 Web uygulaması **diyetisyenin günlük çalışma masasıdır**; ağırlıklı iş akışı danışan takibi ve beslenme planı yönetimi. Yönetici operasyonları diyetisyen iş akışından ayrılmalıdır. Danışanların tüm özel verileri rol gerekçesi olmadan açılmaz.
 

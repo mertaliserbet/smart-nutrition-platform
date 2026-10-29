@@ -1,0 +1,6 @@
+.form-field textarea { width: 100%; min-height: 8rem; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text-primary); font: inherit; resize: vertical; }
+.form-field textarea:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.expert-review-list { list-style: none; padding: 0; display: grid; gap: 18px; }
+.expert-review-list li { border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+.expert-license { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+.expert-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 20px; }

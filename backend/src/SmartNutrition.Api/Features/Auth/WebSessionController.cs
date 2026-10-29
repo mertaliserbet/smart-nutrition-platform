@@ -12,6 +12,29 @@ namespace SmartNutrition.Api.Features.Auth;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class WebSessionController(IAntiforgery antiforgery, WebSessionService sessions) : ControllerBase
 {
+    [HttpPost("admin-web-session")]
+    [ProducesResponseType<CurrentUserResponse>(200)]
+    [ProducesResponseType(400), ProducesResponseType(401), ProducesResponseType(403), ProducesResponseType(409)]
+    [ProducesResponseType(413), ProducesResponseType(415), ProducesResponseType(429), ProducesResponseType(500)]
+    [Consumes("application/json")]
+    [RequestSizeLimit(4096)]
+    [EnableRateLimiting("login")]
+    public async Task<IActionResult> AdminLogin(AdminLoginRequest request, CancellationToken cancellationToken)
+    {
+        if (Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        await AuthenticateCookie();
+        if (!await ValidCsrf()) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        if (User.Identity?.IsAuthenticated == true) return Conflict(ApiErrors.Create(HttpContext, 409));
+        var login = await sessions.AdminLoginAsync(request, cancellationToken);
+        if (login is null) return Unauthorized(ApiErrors.Create(HttpContext, 401));
+        await HttpContext.SignInAsync(WebSessionAuthentication.Scheme, login.Value.Principal, new AuthenticationProperties
+        {
+            IsPersistent = false, AllowRefresh = false,
+            IssuedUtc = login.Value.Session.CreatedAt, ExpiresUtc = login.Value.Session.AbsoluteExpiresAt
+        });
+        return Ok(login.Value.Account);
+    }
+
     private bool HasBody => HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
     private async Task AuthenticateCookie()
     {

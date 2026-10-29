@@ -1,5 +1,30 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 29.10.2026 B1–B3 ortak onayı ve kapsam
+
+Kullanıcı, `14_OCTOBER_PRESENTATION_CONTRACT_PROPOSAL.md` B1–B3 paketi için
+“Ortak onay var devam et.” dedi; Uğur–Mert ortak onayı bu açık teyitle kaydedilir.
+Lider Uğur; web, Auth ve ilgili backend. Kullanıcının kapsam düzeltmesiyle
+Flutter/Mert kaynaklarına yazılmaz. `04/05/06/11` ve backend/web aynı
+uygulama değişikliğinde güncellenir; mobil etkisi aşağıdaki entegrasyon notudur.
+
+Kapananlar: bu dilimde tek rol, ayrı uzman başvurusu ve mesleki açıklama
+şeması, TOTP/kurtarma ile ayrı Admin cookie girişi, yerel Admin kurulumu,
+başvuru durumu, Admin inceleme/onay ve atomik onay audit'i. Aşağıdaki eski
+başvuru/MFA açık notları bu dilim için tarihsel durumdur. Profil düzenleme,
+mobil refresh/iptal/saklama, parola sıfırlama; ret/yeniden başvuru/geri alma,
+ilişki/davet/paylaşım ve program öğe/sürüm/geçiş sözleşmeleri açık kalır.
+
+**Mert entegrasyon notu:** mevcut danışan register, verify/resend, 15 dakikalık
+JWT login ve auth/me anahtarları değişmedi. Uzman başvurusu yeni ayrı yoldur;
+auth/me'de diyetisyen displayName artık DietitianProfile'dan gelebilir. Admin
+rolü yalnız MFA web cookie ile açılır; mobil bearer Admin'e kapalı kalır.
+MFA alanları mobil DTO değildir. Mert ortak main'in bu sürümünü çekmeden
+yeni uzman başvuru/başvuru durumu entegrasyonuna başlamaz.
+
+**Sonraki tek modül:** 29 Ekim ilişki/paylaşım paketinin somut sözleşmesini
+hazırlayıp ortak onaya sunmak; bu onay program/davet ayrıntılarına yayılmaz.
+
 **Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Auth sözleşme güncellemesi:** 27.10.2026 · **Git akışı güncellemesi:** 28.10.2026 kullanıcı onayı · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararların açık parçaları aşağıdadır.
 
 Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleşen kısımlarını onaylı duruma taşır. Ürün kararının onaylanması, henüz uyarlanmamış veri şeması veya API tasarımının da onaylandığı anlamına gelmez. `04/05/06` kanonik ad, alan ve endpoint otoritesi olmaya devam eder; bu kararlarla çelişen veya eksik kalan sözleşmeler uygulama öncesinde ortak onayla güncellenmelidir. Bu dosya yeni entity, JSON alanı veya endpoint tanımlamaz.

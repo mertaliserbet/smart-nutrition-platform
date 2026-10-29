@@ -1,5 +1,31 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 29.10.2026 B1–B3 ortak onay güncellemesi
+
+Kullanıcı “Ortak onay var devam et.” ile `14`teki B1–B3 paketini teyit etti.
+Bu dilimde hesap başına tek rol ve role uygun profil kullanılır; mevcut
+danışan hesabı uzmana çevrilmez. Önceki bölümlerde başvuru/MFA'yı açık
+gösteren notlar bu onaylı dilim için tarihsel durumdur; diğer açıklar korunur.
+
+- `DietitianProfile.licenseInfo`: zorunlu mesleki açıklama string'i; yalnız
+  Admin inceleme DTO'sunda açılır. `isVerified` yalnız Admin tarafından atanır.
+- `DietitianApplicationRequest`: email/password/displayName/licenseInfo;
+  başarı mevcut `RegisterUserResponse` (`id` = User UUID).
+- `DietitianStatusResponse`: id/displayName/isVerified (id = DietitianProfile UUID).
+- `DietitianReviewItem`: aynı alanlar + yalnız Admin'e licenseInfo.
+- `DietitianListItem`: public aramada yalnız id/displayName.
+- `AdminLoginRequest`: email/password/mfaCode. Admin için yeni User/entity
+  türetilmez. Başarı aynı beş alanlı `CurrentUserResponse`, role `admin`.
+- `User.totpSecretProtected`, `lastUsedTotpStep`, `mfaRecoveryCodeHashes` ve
+  `AuthSession.isMfaVerified` yalnız sunucuda tutulur. HTTP hesap/model
+  yanıtlarına secret/MFA metadata'sı eklenmez.
+- Admin yalnız `/auth/admin-web-session` MFA cookie'siyle kabul edilir.
+  JWT/bearer ve normal `/auth/web-session` Admin'e kapalı kalır.
+- `AuditEvent` mevcut actorUserId/action/resourceType/resourceId/createdAt/
+  metadata adlarını korur; yeni targetId/occurredAt karşılığı oluşturulmaz.
+- Web TypeScript karşılıkları aynı DTO adlarını kullanır. Flutter kaynakları
+  değişmez; mevcut login JWT ve auth/me JSON anahtarları korunur.
+
 > **TEK KAYNAK (source of truth):** İki Codex'in aynı alanı farklı adlandırmasını engelleyen ortak kurallar. `05_DATA_DICTIONARY.md` alan tiplerini; `06_API_CONTRACT.md` URL ve payloadları belirler. Değişiklik süreci için `AGENTS.md` ve `12_TEAM_PLAN_AND_DECISIONS.md`.
 
 **Karar temeli:** `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Mevcut kanonik adlar korunur; yeni kavramların aşağıdaki adlandırma karşılıkları alan, tablo, ilişki veya endpoint tasarımı anlamına gelmez. `05/06` uyarlamaları ve iki tarafın ortak sözleşme onayı tamamlanmadan eksik yapılar tahmin edilerek uygulanmaz.

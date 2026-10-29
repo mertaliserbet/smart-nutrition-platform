@@ -1,5 +1,51 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 29.10.2026 B1–B3 ortak onaylı uzman/Admin dilimi
+
+Kullanıcı `14`teki B1–B3 kararlarını “Ortak onay var devam et.” ile teyit etti.
+Bu bölüm, aşağıdaki eski başvuru/MFA açık notları ve Admin cookie yasağı için
+bu dilimin güncel normatif istisnasıdır; diğer açık şemalar onaylanmamıştır.
+
+| Method + route | İstek | Başarı / yetki |
+|---|---|---|
+| `POST /api/v1/dietitians/apply` | JSON DietitianApplicationRequest: zorunlu email/password/displayName/licenseInfo, ek alan yok; oturumsuz, query yok; 16 KiB | `201 RegisterUserResponse { id }` User UUID. Yalnız dietitian/henüz doğrulanmamış hesap ve profil atomik oluşur. İstemci role/isVerified atayamaz |
+| `GET /api/v1/dietitians/me` | Gövde/query yok; kendi dietitian JWT veya W2 cookie | `200 DietitianStatusResponse { id, displayName, isVerified }`; profil yoksa 404. id uzman profil UUID'si; özel licenseInfo dönmez |
+| `GET /api/v1/dietitians` | Public; zorunlu page/pageSize pozitif integer; opsiyonel query, ada göre harf duyarsız literal arama | `200 { items: DietitianListItem[], totalCount }`; item yalnız id/displayName. Hem e-posta hem uzman doğrulaması gerekir |
+| `POST /api/v1/auth/admin-web-session` | JSON AdminLoginRequest: zorunlu email/password/mfaCode, ek alan/query yok; 4096 byte; W2 CSRF/Origin/HTTPS | `200 CurrentUserResponse`; role=admin, displayName profil yoksa null. Cookie yalnız MFA tüketimi ve oturum commit'inden sonra verilir; JWT/secret yok |
+| `GET /api/v1/admin/dietitians` | Zorunlu isVerified boolean, page/pageSize pozitif integer; başka query/gövde yok; yalnız MFA Admin cookie | `200 { items: DietitianReviewItem[], totalCount }`; item id/displayName/licenseInfo/isVerified; sağlık kaydı yok |
+| `POST /api/v1/admin/dietitians/{dietitianId}/verify` | Gövde/query yok; MFA Admin cookie + W2 CSRF/Origin/HTTPS | `200 DietitianStatusResponse { id, displayName, isVerified: true }`; tekrar aynı sonuç/tek audit; bilinmeyen profil 404; e-postası doğrulanmamış uzman 409 |
+
+Ad ve mesleki açıklama dış boşlukları kırpılır; sınırlar `05`tedir. Mevcut
+8–128 Unicode parola politikası korunur. Eksik/yanlış tip/boş zorunlu alan,
+ek alan veya query ihlali 400; parola politikası ve ad/açıklama uzunluğu 422;
+mükerrer e-posta 409, gövde aşımı 413, yanlış medya 415; ortak hata zarfı ve
+no-store geçerlidir. Başvuru IP başına dakikada 5 (Dietitians:Application:
+RequestsPerMinute) ile sınırlıdır. `201` e-posta teslimi/oturum/uzman onayı değildir.
+
+Liste varsayılanı/ürün üst sınırı halen açık olduğundan bu iki liste page ve
+pageSize'ı açıkça ister; eksik/sıfır/negatif veya int32 offset taşması 400.
+Web inceleme sayfası pageSize=10 gönderir; bu bir sunucu varsayılanı değildir.
+Sıra displayName, ardından id; totalCount yetkili/filtrelenmiş kümeye aittir.
+
+Admin TOTP 6 hane/30 saniye/±1 adım; kullanılan adım tekrar kabul edilmez.
+Alternatif 10 kurtarma kodu kriptografik rastgele 128 bit/32 büyük hex hane,
+tek kullanımlıdır; yalnız hash saklanır. Kod kırpılır; parola aynen korunur.
+Yanlış parola/MFA veya uygun olmayan hesap aynı 401; login IP sayacı normal
+web/JWT girişle ortaktır. Mevcut geçerli cookie ile yeniden giriş 409.
+
+Admin yalnız yeni MFA cookie yoluyla kabul edilir. Mevcut JWT login/bearer ve
+normal web-session Admin'e kapalıdır. auth/me, csrf, web logout MFA Admin'i
+kabul eder; cookie süreleri/DB kontrolü/iptal W2 ile aynıdır. auth/me beş alanı
+korunur; Admin rolü MFA cookie bağlamında yeni izinli değerdir. Admin yolları
+Authorization kabul etmez (400); kaynakta eksik oturum 401, yanlış rol 403.
+Her Admin yazmasında güncel DB yetkisi ve CSRF yeniden denetlenir. Bu dilim
+diğer sağlık API'lerine cookie yetkisi veya Admin sağlık erişimi vermez.
+
+İlk Admin ve MFA yenilemesi yalnız yerel `--initialize-admin` komutudur;
+public kurulum/kurtarma endpointi yoktur. Ayrıntı `backend/README.md`dedir.
+Mevcut Admin yenilemesinde güncel parola gerekir, tüm web oturumları aynı
+transaction'da iptal edilir. Ret/yeniden başvuru/doğrulamayı geri alma açıktır.
+
 > **İki Codex için ortak kaynak.** URL, request/response anahtarları, rol ve anlamlar burada değiştirilmeden kullanılacak. Bu bir **taslak V1 sözleşmesidir**; `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar ile güncel `04/05` esas alınır. Teknoloji ve ürün kararları onaylıdır; açık şema/oturum ayrıntıları ayrıca ortak onay gerektirir.
 
 Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir. **AÇIK ŞEMA** olarak işaretlenen işlemler yalnız HTTP yönünü/bağımlılığını tanımlar: eksik DTO, enum veya kimlik yapısı kesinleşmeden uygulanmış sözleşme veya hazır mock sayılmaz. Yeni entity adı, alternatif model ya da sırf ekran başına endpoint üretilmez.

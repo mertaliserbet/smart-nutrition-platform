@@ -1,5 +1,31 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 29.10.2026 B1–B3 güvenlik güncellemesi
+
+Kullanıcı ortak onayıyla uzman başvurusu ve Admin MFA/onay dilimi açılmıştır.
+Eski MFA/başvuru açık notları yalnız bu dilim için tarihsel durumdur; üretim
+kapıları, sağlık paylaşımı, ret/geri alma ve diğer açıklar korunur.
+
+- Admin JWT veya normal web girişiyle kabul edilmez. Yeni MFA cookie'si,
+  User satır kilidi altında TOTP/recovery tüketimi + AuthSession commit'iyle
+  verilir. Her okumada DB'de isMfaVerified ve güncel rol/doğrulama/süre/iptal
+  kontrol edilir. CSRF/Origin/HTTPS ve W2 cookie korumaları aynıdır.
+- TOTP için Otp.NET 1.4.1 kullanılır; 6 hane/30 saniye/±1 adım, tek kullanım.
+  Secret User UUID'sine bağlı Data Protection ile korunur. Kurtarma kodları
+  128 bit kriptografik rastgele, yalnız SHA-256 hash, atomik tek kullanımdır.
+- Yerel ilk Admin/MFA yenilemesi HTTP açmadan çalışır. Girdi parolası ve
+  tek seferlik enrollment/kurtarma dosyası Git dışında tutulur. Çıktı mevcut
+  dosyanın üzerine yazılmaz; Windows'ta yalnız mevcut kullanıcı ACL'i,
+  Unix'te 0600 kullanılır. Sırlar console/log/API'ye yazılmaz. Dosyalar
+  güvenli aktarımdan sonra işletmen tarafından kaldırılır. Key ring yedeği ve
+  üretim rotasyon/kurtarma operasyonu yayın kapısının parçasıdır.
+- licenseInfo özel mesleki açıklamadır; public arama/auth/me'ye açılmaz.
+  Başvuru e-posta doğrulaması veya Admin uzman doğrulaması değildir.
+- Onay ve secret/sağlık değeri içermeyen AuditEvent tek transaction'dadır;
+  audit yazılamazsa onay da geri alınır. Admin sağlık içeriklerine erişmez.
+- Manuel kurulum, standart uzmanın klinik yeterliliğini otomatik doğrulamaz;
+  onayı yetkili Admin verir. Gerçek kullanıcı/yayın için bu belge geçerlidir.
+
 **Bu doküman hukuki görüş değildir.** Gerçek kullanıcı verisi işlemeye ve Türkiye/Google Play dağıtımına geçmeden önce yetkin hukuk, sağlık ve mağaza politikası incelemesi gerekir. Laboratuvar ve sağlık verisi özel nitelikli kişisel veri olabilir.
 
 ## Veri koruma tasarım ilkeleri

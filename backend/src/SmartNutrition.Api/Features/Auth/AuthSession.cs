@@ -7,11 +7,12 @@ public sealed class AuthSession
 {
     private AuthSession() { }
 
-    public AuthSession(Guid userId, DateTimeOffset now)
+    public AuthSession(Guid userId, DateTimeOffset now, bool isMfaVerified = false)
     {
         if (userId == Guid.Empty) throw new ArgumentException("A user is required.", nameof(userId));
         Id = Guid.NewGuid();
         UserId = userId;
+        IsMfaVerified = isMfaVerified;
         CreatedAt = LastSeenAt = now;
         IdleExpiresAt = now.AddMinutes(30);
         AbsoluteExpiresAt = now.AddHours(8);
@@ -19,6 +20,7 @@ public sealed class AuthSession
 
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
+    public bool IsMfaVerified { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset LastSeenAt { get; private set; }
     public DateTimeOffset IdleExpiresAt { get; private set; }
@@ -36,6 +38,7 @@ public sealed class AuthSession
         sessions.HasKey(session => session.Id).HasName("pk_auth_sessions");
         sessions.Property(session => session.Id).HasColumnName("id").ValueGeneratedNever();
         sessions.Property(session => session.UserId).HasColumnName("user_id");
+        sessions.Property(session => session.IsMfaVerified).HasColumnName("is_mfa_verified").HasDefaultValue(false);
         sessions.Property(session => session.CreatedAt).HasColumnName("created_at");
         sessions.Property(session => session.LastSeenAt).HasColumnName("last_seen_at");
         sessions.Property(session => session.IdleExpiresAt).HasColumnName("idle_expires_at");

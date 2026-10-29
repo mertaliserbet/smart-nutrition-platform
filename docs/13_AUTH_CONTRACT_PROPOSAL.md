@@ -1,5 +1,11 @@
 # 13 — Auth ve profil sözleşmesi önerisi
 
+**29.10.2026 güncellemesi:** `14` B1–B3 uzman başvurusu/Admin MFA paketi
+kullanıcının açık ortak onay teyidiyle uygulanmaktadır; normatif kaynak
+`04/05/06/11/12`dir. Aşağıdaki tarihsel A8/MFA/başvuru açık notları bu dilim
+için önceki durumu anlatır. P1–P7 parola sıfırlama ve mobil oturum paketi
+bu onayla kapanmamıştır.
+
 **Tarih:** 28.10.2026 · **İlk öneri temeli:** DOCS-V1 / `6351089` · **Güncel inceleme temeli:** ortak `main` / `9e05ef7`.
 
 **Durum: KISMEN ONAYLI.** 27.10.2026 tarihinde kullanıcı W2-C1–C7 için

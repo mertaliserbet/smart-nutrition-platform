@@ -17,22 +17,21 @@ Diyetisyen odaklı, danışanlar için mobil uygulama ve diyetisyenler için web
 > Sağlık uyarısı: Sistem teşhis koymaz, tedavi/ilaç önermez; görselden kalori hesabı kesin ölçüm değildir. Sağlık verileri özel niteliklidir ve korunmalıdır.
 
 ## Durum
-`DOCS-V1` — **22 ürün/teknoloji kararı onaylıdır; uygulama kodu hazır değildir.** Ortak sözleşmelerde Auth/izin, program sürümü ve diğer özellik DTO'ları için açık parçalar vardır. Belgelerin güncellenmesi uygulama, test veya canlı yayın onayı değildir. Neye başlanabileceği ve hangi kararların entegrasyonu engellediği [12 — Geliştirmeye hazırlık ve sözleşme bulguları](docs/12_TEAM_PLAN_AND_DECISIONS.md#geliştirmeye-hazırlık-ve-sözleşme-bulguları) bölümünde izlenir.
+`DOCS-V1` — **22 ürün/teknoloji kararı onaylıdır; başlangıç uygulamaları ve web/Auth akışı mevcuttur.** Backend'de danışan kaydı, e-posta doğrulama/yeniden gönderme, 15 dakikalık JWT giriş, kendi hesap özeti ve W2 web cookie/CSRF/çıkış uygulanmıştır. B1–B3 ortak onayıyla ayrı diyetisyen başvurusu, başvuru durumu, TOTP/kurtarma kodlu Admin web girişi ve audit'li uzman onayı da gerçek API'lere bağlıdır. Danışan takip paneli sentetik önizlemedir; gerçek danışan ilişkisi ve program atama henüz uygulanmamıştır. Bu durum canlı yayın veya 29 Ekim aşamasının tamamlandığı anlamına gelmez.
 
-## Önerilen repo düzeni (henüz oluşturulmuş değildir)
+**29 Ekim önceliği — Uğur alanı:** Tamamlanan başvuru/Admin onayının ardından arama/davet ve karşılıklı onay → gerçek danışan listesi/detayı → program oluşturma/atama. Flutter/Mert dosyaları bu çalışmanın kapsamı dışındadır. Açık teknik kararlar [12](docs/12_TEAM_PLAN_AND_DECISIONS.md), B1–B3 ortak onayı [14](docs/14_OCTOBER_PRESENTATION_CONTRACT_PROPOSAL.md) içinde izlenir. Mevcut danışan register/JWT gövdeleri korunur; entegrasyondan önce iki taraf ortak main sürümünü çeker.
+
+## Mevcut repo düzeni
 ```text
 smart-nutrition-platform/
 ├── AGENTS.md
 ├── README.md
 ├── docs/
-├── apps/
-│   ├── mobile/      # Flutter / Dart
-│   └── web/         # React + TypeScript
-└── services/
-    ├── api/         # ASP.NET Core / C# + PostgreSQL
-    └── ai/          # Python / FastAPI (gerektiğinde)
+├── apps/web/        # React + TypeScript
+├── backend/         # ASP.NET Core / C#, PostgreSQL ve testler
+└── mobile/          # Flutter / Dart; Mert'in alanı
 ```
-Teknoloji seçimi onaylıdır; gösterilen klasör düzeni bir yerleşim planıdır, oluşturulmuş uygulama değildir. İskelet ayrı uygulama görevi kapsamında, ilgili sözleşme sınırları gözetilerek kurulur. Yeni paketler/klasörler ihtiyaç oldukça eklenir; feature-based yapı korunur, gereksiz katman açılmaz.
+Çalıştırma ve doğrulama adımları [web](apps/web/README.md), [backend](backend/README.md) ve [mobil](mobile/README.md) belgelerindedir. Ayrı AI servisi henüz yoktur; ihtiyaç olduğunda Python/FastAPI kullanılması onaylıdır. Yeni paketler/klasörler ihtiyaç oldukça eklenir; feature-based yapı korunur.
 
 ## İki geliştiricili çalışma
 1. Her geliştirici önce kökteki [`AGENTS.md`](AGENTS.md) dosyasını okur.

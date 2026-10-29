@@ -1,5 +1,29 @@
 # Smart Nutrition — Web
 
+## Uzman başvurusu ve MFA'lı yönetim — 29.10.2026
+
+B1–B3 ortak onayıyla aşağıdaki yollar gerçek backend'e bağlıdır:
+
+| Yol | İşlev |
+|---|---|
+| `/uzman-basvurusu` | Yalnız diyetisyen hesabı/başvurusu; mesleki açıklama ve mevcut 8–128 Unicode parola politikası. Başarı 201; otomatik giriş veya uzman onayı yok |
+| `/uzman/basvuru-durumu` | Giriş yapan diyetisyenin güncel Admin doğrulaması; yalnız manuel yenileme |
+| `/yonetici-giris` | Ayrı CSRF korumalı admin-web-session yolu; parola + TOTP veya tek kullanımlık kurtarma kodu |
+| `/yonetim/uzmanlar` | MFA Admin'e başvuru listesi, mesleki açıklama, sayfalama ve uzman onayı; sağlık verisi yok |
+
+`/hesabim`, sunucunun MFA cookie'siyle onayladığı Admin hesabını da beş alanla
+gösterir; çıkış mevcut W2 yolunu kullanır. Normal giriş Admin'e oturum vermez.
+Giriş ekranı uzman başvurusu ve yönetici girişine bağlantı içerir. Token/MFA
+kodu/mesleki açıklama JS depolama/URL/loga yazılmaz; parola/MFA gönderimde
+temizlenir. Geç yanıtlar sayfadan ayrıldıktan sonra veri gösteremez. Başarısız
+CSRF/yetki yanıtı özel başvuru listesini kaldırır; yazma otomatik tekrarlanmaz.
+
+HTTPS sertifikası/proxy kurulumu aşağıdaki W2 adımlarıyla aynıdır. Yeni
+dietitians ve admin/dietitians API yolları HTTPS backend'e proxy edilir.
+Admin yerel kurulum ve MFA yenileme komutu `backend/README.md`dedir.
+Uzman onayı sağlık verisi yetkisi veya çalışan danışan/program paneli değildir;
+gerçek danışan bağlantısı ve program modülü sonraki dilimdir. Flutter değişmedi.
+
 Uğur'un web alanı için React/TypeScript + Vite uygulaması. Danışan kaydı, e-posta doğrulama ve
 yeniden kod isteme mevcut backend API'sine bağlıdır. Giriş/şifre sıfırlama
 arayüzleri ve yalnız geliştirme ortamında açılan diyetisyen paneli önizlemesi de bulunur.

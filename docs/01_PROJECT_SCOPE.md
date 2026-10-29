@@ -1,5 +1,13 @@
 # 01 — Proje kapsamı ve ürün vizyonu
 
+**29.10.2026 uygulama güncellemesi:** Kullanıcı `14` B1–B3 ortak onayını
+teyit etti. Uğur kapsamında ayrı diyetisyen başvurusu, mesleki açıklama,
+başvuru durumu, TOTP/kurtarma kodlu Admin web oturumu ve audit'li uzman
+onayı uygulanmıştır. Aşağıdaki eski başvuru/MFA açık notları bu dilim için
+tarihsel durumdur; ret/geri alma, diğer Auth/sağlık sözleşmeleri ve yayın
+kapısı korunur. İlişki/davet/paylaşım ve program atama henüz tamamlanmamıştır.
+Flutter kaynakları bu çalışmanın dışında kalır.
+
 **Sürüm:** DOCS-V1 · **Durum:** `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 karar doğrultusunda ürün kapsamı onaylı; ayrıntılı şema, uygulama ve yayın takvimi kararları açık. Eski fitness projesinden hiçbir kod, şema veya ekran devralınmaz.
 
 ## Ürün tanımı

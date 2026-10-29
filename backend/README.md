@@ -1,5 +1,55 @@
 # Smart Nutrition — Ortak Backend
 
+## Uzman başvurusu ve Admin MFA — B1–B3 (29.10.2026)
+
+`docs/14` ortak onayıyla `Features/Dietitians/` ve Admin MFA eklenmiştir.
+`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
+komutu yeni uzman/audit tablolarını ve sunucu MFA alanlarını ekler. Mevcut
+hesaplara varsayılan uzman doğrulaması veya MFA yetkisi verilmez.
+
+Webden `/uzman-basvurusu` → e-posta doğrulama → normal giriş →
+`/uzman/basvuru-durumu` akışı kullanılır. Admin `/yonetici-giris` üzerinden
+TOTP/kurtarma koduyla giriş yapar; `/yonetim/uzmanlar` özel mesleki açıklamayı
+listeler ve e-postası doğrulanmış uzmanı onaylar. Onay aynı transaction'da
+AuditEvent üretir. Sağlık, ilişki ve program API'leri bu dilimde açılmaz.
+
+İlk Admin ve MFA yenilemesi HTTP endpointi değildir. Backend dizininden,
+API ile **aynı DB ve W2 Origin/kalıcı korumalı key ring yapılandırmasıyla**:
+
+```powershell
+dotnet run --no-launch-profile --project src/SmartNutrition.Api -- --initialize-admin <ozel-girdi-json-yolu> <yeni-enrollment-json-yolu>
+```
+
+Girdi Git dışında, yalnız işletmen hesabının okuyabildiği bir dosyadır;
+yalnız `email` ve `password` string alanlarını içerir. Parola mevcut 8–128
+Unicode politikasına uyar. Parolayı komut satırı argümanına, terminal çıktısına
+veya depoya koymayın. Çıktı yolu da Git dışında olmalı ve mevcut olmamalıdır.
+Çıktı yalnız `manualKey`, `otpAuthUri`, `recoveryCodes` içerir; uygulama Windows
+dosya ACL'ini yalnız çalıştıran hesaba, Unix modunu 0600'a ayarlar. Yerel
+işletmen, anahtarı kendi doğrulayıcısına aktarır ve 10 kurtarma kodunu güvenli
+yerde tutar; girdi ve enrollment dosyalarını işlemden sonra kaldırır.
+
+Başarı çıkış kodu 0, başarısızlık 1'dir; sırlı içerik/hata ayrıntısı yazdırılmaz.
+Mevcut çıktı üzerine yazılmaz ve başka role ait hesap Admin'e dönüştürülmez.
+Mevcut Admin için aynı komut güncel parolayı doğrular, MFA'yı yeniler ve tüm
+web oturumlarını aynı transaction'da iptal eder. Eski TOTP/kurtarma kodları
+geçersizleşir. Yanlış parola, yapılandırma veya dosya hatası DB değişikliğini
+geri alır. İlk kurulum işletmeninin sunucuya yerel erişimi güven sınırıdır.
+
+MFA Otp.NET 1.4.1 kullanır: [resmî kaynak](https://github.com/kspearrin/Otp.NET).
+6 hane/30 saniye/±1 adım ve kullanılmış adımın DB'de tekrar reddi uygulanır.
+Kurtarma kodu 128 bit/32 büyük hex hane; yalnız hash saklanır. Mevcut JWT ve
+normal W2 login Admin'e kapalı kalır. Admin cookie'si DB'deki MFA kanıtı ve
+güncel rol/doğrulama/süre/iptal ile her istekte kontrol edilir.
+
+Başvuru limiti `Dietitians__Application__RequestsPerMinute` (varsayılan 5/IP/dk).
+Admin login mevcut JWT/web login sayacını paylaşır. Liste endpointleri açık
+varsayılan seçmemek için page/pageSize'ı zorunlu alır; web pageSize=10 gönderir.
+Public arama licenseInfo/e-posta/MFA metadata'sını göstermez.
+
+Ret, yeniden başvuru, uzman doğrulamasını geri alma, mobil refresh/iptal ve
+parola sıfırlama bu dilimde açık kalır. Gerçek yayın `docs/11` kapısına bağlıdır.
+
 Tek ASP.NET Core Web API projesi ve bir xUnit test projesi. Hedef .NET 10;
 oluşturma ortamı SDK 10.0.401. `global.json`, kararlı .NET 10 SDK feature band'lerini
 kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabitlendi.
@@ -7,8 +57,9 @@ kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabit
 `POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir;
 doğrulama e-postası SMTP üzerinden arka planda gönderilir. `verify-email` ve
 `resend-verification` uçları hazırdır. `login`, doğrulanmış Admin olmayan hesaplara
-15 dakikalık JWT access token verir. `GET /api/v1/auth/me` yalnız token sahibinin
-kendi hesap özetini döndürür. Refresh/logout, MFA ve parola sıfırlama yoktur. `MealLog` ve
+15 dakikalık JWT access token verir. `GET /api/v1/auth/me` yalnız oturum sahibinin
+kendi hesap özetini döndürür. W2 web çıkışı ve B1–B3 Admin MFA/onayı vardır;
+mobil refresh/iptal ve parola sıfırlama açık kalır. `MealLog` ve
 `MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
 Kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
 
