@@ -1,5 +1,29 @@
 # Smart Nutrition — Web
 
+## Gerçek diyetisyen çalışma alanı — R1–R3
+
+`/hesabim` ve doğrulanmış başvuru durumundan `/calisma-alani` açılır.
+Sunucudan auth/me ve dietitians/me kontrol edilmeden özel kaynak okunmaz;
+doğrulanmamış uzman başvuru durumuna döner. `/calisma-alani/danisanlar`
+gerçek aktif danışanları adla arar/sıralar/sayfalar; detay yalnız izinli
+temel adı/kimliği gösterir. Sağlık kartları veya sahte hedef/toplam eklenmez.
+
+`/calisma-alani/baglantilar`, gerçek pending/active/rejected/ended listesini,
+kabul/red/sonlandırma ve davet kodu üretimini kullanır. API'nin ilişki DTO'su
+bekleyen talepte ad taşımadığından danışan profil kimliği gösterilir; isim
+uydurulmaz. Kabul edilen danışanın adı aktif danışan listesinde görünür.
+Davet kodu yalnız geçici sayfa belleğindedir; depolama/URL/loga yazılmaz.
+Cookie yazmalarında girişte yakalanan CSRF kullanılır; geçersiz bağlamda
+özel görünüm kaldırılır ve yazma otomatik tekrarlanmaz. Sayfa/filtre değişimi
+eski veriyi hemen gizler ve önceki okumayı iptal eder.
+
+Eski `/onizleme` geliştirme alanı ayrı sentetik görünüm olarak kalır. Gerçek
+program oluşturma/atama ve sağlık kayıtları bu pakette açılmaz. Mobil danışan
+talebi/izin ekranları Mert'in alanıdır; backend sözleşmeleri `04/05/06`dadır.
+
+R1–R3 sonrası typecheck/lint ve 115 web testi başarılıdır; tüm backend
+entegrasyonları geçici PostgreSQL/Mailpit'te ayrıca doğrulanmıştır.
+
 ## Uzman başvurusu ve MFA'lı yönetim — 29.10.2026
 
 B1–B3 ortak onayıyla aşağıdaki yollar gerçek backend'e bağlıdır:

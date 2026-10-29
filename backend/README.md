@@ -1,5 +1,40 @@
 # Smart Nutrition — Ortak Backend
 
+## İlişki/davet ve ilk paylaşım kategorisi — R1–R3
+
+`docs/15` ortak onayıyla `Features/Relationships/` eklenmiştir. Yeni migration
+`AddRelationshipsAndSharingPermissions`, mevcut veriyi silmeden ilişki/izin
+tablolarını, tek aktif ve pending çift indekslerini ve uzman davet hash/expiry
+alanlarını ekler. Normal `dotnet-ef database update` komutu uygulanır.
+
+Doğrulanmış uzman `/dietitians/me/invitation-code` ile 24 saatlik/tek kullanımlık
+kod üretir. Danışan `/dietitian-relationships` ile dietitianId veya bu koddan
+tam biriyle pending talep açar; yalnız hedef uzman kabul/red verir. Her iki
+taraf kendi pending/active ilişkisini sonlandırabilir. Aktif ilişki yarışı
+ClientProfile kilidi ve DB unique indeksiyle korunur; geçmiş silinmez.
+
+İlk kategori `nutrition_plans` varsayılan kapalıdır. Danışan aktif ilişkide
+`/data-sharing-permissions` ile izin oluşturur, PATCH ile geri çeker.
+Başka kategori ve dolu consentRecordId reddedilir; tahlil onayı veya diğer
+sağlık kategorileri açılmaz. Kullanıcı/profil kimliği ve güncel rol/doğrulama
+her istekte DB'den kontrol edilir. Cookie yazmaları W2 CSRF/Origin ister;
+JWT taşıyan mobil istemciye cookie/CSRF şartı eklenmez.
+
+Gerçek `/dietitian/clients` listesi yalnız id/displayName; dashboard yalnız
+clientId/displayName döndürür. Aktif ilişki ve doğrulanmış uzman gerekir;
+sağlık özeti veya varsayılan sıfır yoktur. Liste page/pageSize ister; query ve
+sortOrder asc/desc destekler. İlişki listesi ayrıca mevcut status filtresi alır.
+
+Talep/kod üretimi hem hesap hem doğrudan IP için 5/dakika; ayrı ayarlar
+`Relationships__Limits__RequestsPerMinute` ve `InvitationCodesPerMinute`.
+Sayaçlar süreç içidir; çok örnekli dağıtım/proxy, tam izin audit'i ve gerçek
+yayın için `docs/11` kapısı korunur. Program içerik/sürüm/atama ayrı dilimdir.
+
+Doğrulama: PostgreSQL/Mailpit ile 240 backend testi geçti, 0 atlandı; kod
+rotasyonu/expiry/tek kullanım ve rollback, kabul yarışı, ham DB indeksi,
+izin geri çekme/sonlandırma ve cookie CSRF kontrol edildi. Test fabrikası
+yalnız kendine ait geçici şema bağlantı havuzunu kapatır; ortak havuza dokunmaz.
+
 ## Uzman başvurusu ve Admin MFA — B1–B3 (29.10.2026)
 
 `docs/14` ortak onayıyla `Features/Dietitians/` ve Admin MFA eklenmiştir.

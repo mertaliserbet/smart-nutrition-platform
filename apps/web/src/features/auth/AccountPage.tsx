@@ -92,6 +92,7 @@ export function AccountPage() {
       </dl>
       {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
       {account.role === 'dietitian' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
+      {account.role === 'dietitian' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
       <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>
     </section>}
     {logoutFailed && <button className="button button-primary form-submit" disabled={pending} onClick={() => { void signOut() }}>Çıkışı tekrar dene</button>}

@@ -137,6 +137,9 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
+        // Each factory owns a distinct schema/pool. Release its idle connectors;
+        // retaining one pool per finished test otherwise exhausts PostgreSQL.
+        using (var pooled = new NpgsqlConnection(_testConnection)) NpgsqlConnection.ClearPool(pooled);
         await using var connection = new NpgsqlConnection(_adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();

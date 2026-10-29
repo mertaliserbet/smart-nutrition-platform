@@ -76,7 +76,10 @@ internal static class WebSessionAuthentication
         var web = path is "/api/v1/auth/csrf" or "/api/v1/auth/web-session" or "/api/v1/auth/admin-web-session" ||
             path?.StartsWith("/api/v1/admin/", StringComparison.Ordinal) == true;
         var account = path is "/api/v1/auth/me" or "/api/v1/dietitians/me";
-        if (web || account)
+        var resource = path?.StartsWith("/api/v1/dietitian-relationships", StringComparison.Ordinal) == true ||
+            path?.StartsWith("/api/v1/data-sharing-permissions", StringComparison.Ordinal) == true ||
+            path?.StartsWith("/api/v1/dietitian/clients", StringComparison.Ordinal) == true || path == "/api/v1/dietitians/me/invitation-code";
+        if (web || account || resource)
         {
             context.Response.Headers.CacheControl = "no-store";
             var authorization = context.Request.Headers.ContainsKey("Authorization");
@@ -86,7 +89,7 @@ internal static class WebSessionAuthentication
                 return;
             }
         }
-        if (web)
+        if (web || (resource && context.Request.Cookies.ContainsKey(CookieName)))
         {
             var settings = context.RequestServices.GetRequiredService<IOptions<WebSessionOptions>>().Value;
             if (!settings.Enabled) { await ApiErrors.WriteAsync(context, 500); return; }
@@ -98,6 +101,13 @@ internal static class WebSessionAuthentication
             { await ApiErrors.WriteAsync(context, 403); return; }
         }
         await next(context);
+    }
+
+    internal static async Task<bool> ValidMutationAsync(HttpContext context)
+    {
+        if (context.User.Identity?.AuthenticationType != Scheme) return true;
+        try { await context.RequestServices.GetRequiredService<IAntiforgery>().ValidateRequestAsync(context); return true; }
+        catch (AntiforgeryValidationException) { return false; }
     }
 
     // Also binds to the session, so a new session for the SAME User invalidates an older tab's token.

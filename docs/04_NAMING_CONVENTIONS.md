@@ -1,5 +1,21 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 29.10.2026 R1–R3 ortak onay güncellemesi
+
+Kullanıcı `15` için “R1–R3 için ortak onay var; uygula.” yanıtını verdi.
+Mevcut DietitianClientRelationship/RelationshipStatus ve DataSharingPermission
+adları korunur. RelationshipRequest yalnız dietitianId veya invitationCode'dan
+birini alır; RelationshipResponse mevcut ilişki alanlarıdır. InvitationCodeResponse
+yalnız invitationCode/expiresAt döndürür. İlişki için ikinci eşanlamlı model yoktur.
+
+DietitianProfile.invitationCodeHash/invitationCodeExpiresAt yalnız sunucudadır;
+ham davet kodu profil/directory/başvuru yanıtına eklenmez. İlk paylaşım kodu
+`nutrition_plans`; diğer kategoriler/tahlil onayı açık ve kapalı erişimde kalır.
+ClientListItem id/displayName, ClientDashboardResponse clientId/displayName
+olarak sınırlıdır. CreateDataSharingPermissionRequest ve
+UpdateDataSharingPermissionRequest aynı mevcut alan adlarını kullanır.
+Bu bölüm eski davet/kategori açık notlarının yalnız R1–R3 dilimini kapatır.
+
 ## 29.10.2026 B1–B3 ortak onay güncellemesi
 
 Kullanıcı “Ortak onay var devam et.” ile `14`teki B1–B3 paketini teyit etti.

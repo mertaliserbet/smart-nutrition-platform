@@ -1,5 +1,10 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+**R1–R3 durumu (29.10.2026):** `/calisma-alani` gerçek uzman doğrulaması,
+danışan listesi/sınırlı detayı, bağlantı durumları ve davet kodu işlemleriyle
+API'ye bağlıdır. Mevcut sentetik sağlık önizlemesi ayrı kalır. Tam program
+ve sağlık bileşeni DTO'ları bu minimal dashboard onayıyla kesinleşmez.
+
 **29.10.2026 B1–B3 durumu:** Uzman başvurusu, kendi başvuru durumu, ayrı
 MFA'lı Admin girişi ve başvuru inceleme/onay ekranları gerçek API'ye bağlıdır.
 Yollar ve kurulum `apps/web/README.md`dedir. Bu dilimde Admin sağlık verisi

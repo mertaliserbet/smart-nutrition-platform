@@ -39,6 +39,7 @@ export function DietitianStatusPage() {
     {profile && <section aria-label="Başvuru durumu"><h2>{profile.displayName}</h2>
       <p className="form-message">{profile.isVerified ? 'Uzman doğrulamanız tamamlandı.' : 'Başvurunuz Admin incelemesini bekliyor.'}</p>
       <p>Danışanlara erişim için aktif bağlantı ve danışanın ilgili paylaşım izni gerekir.</p>
+      {profile.isVerified && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
     </section>}
     <button className="button button-secondary form-submit" disabled={pending} onClick={() => { void load() }}>Durumu yenile</button>
     <Link className="preview-link" to="/hesabim">Hesabım ve çıkış</Link>

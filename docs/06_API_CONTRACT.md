@@ -1,5 +1,48 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 29.10.2026 R1–R3 ortak onaylı ilişki/paylaşım dilimi
+
+Kullanıcı `15` R1–R3 için ortak onayı teyit etti. Bu bölüm eski davet/kategori
+açık notlarının bu dilimini kapatır; tahlil/diğer sağlık ve program DTO'ları
+ayrıca onaylanır. Yollar `/api/v1` tabanına göredir.
+
+| İşlem | Onaylı gövde/yanıt ve sınır |
+|---|---|
+| `POST /dietitians/me/invitation-code` | Gövde/query yok; doğrulanmış diyetisyen. `200 InvitationCodeResponse { invitationCode, expiresAt }`; 16 büyük Base32, 24 saat, tek kullanım; yeni üretim eskisini iptal eder |
+| `POST /dietitian-relationships` | RelationshipRequest'te dietitianId veya invitationCode'dan tam biri; clientId sunucudan. `201 RelationshipResponse`, status pending; mevcut id/clientId/dietitianId/status/requestedAt/respondedAt/endedAt alanları |
+| `GET /dietitian-relationships` | Kendi ilişkileri; zorunlu page/pageSize, opsiyonel mevcut status. `200 { items, totalCount }`, requestedAt azalan/id |
+| `POST /dietitian-relationships/{relationshipId}/accept` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→active, respondedAt atanır; ikinci aktif 409; aynı active sonucu tekrar 200 |
+| `POST /dietitian-relationships/{relationshipId}/reject` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→rejected; aynı rejected sonucu tekrar 200 |
+| `POST /dietitian-relationships/{relationshipId}/end` | Gövde/query yok; ilişkinin iki tarafı kendi pending/active ilişkisini ended yapar; endedAt atanır. Pending'de respondedAt null; aynı ended tekrar 200 |
+| `GET /data-sharing-permissions` | Zorunlu relationshipId/page/pageSize; iki taraf yalnız kendi ilişki izin durumunu `{ items, totalCount }` içinde okur |
+| `GET /data-sharing-permissions/{dataSharingPermissionId}` | Gövde/query yok; kendi ilişkisinin mevcut izin kaydı |
+| `POST /data-sharing-permissions` | Mevcut relationshipId/category/isGranted ve nullable consentRecordId. Yalnız danışan, aktif ilişki. category yalnız nutrition_plans, consentRecordId yalnız null. `201` mevcut DataSharingPermission; aynı kategori 409 |
+| `PATCH /data-sharing-permissions/{dataSharingPermissionId}` | Zorunlu isGranted; consentRecordId yalnız null/atlanmış. Kimlik/kategori değişmez. Yalnız ilişkinin danışanı ve active ilişki; `200` güncel kayıt |
+| `GET /dietitian/clients` | Doğrulanmış diyetisyenin aktif danışanları. page/pageSize zorunlu; opsiyonel query (literal harf duyarsız ad), sortOrder asc/desc (varsayılan asc). `200 { items: ClientListItem[], totalCount }`; item yalnız id/displayName |
+| `GET /dietitian/clients/{clientId}/dashboard` | R3'te onaylı minimal ClientDashboardResponse yalnız clientId/displayName. Aktif ilişkisiz 404; sağlık özeti/ölçüm/hedef/sayı eklenmez |
+
+İlişki talebi ve kod üretimi ayrı operation sayaçlarıyla hem hesap hem doğrudan
+IP başına dakikada 5 (Relationships:Limits:RequestsPerMinute ve
+InvitationCodesPerMinute); aşım ortak 429. Proxy başlığı güvenilir sayılmaz;
+çok örnekli ortak sayaç üretim kapısıdır. Hatalı/bilinmeyen/bitmiş/tüketilmiş
+kod aynı 422; kod kırpılıp büyük harfe normalize edilir. Kod ile birlikte ID
+veya clientId/rol gibi ek girdi 400. İlişki talebi ve izin JSON gövdeleri 4096 byte.
+
+Farklı uzmanlara pending talepler olabilir; aynı çiftte ikinci pending veya
+aktif ilişkisi olan danışanın yeni talebi 409. Kabul ikinci aktif ilişki
+yaratamaz; diğer pending kayıtlar sessizce değiştirilmez. Geçersiz durum
+geçişi 409; yabancı ilişki/kayıt 404; kendi kaydında yanlış işlem rolü 403.
+İzin yazması pending/ended ilişkide 409; başka kategori veya dolu consentRecordId
+422. Eksik/gönderilemeyen query/gövde/ID biçimi 400; 413/415 ortak kurallardır.
+
+Bu kaynaklar JWT veya W2 cookie kullanır; Admin yetkisi yoktur. Cookie
+yazmasında CSRF/Origin/HTTPS, çift kimlikte 400 uygulanır. User → profil
+kimliği, güncel e-posta/rol ve uzman doğrulaması sunucuda kontrol edilir.
+Liste sayısı yalnız kendi yetkili kümesidir; temel danışan kimlik görünümü
+diğer sağlık kategorilerinin izni sayılmaz. Program erişimi ayrıca aktif
+ilişki + nutrition_plans izni ister; kayıt yoksa kapalıdır. Danışan kendi
+verisini okumak için diyetisyen ilişkisine ihtiyaç duymaz.
+
 ## 29.10.2026 B1–B3 ortak onaylı uzman/Admin dilimi
 
 Kullanıcı `14`teki B1–B3 kararlarını “Ortak onay var devam et.” ile teyit etti.

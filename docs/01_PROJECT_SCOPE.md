@@ -1,5 +1,11 @@
 # 01 — Proje kapsamı ve ürün vizyonu
 
+**R1–R3 uygulama güncellemesi (29.10.2026):** Kullanıcı ortak onayıyla
+gerçek ilişki/davet/karşılıklı onay, tek aktif DB kuralı, temel aktif danışan
+listesi/detayı ve ilk nutrition_plans izin kategorisi uygulanmıştır. Program
+içeriği/sürüm/atama ve diğer sağlık kategorileri ayrı onay/dilim olarak kalır;
+aşağıdaki tarihsel ilişki/davet açık notları bu R1–R3 alt kapsamı için önceki durumu anlatır.
+
 **29.10.2026 uygulama güncellemesi:** Kullanıcı `14` B1–B3 ortak onayını
 teyit etti. Uğur kapsamında ayrı diyetisyen başvurusu, mesleki açıklama,
 başvuru durumu, TOTP/kurtarma kodlu Admin web oturumu ve audit'li uzman

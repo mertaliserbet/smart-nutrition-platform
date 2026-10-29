@@ -1,5 +1,21 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 29.10.2026 R1–R3 ortak onayı
+
+Kullanıcı “R1–R3 için ortak onay var; uygula.” yanıtıyla `15` paketini
+teyit etti. Lider Uğur; gerçek web çalışma alanı, ilişkiler/davet ve ilk
+nutrition_plans izni backend'i. Flutter kaynakları değişmez. Bu onay
+program öğe/sürüm/geçiş sözleşmesinin veya diğer sağlık kategorilerinin
+onayı değildir; önceki açık notlar yalnız bu dilim için kapanmıştır.
+
+Mert, yeni relation/permission API'lerini kullanmadan ortak main'i çeker.
+Mevcut danışan register/JWT şekli korunur. ClientProfile/DietitianProfile
+UUID'leri User UUID'si değildir. Davet kodu pending talep oluşturur; danışan
+izni olmadan program erişimi açılmaz. Tam HTTP/veri kaynağı `04/05/06`dır.
+
+Sonraki program paketi `16_NUTRITION_PLAN_CONTRACT_PROPOSAL.md` N1–N3'tür;
+ayrı ortak onay alınmadan uygulama/DTO/mock üretilmez.
+
 ## 29.10.2026 B1–B3 ortak onayı ve kapsam
 
 Kullanıcı, `14_OCTOBER_PRESENTATION_CONTRACT_PROPOSAL.md` B1–B3 paketi için

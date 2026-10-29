@@ -1,5 +1,24 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 29.10.2026 R1–R3 erişim güncellemesi
+
+`15` ortak onayıyla doğrulanmış uzman/aktif ilişki/ilk kategori için backend
+denetimi uygulanır. Invitation code, oturum veya veri erişimi değildir;
+tek kullanımlık pending talep başlatır. Ham kod yalnız üretim yanıtında ve
+geçici web belleğindedir. Hash/expiry sunucuda; rotasyon/tüketim/expiry ve
+rollback test edilir. Hesap + bağlantı IP limitleri süreç içindedir.
+
+JWT/cookie kaynakları karıştırılmaz; cookie yazması W2 CSRF/Origin ister.
+User/profil kimlikleri ayrıdır ve her istekte güncel DB rol/doğrulama kontrol
+edilir. Kabul/sonlandırma/izin mutasyonları ClientProfile kilidiyle yarışları
+serileştirir; tek active/pending çift DB indeksleriyle de korunur.
+
+nutrition_plans izni otomatik verilmez; yalnız danışan açıp kapatır.
+Tahlil ve diğer sağlık kategorileri bu onayla açılmaz. ConsentRecord hukuki
+metin/tür/politika kanıtı, tam izin audit'i ve saklama/silme/yayın kapıları
+açık kalır. Temel danışan listesi/detayı yalnız aktif ilişkiyle id/ad taşır;
+sağlık değeri, toplam veya varsayılan sıfır sunmaz. Admin kaynaklara erişmez.
+
 ## 29.10.2026 B1–B3 güvenlik güncellemesi
 
 Kullanıcı ortak onayıyla uzman başvurusu ve Admin MFA/onay dilimi açılmıştır.

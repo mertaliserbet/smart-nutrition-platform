@@ -9,6 +9,7 @@ using Npgsql;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Features.Dietitians;
+using SmartNutrition.Api.Features.Relationships;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
@@ -29,6 +30,11 @@ builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
 builder.Services.AddScoped<AdminMfaService>();
 builder.Services.AddScoped<DietitianApplicationService>();
+builder.Services.AddScoped<RelationshipAccessService>();
+builder.Services.AddScoped<RelationshipService>();
+builder.Services.AddSingleton<RelationshipMutationLimits>();
+builder.Services.AddOptions<RelationshipLimitOptions>().Bind(builder.Configuration.GetSection("Relationships:Limits"))
+    .Validate(options => options.RequestsPerMinute > 0 && options.InvitationCodesPerMinute > 0).ValidateOnStart();
 builder.Services.AddOptions<DietitianApplicationOptions>().Bind(builder.Configuration.GetSection("Dietitians:Application"))
     .Validate(options => options.RequestsPerMinute > 0).ValidateOnStart();
 builder.Services.AddOptions<LoginOptions>().Bind(builder.Configuration.GetSection(LoginOptions.SectionName))
@@ -133,10 +139,12 @@ app.Use(async (context, next) =>
 });
 app.UseExceptionHandler(handler => handler.Run(context =>
 {
-    var status = context.Features.Get<IExceptionHandlerFeature>()?.Error is BadHttpRequestException
+    var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+    var status = error is ResourceOperationException denied ? denied.StatusCode : error is BadHttpRequestException
         { StatusCode: StatusCodes.Status413PayloadTooLarge }
         ? StatusCodes.Status413PayloadTooLarge
         : StatusCodes.Status500InternalServerError;
+    if (status == 401 && context.Request.Headers.ContainsKey("Authorization")) context.Response.Headers.WWWAuthenticate = "Bearer";
     return ApiErrors.WriteAsync(context, status);
 }));
 app.UseStatusCodePages(context =>

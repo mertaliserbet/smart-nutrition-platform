@@ -21,6 +21,9 @@ public sealed class DietitianProfile
     public string DisplayName { get; private set; } = null!;
     [JsonIgnore] public string LicenseInfo { get; private set; } = null!;
     public bool IsVerified { get; private set; }
+    [JsonIgnore] public string? InvitationCodeHash { get; private set; }
+    [JsonIgnore] public DateTimeOffset? InvitationCodeExpiresAt { get; private set; }
+    internal void SetInvitation(string? hash, DateTimeOffset? expiresAt) { InvitationCodeHash = hash; InvitationCodeExpiresAt = expiresAt; }
     [JsonIgnore] public User User { get; private set; } = null!;
     internal static bool ValidText(string? text, int max) =>
         !string.IsNullOrWhiteSpace(text) && text.Trim().EnumerateRunes().Count() <= max;
@@ -39,6 +42,9 @@ public sealed class DietitianProfile
         profile.Property(x => x.DisplayName).HasColumnName("display_name").IsRequired();
         profile.Property(x => x.LicenseInfo).HasColumnName("license_info").IsRequired();
         profile.Property(x => x.IsVerified).HasColumnName("is_verified").HasDefaultValue(false);
+        profile.Property(x => x.InvitationCodeHash).HasColumnName("invitation_code_hash").HasMaxLength(64);
+        profile.Property(x => x.InvitationCodeExpiresAt).HasColumnName("invitation_code_expires_at");
+        profile.HasIndex(x => x.InvitationCodeHash).IsUnique().HasDatabaseName("ux_dietitian_profiles_invitation_code_hash");
         profile.HasIndex(x => x.UserId).IsUnique().HasDatabaseName("ux_dietitian_profiles_user_id");
         profile.HasOne(x => x.User).WithOne(x => x.DietitianProfile).HasForeignKey<DietitianProfile>(x => x.UserId)
             .OnDelete(DeleteBehavior.NoAction).HasConstraintName("fk_dietitian_profiles_users_user_id");

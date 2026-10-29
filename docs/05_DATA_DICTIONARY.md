@@ -1,5 +1,34 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 29.10.2026 R1–R3 onaylı ilişki/paylaşım verisi
+
+`15` R1–R3 ortak onayı kullanıcı tarafından teyit edildi. Mevcut
+DietitianClientRelationship alan/tipleri korunur; pending/active/rejected/ended
+değerleri aynıdır. ClientProfile ve DietitianProfile FK'leri NO ACTION.
+PostgreSQL'de clientId için status=active kısmi unique; aynı clientId/dietitianId
+çifti için status=pending kısmi unique indeks uygulanır. Geçmiş silinmez.
+
+DietitianProfile'a nullable invitationCodeHash (SHA-256/64 hex) ve
+invitationCodeExpiresAt (instant) eklenir. İlk alan unique indekslidir;
+ham 80 bit/16 Base32 kod saklanmaz. Yeni üretim eskisini iptal eder; kod
+pending ilişki ekleme transaction'ında tek kullanımlık tüketilir. Süre 24 saat.
+
+DataSharingPermission mevcut id/relationshipId/category/isGranted/
+consentRecordId/createdAt/updatedAt alanlarıyla uygulanır. Tek kategori
+`nutrition_plans`, consentRecordId daima null (DB check); diğer kategoriler
+ve rıza tür/politikası bu dilimin dışındadır. Aynı ilişki/kategori unique,
+relationshipId FK/NO ACTION. İzin yoksa kapalıdır; ilişki kabulü izin üretmez.
+Yalnız ilişkinin danışanı aktif ilişkide oluşturur/günceller. Geçmiş ilişki
+ve mevcut audit/rıza kayıtları silinmez. Tam izin değişiklik audit'i ve sağlık
+saklama/politika kapıları `11`e göre ayrıca tamamlanır.
+
+Mutasyonlar User ardından ClientProfile satır kilidini kullanır; aktif ilişki
+ve izin denetimleri transaction içinde güncel kalır. Geri çekme/sonlandırma
+yeni program erişimini kapatır. Danışanın kendi program erişimi ilişkisizdir.
+Bu dilimde dönen yeni ilişki/izin zamanları PostgreSQL mikro saniye hassasiyetiyle
+aynı UTC anına normalize edilir; ilk ve tekrar yanıtları aynı kalır. Bu kural
+decimal sağlık ölçümlerine hassasiyet/yuvarlama seçimi getirmez.
+
 ## 29.10.2026 B1–B3 onaylı veri güncellemesi
 
 Kullanıcı `14` B1–B3 için ortak onayı teyit etti. Aşağıdaki alanlar, eski

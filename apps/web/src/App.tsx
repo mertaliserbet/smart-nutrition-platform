@@ -10,6 +10,7 @@ import { AdminLoginPage } from './features/auth/AdminLoginPage'
 import { DietitianApplicationPage } from './features/dietitians/DietitianApplicationPage'
 import { DietitianStatusPage } from './features/dietitians/DietitianStatusPage'
 import { AdminDietitiansPage } from './features/dietitians/AdminDietitiansPage'
+import { DietitianWorkspace } from './features/workspace/DietitianWorkspace'
 
 function RouteFocus() {
   const { pathname } = useLocation()
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/uzman/basvuru-durumu" element={<DietitianStatusPage />} />
         <Route path="/yonetici-giris" element={<AdminLoginPage />} />
         <Route path="/yonetim/uzmanlar" element={<AdminDietitiansPage />} />
+        <Route path="/calisma-alani/*" element={<DietitianWorkspace />} />
         {import.meta.env.DEV && <Route path="/onizleme/*" element={<WorkspacePreview />} />}
         <Route path="*" element={
           <main id="main-content" className="not-found">
