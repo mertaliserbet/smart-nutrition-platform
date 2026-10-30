@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_nutrition_mobile/app.dart';
+import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
 import 'package:smart_nutrition_mobile/features/home/home_page.dart';
+import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
@@ -40,7 +41,7 @@ void main() {
       tester.platformDispatcher.platformBrightnessTestValue = brightness;
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-      await tester.pumpWidget(const SmartNutritionApp());
+      await pumpMainShell(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Smart Nutrition'), findsOneWidget);
@@ -63,6 +64,7 @@ void main() {
       final theme = Theme.of(tester.element(find.byType(HomePage)));
       expect(theme.useMaterial3, isTrue);
       expect(theme.brightness, brightness);
+      expect(find.byTooltip('Kimlik ekranları (önizleme)'), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
@@ -70,7 +72,7 @@ void main() {
   testWidgets('switches between all tab screens and supports reselection', (
     tester,
   ) async {
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
 
     for (final (index, screen) in screens.indexed) {
       await selectTab(tester, screen.label);
@@ -88,7 +90,7 @@ void main() {
   });
 
   testWidgets('home action opens the nutrition tab', (tester) async {
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
     final action = find.text('Beslenmeye göz at');
     await Scrollable.ensureVisible(tester.element(action), alignment: 0.5);
     await tester.pumpAndSettle();
@@ -104,7 +106,7 @@ void main() {
   });
 
   testWidgets('system back returns from another tab to home', (tester) async {
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
     await selectTab(tester, 'Profil');
 
     await tester.binding.handlePopRoute();
@@ -122,7 +124,7 @@ void main() {
     tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
     await selectTab(tester, 'Profil');
     expect(
       Theme.of(tester.element(find.byType(ProfilePage))).brightness,
@@ -159,7 +161,7 @@ void main() {
             tester.platformDispatcher.clearPlatformBrightnessTestValue,
           );
 
-          await tester.pumpWidget(const SmartNutritionApp());
+          await pumpMainShell(tester);
           await tester.pumpAndSettle();
 
           for (final screen in screens) {
@@ -207,7 +209,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
     await selectTab(tester, 'İlerleme');
     await tester.ensureVisible(find.text(screens[2].description));
     await tester.pumpAndSettle();
@@ -232,4 +234,15 @@ Future<void> selectTab(WidgetTester tester, String label) async {
     find.descendant(of: find.byType(NavigationBar), matching: find.text(label)),
   );
   await tester.pumpAndSettle();
+}
+
+// Exercise the shell as an isolated widget; this is not an authenticated app.
+Future<void> pumpMainShell(WidgetTester tester) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      home: const MainShell(),
+    ),
+  );
 }

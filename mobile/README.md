@@ -29,10 +29,15 @@ flutter test
 - `lib/core/widgets/empty_state.dart`: sekmelerin ortak, duyarlı boş durum görünümü.
 - `lib/features/navigation/`: Material 3 alt navigasyon ve sekme durumunu koruyan ana yapı.
 - `lib/features/auth/`: kimlik ekranları, temel form doğrulaması ve ortak form görünümleri.
+  `auth_gate.dart`, doğrulanmış mobil oturum kaynağı bağlanana kadar yalnız
+  kimlik ekranlarına erişim verir; bilinmeyen/korumalı yollar girişe döner.
 - `lib/features/home/`: Dashboard düzeni, günlük göstergeler, program/öğün kartları
   ve merkezi `dashboard_demo_data.dart` örnekleri.
 - `lib/features/nutrition/`, `progress/`, `profile/`: diğer sekmelerin ekran iskeletleri.
-- `test/app_test.dart`: açılış, tema, sekme geçişleri, geri tuşu ve büyük metin testleri.
+- `test/auth_gate_test.dart`: girişsiz açılış, korumalı başlangıç/yönlendirme
+  istekleri ve oturum oluşturmayan form gönderimi testleri.
+- `test/app_test.dart`: ana navigasyonun bağımsız widget olarak tema, sekme
+  geçişleri, geri tuşu ve büyük metin testleri.
 - `test/dashboard_test.dart`: demo işaretleri, hedef göstergeleri, diyetisyen
   bağlantısı olan/olmayan örnekler, erişilebilirlik etiketleri ve duyarlı Dashboard testleri.
 - `test/auth_test.dart`: form doğrulama, şifre görünürlüğü, ekran geçişleri,
@@ -56,17 +61,28 @@ kişisel öneri değildir. Hızlı işlemler yalnız kapatılabilir demo önizle
 kayıt veya sayaç değişikliği yapmaz. Demo yapıları API DTO'su veya açık şemalar
 için kesin mock değildir; veri sözleşmesi yerine kullanılmaz.
 
-Debug derlemede Dashboard açılışı korunur; uygulama çubuğundaki **Kimlik ekranları
-(önizleme)** düğmesi Giriş Yap ekranını açar. Geri dönmek mevcut sekme durumunu
-korur. Debug dışı derlemeler Giriş Yap ekranıyla açılır; çalışan Auth henüz yoktur.
+Debug dahil tüm derlemeler Auth Gate üzerinden açılır. Gerçek API ile
+doğrulanmış bir mobil oturum kaynağı henüz bulunmadığından Dashboard ve diğer
+korumalı ekranlar uygulama navigasyonuna dahil edilmez. Önizleme/giriş atlama
+düğmesi yoktur. Bu ekranların widget testleri uygulamadan bağımsız çalışır;
+testler için üretim koduna sahte oturum veya giriş atlama seçeneği eklenmemiştir.
+Gerçek oturum doğrulaması ve oturum kaybında korumalı navigasyonun temizlenmesi
+Auth API entegrasyonunda tamamlanmalıdır.
 Geçerli form gönderimi bile hesap, token veya oturum oluşturmaz; hiçbir e-posta
 göndermez ve Dashboard'a başarılı giriş geçişi yapmaz. E-posta doğrulama sayfası
 yalnız açıkça seçilen bir bilgilendirme ekranıdır; kayıt sonrası başarı simülasyonu değildir.
 
-Formlar e-posta biçimi, boş alan ve şifre eşleşmesini yerel olarak kontrol eder;
-şifreler kırpılmaz, saklanmaz veya loglanmaz. Kayıt/profil gövdesi, rol seçimi,
-şifre politikası ve hukuki onay metinleri ortak karar bekler; bu görevde
-kesinleştirilmemiştir. `isLoading` ve `errorMessage` yalnız sunum girdileridir;
+Kayıt formu Ad Soyad (`displayName`), e-posta, şifre ve şifre tekrarı içerir.
+Zorunlu alanlar, e-posta biçimi ve şifre eşleşmesi yerel olarak kontrol edilir;
+kayıt parolası onaylı `06` sözleşmesine göre 8–128 Unicode kod noktasıdır.
+Boşluklar korunur; karakter türü zorunluluğu eklenmez. Giriş formuna kayıt
+parola sınırı uygulanmaz. Şifreler kırpılmaz, saklanmaz veya loglanmaz.
+KVKK aydınlatma alanı, onaylı metin/URL henüz bulunmadığını açıkça belirtir;
+zorunlu hukuki onay veya rıza kaydı oluşturmaz. Doğrulama adımı yalnız açık
+bilgilendirme bağlantısıyla açılır; geçerli e-posta adresi gösterilebilir,
+şifreler geçişte temizlenir. Gerçek `POST /auth/register` ve yalnız başarılı
+`201` sonrası doğrulama geçişi bu çalışmada uygulanmaz.
+`isLoading` ve `errorMessage` yalnız sunum girdileridir;
 zamanlayıcı, sahte istek veya gecikmeli giriş simülasyonu yoktur. Şifre alanları
 sayfa kapandığında serbest bırakılır; başka kimlik ekranına giderken temizlenir.
 

@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_tokens.dart';
-import '../auth/login_page.dart';
 import '../home/home_page.dart';
 import '../nutrition/nutrition_page.dart';
 import '../profile/profile_page.dart';
@@ -61,18 +59,6 @@ class _MainShellState extends State<MainShell> {
           automaticallyImplyLeading: false,
           centerTitle: false,
           titleSpacing: AppTokens.spacingLarge,
-          actions: [
-            if (kDebugMode)
-              IconButton(
-                tooltip: 'Kimlik ekranları (önizleme)',
-                icon: const Icon(Icons.login_rounded),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (context) => const LoginPage(),
-                  ),
-                ),
-              ),
-          ],
           title: Text(
             _selectedIndex == 0
                 ? 'Smart Nutrition'

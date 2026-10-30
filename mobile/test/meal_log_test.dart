@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:smart_nutrition_mobile/app.dart';
 import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
+import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 
@@ -9,7 +9,7 @@ void main() {
   testWidgets('nutrition opens the form and back preserves its selected tab', (
     tester,
   ) async {
-    await tester.pumpWidget(const SmartNutritionApp());
+    await pumpMainShell(tester);
     await tester.tap(
       find.descendant(
         of: find.byType(NavigationBar),
@@ -45,7 +45,7 @@ void main() {
   testWidgets(
     'dashboard shortcut opens the same form without changing demo data',
     (tester) async {
-      await tester.pumpWidget(const SmartNutritionApp());
+      await pumpMainShell(tester);
       await tapVisible(tester, find.text('Öğün ekle'));
       expect(find.byType(ManualMealLogPage), findsOneWidget);
       await tester.pageBack();
@@ -329,4 +329,15 @@ Future<void> enterQuantity(WidgetTester tester, String quantity) async {
   await tester.pumpAndSettle();
   await tester.enterText(field, quantity);
   await tester.pump();
+}
+
+// Exercise the shell as an isolated widget; this is not an authenticated app.
+Future<void> pumpMainShell(WidgetTester tester) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      home: const MainShell(),
+    ),
+  );
 }

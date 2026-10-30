@@ -17,6 +17,7 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
+  final _displayName = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
@@ -24,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
+    _displayName.dispose();
     _email.dispose();
     _password.dispose();
     _confirmation.dispose();
@@ -42,7 +44,61 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _clearFeedback(String value) {
-    if (_feedback != null) setState(() => _feedback = null);
+    // Rebuild touched confirmation fields when the original password changes.
+    setState(() => _feedback = null);
+  }
+
+  void _openEmailVerification() {
+    FocusScope.of(context).unfocus();
+    final email = _email.text.trim();
+    _password.clear();
+    _confirmation.clear();
+    setState(() => _feedback = null);
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => EmailVerificationPage(
+          email: AuthValidation.email(email) == null ? email : null,
+        ),
+      ),
+    );
+  }
+
+  void _showPrivacyNotice() {
+    FocusScope.of(context).unfocus();
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) => SingleChildScrollView(
+        padding: const EdgeInsets.all(AppTokens.spacingLarge),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(
+                  'KVKK aydınlatma metni',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              const SizedBox(height: AppTokens.spacingMedium),
+              const Text(
+                'Aydınlatma metni henüz yayımlanmadı. Yayımlandığında bu alandan erişebilirsiniz.',
+              ),
+              const SizedBox(height: AppTokens.spacingLarge),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Kapat'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -57,18 +113,7 @@ class _RegisterPageState extends State<RegisterPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextButton(
-            onPressed: widget.isLoading
-                ? null
-                : () {
-                    FocusScope.of(context).unfocus();
-                    _password.clear();
-                    _confirmation.clear();
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (context) => const EmailVerificationPage(),
-                      ),
-                    );
-                  },
+            onPressed: widget.isLoading ? null : _openEmailVerification,
             child: const Text(
               'E-posta doğrulama adımını incele',
               textAlign: TextAlign.center,
@@ -91,6 +136,24 @@ class _RegisterPageState extends State<RegisterPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextFormField(
+              controller: _displayName,
+              enabled: !widget.isLoading,
+              keyboardType: TextInputType.name,
+              textCapitalization: TextCapitalization.words,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.name],
+              autocorrect: false,
+              validator: AuthValidation.displayName,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              onChanged: _clearFeedback,
+              decoration: const InputDecoration(
+                labelText: 'Ad Soyad',
+                border: authInputBorder,
+                errorMaxLines: 4,
+              ),
+            ),
+            const SizedBox(height: AppTokens.spacingMedium),
+            TextFormField(
               controller: _email,
               enabled: !widget.isLoading,
               keyboardType: TextInputType.emailAddress,
@@ -109,9 +172,16 @@ class _RegisterPageState extends State<RegisterPage> {
             AuthPasswordField(
               controller: _password,
               enabled: !widget.isLoading,
-              validator: AuthValidation.password,
+              validator: AuthValidation.registrationPassword,
               textInputAction: TextInputAction.next,
               onChanged: _clearFeedback,
+            ),
+            const SizedBox(height: AppTokens.spacingSmall),
+            Text(
+              'Şifreniz 8–128 karakter olmalıdır. Boşluk kullanabilirsiniz.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AppTokens.spacingMedium),
             AuthPasswordField(
@@ -122,6 +192,14 @@ class _RegisterPageState extends State<RegisterPage> {
                   AuthValidation.confirmation(value, _password.text),
               onChanged: _clearFeedback,
               onFieldSubmitted: (value) => _submit(),
+            ),
+            const SizedBox(height: AppTokens.spacingSmall),
+            TextButton(
+              onPressed: widget.isLoading ? null : _showPrivacyNotice,
+              child: const Text(
+                'KVKK aydınlatma metni',
+                textAlign: TextAlign.center,
+              ),
             ),
             const SizedBox(height: AppTokens.spacingLarge),
             if (error != null && !widget.isLoading) ...[

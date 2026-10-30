@@ -4,7 +4,10 @@ import '../../core/theme/app_tokens.dart';
 import 'auth_widgets.dart';
 
 class EmailVerificationPage extends StatelessWidget {
-  const EmailVerificationPage({super.key});
+  const EmailVerificationPage({this.email, super.key});
+
+  // Presentation context only; this does not prove registration or delivery.
+  final String? email;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +26,12 @@ class EmailVerificationPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (email != null) ...[
+            const Text('E-posta adresi'),
+            const SizedBox(height: AppTokens.spacingSmall),
+            Text(email!, style: theme.textTheme.titleSmall),
+            const SizedBox(height: AppTokens.spacingLarge),
+          ],
           Text('Doğrulama nasıl çalışır?', style: theme.textTheme.titleLarge),
           const SizedBox(height: AppTokens.spacingMedium),
           const Text(

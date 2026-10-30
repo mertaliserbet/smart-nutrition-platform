@@ -4,6 +4,9 @@ import '../../core/theme/app_tokens.dart';
 import 'dashboard_demo_data.dart';
 import 'dashboard_widgets.dart';
 
+// Omit decorative icons when transient widths cannot fit an icon/text row.
+const _minimumIconRowWidth = 80.0;
+
 class NutritionPlanSummaryCard extends StatelessWidget {
   const NutritionPlanSummaryCard({
     required this.data,
@@ -80,10 +83,24 @@ class NutritionPlanSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppTokens.spacingLarge),
-          FilledButton.tonalIcon(
-            onPressed: onViewNutrition,
-            icon: const Icon(Icons.arrow_forward_rounded),
-            label: const Text('Beslenmeye göz at', textAlign: TextAlign.center),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const label = Text(
+                'Beslenmeye göz at',
+                textAlign: TextAlign.center,
+              );
+              if (constraints.maxWidth < _minimumIconRowWidth) {
+                return FilledButton.tonal(
+                  onPressed: onViewNutrition,
+                  child: label,
+                );
+              }
+              return FilledButton.tonalIcon(
+                onPressed: onViewNutrition,
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: label,
+              );
+            },
           ),
         ],
       ),
@@ -115,48 +132,52 @@ class RecentMealLogsCard extends StatelessWidget {
               const Divider(height: 1),
               const SizedBox(height: AppTokens.spacingLarge),
             ],
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ExcludeSemantics(
-                  child: CircleAvatar(
-                    backgroundColor: colors.primaryContainer,
-                    foregroundColor: colors.onPrimaryContainer,
-                    child: const Icon(Icons.restaurant_menu_rounded),
-                  ),
-                ),
-                const SizedBox(width: AppTokens.spacingMedium),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        mealLog.displayName,
-                        style: theme.textTheme.titleSmall,
+            LayoutBuilder(
+              builder: (context, constraints) => Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (constraints.maxWidth >= _minimumIconRowWidth) ...[
+                    ExcludeSemantics(
+                      child: CircleAvatar(
+                        backgroundColor: colors.primaryContainer,
+                        foregroundColor: colors.onPrimaryContainer,
+                        child: const Icon(Icons.restaurant_menu_rounded),
                       ),
-                      const SizedBox(height: AppTokens.spacingSmall),
-                      Wrap(
-                        spacing: AppTokens.spacingMedium,
-                        runSpacing: AppTokens.spacingSmall,
-                        children: [
-                          Text(
-                            '${mealLog.mealLabel} · ${mealLog.timeLabel}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: AppTokens.spacingMedium),
+                  ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          mealLog.displayName,
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: AppTokens.spacingSmall),
+                        Wrap(
+                          spacing: AppTokens.spacingMedium,
+                          runSpacing: AppTokens.spacingSmall,
+                          children: [
+                            Text(
+                              '${mealLog.mealLabel} · ${mealLog.timeLabel}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${mealLog.caloriesKcal} kcal',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: colors.primary,
+                            Text(
+                              '${mealLog.caloriesKcal} kcal',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                color: colors.primary,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ],

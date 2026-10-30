@@ -38,6 +38,10 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.all(AppTokens.spacingMedium),
             child: LayoutBuilder(
               builder: (context, constraints) {
+                // Startup/layout transitions can temporarily have no width.
+                // Wait for usable constraints before laying out the cards.
+                if (constraints.maxWidth <= 0) return const SizedBox.shrink();
+
                 final wide =
                     constraints.maxWidth >= 840 &&
                     MediaQuery.textScalerOf(context).scale(1) <= 1.3;
@@ -162,7 +166,7 @@ class _QuickActions extends StatelessWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-            final columns = largeText
+            final columns = largeText || constraints.maxWidth < 320
                 ? 1
                 : (constraints.maxWidth >= 700 ? 4 : 2);
             final width =
