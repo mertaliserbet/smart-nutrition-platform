@@ -145,7 +145,34 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 ### Giriş ve JWT — kalıcı model sınırı
 
 - Giriş mevcut User e-postası/Identity hash'i/doğrulama bayrağı/rolünü kullanır; User/ClientProfile ilişkisi ve alanları değişmez. `isEmailVerified = false` veya `role = admin` için access token üretilmez. Login yeni profil oluşturmaz veya kullanıcı kimliğini istemciden almaz.
-- `LoginUserResponse.accessToken: string`, `tokenType: string` (sabit `Bearer`), `expiresAt: instant` yalnız HTTP yanıt alanlarıdır; User sütunu veya yeni oturum tablosu değildir. JWT DB'ye saklanmaz; 15 dakikalık imzalı access token için migration gerekmez. Refresh/logout/iptal saklamasının şeması **AÇIK** kalır.
+- `LoginUserResponse.accessToken: string`, `tokenType: string` (sabit `Bearer`), `expiresAt: instant`, `refreshToken: string`, `refreshTokenExpiresAt: instant` yalnız HTTP yanıt alanlarıdır; User sütunları değildir. JWT DB'ye saklanmaz. 31.10.2026 refresh görevi aşağıdaki ayrı hash geçmişini ekler; 15 dakikalık JWT'nin şekli/süresi değişmez.
+
+### Mobil refresh hash geçmişi — 31.10.2026
+
+Kullanıcının refresh/iptal göreviyle eklenen `RefreshToken` (`refresh_tokens`)
+yalnız sunucu içindir; entity JSON'u API yanıtı değildir.
+
+| Alan | Tip | Kural |
+|---|---|---|
+| `id` | uuid | Sunucu üretir; token değildir |
+| `userId` | uuid | User FK, NoAction; otomatik kullanıcı/profil silinmez |
+| `role` | UserRole | Giriş anındaki `client`/`dietitian`; Admin DB check'iyle de dışlanır |
+| `familyId` | uuid | Her girişte yeni aile; rotasyonda aynı kalır |
+| `tokenHash` | string(64) | 256 bit ham refresh tokenın SHA-256 büyük harf hex hash'i; unique, JSON'a çıkmaz |
+| `createdAt` | instant | Bu tokenın UTC üretimi |
+| `expiresAt` | instant | Ailenin mutlak UTC bitişi; varsayılan giriş+30 gün, rotasyon uzatmaz |
+| `consumedAt` | instant? | Başarılı rotasyonda atomik tüketim |
+| `revokedAt` | instant? | Logout/tekrar kullanım/geçersiz hesapta aile iptali |
+
+Bir ailede tüketilmemiş/iptal edilmemiş en fazla bir token, kısmi unique indeksle
+korunur. User satır kilidi login/refresh/logout yarışlarını serileştirir.
+Tüketilmiş hash'ler aile süresi dolana kadar korunur; erken silme replay tespitini
+bozar. On dakikada bir yalnız mutlak süresi bitmiş kayıtlar temizlenir.
+Ham token/parola/access JWT veya web cookie bu tabloda tutulmaz.
+`Auth:RefreshTokens:LifetimeDays` 1–365 (varsayılan 30); HTTP IP limiti
+`RequestsPerMinute` >0 (varsayılan 30), refresh ve logout için ayrı sayaçtır.
+Gelecekteki parola/güvenlik yazmaları aynı User kilidi altında refresh ailelerini
+de iptal etmelidir; otomatik access JWT iptali bu modelden türetilmez.
 - JWT `sub`, User UUID'sidir. Sonraki iş modülleri `clientId`yi güvenilir User → ClientProfile ilişkisinden çözer; token içindeki rol tek başına uzman doğrulaması, aktif ilişki veya veri paylaşım izni sağlamaz.
 - Identity `SuccessRehashNeeded` sonucunda yalnız başarılı ve girişe uygun hesabın `passwordHash`/`updatedAt` alanları güncellenebilir. Güncelleme önceki hash/doğrulama/rol koşuluyla atomiktir; yarışta başka bir parola değişikliği ezilmez ve token verilmez. Yanlış parola, doğrulanmamış hesap ve Admin için hash değiştirilmez.
 
@@ -320,6 +347,6 @@ Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve ö�
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
 - Nabız/adım/aktif enerji veri yapıları, platform/cihaz desteği ve manuel/cihaz örtüşme politikası; günlük zaman dilimi ve yeniden senkronizasyon anahtarları.
 - Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.
-- Stateless JWT access token dışında kalan oturum/refresh/iptal ve MFA güvenlik kayıtları, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
+- Mobil güvenli saklama/istemci refresh entegrasyonu ve mobil MFA, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Backend refresh hash/iptal modeli 31.10.2026 bölümündedir; gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
 
 Sonraki ortak sözleşme adımı; açık alt kayıt adlarını `04`te, şema ayrıntılarını burada ve HTTP karşılıklarını `06`da iki geliştiricinin onayıyla eşgüdümlü tamamlamaktır. Kayıt/e-posta doğrulamasının kapanmış alanları bu açık listeye dahil değildir.

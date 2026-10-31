@@ -27,6 +27,10 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddWebSessionAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddScoped<UserLoginService>();
+builder.Services.AddScoped<RefreshTokenService>();
+builder.Services.AddHostedService<RefreshTokenCleanup>();
+builder.Services.AddOptions<RefreshTokenOptions>().Bind(builder.Configuration.GetSection(RefreshTokenOptions.SectionName))
+    .Validate(options => options.LifetimeDays is >= 1 and <= 365 && options.RequestsPerMinute > 0).ValidateOnStart();
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
 builder.Services.AddScoped<AdminMfaService>();
@@ -62,6 +66,11 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0, AutoReplenishment = true
         }));
     var loginSettings = builder.Configuration.GetSection(LoginOptions.SectionName).Get<LoginOptions>() ?? new();
+    var refreshSettings = builder.Configuration.GetSection(RefreshTokenOptions.SectionName).Get<RefreshTokenOptions>() ?? new();
+    foreach (var policy in new[] { "refresh", "logout" })
+        options.AddPolicy(policy, context => RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+            { PermitLimit = refreshSettings.RequestsPerMinute, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
     var applicationSettings = builder.Configuration.GetSection("Dietitians:Application").Get<DietitianApplicationOptions>() ?? new();
     options.AddPolicy("dietitian-application", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions

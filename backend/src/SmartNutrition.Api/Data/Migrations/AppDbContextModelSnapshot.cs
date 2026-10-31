@@ -117,6 +117,76 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.Auth.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset?>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("role");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("token_hash");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_refresh_tokens");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_refresh_tokens_expires_at");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ux_refresh_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_refresh_tokens_user_id");
+
+                    b.HasIndex(new[] { "FamilyId" }, "ix_refresh_tokens_family_id");
+
+                    b.HasIndex(new[] { "FamilyId" }, "ux_refresh_tokens_active_family")
+                        .IsUnique()
+                        .HasFilter("consumed_at IS NULL AND revoked_at IS NULL");
+
+                    b.ToTable("refresh_tokens", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_refresh_tokens_hash", "token_hash ~ '^[0-9A-F]{64}$'");
+
+                            t.HasCheckConstraint("ck_refresh_tokens_role", "role IN ('client', 'dietitian')");
+
+                            t.HasCheckConstraint("ck_refresh_tokens_times", "created_at < expires_at AND (consumed_at IS NULL OR consumed_at >= created_at) AND (revoked_at IS NULL OR revoked_at >= created_at)");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Auth.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -539,6 +609,16 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasConstraintName("fk_client_profiles_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.Auth.RefreshToken", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Dietitians.AuditEvent", b =>

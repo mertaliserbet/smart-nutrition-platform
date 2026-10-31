@@ -24,9 +24,14 @@ public sealed class LoginUserRequest : IValidatableObject
 }
 
 // A class rather than a record: ToString must not print the access token.
-public sealed class LoginUserResponse(string accessToken, DateTimeOffset expiresAt)
+public sealed class LoginUserResponse(string accessToken, DateTimeOffset expiresAt,
+    string? refreshToken = null, DateTimeOffset? refreshTokenExpiresAt = null)
 {
     public string AccessToken { get; } = accessToken;
     public string TokenType => "Bearer";
     public DateTimeOffset ExpiresAt { get; } = expiresAt;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? RefreshToken { get; } = refreshToken;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTimeOffset? RefreshTokenExpiresAt { get; } = refreshTokenExpiresAt;
 }

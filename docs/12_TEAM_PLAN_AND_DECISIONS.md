@@ -1,5 +1,22 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 31.10.2026 backend mobil refresh/iptal görevi
+
+Kullanıcının açık backend göreviyle mevcut JWT login yanıtına `refreshToken`
+ve `refreshTokenExpiresAt`, mevcut taslak `/auth/refresh` ve `/auth/logout`
+yollarına gerçek hash rotasyonu/aile iptali eklendi. 256 bit opak token,
+SHA-256 hash saklama, varsayılan 30 gün mutlak aile süresi, atomik tüketim,
+replay'de aile iptali ve güvenlik/yarış testleri bu alt kapsamdadır.
+`04/05/06/11` bu talep doğrultusunda güncellendi; eski mobil refresh/iptal
+açık notları backend alt kapsamı için tarihseldir.
+
+15 dakikalık JWT ve web cookie/Admin MFA davranışı korunur; access JWT anlık
+iptali yoktur. Flutter'ın üç alanlı login ayrıştırıcısı beş alana geçmelidir;
+mobil/web kaynakları bu görevde değiştirilmez. Güvenli mobil saklama,
+istemci refresh koordinasyonu ve gelecekteki parola değişiminde tüm ailelerin
+iptali ayrı entegrasyon/yayın işleridir. Sözleşme ortak main'de paylaşılmadan
+diğer checkout bu sürümü entegre edilmiş varsaymamalıdır.
+
 ## 29.10.2026 N1–N3 ortak onayı ve Uğur teslim durumu
 
 Kullanıcı “N1–N3 için ortak onay var; uygula.” yanıtıyla `16` paketini
@@ -240,7 +257,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 
 | Alan | Bulgu / gerekli ortak karar | Geliştirmeye etkisi |
 |---|---|---|
-| Auth ve profil | Register/verify/resend, JWT login, beş alanlı hesap özeti ve W2 web cookie/CSRF/iptal kapanmıştır. Profil düzenleme/uzman profili, mobil refresh/iptal/saklama, sıfırlama ve MFA challenge/kurulum/kurtarma açıktır | Onaylı web oturumu uygulanabilir; gerçek uzman/Admin paneli ve yayın için kalan sözleşmeler kapanmalı. Mobil JWT gövdesi korunur; farklı istemci DTO'su uydurulamaz |
+| Auth ve profil | Register/verify/resend, JWT login, hesap özeti, W2 web cookie/CSRF/iptal ve 31.10.2026 backend mobil refresh/aile iptali kapanmıştır. Profil düzenleme/uzman profili, mobil güvenli saklama/istemci yenileme, sıfırlama ve mobil MFA açıktır | Login yanıtı refresh alanlarıyla beş alana genişledi; Flutter ayrıştırıcısı/saklama/tek eşzamanlı yenileme ayrıca entegre edilmelidir. Access JWT anlık iptali sağlanmaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
 | Program sürümü ve geçiş | N1–N3 ile gün/miktar/alternatif/snapshot/DTO, archive ve ilişki bitişinde active atanmışı arşivleme kapandı. Genel atomik replace, programsız/makro hedef ve uyum hesabı açık | Onaylı backend/web uygulandı; mobil aynı main'e göre entegre olur. Başka aktif program sahibinin açık durdurması gerekir; iki aktif veya sahiplik silme yok |

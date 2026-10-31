@@ -9,7 +9,7 @@ using SmartNutrition.Api.Models;
 namespace SmartNutrition.Api.Features.Auth;
 
 public sealed class UserLoginService(AppDbContext database, ILookupNormalizer normalizer,
-    IPasswordHasher<User> passwordHasher, LoginPasswordVerifier verifier, JwtAccessTokenService tokens, TimeProvider clock)
+    IPasswordHasher<User> passwordHasher, LoginPasswordVerifier verifier, RefreshTokenService refreshTokens, TimeProvider clock)
 {
     public async Task<LoginUserResponse?> LoginAsync(LoginUserRequest request, CancellationToken cancellationToken = default)
     {
@@ -21,6 +21,11 @@ public sealed class UserLoginService(AppDbContext database, ILookupNormalizer no
         if (user is null || result == PasswordVerificationResult.Failed || !user.IsEmailVerified ||
             user.Role is not (UserRole.Client or UserRole.Dietitian)) return null;
 
+        await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
+        var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {user.Id} FOR UPDATE")
+            .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
+        if (locked is null || locked.PasswordHash != user.PasswordHash || !locked.IsEmailVerified || locked.Role != user.Role)
+            return null;
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
             var previousHash = user.PasswordHash;
@@ -32,7 +37,9 @@ public sealed class UserLoginService(AppDbContext database, ILookupNormalizer no
                     .SetProperty(account => account.UpdatedAt, now), cancellationToken);
             if (updated != 1) return null;
         }
-        return tokens.Issue(user);
+        var response = await refreshTokens.CreateAsync(locked, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return response;
     }
 }
 

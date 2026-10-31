@@ -92,7 +92,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     });
 
     public AppDbContext Database() => new(new DbContextOptionsBuilder<AppDbContext>()
-        .UseNpgsql(_testConnection).Options);
+        .UseNpgsql(_testConnection, postgres => postgres.MigrationsHistoryTable("__ef_migrations_history")).Options);
 
     public string Logs => string.Join(Environment.NewLine, _logs.Messages);
     public string KeyRing => _keyRing;

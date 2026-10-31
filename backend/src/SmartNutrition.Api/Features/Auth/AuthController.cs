@@ -12,7 +12,8 @@ namespace SmartNutrition.Api.Features.Auth;
 [Route("api/v1/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(UserRegistrationService registration, EmailVerificationService verification,
-    VerificationEmailQueue emailQueue, UserLoginService login, CurrentUserService currentUser) : ControllerBase
+    VerificationEmailQueue emailQueue, UserLoginService login, CurrentUserService currentUser,
+    RefreshTokenService refreshTokens) : ControllerBase
 {
     [Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme)]
     [HttpGet("me")]
@@ -53,6 +54,30 @@ public sealed class AuthController(UserRegistrationService registration, EmailVe
         Response.Headers.WWWAuthenticate = "Bearer";
         return Unauthorized(ApiErrors.Create(HttpContext, StatusCodes.Status401Unauthorized));
     }
+
+    [AllowAnonymous, HttpPost("refresh"), Consumes("application/json"), RequestSizeLimit(4096), EnableRateLimiting("refresh")]
+    [ProducesResponseType<LoginUserResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh(RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        if (HasMixedCredentials()) return BadRequest(ApiErrors.Create(HttpContext, StatusCodes.Status400BadRequest));
+        var response = await refreshTokens.RefreshAsync(request.RefreshToken, cancellationToken);
+        if (response is not null) return Ok(response);
+        Response.Headers.WWWAuthenticate = "Bearer";
+        return Unauthorized(ApiErrors.Create(HttpContext, StatusCodes.Status401Unauthorized));
+    }
+
+    [AllowAnonymous, HttpPost("logout"), Consumes("application/json"), RequestSizeLimit(4096), EnableRateLimiting("logout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout(RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        if (HasMixedCredentials()) return BadRequest(ApiErrors.Create(HttpContext, StatusCodes.Status400BadRequest));
+        await refreshTokens.LogoutAsync(request.RefreshToken, cancellationToken);
+        return NoContent();
+    }
+
+    private bool HasMixedCredentials() => Request.Query.Count != 0 ||
+        Request.Headers.ContainsKey("Authorization") || Request.Headers.ContainsKey("Cookie");
 
     [AllowAnonymous]
     [HttpPost("register")]

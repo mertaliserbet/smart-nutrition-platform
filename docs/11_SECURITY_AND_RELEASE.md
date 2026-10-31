@@ -1,5 +1,33 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 31.10.2026 mobil refresh/iptal güncellemesi
+
+Kullanıcının backend göreviyle JWT login yanıtına refresh token ve mutlak
+refresh bitişi eklendi. Önceki mobil refresh/iptal açık notları bu alt kapsam
+için tarihseldir; güvenli mobil saklama/istemci entegrasyonu halen ayrıdır.
+Web `AuthSession`, cookie/CSRF ve Admin MFA akışları değiştirilmez.
+
+- 256 bit opak refresh tokenın yalnız SHA-256 hash'i PostgreSQL'dedir; ham sır,
+  access JWT veya parola DB/log/audit'e yazılmaz. Yanıtlar no-store'dur.
+- Varsayılan 30 gün mutlak aile süresi merkezi yapılandırılır; rotasyon aileyi
+  uzatmaz. User satır kilidi ve transaction, tüketim+yeni hash üretimini,
+  eşzamanlı tekrar ve logout yarışlarını korur. Bir aktif aile tokenı DB unique
+  indeksiyle de sınırlıdır. Hata rollback'i eski tokenı tüketilmiş bırakmaz.
+- Tüketilmiş ata token tekrarında bütün aile iptal edilir; bağımsız girişler
+  korunur. Meşru ve çalıntı tokenın ilk kullanımını ayırma garantisi yoktur.
+  İstemci refresh'i tek işlemde koordine etmeli; kayıp yanıtı eski tokenla
+  otomatik tekrarlamamalıdır. Grace/replay kabulü bulunmaz.
+- Her refresh güncel e-posta/rolü kontrol eder. Admin'e login/refresh ile
+  bearer verilmez; rol/doğrulama değişimi aileyi kapatır. Gelecekte parola ve
+  güvenlik yazmaları aynı User kilidi/transaction'ında refresh ailelerini de
+  iptal etmelidir; parola sıfırlama bu görevle uygulanmış sayılmaz.
+- Logout refresh ailesini sunucuda iptal eder; **stateless access JWT'nin
+  anlık iptali yoktur**. Daha önce verilen JWT kalan en fazla 15 dakikası
+  boyunca geçerli olabilir; web session iptali veya JWT denylist'i türetilmez.
+- Süresi dolmayan hash geçmişi silinmez; yalnız mutlak süresi bitmiş aile
+  kayıtları periyodik temizlenir. Çok örnekli IP limiti/güvenilir proxy,
+  anahtar işletimi, mobil güvenli saklama ve genel yayın kapıları açıktır.
+
 ## 29.10.2026 N1–N3 program erişimi ve geçmişi
 
 `16` ortak onayıyla program API'sinde her işlemde User→profil, e-posta/rol,

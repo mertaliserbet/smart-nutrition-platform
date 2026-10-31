@@ -141,6 +141,7 @@ public sealed class CurrentUserApiTests
         // Only this factory's random disposable test schema is affected, never application tables.
         await using var database = factory.Database();
         await database.ClientProfiles.Where(profile => profile.UserId == account.Id).ExecuteDeleteAsync();
+        await database.RefreshTokens.Where(token => token.UserId == account.Id).ExecuteDeleteAsync();
         await database.Users.Where(user => user.Id == account.Id).ExecuteDeleteAsync();
         using var after = await client.GetAsync(Route);
         await AssertError(after, HttpStatusCode.Unauthorized, "unauthenticated");

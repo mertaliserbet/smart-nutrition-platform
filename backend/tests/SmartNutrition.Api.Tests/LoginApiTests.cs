@@ -41,7 +41,7 @@ public sealed class LoginApiTests
         Assert.True(response.Headers.CacheControl?.NoStore);
         Assert.False(response.Headers.Contains("Set-Cookie"));
         using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        Assert.Equal(["accessToken", "expiresAt", "tokenType"], body.RootElement.EnumerateObject().Select(field => field.Name).Order().ToArray());
+        Assert.Equal(["accessToken", "expiresAt", "refreshToken", "refreshTokenExpiresAt", "tokenType"], body.RootElement.EnumerateObject().Select(field => field.Name).Order().ToArray());
         var accessToken = body.RootElement.GetProperty("accessToken").GetString()!;
         var token = new JsonWebToken(accessToken);
         Assert.Equal("Bearer", body.RootElement.GetProperty("tokenType").GetString());

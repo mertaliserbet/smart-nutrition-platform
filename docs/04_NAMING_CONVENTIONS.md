@@ -164,9 +164,21 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 
 ### Onaylı giriş ve JWT adları — 27.10.2026
 
-- Giriş `LoginUserRequest` / `LoginUserResponse` adlarını kullanır: istek `email`, `password`; yanıt `accessToken`, `tokenType`, `expiresAt`. Paralel `SignIn`/`Authenticate` DTO'su veya farklı istemci yanıt kökü üretilmez. Tam HTTP sözleşmesi `06`dadır.
+- Giriş `LoginUserRequest` / `LoginUserResponse` adlarını kullanır: istek `email`, `password`; yanıt `accessToken`, `tokenType`, `expiresAt`, `refreshToken`, `refreshTokenExpiresAt`. Paralel `SignIn`/`Authenticate` DTO'su veya farklı istemci yanıt kökü üretilmez. 31.10.2026 kullanıcı göreviyle refresh alanları eklendi; tam HTTP sözleşmesi `06`dadır.
 - JWT `sub` claim'i `User.id` değeridir; `clientId` veya `ClientProfile.id` değildir. `role` claim'i mevcut `client` / `dietitian` değerini taşır. `admin`, MFA hazır olana kadar token üretiminde ve kabulünde kapalıdır.
-- `accessToken` 15 dakikalık JWT'dir; e-posta doğrulama girdisi `token` ile karıştırılmaz. `tokenType` tam `Bearer`, `expiresAt` UTC instant'tır. JWT ve `expiresAt` yeni User sütunları değildir; oturum/refresh entity'si bu görevden türetilmez. JWT'nin standart `iss`, `aud`, `iat`, `nbf`, `exp` claim adları JSON/domain alanı diye yeniden adlandırılmaz.
+- `accessToken` 15 dakikalık JWT'dir; e-posta doğrulama girdisi `token` ile karıştırılmaz. `tokenType` tam `Bearer`, `expiresAt` UTC instant'tır. JWT ve `expiresAt` yeni User sütunları değildir. JWT'nin standart `iss`, `aud`, `iat`, `nbf`, `exp` claim adları JSON/domain alanı diye yeniden adlandırılmaz.
+
+### Mobil refresh adları — 31.10.2026
+
+Kullanıcının backend refresh/iptal göreviyle `RefreshToken` → `refresh_tokens`
+sunucu içi hash/rotasyon geçmişi eklendi. `familyId` aynı girişten türeyen
+tokenları gruplar; ayrı User/profil kimliği veya web `AuthSession` değildir.
+`POST /api/v1/auth/refresh` ve `POST /api/v1/auth/logout` aynı
+`RefreshTokenRequest { refreshToken }` girdisini kullanır. Yenileme yanıtı
+genişletilmiş `LoginUserResponse` olur; `refreshTokenExpiresAt` ailenin mutlak
+UTC bitişidir. Ham refresh token JSON'da yalnız giriş/yenileme yanıtındadır;
+DB alanı `tokenHash`tır. DTO/rota alias'ı, mobil cookie veya web değişikliği yoktur.
+Flutter'ın eski üç alanlı katı login ayrıştırıcısı ayrıca güncellenmelidir.
 
 ### Onaylı kendi hesap özeti — 27.10.2026
 

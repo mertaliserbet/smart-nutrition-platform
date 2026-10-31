@@ -1,5 +1,62 @@
 # Smart Nutrition — Ortak Backend
 
+## Mobil refresh token ve sunucuda çıkış — 31.10.2026
+
+`AddRefreshTokens` migration'ı yalnız `refresh_tokens` hash geçmişini ve
+indekslerini ekler; mevcut User/profil/web session tablolarını değiştirmez.
+Backend içinde `dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
+ile normal dağıtım migration'ı uygulanmalıdır. Bu görevde mevcut uygulama DB'si
+yerine geçici test veritabanında migration ve regresyonlar doğrulandı.
+
+JWT login isteği `{ email, password }` ve 15 dakikalık JWT güvenliği korunur.
+Login/refresh yanıtı artık beş alandır:
+
+```json
+{
+  "accessToken": "<JWT>",
+  "tokenType": "Bearer",
+  "expiresAt": "<UTC ISO 8601>",
+  "refreshToken": "<256 bit opak token>",
+  "refreshTokenExpiresAt": "<UTC ISO 8601>"
+}
+```
+
+`POST /api/v1/auth/refresh` ve `POST /api/v1/auth/logout` yalnız
+`{ "refreshToken": "<token>" }` JSON'u alır; Authorization/cookie/query gönderilmez.
+Refresh `200` ile yeni çifti verir; logout idempotent boş `204` ile yalnız
+ilgili aileyi iptal eder. Geçersiz/expired/revoked/replay refresh aynı `401`dir.
+Eksik/bozuk/ek alan `400`, içerik `415`, 4096 byte sınırı `413`, IP limiti `429`,
+altyapı `500`; ortak hata zarfı/no-store kullanılır.
+
+`Auth__RefreshTokens__LifetimeDays` varsayılan 30 (1–365),
+`Auth__RefreshTokens__RequestsPerMinute` varsayılan 30 (>0) olarak yapılandırılır.
+İkinci ayar refresh/logout için ayrı süreç içi IP sayaçlarını sınırlar; web
+login/cookie/CSRF/Admin MFA davranışını değiştirmez.
+
+Ham token yalnız geçici yanıt belleğindedir; DB'de SHA-256 hash vardır.
+User satır kilidi altında tüketim/yeni hash/commit atomiktir. Aile mutlak
+süresi rotasyonda uzamaz; PostgreSQL mikrosaniye hassasiyetiyle ilk ve sonraki
+yanıtın aynı bitişi taşıması korunur. Herhangi bir tüketilmiş ata tekrarında
+tüm aile iptal edilir. Aktif geçmiş silinmez; yalnız mutlak süresi bitmiş
+hash'ler on dakikada bir temizlenir. Gizli değerler loglanmaz.
+
+**Flutter geçişi:** Mevcut katı üç alanlı login ayrıştırıcısı beş alana
+güncellenmeden login yanıtını reddeder. İstemci token çiftini güvenli biçimde
+birlikte saklamalı, refresh'i tek eşzamanlı işlemde yürütmeli ve kayıp başarılı
+yanıtı eski tokenla otomatik tekrarlamamalıdır. Eski tokenın paralel/yeniden
+kullanımı kazanan tokenı da iptal edebilir; bu durumda yeniden giriş gerekir.
+Mobil/web kaynakları bu backend görevinde değiştirilmemiştir.
+
+**Sınır:** Logout/tekrar kullanım refresh ailesini kapatır; önceden verilmiş
+stateless access JWT anında iptal edilmez ve kalan en fazla 15 dakikası boyunca
+kullanılabilir. Gelecekteki parola/güvenlik yazmaları aynı User kilidi altında
+refresh ailelerini de iptal etmelidir; genel access denylist/sid/sıfırlama yoktur.
+
+Doğrulama: `dotnet build` 0 uyarı/hata; geçici gerçek PostgreSQL ve Mailpit ile
+`dotnet test` **263 başarılı, 0 atlandı**. Rotasyon/replay, paralel refresh ve
+logout yarışı, rollback, mutlak süre/temizlik ve veri koruyan migration test edildi.
+Geçici veritabanları temizlendi; mevcut uygulama DB'sine migration uygulanmadı.
+
 ## Program oluşturma, atama ve sürümler — N1–N3
 
 `docs/16` ortak onayıyla `Features/NutritionPlans/` eklendi. Backend dizininde
@@ -226,20 +283,22 @@ sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen de�
 içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
 Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
 `201 { id }` yanıtı ortak belgelere işlenmiştir. Diyetisyen başvurusu/çoklu rol,
-Profil düzenleme/uzman profili, refresh/logout/iptal ve istemci oturum sözleşmelerinin açık kısımları uygulanmamıştır.
+Profil düzenleme/uzman profili ve güvenli mobil saklama/istemci yenileme entegrasyonu açık kalır. Backend refresh/logout 31.10.2026 bölümünde uygulanmıştır.
 
 ## Giriş ve JWT access token
 
 `POST /api/v1/auth/login`, `application/json` ile zorunlu `email` ve `password`
-alır. Başarı `200 { "accessToken": "<JWT>", "tokenType": "Bearer", "expiresAt": "<UTC ISO 8601>" }`.
+alır. Başarı `200` yanıtı `accessToken`, `tokenType: "Bearer"`, `expiresAt`,
+`refreshToken`, `refreshTokenExpiresAt` alanlarını taşır (31.10.2026 bölümü).
 Token yalnız bu onaylı başarı yanıtında verilir; kayıt/e-posta doğrulama yanıtlarına
-eklenmez. Cookie, refresh token veya profil yanıtı üretilmez.
+eklenmez. JWT login cookie veya profil yanıtı üretmez; refresh token yalnız
+login/refresh yanıtındadır.
 
 E-posta mevcut Identity normalizer ile kırpılır/normalleştirilir; parola aynen
 Identity PasswordHasher'a verilir. Olmayan hesapta da aynı altyapıyla dummy hash
 doğrulaması yapılır; dummy User/oturum/DB kaydı yoktur. Yanlış parola, olmayan
 hesap, doğrulanmamış e-posta ve Admin aynı `401 unauthenticated` hatasını alır.
-Admin, MFA hazır olana kadar hem token üretiminde hem bearer kabulünde kapalıdır.
+Admin hem token üretiminde hem bearer kabulünde kapalıdır; ayrı MFA web girişi korunur.
 
 JWT süresi 15 dakikadır; claim'ler yalnız `sub` (User UUID), `role` ve standart
 `iss`, `aud`, `iat`, `nbf`, `exp` değerleridir. ClientProfile UUID'si, e-posta, ad,

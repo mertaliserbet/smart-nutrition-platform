@@ -86,7 +86,7 @@ public sealed class InfrastructureTests
         var database = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", database.Database.ProviderName);
-        Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(User).FullName!,
+        Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(RefreshToken).FullName!, typeof(User).FullName!,
             typeof(SmartNutrition.Api.Features.Dietitians.AuditEvent).FullName!, typeof(SmartNutrition.Api.Features.Dietitians.DietitianProfile).FullName!,
             typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlan).FullName!, typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion).FullName!,
             typeof(SmartNutrition.Api.Features.Relationships.DataSharingPermission).FullName!, typeof(SmartNutrition.Api.Features.Relationships.DietitianClientRelationship).FullName!],
@@ -99,7 +99,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddWebAuthSessions", migration),
             migration => Assert.EndsWith("_AddDietitianApplicationsAndAdminMfa", migration),
             migration => Assert.EndsWith("_AddRelationshipsAndSharingPermissions", migration),
-            migration => Assert.EndsWith("_AddNutritionPlansAndVersions", migration));
+            migration => Assert.EndsWith("_AddNutritionPlansAndVersions", migration),
+            migration => Assert.EndsWith("_AddRefreshTokens", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -141,7 +142,7 @@ public sealed class InfrastructureTests
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
         Assert.Equal(new[] { "/api/v1/admin/dietitians", "/api/v1/admin/dietitians/{dietitianId}/verify",
-            "/api/v1/auth/admin-web-session", "/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/me",
+            "/api/v1/auth/admin-web-session", "/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/me", "/api/v1/auth/refresh",
             "/api/v1/auth/register", "/api/v1/auth/resend-verification", "/api/v1/auth/verify-email", "/api/v1/auth/web-session",
             "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me", "/api/v1/dietitians/me/invitation-code",
             "/api/v1/dietitian-relationships", "/api/v1/dietitian-relationships/{relationshipId}/accept", "/api/v1/dietitian-relationships/{relationshipId}/reject", "/api/v1/dietitian-relationships/{relationshipId}/end",
@@ -173,7 +174,7 @@ public sealed class InfrastructureTests
         if (loginResponse.TryGetProperty("$ref", out var responseReference))
             loginResponse = document.RootElement.GetProperty("components").GetProperty("schemas")
                 .GetProperty(responseReference.GetString()!.Split('/').Last());
-        Assert.Equal(["accessToken", "expiresAt", "tokenType"], loginResponse.GetProperty("properties").EnumerateObject().Select(field => field.Name).Order().ToArray());
+        Assert.Equal(["accessToken", "expiresAt", "refreshToken", "refreshTokenExpiresAt", "tokenType"], loginResponse.GetProperty("properties").EnumerateObject().Select(field => field.Name).Order().ToArray());
         Assert.True(paths.GetProperty("/api/v1/auth/verify-email").TryGetProperty("post", out _));
         Assert.True(paths.GetProperty("/api/v1/auth/resend-verification").TryGetProperty("post", out _));
         foreach (var (route, input, success) in new[]

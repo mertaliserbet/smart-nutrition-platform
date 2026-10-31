@@ -11,6 +11,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<User> Users => Set<User>();
     public DbSet<ClientProfile> ClientProfiles => Set<ClientProfile>();
     public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<DietitianProfile> DietitianProfiles => Set<DietitianProfile>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
     public DbSet<DietitianClientRelationship> DietitianClientRelationships => Set<DietitianClientRelationship>();
@@ -23,6 +24,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         base.OnModelCreating(modelBuilder);
         AuthModelConfiguration.Configure(modelBuilder);
         AuthSession.Configure(modelBuilder);
+        RefreshToken.Configure(modelBuilder);
         DietitianProfile.Configure(modelBuilder);
         AuditEvent.Configure(modelBuilder);
         DietitianClientRelationship.Configure(modelBuilder);
