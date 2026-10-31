@@ -13,6 +13,7 @@ class AuthPageLayout extends StatelessWidget {
     required this.icon,
     required this.child,
     this.footer,
+    this.notice = 'Bu ekranda giriş veya e-posta gönderimi yapılmaz.',
     super.key,
   });
 
@@ -21,6 +22,7 @@ class AuthPageLayout extends StatelessWidget {
   final IconData icon;
   final Widget child;
   final Widget? footer;
+  final String notice;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +98,7 @@ class AuthPageLayout extends StatelessWidget {
                       ),
                       const SizedBox(height: AppTokens.spacingLarge),
                       Text(
-                        'Arayüz önizlemesi · Giriş, kayıt ve e-posta gönderimi yapılmaz.',
+                        notice,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colors.primary,
                         ),
@@ -200,17 +202,19 @@ class AuthSubmitButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     required this.isLoading,
+    this.enabled = true,
     super.key,
   });
 
   final String label;
   final VoidCallback onPressed;
   final bool isLoading;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return FilledButton(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: isLoading || !enabled ? null : onPressed,
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.all(AppTokens.spacingMedium),
       ),

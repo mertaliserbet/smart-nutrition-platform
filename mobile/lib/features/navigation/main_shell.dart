@@ -7,7 +7,9 @@ import '../profile/profile_page.dart';
 import '../progress/progress_page.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  const MainShell({this.initialIndex = 0, this.onLogout, super.key});
+  final int initialIndex;
+  final VoidCallback? onLogout;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -37,7 +39,7 @@ class _MainShellState extends State<MainShell> {
     ),
   ];
 
-  int _selectedIndex = 0;
+  late int _selectedIndex = widget.initialIndex;
 
   void _selectTab(int index) {
     if (index == _selectedIndex) return;
@@ -59,6 +61,14 @@ class _MainShellState extends State<MainShell> {
           automaticallyImplyLeading: false,
           centerTitle: false,
           titleSpacing: AppTokens.spacingLarge,
+          actions: [
+            if (widget.onLogout != null)
+              IconButton(
+                onPressed: widget.onLogout,
+                tooltip: 'Çıkış yap',
+                icon: const Icon(Icons.logout_rounded),
+              ),
+          ],
           title: Text(
             _selectedIndex == 0
                 ? 'Smart Nutrition'

@@ -1,5 +1,11 @@
 /// Local form checks aligned with the approved registration contract.
 abstract final class AuthValidation {
+  static String? verificationToken(String? value) {
+    return RegExp(r'^[A-Za-z0-9_-]{43}$').hasMatch(value?.trim() ?? '')
+        ? null
+        : 'E-postadaki 43 karakterlik doğrulama kodunu eksiksiz girin.';
+  }
+
   static String? displayName(String? value) {
     return value == null || value.trim().isEmpty
         ? 'Adınızı ve soyadınızı girin.'

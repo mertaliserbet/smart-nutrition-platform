@@ -154,28 +154,38 @@ void main() {
     });
   }
 
-  testWidgets('valid form input never unlocks the application', (tester) async {
-    await tester.pumpWidget(const SmartNutritionApp());
-    await tester.enterText(
-      find.byType(TextFormField).at(0),
-      'ornek@example.com',
-    );
-    await tester.enterText(find.byType(TextFormField).at(1), 'Sentetik parola');
-    final submit = find.widgetWithText(FilledButton, 'Giriş yap');
-    await tester.ensureVisible(submit);
-    await tester.pumpAndSettle();
-    await tester.tap(submit);
-    await tester.pumpAndSettle();
-    expect(
-      find.text('Giriş şu anda kullanıma açık değil. Oturum açılmadı.'),
-      findsOneWidget,
-    );
-    expectNoProtectedScreens();
-    await tester.pumpWidget(const SmartNutritionApp(key: ValueKey('restart')));
-    expect(find.byType(LoginPage), findsOneWidget);
-    expectNoProtectedScreens();
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'valid form input without server verification never unlocks the application',
+    (tester) async {
+      await tester.pumpWidget(const SmartNutritionApp());
+      await tester.enterText(
+        find.byType(TextFormField).at(0),
+        'ornek@example.com',
+      );
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        'Sentetik parola',
+      );
+      final submit = find.widgetWithText(FilledButton, 'Giriş yap');
+      await tester.ensureVisible(submit);
+      await tester.pumpAndSettle();
+      await tester.tap(submit);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          'Sunucu yanıtı doğrulanamadı. Oturum açılmadı; lütfen tekrar deneyin.',
+        ),
+        findsOneWidget,
+      );
+      expectNoProtectedScreens();
+      await tester.pumpWidget(
+        const SmartNutritionApp(key: ValueKey('restart')),
+      );
+      expect(find.byType(LoginPage), findsOneWidget);
+      expectNoProtectedScreens();
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 void expectNoProtectedScreens() {

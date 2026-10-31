@@ -63,6 +63,10 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
   birden fazlaysa cihaz kimliğine göre ilk emülatör kullanılır. Emülatör/Flutter
   yoksa veya mobil çalıştırma başarısızsa uyarı verilir, backend/web açık kalır.
   Script emülatör açmaz ve grafik arayüzü kontrol etmez.
+  Mobil API, `adb reverse tcp:7099 tcp:7099` üzerinden `https://localhost:7099`
+  kullanır. Yalnız mevcut açık PEM sertifikası debug'a aktarılır; özel anahtar
+  ve TLS doğrulamasını kapatan seçenek kullanılmaz. Script başka hedefe bağlı
+  mevcut 7099 tünelini değiştirmez; kendi açtığı tüneli çıkışta kaldırır.
 
 `Ctrl+C`, bu çalıştırmanın uygulama süreçlerini ve alt süreçlerini kapatır;
 Flutter'a önce `q` gönderilir, kalan süreçler Windows Job Object ile sonlandırılır.

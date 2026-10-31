@@ -228,6 +228,7 @@ function Start-Development {
     $ownedServices = [Collections.Generic.List[string]]::new()
     $docker = $null
     $flutterApp = $null
+    $mobileTunnel = $null
     [SmartNutrition.Development.Cancellation]::Listen()
     try {
         Write-ServiceLog 'Başlatıcı' 'Ön kontroller yapılıyor; Ctrl+C ile durdurabilirsiniz.' Cyan
@@ -326,7 +327,32 @@ function Start-Development {
                         Write-ServiceLog 'Mobil' 'Flutter paketleri eksik. mobile içinde flutter pub get çalıştırın; diğer servisler açık kalacak.' Yellow
                     } else {
                         Write-ServiceLog 'Mobil' "Android emülatörü: $($emulator.name) ($($emulator.id))." Cyan
-                        $flutterApp = Start-ServiceProcess 'Mobil' $flutter.Source @('run', '--no-pub', '-d', $emulator.id) $mobile -Environment @{ GRADLE_OPTS = "$env:GRADLE_OPTS -Dorg.gradle.daemon=false" }
+                        $adbCommand = Get-Command adb -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+                        $adbPath = if ($adbCommand) { $adbCommand.Source } else { $null }
+                        foreach ($sdk in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, (Join-Path $env:LOCALAPPDATA 'Android/sdk'))) {
+                            if (-not $adbPath -and -not [string]::IsNullOrWhiteSpace($sdk)) {
+                                $candidate = Join-Path $sdk 'platform-tools/adb.exe'
+                                if (Test-Path -LiteralPath $candidate -PathType Leaf) { $adbPath = $candidate }
+                            }
+                        }
+                        if (-not $adbPath) { throw 'Android SDK adb bulunamadı; SDK kurulumunu kontrol edin.' }
+                        $reverse = Invoke-ServiceCommand 'Mobil HTTPS tünel kontrolü' $adbPath @('-s', $emulator.id, 'reverse', '--list') $mobile -Quiet
+                        $httpsTunnel = [regex]::Match($reverse, '(?m)^\S+[ \t]+tcp:7099[ \t]+(?<target>\S+)')
+                        if ($httpsTunnel.Success -and $httpsTunnel.Groups['target'].Value -ne 'tcp:7099') { throw 'Emülatörde 7099 portu başka bir hedefe bağlı; mevcut tünel korunuyor.' }
+                        if (-not $httpsTunnel.Success) {
+                            [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli' $adbPath @('-s', $emulator.id, 'reverse', 'tcp:7099', 'tcp:7099') $mobile -Quiet)
+                            $mobileTunnel = @{ Adb = $adbPath; Device = $emulator.id }
+                        }
+                        # Only the existing public PEM is passed, never its private key.
+                        $publicPem = [IO.File]::ReadAllText($certificate)
+                        if ($publicPem -match 'PRIVATE KEY' -or $publicPem -notmatch '-----BEGIN CERTIFICATE-----') {
+                            throw 'Mobil bağlantı yalnız özel anahtar içermeyen açık PEM sertifikasını kabul eder.'
+                        }
+                        $publicCertificate = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($publicPem))
+                        $publicPem = $null
+                        $mobileArguments = @('run', '--no-pub', '-d', $emulator.id, "--dart-define=API_BASE_URL=$apiUrl", "--dart-define=API_DEV_CERT_BASE64=$publicCertificate")
+                        $flutterApp = Start-ServiceProcess 'Mobil' $flutter.Source $mobileArguments $mobile -Environment @{ GRADLE_OPTS = "$env:GRADLE_OPTS -Dorg.gradle.daemon=false" }
+                        $publicCertificate = $null
                     }
                 } else { Write-ServiceLog 'Mobil' 'Çalışan Android emülatörü bulunamadı. Emülatörü kendiniz açıp scripti yeniden çalıştırabilirsiniz; backend/web açık kalacak.' Yellow }
             } catch [OperationCanceledException] { throw }
@@ -358,13 +384,22 @@ function Start-Development {
             try { [void]$child.Process.WaitForExit(5000); Receive-ServiceLogs $child } catch { }
             $child.Process.Dispose()
         }
-        if ($docker -and $ownedServices.Count -gt 0) {
+        if ($mobileTunnel -or ($docker -and $ownedServices.Count -gt 0)) {
             # Cleanup must still work after cancellation; volumes/containers are never removed.
             [SmartNutrition.Development.Cancellation]::Requested = $false
             $script:ProcessGroup = [SmartNutrition.Development.ProcessGroup]::new()
             $script:Children = [Collections.Generic.List[object]]::new()
             try {
-                [void](Invoke-ServiceCommand 'Docker kapatma' $docker (@('compose', 'stop', '--timeout', '10') + $ownedServices.ToArray()) $backend -TimeoutSeconds 30)
+                if ($mobileTunnel) {
+                    try {
+                        [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli kapatma' $mobileTunnel.Adb @('-s', $mobileTunnel.Device, 'reverse', '--remove', 'tcp:7099') $mobile -Quiet)
+                    } catch {
+                        Write-ServiceLog 'Mobil' 'HTTPS tüneli kaldırılamadı; emülatör kapalıysa tünel zaten sona ermiştir.' Yellow
+                    }
+                }
+                if ($docker -and $ownedServices.Count -gt 0) {
+                    [void](Invoke-ServiceCommand 'Docker kapatma' $docker (@('compose', 'stop', '--timeout', '10') + $ownedServices.ToArray()) $backend -TimeoutSeconds 30)
+                }
             } catch {
                 $cleanupFailed = $true
                 Write-ServiceLog 'Docker' "Kapatma tamamlanamadı. backend içinde docker compose stop $($ownedServices -join ' ') çalıştırın. Veriler silinmedi." Yellow

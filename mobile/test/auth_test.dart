@@ -8,6 +8,7 @@ import 'package:smart_nutrition_mobile/features/auth/email_verification_page.dar
 import 'package:smart_nutrition_mobile/features/auth/forgot_password_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/register_page.dart';
+import 'package:smart_nutrition_mobile/features/auth/registration_api.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 
 void main() {
@@ -69,9 +70,7 @@ void main() {
   ) async {
     await pumpAuth(tester, const LoginPage());
     expect(
-      find.text(
-        'Arayüz önizlemesi · Giriş, kayıt ve e-posta gönderimi yapılmaz.',
-      ),
+      find.text('Giriş için e-posta adresinizin doğrulanmış olması gerekir.'),
       findsOneWidget,
     );
     await tapText(tester, 'Giriş yap');
@@ -116,35 +115,38 @@ void main() {
     },
   );
 
-  testWidgets('valid login and keyboard submission never create a session', (
-    tester,
-  ) async {
-    await pumpAuth(tester, const LoginPage());
-    await enterField(tester, 0, 'ornek@example.com');
-    await enterField(tester, 1, 'Deneme parolası!');
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pumpAndSettle();
+  testWidgets(
+    'keyboard login without a valid API response never creates a session',
+    (tester) async {
+      await pumpAuth(tester, const LoginPage());
+      await enterField(tester, 0, 'ornek@example.com');
+      await enterField(tester, 1, 'Deneme parolası!');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
 
-    expect(
-      find.text('Giriş şu anda kullanıma açık değil. Oturum açılmadı.'),
-      findsOneWidget,
-    );
-    expect(find.byType(LoginPage), findsOneWidget);
-    expect(find.byType(MainShell), findsNothing);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
-    await enterField(tester, 0, 'baska@example.com');
-    expect(
-      find.text('Giriş şu anda kullanıma açık değil. Oturum açılmadı.'),
-      findsNothing,
-    );
-  });
+      expect(
+        find.text(
+          'Sunucu yanıtı doğrulanamadı. Oturum açılmadı; lütfen tekrar deneyin.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(MainShell), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      await enterField(tester, 0, 'baska@example.com');
+      expect(
+        find.text(
+          'Sunucu yanıtı doğrulanamadı. Oturum açılmadı; lütfen tekrar deneyin.',
+        ),
+        findsNothing,
+      );
+    },
+  );
 
   testWidgets(
-    'registration validates confirmation and does not create an account',
+    'registration validates fields and stays on the form after API rejection',
     (tester) async {
-      tester.platformDispatcher.defaultRouteNameTestValue = '/register';
-      addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
-      await tester.pumpWidget(const SmartNutritionApp());
+      await pumpAuth(tester, const RegisterPage());
       expect(find.byType(TextFormField), findsNWidgets(4));
       await tapText(tester, 'Kayıt ol');
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
@@ -167,20 +169,11 @@ void main() {
       await enterField(tester, 3, 'Deneme parolası! ');
       await tapText(tester, 'Kayıt ol');
 
-      expect(
-        find.text(
-          'Hesap oluşturma şu anda kullanıma açık değil. Hesap oluşturulmadı.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(registrationTestError), findsOneWidget);
       expect(find.byType(RegisterPage), findsOneWidget);
       expect(find.byType(EmailVerificationPage), findsNothing);
       expect(find.byType(MainShell), findsNothing);
       expect(find.byType(NavigationBar, skipOffstage: false), findsNothing);
-      await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
-      expect(find.byType(LoginPage), findsOneWidget);
-      expect(find.byType(MainShell, skipOffstage: false), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );
@@ -200,8 +193,7 @@ void main() {
         final expected = switch (length) {
           7 => 'Şifreniz en az 8 karakter olmalıdır.',
           129 => 'Şifreniz en fazla 128 karakter olabilir.',
-          _ =>
-            'Hesap oluşturma şu anda kullanıma açık değil. Hesap oluşturulmadı.',
+          _ => registrationTestError,
         };
         expect(find.text(expected), findsOneWidget);
         expect(
@@ -231,8 +223,7 @@ void main() {
     await enterField(tester, 2, 'Sentetik şifre');
     expect(find.text('Şifreler eşleşmiyor.'), findsNothing);
     await tapText(tester, 'Kayıt ol');
-    const feedback =
-        'Hesap oluşturma şu anda kullanıma açık değil. Hesap oluşturulmadı.';
+    const feedback = registrationTestError;
     expect(find.text(feedback), findsOneWidget);
     await enterField(tester, 0, 'İpek Şen Yılmaz');
     expect(find.text(feedback), findsNothing);
@@ -273,60 +264,6 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('verification preview keeps email context and clears passwords', (
-    tester,
-  ) async {
-    tester.platformDispatcher.defaultRouteNameTestValue = '/register';
-    addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
-    await tester.pumpWidget(const SmartNutritionApp());
-    await enterField(tester, 0, 'İpek Şen');
-    await enterField(tester, 1, ' ornek@example.test ');
-    await enterField(tester, 2, 'Sentetik parola');
-    await enterField(tester, 3, 'Sentetik parola');
-    await tapText(tester, 'E-posta doğrulama adımını incele');
-    expect(find.byType(EmailVerificationPage), findsOneWidget);
-    expect(find.text('ornek@example.test'), findsOneWidget);
-    expect(
-      find.text(
-        'Bu önizlemede doğrulama e-postası gönderilmez ve adres doğrulanmaz.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.byType(MainShell, skipOffstage: false), findsNothing);
-    await tapText(tester, 'Önceki ekrana dön');
-    expect(find.byType(RegisterPage), findsOneWidget);
-    for (final index in [2, 3]) {
-      expect(
-        tester
-            .widget<TextField>(find.byType(TextField).at(index))
-            .controller!
-            .text,
-        isEmpty,
-      );
-    }
-    expect(
-      tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text,
-      'İpek Şen',
-    );
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
-    expect(find.byType(MainShell, skipOffstage: false), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('verification preview omits an invalid email address', (
-    tester,
-  ) async {
-    await pumpAuth(tester, const RegisterPage());
-    await enterField(tester, 1, 'gecersiz-adres');
-    await tapText(tester, 'E-posta doğrulama adımını incele');
-    expect(find.byType(EmailVerificationPage), findsOneWidget);
-    expect(find.text('E-posta adresi'), findsNothing);
-    expect(find.text('gecersiz-adres'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
-
   testWidgets('KVKK information is accessible without consent or form changes', (
     tester,
   ) async {
@@ -364,12 +301,7 @@ void main() {
         before,
       );
       await tapText(tester, 'Kayıt ol');
-      expect(
-        find.text(
-          'Hesap oluşturma şu anda kullanıma açık değil. Hesap oluşturulmadı.',
-        ),
-        findsOneWidget,
-      );
+      expect(find.text(registrationTestError), findsOneWidget);
       expect(find.byType(EmailVerificationPage), findsNothing);
       expect(find.byType(MainShell), findsNothing);
       expect(tester.takeException(), isNull);
@@ -407,17 +339,16 @@ void main() {
       await enterField(tester, 1, 'Deneme parolası!');
       await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
       expect(find.byType(RegisterPage), findsOneWidget);
-      await tapText(tester, 'E-posta doğrulama adımını incele');
+      expect(find.text('E-posta doğrulama adımını incele'), findsNothing);
+      await tapText(tester, 'Zaten hesabınız var mı? Girişe dön');
+      expect(find.byType(LoginPage), findsOneWidget);
+      await tapText(tester, 'E-posta doğrulama hakkında');
       expect(find.byType(EmailVerificationPage), findsOneWidget);
       expect(
-        find.text(
-          'Bu önizlemede doğrulama e-postası gönderilmez ve adres doğrulanmaz.',
-        ),
+        find.text('E-posta adresinizi doğrulamadan oturum açılmaz.'),
         findsOneWidget,
       );
       await tapText(tester, 'Önceki ekrana dön');
-      expect(find.byType(RegisterPage), findsOneWidget);
-      await tapText(tester, 'Zaten hesabınız var mı? Girişe dön');
       expect(find.byType(LoginPage), findsOneWidget);
       expect(
         tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
@@ -584,9 +515,29 @@ void main() {
 }
 
 Future<void> pumpAuth(WidgetTester tester, Widget page) async {
+  if (page is RegisterPage && page.registrationApi == null) {
+    page = RegisterPage(
+      isLoading: page.isLoading,
+      errorMessage: page.errorMessage,
+      registrationApi: RejectedRegistrationApi(),
+    );
+  }
   await tester.pumpWidget(
     MaterialApp(theme: AppTheme.light, darkTheme: AppTheme.dark, home: page),
   );
+}
+
+const registrationTestError = 'Örnek kayıt servisi hatası.';
+
+class RejectedRegistrationApi extends RegistrationApi {
+  @override
+  Future<void> register({
+    required String displayName,
+    required String email,
+    required String password,
+  }) async {
+    throw const RegistrationApiException(registrationTestError);
+  }
 }
 
 Future<void> enterField(WidgetTester tester, int index, String value) async {
