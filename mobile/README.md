@@ -25,6 +25,39 @@ flutter test
 `flutter run` için bağlı Android/iOS cihazı veya emülatör gerekir; iOS derleme ve
 çalıştırma için macOS/Xcode gerekir.
 
+## Diyetisyen Bul — gerçek API bağlantısı
+
+Üst çubuktaki **Diyetisyen Bul** simgesi veya Profil'deki aynı seçenek,
+Auth Gate ile korunan `/dietitians` ekranını açar. Mevcut açık/koyu tema ve
+alt sekmeler korunur. `GET /api/v1/dietitians?page=1&pageSize=10&query=...`
+yalnız sunucunun onaylı uzman listesini kullanır; arama ve sayfalama desteklenir.
+Public DTO yalnız `id/displayName` içerdiğinden profil görünümü ad ve onay
+bilgisiyle sınırlıdır; biyografi, belge, iletişim bilgisi veya puan uydurulmaz.
+
+`GET /api/v1/dietitian-relationships` ile active ve pending ayrı okunur;
+bekleyenler sayfalanır. `POST` gövdesi yalnız `{dietitianId}` veya
+`{invitationCode}` olur. Kod 16 Base32 karakteridir; kırpılır/büyük harfe çevrilir.
+İlişki çağrıları mevcut doğrulanmış JWT ve `X-Profile-Context: client` kullanır;
+clientId/userId/rol gönderilmez, cookie eklenmez. Başarı yalnız geçerli `201`
+pending yanıtıdır; uzman kabulü ve veri paylaşım izni ayrı işlemlerdir.
+İlişki DTO'sunda uzman adı yoktur; ekranda adı mevcut arama sonuçlarından
+biliniyorsa gösterilir, bilinmiyorsa genel bağlantı durumu kullanılır.
+
+Aktif ilişki veya bilinen aynı pending istek yeniden gönderilemez. Sunucudaki
+409/422/429, ağ, TLS ve sunucu hataları Türkçe gösterilir. POST otomatik
+tekrarlanmaz; belirsiz sonuç/çatışma sonrası bağlantıları yenilemek gerekir.
+429 için Retry-After (yoksa bir dakika) beklenir ve kullanıcı yeniden kontrol
+eder. GET 401 sonrası mevcut tek refresh akışıyla en fazla bir kez okunur;
+geçersiz oturum Auth Gate'i kapatır. Çıkış/değişen hesap eski yanıtları reddeder.
+Mevcut API_BASE_URL ve geliştirme sertifikası yapılandırması aynen kullanılır.
+
+`flutter test` içindeki `dietitian_api_test.dart` gerçek loopback HTTP taşımasını,
+`dietitian_finder_test.dart` ekran davranışlarını doğrular. İsteğe bağlı
+`flutter test test/dietitian_live_probe.dart`, yalnız önceden hazırlanmış geçici
+hesaplarla gerçek HTTPS akışını çalıştırır. Girdiler `SNP_LIVE_` önekli ORIGIN,
+PASSWORD, CLIENT_A, CLIENT_B, QUERY, EXPERT_ID, EXPERT_EMAIL, INVITATION ortam
+değişkenleridir; kurulum/temizlik çağırana aittir. Bu test cihaz UI testi değildir.
+
 ## Diyetisyen başvurusu için web yönlendirmesi
 
 Profil → **Diyetisyen Olarak Başvur**, uygulama içindeki bilgilendirme ekranını
@@ -33,8 +66,9 @@ kullanarak `/uzman-basvurusu` adresini varsayılan tarayıcıya gönderir;
 **Adresi Kopyala** aynı adresi panoya yazar. Tarayıcı hatasında kopyalama seçeneği
 korunur. Mobil form/belge yükleme veya yetki değişimi yoktur; e-posta doğrulaması
 ve mevcut Admin onayı gerekir. Web akışı bağımsızdır, JWT/refresh/cookie/kimlik
-URL veya header ile aktarılmaz. Mevcut web başvurusu ayrı diyetisyen hesabı
-oluşturur; kayıtlı mobil danışan e-postasını kullanmak mevcut API'de `409` verir.
+URL veya header ile aktarılmaz. Webde yeni hesap başvurusu mükerrer e-postada
+`409` verir; doğrulanmış danışan mevcut web hesabıyla giriş yapıp aynı User'a
+başvurabilir. Admin onayı sonrası danışan verileri ve temel rol korunur.
 
 Origin `lib/core/network/web_config.dart` içinde `WEB_BASE_URL` ile yönetilir.
 Yalnız HTTPS scheme/host/port kabul edilir; path, query, fragment veya kimlik

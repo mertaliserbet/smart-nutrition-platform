@@ -6,11 +6,13 @@ import 'login_page.dart';
 import 'register_page.dart';
 import 'auth_session.dart';
 import '../navigation/main_shell.dart';
+import '../dietitians/dietitian_finder_page.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
-  const AuthGate({this.initialIndex = 0, super.key});
+  const AuthGate({this.initialIndex = 0, this.child, super.key});
   final int initialIndex;
+  final Widget? child;
 
   static Route<void> route(RouteSettings settings) {
     final page = switch (settings.name) {
@@ -20,6 +22,7 @@ class AuthGate extends StatelessWidget {
       '/nutrition' => const AuthGate(initialIndex: 1),
       '/progress' => const AuthGate(initialIndex: 2),
       '/profile' => const AuthGate(initialIndex: 3),
+      '/dietitians' => const AuthGate(child: DietitianFinderPage()),
       _ => const AuthGate(),
     };
 
@@ -33,10 +36,11 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = AuthSessionScope.maybeOf(context);
     return session?.isAuthenticated == true
-        ? MainShell(
-            initialIndex: initialIndex,
-            onLogout: () => session!.signOut(),
-          )
+        ? child ??
+              MainShell(
+                initialIndex: initialIndex,
+                onLogout: () => session!.signOut(),
+              )
         : const LoginPage();
   }
 }

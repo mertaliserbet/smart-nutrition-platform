@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 
+import '../../core/network/json_api.dart';
+
 import 'login_api.dart';
 import 'refresh_token_store.dart';
 
@@ -64,6 +66,70 @@ class AuthSession extends ChangeNotifier {
   bool get canRetry => !_working && _phase != SessionPhase.reauthenticate;
   CurrentUserResponse? get user => isAuthenticated ? _user : null;
   String? get notice => _notice;
+
+  /// Reads may recover once after a 401; a mutation is never replayed.
+  Future<JsonApiResponse> authorizedRequest({
+    required String path,
+    Map<String, String>? payload,
+    String? profileContext,
+  }) async {
+    final generation = _generation;
+    if (_renewal != null) await _renewal;
+    if (!isAuthenticated && _current(generation)) await refresh();
+    for (var attempt = 0; attempt < 2; attempt++) {
+      if (!_current(generation) || !isAuthenticated) {
+        throw const LoginApiException(
+          'Oturumunuz doğrulanamadı. Lütfen giriş yapın.',
+          unauthorized: true,
+        );
+      }
+      final token = _accessToken!;
+      final revision = _accessRevision;
+      void unauthorized() {
+        if (_current(generation) && revision == _accessRevision) {
+          _clearAccess();
+          _phase = SessionPhase.working;
+          _notify();
+        }
+      }
+
+      final response = payload == null
+          ? await getJson(
+              path: path,
+              accessToken: token,
+              profileContext: profileContext,
+              baseUri: _api.baseUri,
+              timeout: _api.timeout,
+              onUnauthorized: unauthorized,
+            )
+          : await postJson(
+              path: path,
+              payload: payload,
+              accessToken: token,
+              profileContext: profileContext,
+              baseUri: _api.baseUri,
+              timeout: _api.timeout,
+              onUnauthorized: unauthorized,
+            );
+      if (!_current(generation)) {
+        throw const LoginApiException(
+          'Oturum değişti. Lütfen tekrar giriş yapın.',
+          unauthorized: true,
+        );
+      }
+      if (response.statusCode != 401) return response;
+      if (attempt == 1) {
+        await _forget(
+          generation,
+          'Oturumunuz geçersiz. Lütfen tekrar giriş yapın.',
+        );
+        return response;
+      }
+      if (!isAuthenticated) await refresh();
+      if (payload != null) return response;
+    }
+    throw StateError('Unreachable authentication attempt.');
+  }
 
   Future<T> _storage<T>(Future<T> Function() action) {
     final result = _storageTail.then((_) => action());

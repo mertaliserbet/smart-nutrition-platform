@@ -15,6 +15,8 @@ typedef JsonApiResponse = ({
 Future<JsonApiResponse> postJson({
   required String path,
   required Map<String, String> payload,
+  String? accessToken,
+  String? profileContext,
   Uri? baseUri,
   Duration timeout = const Duration(seconds: 20),
   void Function()? onRequestSending,
@@ -23,6 +25,8 @@ Future<JsonApiResponse> postJson({
   method: 'POST',
   path: path,
   payload: payload,
+  accessToken: accessToken,
+  profileContext: profileContext,
   baseUri: baseUri,
   timeout: timeout,
   onRequestSending: onRequestSending,
@@ -32,6 +36,7 @@ Future<JsonApiResponse> postJson({
 Future<JsonApiResponse> getJson({
   required String path,
   required String accessToken,
+  String? profileContext,
   Uri? baseUri,
   Duration timeout = const Duration(seconds: 20),
   void Function()? onUnauthorized,
@@ -39,6 +44,7 @@ Future<JsonApiResponse> getJson({
   method: 'GET',
   path: path,
   accessToken: accessToken,
+  profileContext: profileContext,
   baseUri: baseUri,
   timeout: timeout,
   onUnauthorized: onUnauthorized,
@@ -49,6 +55,7 @@ Future<JsonApiResponse> _requestJson({
   required String path,
   Map<String, String>? payload,
   String? accessToken,
+  String? profileContext,
   Uri? baseUri,
   required Duration timeout,
   void Function()? onUnauthorized,
@@ -78,6 +85,12 @@ Future<JsonApiResponse> _requestJson({
         );
       }
       request.headers.set(HttpHeaders.acceptHeader, 'application/json');
+      if (profileContext != null) {
+        if (profileContext != 'client' && profileContext != 'dietitian') {
+          throw const FormatException('Invalid profile context.');
+        }
+        request.headers.set('X-Profile-Context', profileContext);
+      }
       if (accessToken != null) {
         request.headers.set(
           HttpHeaders.authorizationHeader,

@@ -62,6 +62,11 @@ class _MainShellState extends State<MainShell> {
           centerTitle: false,
           titleSpacing: AppTokens.spacingLarge,
           actions: [
+            IconButton(
+              onPressed: () => Navigator.of(context).pushNamed('/dietitians'),
+              tooltip: 'Diyetisyen Bul',
+              icon: const Icon(Icons.person_search_outlined),
+            ),
             if (widget.onLogout != null)
               IconButton(
                 onPressed: widget.onLogout,

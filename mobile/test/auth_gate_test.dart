@@ -12,6 +12,7 @@ import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/dietitian_application_info_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
+import 'package:smart_nutrition_mobile/features/dietitians/dietitian_finder_page.dart';
 
 void main() {
   for (final brightness in Brightness.values) {
@@ -96,6 +97,7 @@ void main() {
     '/progress',
     '/profile',
     '/dietitian-application',
+    '/dietitians',
     '/meal-log',
     '/unknown',
   ]) {
@@ -206,6 +208,7 @@ void expectNoProtectedScreens() {
     ProgressPage,
     ProfilePage,
     DietitianApplicationInfoPage,
+    DietitianFinderPage,
     ManualMealLogPage,
     NavigationBar,
   ]) {

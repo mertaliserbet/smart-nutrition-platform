@@ -13,17 +13,28 @@ class ProfilePage extends StatelessWidget {
       title: 'Kişisel alanınız',
       description:
           'Profil bilgileriniz ve gizlilik tercihleriniz burada yer alacak.',
-      action: FilledButton(
-        onPressed: () => Navigator.of(context).push<void>(
-          MaterialPageRoute<void>(
-            settings: const RouteSettings(name: '/dietitian-application'),
-            builder: (context) => const DietitianApplicationInfoPage(),
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed('/dietitians'),
+            icon: const Icon(Icons.person_search_outlined),
+            label: const Text('Diyetisyen Bul', textAlign: TextAlign.center),
           ),
-        ),
-        child: const Text(
-          'Diyetisyen Olarak Başvur',
-          textAlign: TextAlign.center,
-        ),
+          const SizedBox(height: 8),
+          FilledButton(
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                settings: const RouteSettings(name: '/dietitian-application'),
+                builder: (context) => const DietitianApplicationInfoPage(),
+              ),
+            ),
+            child: const Text(
+              'Diyetisyen Olarak Başvur',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
