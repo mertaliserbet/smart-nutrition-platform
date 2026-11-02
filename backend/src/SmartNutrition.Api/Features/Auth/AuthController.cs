@@ -13,8 +13,39 @@ namespace SmartNutrition.Api.Features.Auth;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(UserRegistrationService registration, EmailVerificationService verification,
     VerificationEmailQueue emailQueue, UserLoginService login, CurrentUserService currentUser,
-    RefreshTokenService refreshTokens) : ControllerBase
+    RefreshTokenService refreshTokens, PasswordResetService passwordReset, PasswordResetEmailQueue resetEmails) : ControllerBase
 {
+    [AllowAnonymous, HttpPost("password-reset-requests"), Consumes("application/json"), RequestSizeLimit(4096), EnableRateLimiting("password-reset-request")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult RequestPasswordReset(PasswordResetRequest request)
+    {
+        if (Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        resetEmails.Enqueue(request.Email!.Trim());
+        return Accepted();
+    }
+
+    [AllowAnonymous, HttpPost("reset-password"), Consumes("application/json"), RequestSizeLimit(4096), EnableRateLimiting("password-reset-consume")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType(StatusCodes.Status415UnsupportedMediaType)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        var email = await passwordReset.ResetAsync(request.Token, request.Password, cancellationToken);
+        if (email is null) return StatusCode(422, ApiErrors.Create(HttpContext, 422));
+        resetEmails.Enqueue(email, completed: true);
+        return NoContent();
+    }
+
     [Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme)]
     [HttpGet("me")]
     [ProducesResponseType<CurrentUserResponse>(StatusCodes.Status200OK)]

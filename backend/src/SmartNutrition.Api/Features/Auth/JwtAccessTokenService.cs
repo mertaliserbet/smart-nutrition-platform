@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Globalization;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -22,7 +23,8 @@ public sealed class JwtAccessTokenService(IOptions<JwtOptions> settings, TimePro
         {
             Issuer = jwt.Issuer, Audience = jwt.Audience,
             Subject = new ClaimsIdentity([new Claim("sub", user.Id.ToString("D")),
-                new Claim("role", user.Role.ToString().ToLowerInvariant())]),
+                new Claim("role", user.Role.ToString().ToLowerInvariant()),
+                new Claim("credentialsVersion", user.CredentialsVersion.ToString(CultureInfo.InvariantCulture))]),
             IssuedAt = now.UtcDateTime, NotBefore = now.UtcDateTime, Expires = expiresAt.UtcDateTime,
             SigningCredentials = new SigningCredentials(jwt.CreateSigningKey(), SecurityAlgorithms.HmacSha256),
             TokenType = "at+jwt"

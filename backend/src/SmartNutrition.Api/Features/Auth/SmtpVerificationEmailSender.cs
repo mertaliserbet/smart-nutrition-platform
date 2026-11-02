@@ -12,9 +12,21 @@ public interface IVerificationEmailSender
 }
 
 public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, IHostEnvironment environment)
-    : IVerificationEmailSender
+    : IVerificationEmailSender, IPasswordResetEmailSender
 {
-    public async Task SendAsync(string recipient, string token, CancellationToken cancellationToken)
+    public Task SendAsync(string recipient, string token, CancellationToken cancellationToken) =>
+        SendMessageAsync(recipient, "Smart Nutrition — E-posta doğrulama",
+            $"E-posta doğrulama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nBu isteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);
+
+    public Task SendResetAsync(string recipient, string token, CancellationToken cancellationToken) =>
+        SendMessageAsync(recipient, "Smart Nutrition — Parola sıfırlama",
+            $"Parola sıfırlama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nKodu parola sıfırlama formuna yapıştırın. İsteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);
+
+    public Task SendResetCompletedAsync(string recipient, CancellationToken cancellationToken) =>
+        SendMessageAsync(recipient, "Smart Nutrition — Parolanız değiştirildi",
+            "Parolanız değiştirildi ve mevcut oturumlarınız iptal edildi. İşlemi siz yapmadıysanız hesabınızın güvenliğini kontrol edin.", cancellationToken);
+
+    private async Task SendMessageAsync(string recipient, string subject, string body, CancellationToken cancellationToken)
     {
         var options = settings.Value;
         if (string.IsNullOrWhiteSpace(options.Host) || string.IsNullOrWhiteSpace(options.FromAddress) || options.Port is < 1 or > 65535)
@@ -33,11 +45,8 @@ public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, 
         using var message = new MimeMessage();
         message.From.Add(MailboxAddress.Parse(options.FromAddress));
         message.To.Add(MailboxAddress.Parse(recipient));
-        message.Subject = "Smart Nutrition — E-posta doğrulama";
-        message.Body = new TextPart("plain")
-        {
-            Text = $"E-posta doğrulama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nBu isteği siz yapmadıysanız e-postayı yok sayabilirsiniz."
-        };
+        message.Subject = subject;
+        message.Body = new TextPart("plain") { Text = body };
 
         // No protocol logger: SMTP commands, credentials and message bodies must not be logged.
         using var client = new SmtpClient { Timeout = 10000 };

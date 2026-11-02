@@ -9,6 +9,13 @@ import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 
 const token = 'syntheticHeader.syntheticPayload.syntheticSignature';
+LoginUserResponse testPair(String access, DateTime expires) =>
+    LoginUserResponse(
+      access,
+      expires,
+      'A' * 43,
+      expires.add(const Duration(days: 30)),
+    );
 const invalidLogin = LoginApiException(
   'Giriş yapılamadı. E-posta ve şifrenizi kontrol edip e-posta doğrulamasını tamamlayın.',
   unauthorized: true,
@@ -56,10 +63,7 @@ void main() {
       await tester.pump();
       expect(find.byType(LoginPage), findsOneWidget);
       api.logins.single.result.complete(
-        LoginUserResponse(
-          token,
-          session.now().add(const Duration(minutes: 15)),
-        ),
+        testPair(token, session.now().add(const Duration(minutes: 15))),
       );
       await tester.pump();
       expect(api.me.length, 1);
@@ -91,7 +95,7 @@ void main() {
     final (session, api) = await setup(tester);
     await fillAndSubmit(tester);
     api.logins.single.result.complete(
-      LoginUserResponse(token, session.now().add(const Duration(minutes: 15))),
+      testPair(token, session.now().add(const Duration(minutes: 15))),
     );
     await tester.pump();
     api.me.single.result.complete(user(role: 'dietitian'));
@@ -155,10 +159,7 @@ void main() {
         final (session, api) = await setup(tester);
         await fillAndSubmit(tester);
         api.logins.single.result.complete(
-          LoginUserResponse(
-            token,
-            session.now().add(const Duration(minutes: 15)),
-          ),
+          testPair(token, session.now().add(const Duration(minutes: 15))),
         );
         await tester.pump();
         api.me.single.result.completeError(failure);
@@ -184,10 +185,7 @@ void main() {
         final (session, api) = await setup(tester);
         await fillAndSubmit(tester);
         api.logins.single.result.complete(
-          LoginUserResponse(
-            token,
-            session.now().add(const Duration(minutes: 15)),
-          ),
+          testPair(token, session.now().add(const Duration(minutes: 15))),
         );
         await tester.pump();
         api.me.single.result.complete(invalidUser);
@@ -207,7 +205,7 @@ void main() {
         final (session, api) = await setup(tester);
         await fillAndSubmit(tester);
         api.logins.single.result.complete(
-          LoginUserResponse(
+          testPair(
             token,
             session.now().add(Duration(seconds: expireWhileMePending ? 1 : -1)),
           ),
@@ -281,7 +279,7 @@ void main() {
       api.me.last.result.completeError(
         const LoginApiException.invalidResponse(),
       );
-      await expectLater(refresh, throwsA(isA<LoginApiException>()));
+      await refresh;
       await tester.pumpAndSettle();
       expect(session.isAuthenticated, isFalse);
       expect(session.user, isNull);
@@ -304,7 +302,7 @@ void main() {
       final refresh = session.refreshUser();
       await tester.pump();
       api.me.last.result.completeError(const LoginApiException.connection());
-      await expectLater(refresh, throwsA(isA<LoginApiException>()));
+      await refresh;
       expect(session.isAuthenticated, isTrue);
       await tester.pump(const Duration(seconds: 10));
       await tester.pumpAndSettle();
@@ -360,8 +358,13 @@ void main() {
     (tester) async {
       var wallTime = DateTime.utc(2026, 10, 31);
       final api = PendingLoginApi();
-      final session = AuthSession(api: api, now: () => wallTime);
+      final session = AuthSession(
+        api: api,
+        refreshLeadTime: Duration.zero,
+        now: () => wallTime,
+      );
       await tester.pumpWidget(SmartNutritionApp(session: session));
+      await tester.pumpAndSettle();
       await authenticate(tester, session, api);
       wallTime = wallTime.add(const Duration(minutes: 16));
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -383,16 +386,13 @@ void main() {
       await tester.pump();
       expect(api.me.length, 2);
       api.me.last.onUnauthorized!();
-      await tester.pumpAndSettle();
-      expect(find.byType(LoginPage), findsOneWidget);
+      await tester.pump();
+      expect(find.byType(LoginPage), findsNothing);
       expect(find.byType(MainShell, skipOffstage: false), findsNothing);
-      expect(
-        find.text('Oturumunuz geçersiz. Lütfen tekrar giriş yapın.'),
-        findsOneWidget,
-      );
       api.me.last.result.completeError(invalidLogin);
       await tester.pumpAndSettle();
       expect(session.isAuthenticated, isFalse);
+      expect(find.byType(LoginPage), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
       session.dispose();
     },
@@ -405,7 +405,7 @@ void main() {
     await fillAndSubmit(tester);
     session.signOut();
     api.logins.single.result.complete(
-      LoginUserResponse(token, session.now().add(const Duration(minutes: 15))),
+      testPair(token, session.now().add(const Duration(minutes: 15))),
     );
     await tester.pumpAndSettle();
     expect(api.me, isEmpty);
@@ -428,7 +428,7 @@ void main() {
     await authenticate(tester, session, api);
     oldRequest.onUnauthorized!();
     oldRequest.result.completeError(invalidLogin);
-    await expectLater(oldRefresh, throwsA(isA<LoginApiException>()));
+    await oldRefresh;
     await tester.pumpAndSettle();
     expect(session.isAuthenticated, isTrue);
     expect(find.byType(MainShell), findsOneWidget);
@@ -436,22 +436,29 @@ void main() {
     session.dispose();
   });
 
-  testWidgets('new application session starts signed out after restart', (
-    tester,
-  ) async {
-    final (session, api) = await setup(tester);
-    await authenticate(tester, session, api);
-    await tester.pumpWidget(const SmartNutritionApp(key: ValueKey('restart')));
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
-    expect(find.byType(MainShell, skipOffstage: false), findsNothing);
-    session.dispose();
-  });
+  testWidgets(
+    'restart cannot expose protected screens without restored verification',
+    (tester) async {
+      final (session, api) = await setup(tester);
+      await authenticate(tester, session, api);
+      await tester.pumpWidget(
+        const SmartNutritionApp(key: ValueKey('restart')),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(MainShell, skipOffstage: false), findsNothing);
+      session.dispose();
+    },
+  );
 }
 
 Future<(AuthSession, PendingLoginApi)> setup(WidgetTester tester) async {
   final api = PendingLoginApi();
-  final session = AuthSession(api: api, now: tester.binding.clock.now);
+  final session = AuthSession(
+    api: api,
+    refreshLeadTime: Duration.zero,
+    now: tester.binding.clock.now,
+  );
   await tester.pumpWidget(SmartNutritionApp(session: session));
   await tester.pumpAndSettle();
   return (session, api);
@@ -478,15 +485,23 @@ Future<void> authenticate(
   Duration lifetime = const Duration(minutes: 15),
 }) async {
   await fillAndSubmit(tester);
-  api.logins.last.result.complete(
-    LoginUserResponse(token, session.now().add(lifetime)),
-  );
+  api.logins.last.result.complete(testPair(token, session.now().add(lifetime)));
   await tester.pump();
   api.me.last.result.complete(user());
   await tester.pumpAndSettle();
 }
 
 class PendingLoginApi extends LoginApi {
+  @override
+  Future<LoginUserResponse> refresh(String refreshToken) => Future.error(
+    const LoginApiException(
+      'Oturum süreniz doldu. Lütfen tekrar giriş yapın.',
+      unauthorized: true,
+    ),
+  );
+
+  @override
+  Future<void> logout(String refreshToken) async {}
   final logins =
       <
         ({String email, String password, Completer<LoginUserResponse> result})

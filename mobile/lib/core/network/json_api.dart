@@ -17,12 +17,16 @@ Future<JsonApiResponse> postJson({
   required Map<String, String> payload,
   Uri? baseUri,
   Duration timeout = const Duration(seconds: 20),
+  void Function()? onRequestSending,
+  void Function()? onUnauthorized,
 }) => _requestJson(
   method: 'POST',
   path: path,
   payload: payload,
   baseUri: baseUri,
   timeout: timeout,
+  onRequestSending: onRequestSending,
+  onUnauthorized: onUnauthorized,
 );
 
 Future<JsonApiResponse> getJson({
@@ -48,6 +52,7 @@ Future<JsonApiResponse> _requestJson({
   Uri? baseUri,
   required Duration timeout,
   void Function()? onUnauthorized,
+  void Function()? onRequestSending,
 }) async {
   final origin = baseUri == null
       ? ApiConfig.baseUri
@@ -79,10 +84,16 @@ Future<JsonApiResponse> _requestJson({
           'Bearer $accessToken',
         );
       }
+      onRequestSending?.call();
       if (payload != null) request.write(jsonEncode(payload));
       final response = await request.close();
       // Revoke access immediately, even if the 401 body is broken or stalls.
-      if (response.statusCode == 401) onUnauthorized?.call();
+      if (response.statusCode == 401) {
+        onUnauthorized?.call();
+        // The status is sufficient to invalidate/recover authentication. Never
+        // keep a protected screen open waiting for a stalled challenge body.
+        return (statusCode: 401, body: null, hasBody: false, retryAfter: null);
+      }
       final retryAfter = _retryAfter(
         response.headers.value(HttpHeaders.retryAfterHeader),
       );

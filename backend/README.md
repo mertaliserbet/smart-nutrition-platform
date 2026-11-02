@@ -1,5 +1,34 @@
 # Smart Nutrition — Ortak Backend
 
+## 02.11.2026 — P1–P7 parola sıfırlama ve JWT sürüm kontrolü
+
+`AddPasswordReset` additive migration'ı User'a üç gizli reset metadata alanı ve
+varsayılan 0 credentials_version ekler. Mevcut verileri silmez. Yerel/üretim
+uygulama DB'sine uygulamadan önce yedek alın; testler ayrı geçici DB/şemalarda çalışır.
+Bu görev otomatik olarak mevcut uygulama DB'sine migration uygulamaz.
+
+- POST /api/v1/auth/password-reset-requests yalnız {email}: genel boş 202.
+- POST /api/v1/auth/reset-password yalnız {token,password}: atomik başarı boş 204;
+  geçersiz/süresi dolmuş/kullanılmış kod veya parola politikası 422. Ortak hata zarfı,
+  4096 byte JSON ve no-store korunur; tam kurallar docs/06'dadır.
+- Yalnız doğrulanmış client/dietitian. Admin kurtarma ayrı; MFA/cookie biçimi korunur.
+- 256 bit kod, 30 dakika, amaç önekli hash. Mevcut SMTP/Mailpit kullanılır, kod elle
+  yapıştırılır. Reset ve başarı bildirimi sınırlı bellek kuyruğundadır; teslim garantisi yok.
+- Auth:PasswordReset: ResendCooldownSeconds=60, RequestsPerMinute=5,
+  ConsumeRequestsPerMinute=10, QueueCapacity=100. Süre TokenLifetime=30 dakika;
+  eski metadata 10 dakikalık temizlikle kaldırılır. Üretim ortak limit/teslim ayrı kalır.
+- Reset parola+kod tüketimi+sürüm artışı+tüm cookie/refresh ailelerini tek transaction'da
+  değiştirir. Login/refresh credentialsVersion claim'i verir, her bearer doğrulaması
+  DB'den güncel sürümü kontrol eder; DB hatasında erişim açılmaz. Eski claim'siz JWT
+  reddedilir. Mevcut login yanıtı tam beş alanlıdır; access JWT 15 dakika korunur.
+- Normal logout sürüm artırmaz; onun access JWT kalan süre sınırı değişmedi. Reset
+  sonrası eski JWT için 15 dakika penceresi yoktur; önceden yetkilendirilen istek bitebilir.
+- Dağıtım: önce yedekli migration, tüm API örneklerinde yeni middleware, ardından reset
+  kullanımı. Geçerli eski refresh yeni sürümlü JWT verebilir; resetle iptal edilenler
+  normal giriş gerektirir. Mobil/web reset ekran entegrasyonları bu görevden ayrıdır.
+
+Aşağıdaki eski tarihli reset/stateless açık notları bu alt kapsam için tarihseldir.
+
 ## Mobil refresh token ve sunucuda çıkış — 31.10.2026
 
 `AddRefreshTokens` migration'ı yalnız `refresh_tokens` hash geçmişini ve

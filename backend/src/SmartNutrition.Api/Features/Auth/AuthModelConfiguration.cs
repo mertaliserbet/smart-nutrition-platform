@@ -19,6 +19,16 @@ internal static class AuthModelConfiguration
             table.HasCheckConstraint("ck_users_email_verification", "(email_verification_token_hash IS NULL AND email_verification_expires_at IS NULL) OR (email_verification_token_hash IS NOT NULL AND email_verification_token_hash ~ '^[0-9A-F]{64}$' AND email_verification_expires_at IS NOT NULL AND email_verification_last_sent_at IS NOT NULL)");
         });
         users.HasKey(user => user.Id).HasName("pk_users");
+        users.ToTable("users", table =>
+        {
+            table.HasCheckConstraint("ck_users_credentials_version", "credentials_version >= 0");
+            table.HasCheckConstraint("ck_users_password_reset", "(password_reset_token_hash IS NULL AND password_reset_expires_at IS NULL) OR (password_reset_token_hash IS NOT NULL AND password_reset_token_hash ~ '^[0-9A-F]{64}$' AND password_reset_expires_at IS NOT NULL AND password_reset_last_sent_at IS NOT NULL AND password_reset_expires_at > password_reset_last_sent_at)");
+        });
+        users.Property(user => user.CredentialsVersion).HasColumnName("credentials_version").HasDefaultValue(0L);
+        users.Property(user => user.PasswordResetTokenHash).HasColumnName("password_reset_token_hash").HasMaxLength(64);
+        users.Property(user => user.PasswordResetExpiresAt).HasColumnName("password_reset_expires_at");
+        users.Property(user => user.PasswordResetLastSentAt).HasColumnName("password_reset_last_sent_at");
+        users.HasIndex(user => user.PasswordResetTokenHash).IsUnique().HasDatabaseName("ux_users_password_reset_token_hash");
         users.Property(user => user.Id).HasColumnName("id").ValueGeneratedNever();
         users.Property(user => user.Email).HasColumnName("email").UseCollation(EmailCollation).IsRequired();
         users.Property(user => user.PasswordHash).HasColumnName("password_hash").IsRequired();

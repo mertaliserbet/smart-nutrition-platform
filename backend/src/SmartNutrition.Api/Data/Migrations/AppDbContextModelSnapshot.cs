@@ -197,6 +197,12 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<long>("CredentialsVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("credentials_version");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text")
@@ -236,6 +242,19 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
+                    b.Property<DateTimeOffset?>("PasswordResetExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_reset_expires_at");
+
+                    b.Property<DateTimeOffset?>("PasswordResetLastSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_reset_last_sent_at");
+
+                    b.Property<string>("PasswordResetTokenHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("password_reset_token_hash");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("text")
@@ -260,13 +279,21 @@ namespace SmartNutrition.Api.Data.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_users_email_verification_token_hash");
 
+                    b.HasIndex("PasswordResetTokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ux_users_password_reset_token_hash");
+
                     b.ToTable("users", null, t =>
                         {
+                            t.HasCheckConstraint("ck_users_credentials_version", "credentials_version >= 0");
+
                             t.HasCheckConstraint("ck_users_email_not_blank", "btrim(email) <> ''");
 
                             t.HasCheckConstraint("ck_users_email_verification", "(email_verification_token_hash IS NULL AND email_verification_expires_at IS NULL) OR (email_verification_token_hash IS NOT NULL AND email_verification_token_hash ~ '^[0-9A-F]{64}$' AND email_verification_expires_at IS NOT NULL AND email_verification_last_sent_at IS NOT NULL)");
 
                             t.HasCheckConstraint("ck_users_password_hash_not_blank", "btrim(password_hash) <> ''");
+
+                            t.HasCheckConstraint("ck_users_password_reset", "(password_reset_token_hash IS NULL AND password_reset_expires_at IS NULL) OR (password_reset_token_hash IS NOT NULL AND password_reset_token_hash ~ '^[0-9A-F]{64}$' AND password_reset_expires_at IS NOT NULL AND password_reset_last_sent_at IS NOT NULL AND password_reset_expires_at > password_reset_last_sent_at)");
 
                             t.HasCheckConstraint("ck_users_role", "role IN ('client', 'dietitian', 'admin')");
                         });

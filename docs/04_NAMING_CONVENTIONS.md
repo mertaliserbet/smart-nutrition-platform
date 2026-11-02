@@ -1,5 +1,18 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## Onaylı parola sıfırlama adları — 02.11.2026
+
+Kullanıcının P1–P7 onayıyla `PasswordResetRequest { email }` ve
+`ResetPasswordRequest { token, password }` kesinleşti. Yollar mevcut
+`POST /api/v1/auth/password-reset-requests` ve `POST /api/v1/auth/reset-password`.
+Şifre tekrarı yalnız istemcidedir; yanıt DTO'su, reset entity'si veya rota alias'ı yoktur.
+Sunucu içi User alanları `PasswordResetTokenHash`, `PasswordResetExpiresAt`,
+`PasswordResetLastSentAt`, `CredentialsVersion`; PostgreSQL karşılıkları
+`password_reset_token_hash`, `password_reset_expires_at`, `password_reset_last_sent_at`,
+`credentials_version` olur. HTTP çıktısına eklenmezler. JWT özel claim adı
+`credentialsVersion`dır: negatif olmayan longun kanonik ondalık string gösterimi.
+Mevcut beş alanlı LoginUserResponse ve web cookie claim biçimi korunur.
+
 ## 29.10.2026 N1–N3 ortak onay güncellemesi
 
 Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Aşağıdaki

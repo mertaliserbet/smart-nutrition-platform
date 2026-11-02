@@ -26,6 +26,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private readonly IInterceptor? _interceptor;
     private readonly TimeProvider? _clock;
     private readonly IVerificationEmailSender? _sender;
+    private IPasswordResetEmailSender? _resetSender;
     private readonly bool _useSmtp;
     private readonly bool _includeAuthProbe;
     private readonly bool _webSessions;
@@ -64,9 +65,10 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
 
     public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null,
         TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false,
-        bool webSessions = false, bool webCertificate = false)
+        bool webSessions = false, bool webCertificate = false, IPasswordResetEmailSender? resetSender = null)
     {
         var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe, webSessions, webCertificate);
+        factory._resetSender = resetSender;
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -118,6 +120,11 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         builder.ConfigureLogging(logging => logging.ClearProviders().AddProvider(_logs));
         builder.ConfigureServices(services =>
         {
+            if (_resetSender is not null)
+            {
+                services.RemoveAll<IPasswordResetEmailSender>();
+                services.AddSingleton(_resetSender);
+            }
             if (_includeAuthProbe) services.AddControllers().AddApplicationPart(typeof(LoginProbeController).Assembly);
             if (_interceptor is not null)
                 services.AddDbContext<AppDbContext>(options => options.AddInterceptors(_interceptor));

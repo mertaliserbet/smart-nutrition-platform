@@ -10,6 +10,7 @@ import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
+import 'package:smart_nutrition_mobile/features/profile/dietitian_application_info_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
 
 void main() {
@@ -21,10 +22,12 @@ void main() {
       addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
       await tester.pumpWidget(const SmartNutritionApp());
-      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(LoginPage), findsNothing);
       expectNoProtectedScreens();
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
+
+      expect(find.byType(LoginPage), findsOneWidget);
 
       final theme = Theme.of(tester.element(find.byType(LoginPage)));
       expect(theme.useMaterial3, isTrue);
@@ -53,6 +56,7 @@ void main() {
             );
 
             await tester.pumpWidget(const SmartNutritionApp());
+            await tester.pumpAndSettle();
             expectNoProtectedScreens();
             await tester.pumpAndSettle();
             expect(find.byType(page), findsOneWidget);
@@ -91,6 +95,7 @@ void main() {
     '/nutrition',
     '/progress',
     '/profile',
+    '/dietitian-application',
     '/meal-log',
     '/unknown',
   ]) {
@@ -98,6 +103,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(const SmartNutritionApp());
+      await tester.pumpAndSettle();
       Navigator.of(
         tester.element(find.byType(LoginPage)),
       ).pushNamed<void>(route, arguments: {'isAuthenticated': true});
@@ -121,6 +127,7 @@ void main() {
     tester.platformDispatcher.defaultRouteNameTestValue = '/nutrition';
     addTearDown(tester.platformDispatcher.clearDefaultRouteNameTestValue);
     await tester.pumpWidget(const SmartNutritionApp());
+    await tester.pumpAndSettle();
     expect(find.byType(LoginPage), findsOneWidget);
     expectNoProtectedScreens();
     await tester.pumpAndSettle();
@@ -140,6 +147,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(const SmartNutritionApp());
+      await tester.pumpAndSettle();
       Navigator.of(
         tester.element(find.byType(LoginPage)),
       ).pushNamed<void>(route);
@@ -158,6 +166,7 @@ void main() {
     'valid form input without server verification never unlocks the application',
     (tester) async {
       await tester.pumpWidget(const SmartNutritionApp());
+      await tester.pumpAndSettle();
       await tester.enterText(
         find.byType(TextFormField).at(0),
         'ornek@example.com',
@@ -181,6 +190,7 @@ void main() {
       await tester.pumpWidget(
         const SmartNutritionApp(key: ValueKey('restart')),
       );
+      await tester.pumpAndSettle();
       expect(find.byType(LoginPage), findsOneWidget);
       expectNoProtectedScreens();
       expect(tester.takeException(), isNull);
@@ -195,6 +205,7 @@ void expectNoProtectedScreens() {
     NutritionPage,
     ProgressPage,
     ProfilePage,
+    DietitianApplicationInfoPage,
     ManualMealLogPage,
     NavigationBar,
   ]) {

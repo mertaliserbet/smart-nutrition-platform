@@ -1,5 +1,21 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 02.11.2026 onaylı parola sıfırlama ve JWT güvenlik sürümü
+
+P1–P7 kullanıcı tarafından onaylandı; normatif HTTP/şema `04/05/06`dadır.
+Reset tokenı amaç önekli hash olarak saklanır, 30 dakika/tek kullanımdır; yalnız
+onaylı client/dietitian hesaplara gönderilir. Genel 202, asenkron SMTP ve 60 sn
+cooldown hesap varlığını gizler; IP limitleri talepte 5/dakika, tüketimde 10/dakikadır. Admin kurtarma ayrı kalır.
+Parola değişimi, checked güvenlik sürümü artışı, kod tüketimi, bütün web oturumları
+ve refresh ailelerinin iptali atomiktir. Başarılı reset eski JWT'leri kalan 15 dakika
+beklemeden reddeder: her bearer doğrulaması DB'deki credentialsVersion'ı kontrol eder.
+DB kesintisinde genel 500 ve kapalı erişim; cache ile iptal penceresi açılmaz.
+Normal logout sürüm artırmaz; onun mevcut access JWT kalan-süre sınırı korunur.
+Claim'siz eski JWT reddedilir; geçerli refresh yeni claim'li JWT alabilir. Önce
+yedekli migration ve tüm API örneklerinin uyarlanması, sonra reset kullanımı gerekir.
+Mailpit teslimi geliştirme içindir; üretim kalıcı teslim/ortak rate-limit ve Admin
+kurtarma işleri tamamlanmış sayılmaz. Token/parola/ham SMTP exception'ı loglanmaz.
+
 ## 31.10.2026 mobil refresh/iptal güncellemesi
 
 Kullanıcının backend göreviyle JWT login yanıtına refresh token ve mutlak

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_gate.dart';
 import 'features/auth/auth_session.dart';
+import 'features/auth/session_status_page.dart';
 
 class SmartNutritionApp extends StatefulWidget {
   const SmartNutritionApp({this.session, super.key});
@@ -22,15 +23,14 @@ class _SmartNutritionAppState extends State<SmartNutritionApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(_session.initialize());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _session.checkExpiry();
-      // A 401 clears the gate; transient network failures do not invent logout
-      // or a renewed expiry. The existing access token keeps its original limit.
-      unawaited(_session.refreshUser().catchError((Object _) {}));
+      unawaited(_session.refreshUser());
     }
   }
 
@@ -59,10 +59,13 @@ class _SmartNutritionAppState extends State<SmartNutritionApp>
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: ThemeMode.system,
+            builder: (context, child) => _session.isBlocking
+                ? SessionStatusPage(session: _session)
+                : child!,
             onGenerateRoute: AuthGate.route,
             // Resolve startup/deep links through the same public route allowlist.
             onGenerateInitialRoutes: (name) =>
-                authenticated || _hasAuthenticated
+                authenticated || _hasAuthenticated || _session.hasEndedSession
                 ? [AuthGate.route(const RouteSettings(name: '/'))]
                 : [
                     // Public entry pages must have a safe login route to return to.

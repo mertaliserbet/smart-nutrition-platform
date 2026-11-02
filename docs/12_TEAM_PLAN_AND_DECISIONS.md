@@ -1,5 +1,18 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 02.11.2026 — P1–P7 parola sıfırlama kullanıcı onayı
+
+Kullanıcı P1–P7'yi mevcut refresh altyapısına uyarlanmış haliyle onayladı:
+yalnız doğrulanmış client/dietitian; 256 bit/30 dakika tek kullanımlık hash token;
+60 sn cooldown ve IP başına talep 5/dakika, tüketim 10/dakika limiti; Mailpit/SMTP.
+P3 artık tüm web oturumları ve tüm refresh ailelerini aynı transaction'da iptal eder.
+P4 onaylıdır: credentialsVersion, login+refresh JWT claim'i, her bearer isteğinde
+DB kontrolü, eski/claim'siz JWT reddi ve DB hatasında kapalı erişim. P6 mevcut mobil
+tek refresh davranışını korur; reset POST'u tekrarlanmaz, otomatik giriş yoktur.
+Bu görev backend/migration/test ve `04/05/06/11/13` güncellemesini yetkilendirir;
+mobil/web ekranlarını veya Admin MFA/kurtarma akışını genişletmez. Mevcut mobil
+bekleyen değişiklikler korunur. Başka açık ürün kararları bu onayla kapanmaz.
+
 ## 31.10.2026 backend mobil refresh/iptal görevi
 
 Kullanıcının açık backend göreviyle mevcut JWT login yanıtına `refreshToken`

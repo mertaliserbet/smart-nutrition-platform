@@ -25,6 +25,44 @@ flutter test
 `flutter run` için bağlı Android/iOS cihazı veya emülatör gerekir; iOS derleme ve
 çalıştırma için macOS/Xcode gerekir.
 
+## Diyetisyen başvurusu için web yönlendirmesi
+
+Profil → **Diyetisyen Olarak Başvur**, uygulama içindeki bilgilendirme ekranını
+açar. **Web Sitesine Git**, `url_launcher` ile `LaunchMode.externalApplication`
+kullanarak `/uzman-basvurusu` adresini varsayılan tarayıcıya gönderir;
+**Adresi Kopyala** aynı adresi panoya yazar. Tarayıcı hatasında kopyalama seçeneği
+korunur. Mobil form/belge yükleme veya yetki değişimi yoktur; e-posta doğrulaması
+ve mevcut Admin onayı gerekir. Web akışı bağımsızdır, JWT/refresh/cookie/kimlik
+URL veya header ile aktarılmaz. Mevcut web başvurusu ayrı diyetisyen hesabı
+oluşturur; kayıtlı mobil danışan e-postasını kullanmak mevcut API'de `409` verir.
+
+Origin `lib/core/network/web_config.dart` içinde `WEB_BASE_URL` ile yönetilir.
+Yalnız HTTPS scheme/host/port kabul edilir; path, query, fragment veya kimlik
+bilgisi eklenemez. `/uzman-basvurusu` yolu kod tarafından sabit eklenir.
+Debug varsayılanı mevcut Vite adresi `https://localhost:5173`dür. Release/profile
+için gerçek web origin'i açıkça verilmelidir; eksik/hatalı adreste eylemler kapalıdır:
+
+```sh
+flutter run --dart-define=WEB_BASE_URL=https://localhost:5173
+# Dağıtımda gerçek origin ile değiştirilecek örnek:
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com --dart-define=WEB_BASE_URL=https://web.example.com
+```
+
+Android emülatöründe localhost için `adb reverse tcp:5173 tcp:5173` gerekir.
+Mevcut `start.ps1` API için 7099 tünelini kurar; tarayıcıdaki web bağlantısı için
+5173 tüneli ayrıca kurulmalıdır. Alternatif `10.0.2.2` host'u seçilirse sertifikanın
+o host/IP ile de eşleşmesi gerekir; localhost sertifikasını IP'ye yönlendirmek yetmez.
+Vite mevcut HTTPS sertifikası ve backend proxy ayarlarıyla çalışmalıdır.
+Harici tarayıcı, Dart `API_DEV_CERT_BASE64`/SecurityContext güvenini kullanmaz;
+geliştirme HTTPS sertifikası tarayıcı tarafından güvenilmeli ve host adıyla eşleşmelidir.
+Sertifika doğrulaması devre dışı bırakılmaz. Fiziksel cihazda localhost emülatör
+tüneli yerine cihazdan erişilebilir, güvenilir sertifikalı HTTPS origin'i gerekir.
+
+Widget testleri tarayıcı çağrısının dış modda, headersız ve sır içermeyen tam
+adrese yapıldığını, pano davranışını, hata/çift gönderim/ayrılma durumlarını ve
+çıkışta ekranın kaldırılmasını platform kanalı üzerinden denetler. Bu testler
+gerçek cihazda varsayılan tarayıcı veya sertifika davranışı doğrulaması değildir.
+
 ## Kayıt API bağlantısı
 
 API origin'i `lib/core/network/api_config.dart` üzerinden merkezî olarak seçilir.
@@ -54,38 +92,64 @@ yerel HTTPS sertifikası cihaz tarafından güvenilmeli ve host adıyla eşleşm
 güven ekler; release/profile derlemeleri bu parametreyi kullanmaz.
 Yeni ağ paketi yoktur; Dart `HttpClient` kullanılır.
 
-## Giriş ve geçici mobil oturum
+## Giriş ve kalıcı mobil oturum
 
 `POST /api/v1/auth/login` yalnız `{ email, password }` gönderir. E-posta kırpılır;
 parola Unicode/boşluklarıyla korunur, kayıt parola politikası girişe uygulanmaz.
-Yalnız `200 { accessToken, tokenType: "Bearer", expiresAt }` kabul edilir.
+Yalnız `200 { accessToken, tokenType: "Bearer", expiresAt, refreshToken,
+refreshTokenExpiresAt }` kabul edilir.
 JWT claim'leri çözümlenerek yetki verilmez; token ile gövdesiz/query'siz
 `GET /api/v1/auth/me` çağrılır. Beş alanlı geçerli `200 CurrentUserResponse`,
 doğrulanmış e-posta ve izinli `client`/`dietitian` rolü olmadan Auth Gate açılmaz.
 Admin bearer ile kabul edilmez; MFA destekli web girişi gerekir.
 
-Token ve hesap özeti yalnız `AuthSession` belleğindedir; uygulama yeniden
-başlatıldığında giriş gerekir. Token/parola/ham yanıt loglanmaz. Cookie, CSRF,
-refresh, disk saklama veya sahte giriş eklenmez. İstek sırasında alanlar,
+Access token ve hesap özeti yalnız `AuthSession` belleğindedir. Refresh token,
+mutlak bitişi ve rotasyon durum işareti tek güvenli kayıtta tutulur. Oturum saklamada
+[flutter_secure_storage 11.2.0](https://pub.dev/packages/flutter_secure_storage)
+Android Keystore ile korunan RSA OAEP/AES-GCM ve iOS Keychain kullanır.
+iOS kaydı `unlocked_this_device`, iCloud eşitlemesi kapalıdır. Android bulut
+yedekleme ve cihaz aktarımına güvenli pref dosyalarının dahil edilmesi engellenir.
+Kayıt API origin'ine göre ayrılır; geliştirme tokenı başka origin'e gönderilmez.
+Android/iOS dışında bu depoda düz metin veya web fallback'i bulunmaz.
+Token/parola/ham yanıt loglanmaz. Cookie/CSRF veya sahte giriş eklenmez. İstek sırasında alanlar,
 gönderim ve geri dönüş kilitlenir; parola istek başlarken formdan temizlenir.
 Yanlış parola/olmayan hesap/doğrulanmamış e-posta/Admin aynı `401` olduğu için
 istemci kesin hata nedeni veya hesap varlığı iddia etmez.
 
-Oturum açıldığında Dashboard gösterilir. Oturum geçişleri tüm Navigator
-geçmişini yeniler; çıkış/expiry/`401` sonrasında alt sayfa veya geri tuşuyla
-korumalı ekranlara dönülmez. Route argümanları oturum oluşturamaz. `expiresAt`
-anında zamanlayıcı temizler; uygulamaya dönüşte önce süre kontrol edilir,
-ardından `/auth/me` yeniden okunur. Bu okumadaki `401`, gövde tamamlanmadan
-oturumu siler; geçersiz hesap yanıtı da erişimi kapatır. Geçici ağ/5xx hatası
-geçerli tokenın süresini uzatmaz ve yeni doğrulama başarısı sayılmaz.
-Eski login/me yanıtı veya `401` yeni oturumu değiştiremez.
+Başlangıçta bekleme ekranı gösterilir; güvenli depodaki refresh ile
+`POST /api/v1/auth/refresh` çağrılır, alınan yeni refresh kaydı saklanır ve
+`/auth/me` doğrulandıktan sonra Dashboard açılır. `/me` geçici olarak başarısız
+olursa alınan yeni token saklanır; erişim açılmaz, aynı access token ile yalnız
+`/me` yeniden denenir. Token çiftinin kalıcı kısmı refresh'tir; access disk'e yazılmaz.
 
-AppBar'daki **Çıkış yap** tokenı, hesap özetini ve navigasyonu yerel olarak
-temizler. Mevcut stateless JWT için sunucuda iptal endpointi yoktur; çıkarılan
-JWT kendi 15 dakikalık süresi bitene kadar sunucuda geçerli kalabilir.
-Güvenli kalıcı saklama ve refresh/iptal sonraki ayrı oturum yönetimi
-kapsamıdır. Yeni yetkili API işlemleri mevcut
-`401` invalidasyonunu kullanmalıdır; mevcut yetkili mobil okuma `/auth/me`dir.
+Yenileme tüm çağrılar için tek Future'da birleştirilir. Normal 15 dakikalık
+access süresinin bitimine 30 saniye kala yenileme denenir; uygulamaya dönüşte
+süre ve `/me` kontrol edilir. Access süresi dolduğunda veya `/me` `401` verdiğinde
+korumalı UI kapatılır; refresh + yeni `/me` doğrulaması olmadan açılmaz.
+Geçici ağ hatası geçerli access süresini uzatmaz. Oturum geçişlerinde Navigator
+geçmişi yenilenir; çıkış sonrası geri/rota argümanıyla korumalı ekran açılamaz.
+Eski login/refresh/me/401 yanıtları yeni oturumu veya çıkışı geri alamaz.
+
+Refresh/logout yalnız `{ refreshToken }` gönderir; Authorization/cookie/query
+eklenmez. Refresh gönderilmeden önce güvenli kayıtta `rotationPending` işaretlenir.
+İstek gönderilmeden bağlantı kesildiği biliniyorsa veya açık `400/429` yanıtı
+alındıysa bu işaret kaldırılır, kayıt silinmeden kullanıcı tekrar deneyebilir.
+Gönderim sonrası bağlantı/yanıt kaybı veya belirsiz sunucu hatasında eski token
+otomatik tekrar kullanılmaz; kayıt karantinada tutulur ve yeniden giriş gerekir.
+Yenileme sırasında uygulamanın kapanması da aynı güvenli davranışı izler.
+Bu, backend'in tekrar kullanımda tüm aileyi iptal etme sözleşmesi gereğidir.
+Geçersiz/süresi dolmuş refresh `401`i veya geçersiz `/me` yanıtı yerel kaydı temizler.
+
+AppBar'daki **Çıkış yap**, `/auth/logout` ile aile iptalini ister; sunucu/ağ
+başarısız olsa da yerel bellek ve güvenli kayıt temizlenir. Sunucu çıkışı
+doğrulanamadıysa bu bilgi giriş ekranında gösterilir. Güvenli native kayıt
+silinmeden önce oturum kapalı işaretiyle üzerine yazılır; iki yöntem
+de başarısızsa başarı iddia edilmez, depo temizlenene kadar erişim kapalı kalır.
+Depo erişimi/kilit hatalarında kimlik verisi düz metin yedeğe taşınmaz.
+Mevcut stateless access JWT sunucuda kendi kalan 15 dakikası boyunca geçerli
+kalabilir. Yeni yetkili API işlemleri aynı oturum yenileme/401 akışını kullanmalıdır;
+mevcut yetkili mobil okuma `/auth/me`dir. Korunan sağlık ekranlarının verileri
+henüz API entegrasyonu değildir; mevcut demo/boş durum tasarımları korunur.
 
 ## E-posta doğrulama
 
@@ -126,8 +190,9 @@ Türkçe mesajlarla gösterilir. Bağlantı kaybında sunucudaki sonuç varsayı
   ekranları açar; oturumsuz korumalı yollar girişe döner.
   `registration_api.dart`, kayıt JSON'unu ve güvenli API hata eşlemesini yönetir.
   `email_verification_api.dart`, doğrulama/yeniden gönderim sözleşmesini yönetir.
-  `login_api.dart`, onaylı login/me DTO'larını; `auth_session.dart`, geçici
-  oturumu, expiry/401 temizliğini ve geç yanıtların elenmesini yönetir.
+  `login_api.dart`, login/refresh/logout/me sözleşmesini; `auth_session.dart`,
+  geri yükleme/tek yenileme/expiry/401/çıkışı yönetir. `refresh_token_store.dart`
+  yalnız refresh kaydını güvenli tutar; `session_status_page.dart` bekleme/kurtarma ekranıdır.
 - `lib/features/home/`: Dashboard düzeni, günlük göstergeler, program/öğün kartları
   ve merkezi `dashboard_demo_data.dart` örnekleri.
 - `lib/features/nutrition/`, `progress/`, `profile/`: diğer sekmelerin ekran iskeletleri.
@@ -137,6 +202,12 @@ Türkçe mesajlarla gösterilir. Bağlantı kaybında sunucudaki sonuç varsayı
   sözleşmesi, bozuk yanıtlar, Admin engeli, güvenli hata ve bağlantı testleri.
 - `test/login_test.dart`: login+me sırası, loading/tekrar engeli, expiry/resume,
   çıkış/401/navigasyon temizliği, geç yanıt ve yeniden başlatma testleri.
+- `test/auth_session_test.dart`: geri yükleme/rotasyon, tek yenileme, ağ kesintisi,
+  güvenli depo hataları, iptal/çıkış yarışları ve geç yanıt regresyonları.
+- `test/refresh_token_store_test.dart`: kayıt biçimi/origin ayrımı, bozuk kayıt,
+  native silme hatalarında güvenli davranış ve desteklenmeyen platform kontrolleri.
+  Native Keystore/Keychain testlerde paketin mock platformuyla temsil edilir;
+  bu testler fiziksel cihaz güvenli depolama veya iOS imzalı derleme testi değildir.
 - `test/app_test.dart`: ana navigasyonun bağımsız widget olarak tema, sekme
   geçişleri, geri tuşu ve büyük metin testleri.
 - `test/dashboard_test.dart`: demo işaretleri, hedef göstergeleri, diyetisyen
@@ -161,7 +232,7 @@ Türkçe mesajlarla gösterilir. Bağlantı kaybında sunucudaki sonuç varsayı
   oluşturur; kayıt, mükerrer e-posta, geçersiz form ve bağlantı kesintisini
   denetler. Parolayı bellekte üretir; yalnız güvenli `E2E_RESULT` özeti yazar.
 
-Yalnız Flutter SDK kullanılır; test ve analiz için standart `flutter_test` ve
+Flutter SDK ve güvenli depolama paketi kullanılır; test ve analiz için standart `flutter_test` ve
 `flutter_lints` bulunur. Yeni özellik klasörleri ihtiyaç olduğunda eklenir.
 
 ## Açık tasarım ve yayın kararları
@@ -207,8 +278,8 @@ doğrulanamadığı belirtilir; kayıt oluşmadığı varsayılmaz.
 ekran tarafından yönetilir. Sahte kayıt veya giriş simülasyonu yoktur. Şifre alanları
 sayfa kapandığında serbest bırakılır; başka kimlik ekranına giderken temizlenir.
 
-Uygulama sistem temasını izler; kullanıcı tema tercihi veya kalıcı
-saklama henüz uygulanmamıştır. Android/iOS `com.example` kimlikleri ve standart
+Uygulama sistem temasını izler; kullanıcı tema tercihinin kalıcı
+saklanması henüz uygulanmamıştır. Android/iOS `com.example` kimlikleri ve standart
 ikonlar geliştirme yer tutucularıdır; mağaza kimliği, ikon ve yayın imzası ayrıca
 kesinleştirilmelidir. Ortak veri/API sözleşmelerinden açık şema uygulanmamıştır.
 ## W2 web oturumu entegrasyon notu — 27.10.2026
@@ -219,3 +290,6 @@ sözleşmesi `docs/04/05/06/11/12`ye işlendi. Mobil `POST /auth/login` isteği,
 isteklere cookie/CSRF/Origin eklenmez; yeni web yollarından mobil refresh DTO'su
 türetilmez. Mobil refresh/iptal/saklama hâlâ açık karardır. Mobil kaynak kodu
 bu dilimde değişmedi; Mert entegrasyondan önce ortak main'i eşitlemelidir.
+
+Bu 27.10.2026 notu W2 tesliminin tarihsel durumudur. Mobil refresh/iptal ve
+güvenli saklama, yukarıdaki güncel kalıcı oturum bölümünde uygulanmıştır.

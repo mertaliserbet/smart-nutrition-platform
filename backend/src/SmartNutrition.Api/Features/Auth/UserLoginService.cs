@@ -24,7 +24,7 @@ public sealed class UserLoginService(AppDbContext database, ILookupNormalizer no
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {user.Id} FOR UPDATE")
             .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
-        if (locked is null || locked.PasswordHash != user.PasswordHash || !locked.IsEmailVerified || locked.Role != user.Role)
+        if (locked is null || locked.PasswordHash != user.PasswordHash || locked.CredentialsVersion != user.CredentialsVersion || !locked.IsEmailVerified || locked.Role != user.Role)
             return null;
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {

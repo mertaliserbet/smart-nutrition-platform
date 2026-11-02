@@ -1,5 +1,23 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## Onaylı parola sıfırlama bütünlüğü — 02.11.2026
+
+User'a yalnız sunucuda tutulan şu alanlar eklenir:
+
+| Alan | PostgreSQL | Kural |
+|---|---|---|
+| `passwordResetTokenHash: string?` | nullable varchar(64) | Unique, 64 büyük hex; SHA-256(UTF-8(`password-reset:v1:` + ham token)) |
+| `passwordResetExpiresAt: instant?` | nullable timestamptz | Hash ile birlikte null/non-null; varsa lastSentAt dolu ve expiresAt > lastSentAt |
+| `passwordResetLastSentAt: instant?` | nullable timestamptz | 60 saniye cooldown; tüketimde korunur |
+| `credentialsVersion: int64` | bigint NOT NULL DEFAULT 0 | Negatif olamaz; gerçek parola resetinde checked +1; Identity rehash artırmaz |
+
+Token 32 rastgele byte, 43 Base64URL karakteri, 30 dakika ve tek kullanımdır.
+Yalnız doğrulanmış client/dietitian uygundur. Admin, rol, MFA ve e-posta doğrulaması
+bu işlemle değiştirilmez. Parola/hash, sürüm artışı, token tüketimi, tüm AuthSession
+ve tüm RefreshToken ailelerinin iptali aynı User kilidi ve transaction içindedir.
+Reset metadata'sı User JSON'una veya login/me/kayıt yanıtlarına çıkmaz.
+Migration yalnız dört sütun, indeks ve bütünlük kısıtları ekler; mevcut kayıtları silmez.
+
 ## 29.10.2026 N1–N3 onaylı program verisi
 
 `16` N1–N3 ortak onayı kullanıcı tarafından teyit edildi. Programın aşağıdaki
@@ -127,7 +145,7 @@ Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının
 
 | Entity | Temel alanlar | Not / kısıt |
 |---|---|---|
-| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. W2 web oturumu aşağıda onaylıdır; şifre sıfırlama, mobil oturum ve Admin MFA kayıtları **AÇIK**tır |
+| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `passwordResetTokenHash: string?`, `passwordResetExpiresAt: instant?`, `passwordResetLastSentAt: instant?`, `credentialsVersion: int64`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. W2 web oturumu aşağıda onaylıdır; parola sıfırlama 02.11.2026, refresh ve Admin MFA üstteki tarihli onaylarla tanımlıdır; diğer açıklar bu onaylardan türetilmez |
 | `ClientProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `birthDate: date?`, `heightCm: decimal?` | `userId` → User ve unique; boy cm. Yaş/kişisel veri hassas ele alınır; doğum tarihi şimdilik isteğe bağlıdır |
 | `DietitianProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `licenseInfo: AÇIK?`, `isVerified: boolean` | `userId` → User ve unique; uzmanı Admin doğrular. Mobil/web başvuru, belge biçimi ve doğrulama geçmişinin yapısı **AÇIK**tır; `isVerified` istemcinin kendi değiştireceği bir alan değildir |
 | `DietitianClientRelationship` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `status: RelationshipStatus`, `requestedAt: instant`, `respondedAt: instant?`, `endedAt: instant?` | `clientId` → ClientProfile, `dietitianId` → DietitianProfile; danışan başına en fazla bir aktif ilişki. Karşılıklı onay gerekir; arama/davet kodu onayın yerine geçmez |

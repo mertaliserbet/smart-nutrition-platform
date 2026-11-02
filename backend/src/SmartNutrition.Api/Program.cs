@@ -51,6 +51,14 @@ builder.Services.AddOptions<EmailVerificationOptions>()
     .ValidateOnStart();
 builder.Services.AddOptions<SmtpOptions>().Bind(builder.Configuration.GetSection(SmtpOptions.SectionName));
 builder.Services.AddScoped<IVerificationEmailSender, SmtpVerificationEmailSender>();
+builder.Services.AddScoped<IPasswordResetEmailSender, SmtpVerificationEmailSender>();
+builder.Services.AddScoped<PasswordResetService>();
+builder.Services.AddOptions<PasswordResetOptions>().Bind(builder.Configuration.GetSection(PasswordResetOptions.SectionName))
+    .Validate(options => options.ResendCooldownSeconds > 0 && options.RequestsPerMinute > 0 &&
+        options.ConsumeRequestsPerMinute > 0 && options.QueueCapacity > 0).ValidateOnStart();
+builder.Services.AddSingleton<PasswordResetEmailQueue>();
+builder.Services.AddHostedService(services => services.GetRequiredService<PasswordResetEmailQueue>());
+builder.Services.AddHostedService<PasswordResetCleanup>();
 builder.Services.AddScoped<EmailVerificationService>();
 builder.Services.AddSingleton<VerificationEmailQueue>();
 builder.Services.AddHostedService(services => services.GetRequiredService<VerificationEmailQueue>());
@@ -66,6 +74,12 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0, AutoReplenishment = true
         }));
     var loginSettings = builder.Configuration.GetSection(LoginOptions.SectionName).Get<LoginOptions>() ?? new();
+    var resetSettings = builder.Configuration.GetSection(PasswordResetOptions.SectionName).Get<PasswordResetOptions>() ?? new();
+    foreach (var (policy, limit) in new[] { ("password-reset-request", resetSettings.RequestsPerMinute),
+                 ("password-reset-consume", resetSettings.ConsumeRequestsPerMinute) })
+        options.AddPolicy(policy, context => RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+            { PermitLimit = limit, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
     var refreshSettings = builder.Configuration.GetSection(RefreshTokenOptions.SectionName).Get<RefreshTokenOptions>() ?? new();
     foreach (var policy in new[] { "refresh", "logout" })
         options.AddPolicy(policy, context => RateLimitPartition.GetFixedWindowLimiter(

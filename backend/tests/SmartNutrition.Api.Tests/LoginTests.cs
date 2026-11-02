@@ -91,7 +91,8 @@ public sealed class LoginTests
         Assert.Equal("at+jwt", token.Typ);
         Assert.Equal(user.Id.ToString("D"), token.Subject);
         Assert.Equal("client", token.GetClaim("role").Value);
-        Assert.Equal(["aud", "exp", "iat", "iss", "nbf", "role", "sub"], token.Claims.Select(claim => claim.Type).Order().ToArray());
+        Assert.Equal(["aud", "credentialsVersion", "exp", "iat", "iss", "nbf", "role", "sub"], token.Claims.Select(claim => claim.Type).Order().ToArray());
+        Assert.Equal("0", token.GetClaim("credentialsVersion").Value);
         Assert.Equal(TimeSpan.FromMinutes(15), token.ValidTo - token.ValidFrom);
         Assert.Equal(token.ValidTo, result.ExpiresAt.UtcDateTime);
         Assert.Equal("Bearer", result.TokenType);

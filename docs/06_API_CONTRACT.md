@@ -381,17 +381,17 @@ Kullanıcı bu görevde JWT + 15 dakika kararını, ayrıca aşağıdaki istek/y
 
 - Login mevcut Identity normalizer ile e-postayı kırpar/normalleştirir ve Identity PasswordHasher ile parolayı doğrular. Parola aynen korunur; girişte yeni kayıt karmaşıklığı/minimumu yeniden uygulanmaz. Hesap bulunmadığında da Identity parola hash doğrulaması yapılır; sahte User/oturum oluşturulmaz. Başarısızlık yanıtları hesap/doğrulama/MFA ayrımı veya gizli veri içermez.
 - Başarı yalnız `client`/`dietitian` ve `isEmailVerified = true` hesaplar içindir. Admin'e token verilmez; middleware imzası geçerli olsa dahi `admin` rolünü kabul etmez. Diyetisyen rolü tek başına uzman doğrulaması veya sağlık kaydı yetkisi değildir; ilgili kaynaklarda `05/11` kontrolleri ayrıca gerekir.
-- JWT **15 dakika** geçerlidir. `sub: string` mevcut User UUID'si, `role: string` kanonik roldür; ayrıca `iss`, `aud`, `iat`, `nbf`, `exp` standart claim'leri vardır. E-posta, ad, profil/sağlık verisi, hash veya secret claim'i yoktur. `expiresAt`, tokenın imzalı `exp` değeriyle aynı UTC anıdır; istemci claim çözümleyerek yetki vermez.
+- JWT **15 dakika** geçerlidir. `sub: string` mevcut User UUID'si, `role: string` kanonik roldür; 02.11.2026 itibarıyla `credentialsVersion` özel claim’i ve ayrıca `iss`, `aud`, `iat`, `nbf`, `exp` standart claim'leri vardır. E-posta, ad, profil/sağlık verisi, hash veya secret claim'i yoktur. `expiresAt`, tokenın imzalı `exp` değeriyle aynı UTC anıdır; istemci claim çözümleyerek yetki vermez.
 - Token `HS256` ile imzalanır, türü `at+jwt`dir. İmzalama anahtarı (Base64, en az 32 kriptografik rastgele byte), issuer ve audience environment/User Secrets'tan alınır; eksik/hatalı yapılandırmada API başlamaz. Token/API yanıtı loglanmaz. Access token DB'ye yazılmaz.
 - ASP.NET Core JWT authentication/authorization middleware imza, izinli algoritma/tür, tam issuer/audience, zorunlu expiry ve zaman aralığını doğrular. `ClockSkew = 0`; varsayılan ek beş dakika tanınmaz. Yetkili kaynaklar `[Authorize]`/uygun kaynak politikalarını uygular. Kimlik `sub`dan alınır; User UUID'si ClientProfile UUID'si sayılmaz.
 - Yetki isteyen bir kaynağa eksik/geçersiz/süresi dolmuş token `401 unauthenticated`, geçerli kimlikle eksik rol/kaynak yetkisi `403 forbidden` olur. `WWW-Authenticate: Bearer` iç doğrulama ayrıntısı taşımaz; ortak hata zarfı korunur. Login ve auth hata yanıtları `Cache-Control: no-store` kullanır. Kimlik/rol deneme yolları yalnız test host'undadır; yeni genel API kaynağı eklenmez.
 - Login varsayılan limiti doğrudan bağlantı IP'si başına **dakikada 10 istek**tir (`Auth:Login:RequestsPerMinute`); hesap varlığından bağımsız ve API süreci içinde uygulanır. Çok örnekli ortak limit/proxy ve hesap bazlı saldırı kontrolleri ayrıca değerlendirilir; kalıcı hesap kilidi bu görevde eklenmez. Gövde sınırı 4096 byte: `413 payload_too_large`; yanlış içerik türü `415 unsupported_media_type`; beklenmeyen hata `500 internal_error`.
-- 27.10 JWT diliminde refresh/logout yoktu; 31.10.2026 görevi aşağıdaki hash rotasyonunu ekler. Genel anlık access JWT iptali, mobil MFA ve parola sıfırlama sağlanmaz. Mevcut JWT, geçerli imza ve süresi boyunca kullanılabilir; kendi hesap okumasındaki aşağıdaki DB kontrolü tüm API için oturum iptali sayılmaz.
+- 27.10 JWT diliminde refresh/logout yoktu; 31.10.2026 görevi aşağıdaki hash rotasyonunu ekler. Bu tarihli dilimde genel anlık access JWT iptali ve parola sıfırlama yoktu; 02.11.2026 P4/reset bölümü bu durumu günceller. Mobil MFA ayrı kalır. Mevcut JWT, geçerli imza ve süresi boyunca kullanılabilir; kendi hesap okumasındaki aşağıdaki DB kontrolü tüm API için oturum iptali sayılmaz.
 
 ### Mobil refresh rotasyonu ve çıkış — 31.10.2026
 
 Bu bölüm kullanıcının backend refresh/iptal göreviyle eklenmiştir. Login isteği,
-JWT claim'leri/HS256/at+jwt/issuer/audience/sıfır clock skew ve 15 dakika korunur.
+HS256/at+jwt/issuer/audience/sıfır clock skew ve 15 dakika korunur; 02.11.2026 P4 ile credentialsVersion claim'i eklenmiştir.
 Login yanıtına iki alan eklenmesi **mevcut Flutter'ın tam üç alan bekleyen
 ayrıştırıcısı için uyumsuzdur**. Mobil/web kodu bu görevde değiştirilmez;
 Flutter entegrasyonu aynı sözleşme sürümüyle ayrıca güncellenmeden eski giriş
@@ -446,21 +446,68 @@ akışı bu yanıtı kabul etmez. Web cookie/Admin MFA yanıtları etkilenmez.
 - Endpoint JWT bearer veya aşağıdaki onaylı web cookie authentication ile erişilir. Kimlik, middleware'in doğruladığı tek `sub` claim'indeki User UUID'sidir; istemci kimliği, özel başlık, profil UUID'si veya URL'deki başka ID ile seçilmez. İki kimlik birlikte gönderilmez.
 - User ve varsa kendi ClientProfile'ı yalnız gerekli alanlarla salt okunur sorgulanır. `displayName` profil yoksa açık `null` olur; `client`/`dietitian` için aynı yanıt kullanılır. E-posta ve ad tokena eklenmez, DB'den güncel alınır. User/ClientProfile entity'si, hash, token, güvenlik metadata'sı, `createdAt`/`updatedAt`, sağlık verisi veya iç içe profil dönmez.
 - Süre bitmemiş olsa dahi User DB'de yoksa, e-posta doğrulaması kalkmışsa veya güncel rol kimliğin izinli rolüyle eşleşmiyorsa aynı genel `401` döner; JWT modunda `WWW-Authenticate: Bearer` korunur. Hesap durumu hata metnine eklenmez. Admin MFA engeli değişmez.
-- Yanıt `Cache-Control: no-store` kullanır. User/profil/parola/token alanları değişmez; W2 cookie modunda yalnız başarılı isteğin AuthSession idle süresi ilerler. Genel JWT iptali eklenmez. Kayıt/JWT giriş yanıtları değişmez; profil düzenleme/uzman profili açıktır.
+- Yanıt `Cache-Control: no-store` kullanır. User/profil/parola/token alanları değişmez; W2 cookie modunda yalnız başarılı isteğin AuthSession idle süresi ilerler. Bu eski /me dilimi tek başına genel JWT iptali sağlamaz; 02.11.2026 P4 kontrolü artık bütün bearer doğrulamalarına uygulanır. Kayıt/JWT giriş yanıtları değişmez; profil düzenleme/uzman profili açıktır.
 
-### Henüz uygulanmamış kimlik işlemleri
+### Onaylı parola sıfırlama — P1–P7, 02.11.2026
 
-| İşlem | Request | Response / sınır |
+Kullanıcının açık onayıyla aşağıdaki reset ve P4 kuralları uygulanır.
+Önceki stateless JWT/açık reset notları bu alt kapsam için tarihseldir.
+
+| İşlem | İstek | Sonuç |
 |---|---|---|
-| `POST /api/v1/auth/password-reset-requests` | `email: string` | `202`, gövdesiz; hesabın varlığını açıklamayan aynı sonuç. Bildirim servisi, limit/süre ayrıntıları **AÇIK**tır |
-| `POST /api/v1/auth/reset-password` | `token: string`, `password: string` | `204`; geçersiz/süresi dolmuş token veya parola kuralı `422`. Sıfırlama tokenı/akışı ve mevcut oturumların iptal ayrıntısı **AÇIK**tır; kayıt parola politikası yukarıda onaylıdır |
+| `POST /api/v1/auth/password-reset-requests` | PasswordResetRequest: yalnız zorunlu geçerli `email: string` | Gövdesiz `202`; olmayan, doğrulanmamış, Admin, cooldown ve kuyruk doluluğunda da aynı sonuç. Bozuk/eksik/null/ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
+| `POST /api/v1/auth/reset-password` | ResetPasswordRequest: yalnız zorunlu string `token`, `password` | Commit sonrası gövdesiz `204`. Boş/geçersiz/süresi dolmuş/tüketilmiş/önceki token veya parola politikası ihlali aynı `422 validation_failed`; eksik/null/yanlış JSON tipi/ek alan `400`; IP limiti `429` |
 
-Bu token/password alanları yalnız HTTP kimlik girdileridir; User modeline düz metin secret alanı eklemez. Admin MFA doğrulama/kurulum/kurtarma ve diyetisyen başvuru/doğrulama endpointlerinin gövdeleri ilgili güvenlik/başvuru şeması tamamlanınca tanımlanır; sağlık verisi yetkisiyle karıştırılmaz.
+- İki işlem oturumsuzdur. Hesap yalnız reset tokenından seçilir; varsa cookie/bearer
+  kimliği dikkate alınmaz. İstemciler bu kimlikleri göndermez. Query `400`,
+  application/json dışında `415`, 4096 byte üstü `413`; altyapı hatası genel `500`.
+  Ortak hata zarfı ve no-store korunur; başarı kimlik/cookie/Location üretmez.
+- Yalnız e-postası doğrulanmış client/dietitian hesapları uygundur. Admin ayrı
+  kurtarma kararı bekler; reset e-posta/rol/MFA doğrulaması sağlamaz.
+- Token CSPRNG 256 bit/43 Base64URL, 30 dakika ve tek kullanımlıktır; tam bitiş
+  anı geçersizdir. Yalnız amaç önekli SHA-256 hash'i saklanır (`05`). Yeni kod
+  eskiyi geçersiz kılar. Doğrulama/CSRF/access/refresh tokenları reset yetkisi vermez.
+- Mevcut 8–128 Unicode kod noktası politikası ve Identity PasswordHasher kullanılır;
+  parola kırpılmaz/normalize edilmez, politika hatasında kod tüketilmez.
+- User satır kilidi altında token/expiry/uygunluk tekrar kontrol edilir. Parola,
+  updatedAt, checked credentialsVersion +1, reset hash/expiry tüketimi, bütün web
+  oturumları ve bütün refresh ailelerinin iptali tek transaction'dadır. Hata/taşma
+  tamamını geri alır; iki eşzamanlı resetten biri 204, diğeri 422 alır.
+- Login (JWT ve web), refresh ve reset aynı User kilidi sırasını kullanır.
+  Reset kazandığında önceden doğrulanmış eski parolayla yeni kimlik oluşturulmaz.
+  Identity rehash sürümü artırmaz. Refresh hash geçmişi normal mutlak expiry'ye
+  kadar korunur; bağımsız giriş aileleri dahil tamamı resetle iptal edilir.
+- Login ve refresh JWT'leri `credentialsVersion` string claim'i taşır. Her bearer
+  doğrulamasında imza/süre kontrollerinden sonra güncel User id/rol/doğrulanmışlık/
+  sürüm DB'den kontrol edilir. Eksik, tekrarlı, string olmayan, negatif, işaretli,
+  başında sıfır olan, taşan veya eşleşmeyen sürüm aynı 401'dir. DB hatası 500 ve
+  kapalı erişimdir; olumlu sonuç cache'lenmez. Kaynak yetkisi kontrolleri korunur.
+- Reset commit'inden sonra başlayan doğrulamalarda eski JWT anında reddedilir;
+  kalan 15 dakika beklenmez. Önceden yetkilendirilmiş istek tamamlanabilir.
+  Normal logout yalnız refresh ailesini iptal etmeye devam eder; sürümü artırmaz,
+  access JWT'nin kalan süresi normal logout için geçerlidir. Cookie biçimi değişmez.
+- Talep IP başına 5/dakika, tüketim 10/dakika; hesap gönderim aralığı 60 saniye.
+  `Auth:PasswordReset` altında RequestsPerMinute, ConsumeRequestsPerMinute,
+  ResendCooldownSeconds ve QueueCapacity (100) merkezi yapılandırılır; hepsi pozitiftir.
+  Sayaçlar API sürecindedir; güvenilir proxy/ortak limit üretim önkoşuludur.
+- HTTP talebi hesap sorgusu/SMTP beklemeden sınırlı bellek kuyruğuna yazılır.
+  Kuyruk/SMTP hatasında 202 teslim garantisi değildir. Mevcut yerel Mailpit/SMTP
+  kullanılır; üretim sağlayıcısı/kalıcı kuyruk eklenmez. Başarıdan sonra sır/parola
+  içermeyen bildirim kuyruğa alınır; teslim hatası commit'i geri almaz.
+- Süresi biten hash/expiry 10 dakikalık temizlikte silinir; 24 saati geçmiş
+  lastSentAt yalnız canlı kod yoksa temizlenir. Hesap/veri silinmez.
+- Kod elle yapıştırılır; URL/query/fragment/depolama/analitik/loga taşınmaz.
+  Reset POST'u otomatik tekrarlanmaz, otomatik giriş yapılmaz. Mobil mevcut tek
+  refresh koordinasyonunu korur; iptal edilmiş refresh'in 401'i oturumu temizler.
+- Dağıtım: önce yedekli additive migration, ardından bütün API örneklerinin aynı
+  sürüme geçirilmesi gerekir. Claim'siz eski JWT 401 alır; geçerli mevcut refresh
+  yeni sürümlü JWT üretebilir. Resetle iptal edilmiş aile yeniden giriş gerektirir.
+  Karma eski/yeni middleware ile reset açılmaz. Beş alanlı login/me ve ekranlar değişmez.
 
 ### Onaylı web cookie oturumu — W2-C1–C7 (27.10.2026)
 
 Kullanıcı iki tarafın ortak onayını teyit etmiştir. Mevcut JWT login yolu,
-15 dakikalık süresi ve claim'leri korunur; login yanıtı 31.10.2026'da yukarıdaki
+15 dakikalık süresi korunur; 02.11.2026 P4 ile credentialsVersion eklenir. Login yanıtı 31.10.2026'da yukarıdaki
 refresh alanlarıyla genişletildi. JWT login cookie üretmez.
 Web akışı ayrı kaynak kullanır; JWT login'i çağırmaz, refresh token üretmez.
 

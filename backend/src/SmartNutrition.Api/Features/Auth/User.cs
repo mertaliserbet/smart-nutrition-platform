@@ -44,6 +44,10 @@ public sealed class User
     public string Email { get; private set; } = null!;
     [JsonIgnore]
     public string PasswordHash { get; private set; } = null!;
+    [JsonIgnore] public long CredentialsVersion { get; private set; }
+    [JsonIgnore] public string? PasswordResetTokenHash { get; private set; }
+    [JsonIgnore] public DateTimeOffset? PasswordResetExpiresAt { get; private set; }
+    [JsonIgnore] public DateTimeOffset? PasswordResetLastSentAt { get; private set; }
     public UserRole Role { get; private set; }
     [JsonIgnore]
     public bool IsEmailVerified { get; private set; }

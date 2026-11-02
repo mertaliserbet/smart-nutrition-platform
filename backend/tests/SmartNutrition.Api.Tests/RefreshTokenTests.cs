@@ -317,10 +317,10 @@ public sealed class RefreshTokenTests
         await using var factory = await RegistrationApiFactory.CreateAsync();
         await using var database = factory.Database();
         var migrations = (await database.Database.GetAppliedMigrationsAsync()).ToArray();
-        await database.GetService<IMigrator>().MigrateAsync(migrations[^2]);
         var id = await Seed(factory);
         database.AuthSessions.Add(new AuthSession(id, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
+        await database.GetService<IMigrator>().MigrateAsync(migrations.Single(value => value.EndsWith("_AddNutritionPlansAndVersions")));
         await database.Database.MigrateAsync();
         Assert.Equal(id, (await database.Users.SingleAsync()).Id);
         Assert.Single(await database.ClientProfiles.ToListAsync());

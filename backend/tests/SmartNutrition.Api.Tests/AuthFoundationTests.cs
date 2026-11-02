@@ -133,7 +133,7 @@ public sealed class AuthFoundationTests
 
         Assert.Equal("users", users.GetTableName());
         Assert.Equal("client_profiles", profiles.GetTableName());
-        Assert.Equal(["CreatedAt", "Email", "EmailVerificationExpiresAt", "EmailVerificationLastSentAt", "EmailVerificationTokenHash", "Id", "IsEmailVerified", "LastUsedTotpStep", "MfaRecoveryCodeHashes", "PasswordHash", "Role", "TotpSecretProtected", "UpdatedAt"],
+        Assert.Equal(["CreatedAt", "CredentialsVersion", "Email", "EmailVerificationExpiresAt", "EmailVerificationLastSentAt", "EmailVerificationTokenHash", "Id", "IsEmailVerified", "LastUsedTotpStep", "MfaRecoveryCodeHashes", "PasswordHash", "PasswordResetExpiresAt", "PasswordResetLastSentAt", "PasswordResetTokenHash", "Role", "TotpSecretProtected", "UpdatedAt"],
             users.GetProperties().Select(property => property.Name).Order().ToArray());
         Assert.Equal(["BirthDate", "DisplayName", "HeightCm", "Id", "UserId"],
             profiles.GetProperties().Select(property => property.Name).Order().ToArray());

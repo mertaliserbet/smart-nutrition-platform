@@ -16,6 +16,11 @@ Map<String, Object?> validUser() => {
 Map<String, Object?> validLogin() => {
   'accessToken': testToken,
   'tokenType': 'Bearer',
+  'refreshToken': 'A' * 43,
+  'refreshTokenExpiresAt': DateTime.now()
+      .toUtc()
+      .add(const Duration(days: 30))
+      .toIso8601String(),
   'expiresAt': DateTime.now()
       .toUtc()
       .add(const Duration(minutes: 15))
@@ -162,7 +167,7 @@ void main() {
     'non JWT token': (body) => body['accessToken'] = 'opaque',
     'bad expiry': (body) => body['expiresAt'] = 'not-a-dateZ',
     'non UTC expiry': (body) => body['expiresAt'] = '2026-10-31T16:00:00+03:00',
-    'extra field': (body) => body['refreshToken'] = 'private',
+    'extra field': (body) => body['unexpected'] = 'private',
   }.entries) {
     test('malformed login response: ${mutation.key}', () async {
       server.listen((request) async {
@@ -235,6 +240,167 @@ void main() {
       throwsA(isA<LoginApiException>()),
     );
     expect(invalidated, isTrue);
+  });
+
+  for (final action in ['refresh', 'logout']) {
+    test(
+      '$action sends only refreshToken without bearer/cookie/query',
+      () async {
+        final captured = Completer<Map<String, Object?>>();
+        server.listen((request) async {
+          captured.complete({
+            'path': request.uri.toString(),
+            'method': request.method,
+            'body': jsonDecode(await utf8.decoder.bind(request).join()),
+            'authorization': request.headers.value(
+              HttpHeaders.authorizationHeader,
+            ),
+            'cookie': request.headers.value(HttpHeaders.cookieHeader),
+          });
+          request.response.statusCode = action == 'refresh' ? 200 : 204;
+          if (action == 'refresh') {
+            request.response.headers.contentType = ContentType.json;
+            request.response.write(jsonEncode(validLogin()));
+          }
+          await request.response.close();
+        });
+        if (action == 'refresh') {
+          final pair = await api.refresh('B' * 43);
+          expect(pair.refreshToken, 'A' * 43);
+          expect(pair.refreshTokenExpiresAt.isUtc, isTrue);
+        } else {
+          await api.logout('B' * 43);
+        }
+        expect(await captured.future, {
+          'path': '/api/v1/auth/$action',
+          'method': 'POST',
+          'body': {'refreshToken': 'B' * 43},
+          'authorization': null,
+          'cookie': null,
+        });
+      },
+    );
+  }
+
+  test('pre-send refresh connection failure is safe to retry', () async {
+    await server.close(force: true);
+    await expectLater(
+      api.refresh('A' * 43),
+      throwsA(
+        isA<LoginApiException>().having(
+          (e) => e.safeToRetry,
+          'safeToRetry',
+          isTrue,
+        ),
+      ),
+    );
+  });
+
+  test(
+    'dropped refresh response is ambiguous and must never auto-replay',
+    () async {
+      var count = 0;
+      server.listen((request) async {
+        count++;
+        await request.drain<void>();
+        final socket = await request.response.detachSocket(writeHeaders: false);
+        socket.destroy();
+      });
+      await expectLater(
+        api.refresh('A' * 43),
+        throwsA(
+          isA<LoginApiException>().having(
+            (e) => e.safeToRetry,
+            'safeToRetry',
+            isFalse,
+          ),
+        ),
+      );
+      expect(count, 1);
+    },
+  );
+
+  for (final status in [401, 429, 500]) {
+    test('refresh $status has correct invalidation/retry semantics', () async {
+      server.listen((request) async {
+        await request.drain<void>();
+        request.response
+          ..statusCode = status
+          ..headers.contentType = ContentType.json
+          ..write(
+            jsonEncode({
+              'error': {
+                'code': status == 429 ? 'rate_limited' : 'internal_error',
+                'message': 'private',
+              },
+              'requestId': 'synthetic',
+            }),
+          );
+        await request.response.close();
+      });
+      await expectLater(
+        api.refresh('A' * 43),
+        throwsA(
+          isA<LoginApiException>()
+              .having((e) => e.unauthorized, 'unauthorized', status == 401)
+              .having((e) => e.safeToRetry, 'safeToRetry', status == 429),
+        ),
+      );
+    });
+  }
+
+  test('refresh401 is terminal even if its response body stalls', () async {
+    server.listen((request) async {
+      await request.drain<void>();
+      request.response.statusCode = 401;
+      request.response.write('{');
+      await request.response.flush();
+    });
+    api = LoginApi(
+      baseUri: api.baseUri,
+      timeout: const Duration(milliseconds: 200),
+    );
+    await expectLater(
+      api.refresh('A' * 43),
+      throwsA(
+        isA<LoginApiException>().having(
+          (e) => e.unauthorized,
+          'unauthorized',
+          isTrue,
+        ),
+      ),
+    );
+  });
+
+  for (final mutation in ['refreshToken', 'refreshTokenExpiresAt']) {
+    test('five-field response requires $mutation', () async {
+      server.listen((request) async {
+        await request.drain<void>();
+        final body = validLogin()..remove(mutation);
+        request.response.headers.contentType = ContentType.json;
+        request.response.write(jsonEncode(body));
+        await request.response.close();
+      });
+      await expectLater(
+        api.refresh('A' * 43),
+        throwsA(
+          isA<LoginApiException>().having(
+            (e) => e.invalidResponse,
+            'invalidResponse',
+            isTrue,
+          ),
+        ),
+      );
+    });
+  }
+
+  test('logout rejects a nonempty 200 success-like response', () async {
+    server.listen((request) async {
+      await request.drain<void>();
+      request.response.write('{}');
+      await request.response.close();
+    });
+    await expectLater(api.logout('A' * 43), throwsA(isA<LoginApiException>()));
   });
 
   for (final login in [true, false]) {

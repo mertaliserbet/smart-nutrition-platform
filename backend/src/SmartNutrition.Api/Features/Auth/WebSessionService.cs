@@ -23,7 +23,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         await using var transaction = await database.Database.BeginTransactionAsync(cancellationToken);
         var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {candidate.Id} FOR UPDATE")
             .SingleOrDefaultAsync(cancellationToken);
-        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.Role != UserRole.Admin ||
+        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.CredentialsVersion != candidate.CredentialsVersion || locked.Role != UserRole.Admin ||
             !locked.IsEmailVerified || !mfa.TryConsume(locked, request.MfaCode!, clock.GetUtcNow())) return null;
         var now = clock.GetUtcNow();
         if (verified == PasswordVerificationResult.SuccessRehashNeeded)
@@ -53,7 +53,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         // Security mutations acquire this same lock before changing User and revoking sessions.
         var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {candidate.Id} FOR UPDATE")
             .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
-        if (locked is null || locked.PasswordHash != candidate.PasswordHash || !locked.IsEmailVerified || locked.Role != candidate.Role)
+        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.CredentialsVersion != candidate.CredentialsVersion || !locked.IsEmailVerified || locked.Role != candidate.Role)
             return null;
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
