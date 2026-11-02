@@ -40,9 +40,13 @@ class _MainShellState extends State<MainShell> {
   ];
 
   late int _selectedIndex = widget.initialIndex;
+  int _nutritionRevision = 0;
 
   void _selectTab(int index) {
-    if (index == _selectedIndex) return;
+    if (index == _selectedIndex) {
+      if (index == 1) setState(() => ++_nutritionRevision);
+      return;
+    }
     setState(() => _selectedIndex = index);
   }
 
@@ -63,7 +67,10 @@ class _MainShellState extends State<MainShell> {
           titleSpacing: AppTokens.spacingLarge,
           actions: [
             IconButton(
-              onPressed: () => Navigator.of(context).pushNamed('/dietitians'),
+              onPressed: () async {
+                await Navigator.of(context).pushNamed('/dietitians');
+                if (mounted) setState(() => ++_nutritionRevision);
+              },
               tooltip: 'Diyetisyen Bul',
               icon: const Icon(Icons.person_search_outlined),
             ),
@@ -89,7 +96,10 @@ class _MainShellState extends State<MainShell> {
             index: _selectedIndex,
             children: [
               HomePage(onViewNutrition: () => _selectTab(1)),
-              const NutritionPage(),
+              NutritionPage(
+                active: _selectedIndex == 1,
+                refreshRevision: _nutritionRevision,
+              ),
               const ProgressPage(),
               const ProfilePage(),
             ],

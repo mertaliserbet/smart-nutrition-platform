@@ -73,6 +73,7 @@ class AuthSession extends ChangeNotifier {
     Map<String, Object?>? payload,
     String? profileContext,
     String? method,
+    int maxResponseBytes = 65536,
   }) async {
     final verb = method ?? (payload == null ? 'GET' : 'POST');
     final generation = _generation;
@@ -104,6 +105,7 @@ class AuthSession extends ChangeNotifier {
         baseUri: _api.baseUri,
         timeout: _api.timeout,
         onUnauthorized: unauthorized,
+        maxResponseBytes: maxResponseBytes,
       );
       if (!_current(generation)) {
         throw const LoginApiException(

@@ -1,14 +1,46 @@
 # Smart Nutrition — Mobil
 
 Flutter/Dart başlangıç uygulaması; Android ve iOS proje dosyaları içerir.
-Ana Sayfa'da örnek verili Dashboard; Beslenme, İlerleme ve Profil sekmelerinde
-boş durum ekranlarını içerir.
+Ana Sayfa'da örnek verili Dashboard; Beslenme'de gerçek aktif program görünümü
+ve manuel öğün formu; İlerleme ve Profil'de başlangıç ekranları bulunur.
 Giriş/kayıt, şifre sıfırlama ve e-posta doğrulama ekranları içerir.
 Kayıt formu gerçek `POST /api/v1/auth/register` endpointini kullanır.
 E-posta doğrulama ve yeniden gönderim mevcut Auth API'sine bağlıdır.
 Giriş ve kendi hesap doğrulaması mevcut JWT API'sine bağlıdır. Parola sıfırlama
 ve sağlık kayıtları henüz API'ye bağlı değildir; kayıt/e-posta doğrulaması
 tek başına oturum oluşturmaz.
+
+## Beslenme Programım — salt okunur aktif program
+
+Beslenme sekmesi `GET /api/v1/nutrition-plans/active` kullanır. Mevcut doğrulanmış
+JWT, `X-Profile-Context: client` ve merkezi API_BASE_URL/HTTPS ayarları korunur;
+clientId/query/gövde/cookie gönderilmez. Diyetisyenin atadığı program açıkça
+etiketlenir. Kişisel aktif program da ayrı etiketle salt okunur gösterilir.
+Programı oluşturma, düzenleme, etkinleştirme veya arşivleme eylemi eklenmemiştir.
+
+Gün (null=her gün, 1–7 ISO), öğün türü, description, recommendedQuantity,
+alternatif grupları, tarih ve varsa hedefler sözleşmeden okunur. Ayrı foods veya
+besin/kalori ayrıntısı uydurulmaz; miktar yoksa “Belirtilmemiş” gösterilir.
+Alternatifler birlikte tüketilecek ayrı öğünler gibi sunulmaz. Sürüm kimliği ve
+numarası korunur; geçmiş/sürüm ekranı bu kapsamda değildir.
+
+404 uygun boş durumdur. 401 mevcut tek refresh akışını kullanır; 403, ağ, TLS,
+sunucu veya bozuk yanıt hatasında önceki içerik gizlenir ve yeniden deneme sunulur.
+Ekranda yenileme düğmesi ve aşağı çekerek yenileme vardır. Sekmeye giriş/yeniden
+seçim, uygulamanın öne dönmesi ve bağlantı/manuel kayıt ekranından dönüşte aktif
+program yeniden okunur. Arka planda veya gizli sekmede içerik tutulmaz/gösterilmez;
+geç/eski hesaba ait yanıtlar reddedilir. Kalıcı program önbelleği ve push/polling yoktur.
+Webdeki değişiklikler bu yenileme noktalarında görünür; anlık bildirim vaat edilmez.
+Danışanın kendi program erişimi paylaşım iznine bağlı değildir. Aktif ilişkinin
+sona ermesi sunucuda atanmış programı arşivler; sonraki aktif okuma 404 olur.
+
+100 kalemli geçerli programlar küçük Auth yanıt sınırını aşabildiğinden yalnız bu
+okuma en fazla 1 MiB yanıt kabul eder; diğer isteklerde 64 KiB varsayılanı korunur.
+API/widget regresyonları nutrition_plan_api_test.dart ve nutrition_plan_test.dart
+içindedir. İsteğe bağlı `flutter test test/active_plan_live_probe.dart`, geçici
+SNP_PLAN_ORIGIN/CLIENT/EXPERT/EXPERT_ID/PASSWORD ortam girdileriyle web cookie/CSRF
+üzerinden atama → gerçek mobil API okuma → sürüm değişimi → ilişki bitişini sınar.
+Kurulum ve tam UUID ile temizlik çağırana aittir; bu probe cihaz UI testi değildir.
 
 ## Çalıştırma ve kontrol
 

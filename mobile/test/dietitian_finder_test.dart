@@ -640,6 +640,7 @@ class _Session extends AuthSession {
     Map<String, Object?>? payload,
     String? profileContext,
     String? method,
+    int maxResponseBytes = 65536,
   }) async => (
     statusCode: 200,
     body: {'items': [], 'totalCount': 0},

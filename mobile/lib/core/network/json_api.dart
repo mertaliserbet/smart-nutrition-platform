@@ -58,6 +58,7 @@ Future<JsonApiResponse> requestJson({
   String? profileContext,
   Uri? baseUri,
   required Duration timeout,
+  int maxResponseBytes = 65536,
   void Function()? onUnauthorized,
   void Function()? onRequestSending,
 }) async {
@@ -71,6 +72,7 @@ Future<JsonApiResponse> requestJson({
       // Only relative API paths may receive a bearer credential.
       if (!const ['GET', 'POST', 'PATCH'].contains(method) ||
           (method == 'GET' && payload != null) ||
+          maxResponseBytes <= 0 ||
           !path.startsWith('/api/v1/') ||
           path.startsWith('//') ||
           path.contains('\\') ||
@@ -114,7 +116,7 @@ Future<JsonApiResponse> requestJson({
       );
       final bytes = <int>[];
       await for (final chunk in response) {
-        if (bytes.length + chunk.length > 65536) {
+        if (bytes.length + chunk.length > maxResponseBytes) {
           return (
             statusCode: response.statusCode,
             body: null,

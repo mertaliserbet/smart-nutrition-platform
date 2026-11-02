@@ -18,7 +18,8 @@ void main() {
     (
       label: 'Beslenme',
       page: NutritionPage,
-      description: 'Öğünleriniz ve beslenme programınız burada yer alacak.',
+      description:
+          'Öğünlerinizi kaydedin ve aktif beslenme programınızı görüntüleyin.',
     ),
     (
       label: 'İlerleme',
