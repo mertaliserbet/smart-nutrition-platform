@@ -66,7 +66,9 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
   Mobil API, `adb reverse tcp:7099 tcp:7099` üzerinden `https://localhost:7099`
   kullanır. Yalnız mevcut açık PEM sertifikası debug'a aktarılır; özel anahtar
   ve TLS doğrulamasını kapatan seçenek kullanılmaz. Script başka hedefe bağlı
-  mevcut 7099 tünelini değiştirmez; kendi açtığı tüneli çıkışta kaldırır.
+  mevcut tünelleri değiştirmez; kendi açtığı tünelleri çıkışta kaldırır.
+  `WEB_BASE_URL=https://localhost:5173` ayrıca Flutter'a aktarılır.
+  Android tarayıcı HTTPS kurulumu aşağıdadır.
 
 `Ctrl+C`, bu çalıştırmanın uygulama süreçlerini ve alt süreçlerini kapatır;
 Flutter'a önce `q` gönderilir, kalan süreçler Windows Job Object ile sonlandırılır.
@@ -75,12 +77,84 @@ uygulanır. Önceden çalışan Docker servisleri ve emülatör kapatılmaz; con
 volume veya veritabanı verileri silinmez. Terminali zorla kapatmak yerine `Ctrl+C`
 kullanın; zorla kapatmada Docker servisleri açık kalabilir.
 
-5052/7099/5173 portları başka bir süreç tarafından kullanılıyorsa script
+5052/7099/5173 (Android HTTPS etkinse ayrıca 5174) portları başka bir süreç tarafından kullanılıyorsa script
 o süreci kapatmadan hata verir. Compose portları da başlamadan kontrol edilir;
 zaten çalışan aynı Compose servisi yeniden kullanılır. Backend/web beklenmedik
 şekilde kapanırsa bu çalıştırmanın servisleri temizlenir. Eksik ayar/bağımlılık
 ve başarısız hazırlık kontrolleri terminalde bildirilir. Gerçek web akışları ve
 mobil ekranların görsel kontrolü geliştirici tarafından elle yapılır.
+
+### Android Chrome için yerel HTTPS
+
+`.NET dev-certs` sertifikası kendinden imzalı bir **sunucu** sertifikasıdır;
+`localhost` adı ve süresi doğru olsa da Android Chrome ona kendiliğinden güvenmez.
+Flutter'ın `API_DEV_CERT_BASE64` güveni harici tarayıcıya aktarılmaz.
+Bu kurulum yalnız geliştirme/test içindir; Windows kullanıcı/makine güven
+depolarını, Android sistem deposunu veya üretim ayarlarını değiştirmez.
+
+PowerShell **7.5+** ile, yalnız test emülatörü açıkken:
+
+```powershell
+adb devices
+.\setup-local-https.ps1 -EmulatorId emulator-5580 # kendi test cihazı kimliğinizi kullanın
+```
+
+Script yeni paket kurmaz. CA ve `localhost`, `127.0.0.1`, `::1` SAN'lı sunucu
+sertifikasını `$env:LOCALAPPDATA/SmartNutrition/browser-https` altında hazırlar.
+CA anahtarı Windows DPAPI/CurrentUser ile şifrelenir; dizin erişimi mevcut
+kullanıcı ve SYSTEM ile sınırlıdır. Sunucu özel anahtarı da bu dizinde kalır.
+Dosyaları, özellikle anahtarları Git'e veya başka cihaza kopyalamayın.
+Tekrar çalıştırma aynı CA'yı kullanır; sunucu sertifikası son yedi gününe
+girdiyse yenilenir (180 gün geçerli). CA iki yıl geçerlidir; CA değişimi
+Android'de yeniden güven onayı gerektirir.
+
+Emülatöre **yalnız açık CA** `/sdcard/Download/smart-nutrition-dev-ca.crt`
+olarak kopyalanır. Android Ayarlar aramasında **CA certificate** / **CA sertifikası**
+bulun: Güvenlik ve gizlilik → Diğer güvenlik ve gizlilik → Şifreleme ve kimlik
+bilgileri → Sertifika yükle → CA sertifikası. Android'in CA yükleme uyarısını
+onaylayıp Downloads içindeki bu dosyayı seçin; cihaz PIN'i istenirse cihaz sahibi
+girmelidir. Bu, Chrome sertifika uyarısını atlamak değildir: sonraki TLS
+bağlantısı gerçek CA zinciri, süre ve hostname doğrulamasından geçer.
+Yalnız test AVD'sine yükleyin; fiziksel/kişisel telefona kurmayın.
+Android'in standart yükleme/kaldırma yolu için
+[Google'ın sertifika talimatları](https://support.google.com/pixelphone/answer/2844832) izlenebilir.
+Görünen CA SHA-256 değerini dosyayla karşılaştırabilirsiniz:
+
+```powershell
+Get-FileHash "$env:LOCALAPPDATA/SmartNutrition/browser-https/root-ca.crt" -Algorithm SHA256
+.\start.ps1
+```
+
+Başlatıcı bu CA dosyalarını bulduğunda Node'un mevcut yerleşik HTTPS modülüyle
+yalnız `127.0.0.1:5174` üzerinde Android geçidini açar. Akış şöyledir:
+
+```text
+Android Chrome https://localhost:5173
+  -> adb reverse tcp:5173 tcp:5174
+  -> yerel CA imzalı HTTPS geçidi (127.0.0.1:5174)
+  -> sertifikası doğrulanan mevcut Vite HTTPS (localhost:5173)
+  -> mevcut API HTTPS proxy'si (localhost:7099)
+```
+
+Bilgisayar Chrome'u mevcut Vite/.NET sertifikasını kullanmaya devam eder.
+Telefon tarayıcısındaki origin de `https://localhost:5173` kalır; Host, Origin,
+cookie, CSRF ve MFA davranışları değiştirilmez. JWT URL'ye eklenmez.
+API tüneli `tcp:7099 -> tcp:7099` olarak korunur. CA dosyaları yoksa başlatıcı
+önceki doğrudan `tcp:5173 -> tcp:5173` yolunu kullanır; tarayıcı güveni yine
+ayrıca gerekir. Farklı hedefe bağlı mevcut tünel otomatik değiştirilmez;
+`adb -s emulator-5580 reverse --list` ile sahibini/hedefini kontrol edin.
+
+Doğrulama: Flutter Profil → Diyetisyen Olarak Başvur → Web Sitesine Git.
+Android Chrome başvuru formunu uyarısız göstermeli; `chrome-error://` veya
+`NET::ERR_CERT_AUTHORITY_INVALID` başarı sayılmaz. AVD sıfırlanırsa kullanıcı
+CA'sı da silinir; açık sertifikayı tekrar yükleyin. Windows'a CA eklemeyin,
+Chrome güvenlik bayrağı/TLS atlama veya HTTP kullanmayın.
+
+Geri alma: `Ctrl+C` ile başlatıcıyı durdurun. Android Ayarlar → Güvenilir kimlik
+bilgileri → Kullanıcı bölümünden yalnız **Smart Nutrition Local Development CA**
+kaydını kaldırın (tüm kimlik bilgilerini temizlemeyin). Downloads'taki açık CA
+dosyasını silebilirsiniz. `browser-https` dizinini farklı adla saklamak başlatıcıyı
+önceki doğrudan web yoluna döndürür. Normal AVD verileri ve diğer sertifikalar korunur.
 
 ## Mevcut repo düzeni
 ```text

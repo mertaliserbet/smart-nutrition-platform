@@ -209,7 +209,8 @@ function Wait-ServiceUrl([string] $Name, [string] $Url, $Child, [int] $TimeoutSe
         if ($Child.Process.HasExited) { throw "$Name beklenmedik şekilde kapandı (çıkış $($Child.Process.ExitCode)). Yukarıdaki $Name logunu inceleyin." }
         try {
             # Normal certificate validation; never bypass TLS for local Auth.
-            $response = Invoke-WebRequest -Uri $Url -TimeoutSec 2 -MaximumRedirection 0 -ErrorAction Stop
+            # Windows may try IPv6 localhost before the IPv4-only web listener.
+            $response = Invoke-WebRequest -Uri $Url -TimeoutSec 5 -MaximumRedirection 0 -ErrorAction Stop
             if ($response.StatusCode -eq 200) { Write-ServiceLog $Name "Hazır: $Url" Green; return }
         } catch { }
         [Threading.Thread]::Sleep(200)
@@ -228,7 +229,8 @@ function Start-Development {
     $ownedServices = [Collections.Generic.List[string]]::new()
     $docker = $null
     $flutterApp = $null
-    $mobileTunnel = $null
+    $androidWebApp = $null
+    $mobileTunnels = [Collections.Generic.List[hashtable]]::new()
     [SmartNutrition.Development.Cancellation]::Listen()
     try {
         Write-ServiceLog 'Başlatıcı' 'Ön kontroller yapılıyor; Ctrl+C ile durdurabilirsiniz.' Cyan
@@ -306,7 +308,8 @@ function Start-Development {
             SMART_NUTRITION_HTTPS_KEY = [IO.Path]::GetFullPath($certificateKey)
             NODE_EXTRA_CA_CERTS = if ($env:NODE_EXTRA_CA_CERTS) { $env:NODE_EXTRA_CA_CERTS } else { [IO.Path]::GetFullPath($certificate) }
         }
-        $webApp = Start-ServiceProcess 'Web' $node @($vite, '--port', '5173', '--strictPort') $web -Environment $webEnvironment
+        # ADB reverse connects to IPv4 loopback; keep Vite local to this machine.
+        $webApp = Start-ServiceProcess 'Web' $node @($vite, '--host', '127.0.0.1', '--port', '5173', '--strictPort') $web -Environment $webEnvironment
         Wait-ServiceUrl 'Web' "$webUrl/giris" $webApp -TimeoutSeconds 30
 
         Write-ServiceLog 'Adresler' "Web: $webUrl/giris | Kayıt: $webUrl/kayit" Green
@@ -336,12 +339,36 @@ function Start-Development {
                             }
                         }
                         if (-not $adbPath) { throw 'Android SDK adb bulunamadı; SDK kurulumunu kontrol edin.' }
+                        $androidWebPort = 5173
+                        $browserDirectory = Join-Path $env:LOCALAPPDATA 'SmartNutrition/browser-https'
+                        if (Test-Path -LiteralPath (Join-Path $browserDirectory 'root-ca.crt')) {
+                            Assert-FreePort 5174 'Android web HTTPS'
+                            $gateway = Join-Path $root 'tools/android-browser-https.mjs'
+                            $androidWebApp = Start-ServiceProcess 'Android HTTPS' $node @($gateway) $root -Environment @{
+                                SMART_NUTRITION_HTTPS_CERT = [IO.Path]::GetFullPath($certificate)
+                            }
+                            for ($attempt = 0; $attempt -lt 3; $attempt++) {
+                                try {
+                                    [void](Invoke-ServiceCommand 'Android HTTPS kontrolü' $node @($gateway, '--check') $root -Quiet)
+                                    break
+                                } catch {
+                                    if ($attempt -eq 2) { throw }
+                                    [Threading.Thread]::Sleep(200)
+                                }
+                            }
+                            $androidWebPort = 5174
+                            Write-ServiceLog 'Android HTTPS' 'Emülatör localhost:5173 -> host 127.0.0.1:5174. Geliştirme CA sertifikası test emülatöründe kullanıcı onayıyla yüklenmiş olmalı; Windows güveni değiştirilmez.' Cyan
+                        }
                         $reverse = Invoke-ServiceCommand 'Mobil HTTPS tünel kontrolü' $adbPath @('-s', $emulator.id, 'reverse', '--list') $mobile -Quiet
-                        $httpsTunnel = [regex]::Match($reverse, '(?m)^\S+[ \t]+tcp:7099[ \t]+(?<target>\S+)')
-                        if ($httpsTunnel.Success -and $httpsTunnel.Groups['target'].Value -ne 'tcp:7099') { throw 'Emülatörde 7099 portu başka bir hedefe bağlı; mevcut tünel korunuyor.' }
-                        if (-not $httpsTunnel.Success) {
-                            [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli' $adbPath @('-s', $emulator.id, 'reverse', 'tcp:7099', 'tcp:7099') $mobile -Quiet)
-                            $mobileTunnel = @{ Adb = $adbPath; Device = $emulator.id }
+                        foreach ($mapping in @(@{ Port = ([uri]$apiUrl).Port; Target = ([uri]$apiUrl).Port }, @{ Port = ([uri]$webUrl).Port; Target = $androidWebPort })) {
+                            $port = $mapping.Port
+                            $target = $mapping.Target
+                            $tunnel = [regex]::Match($reverse, "(?m)^\S+[ \t]+tcp:$port[ \t]+(?<target>\S+)")
+                            if ($tunnel.Success -and $tunnel.Groups['target'].Value -ne "tcp:$target") { throw "Emülatörde $port portu başka bir hedefe bağlı; mevcut tünel korunuyor." }
+                            if (-not $tunnel.Success) {
+                                [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli' $adbPath @('-s', $emulator.id, 'reverse', "tcp:$port", "tcp:$target") $mobile -Quiet)
+                                $mobileTunnels.Add(@{ Adb = $adbPath; Device = $emulator.id; Port = $port })
+                            }
                         }
                         # Only the existing public PEM is passed, never its private key.
                         $publicPem = [IO.File]::ReadAllText($certificate)
@@ -350,18 +377,18 @@ function Start-Development {
                         }
                         $publicCertificate = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($publicPem))
                         $publicPem = $null
-                        $mobileArguments = @('run', '--no-pub', '-d', $emulator.id, "--dart-define=API_BASE_URL=$apiUrl", "--dart-define=API_DEV_CERT_BASE64=$publicCertificate")
+                        $mobileArguments = @('run', '--no-pub', '-d', $emulator.id, "--dart-define=API_BASE_URL=$apiUrl", "--dart-define=WEB_BASE_URL=$webUrl", "--dart-define=API_DEV_CERT_BASE64=$publicCertificate")
                         $flutterApp = Start-ServiceProcess 'Mobil' $flutter.Source $mobileArguments $mobile -Environment @{ GRADLE_OPTS = "$env:GRADLE_OPTS -Dorg.gradle.daemon=false" }
                         $publicCertificate = $null
                     }
                 } else { Write-ServiceLog 'Mobil' 'Çalışan Android emülatörü bulunamadı. Emülatörü kendiniz açıp scripti yeniden çalıştırabilirsiniz; backend/web açık kalacak.' Yellow }
             } catch [OperationCanceledException] { throw }
-              catch { Write-ServiceLog 'Mobil' 'Flutter/cihaz kontrolü başarısız. flutter doctor ve flutter devices ile kontrol edin; diğer servisler açık kalacak.' Yellow }
+              catch { Write-ServiceLog 'Mobil' "Mobil bağlantı hazırlığı başarısız: $($_.Exception.Message) Diğer servisler açık kalacak." Yellow }
         }
         Write-ServiceLog 'Başlatıcı' 'Servisler bu terminalden yönetiliyor. Durdurmak için Ctrl+C.' Cyan
         while (-not [SmartNutrition.Development.Cancellation]::Requested) {
             Pump-ServiceLogs
-            foreach ($child in @($api, $webApp, $dockerLogs)) {
+            foreach ($child in @($api, $webApp, $dockerLogs, $androidWebApp) | Where-Object { $null -ne $_ }) {
                 if ($child.Process.HasExited) { throw "$($child.Name) kapandı (çıkış $($child.Process.ExitCode)); bu çalıştırmanın servisleri durduruluyor." }
             }
             if ($flutterApp -and $flutterApp.Process.HasExited) {
@@ -384,15 +411,15 @@ function Start-Development {
             try { [void]$child.Process.WaitForExit(5000); Receive-ServiceLogs $child } catch { }
             $child.Process.Dispose()
         }
-        if ($mobileTunnel -or ($docker -and $ownedServices.Count -gt 0)) {
+        if ($mobileTunnels.Count -gt 0 -or ($docker -and $ownedServices.Count -gt 0)) {
             # Cleanup must still work after cancellation; volumes/containers are never removed.
             [SmartNutrition.Development.Cancellation]::Requested = $false
             $script:ProcessGroup = [SmartNutrition.Development.ProcessGroup]::new()
             $script:Children = [Collections.Generic.List[object]]::new()
             try {
-                if ($mobileTunnel) {
+                foreach ($mobileTunnel in $mobileTunnels) {
                     try {
-                        [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli kapatma' $mobileTunnel.Adb @('-s', $mobileTunnel.Device, 'reverse', '--remove', 'tcp:7099') $mobile -Quiet)
+                        [void](Invoke-ServiceCommand 'Mobil HTTPS tüneli kapatma' $mobileTunnel.Adb @('-s', $mobileTunnel.Device, 'reverse', '--remove', "tcp:$($mobileTunnel.Port)") $mobile -Quiet)
                     } catch {
                         Write-ServiceLog 'Mobil' 'HTTPS tüneli kaldırılamadı; emülatör kapalıysa tünel zaten sona ermiştir.' Yellow
                     }

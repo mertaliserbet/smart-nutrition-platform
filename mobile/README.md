@@ -147,8 +147,12 @@ flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com -
 ```
 
 Android emülatöründe localhost için `adb reverse tcp:5173 tcp:5173` gerekir.
-Mevcut `start.ps1` API için 7099 tünelini kurar; tarayıcıdaki web bağlantısı için
-5173 tüneli ayrıca kurulmalıdır. Alternatif `10.0.2.2` host'u seçilirse sertifikanın
+Mevcut `start.ps1` API için 7099 ve web için 5173 tünellerini kurar.
+Android Chrome güveni için kök README'deki
+[yerel HTTPS kurulumu](../README.md#android-chrome-için-yerel-https) uygulanır;
+bu modda cihazın 5173 portu yalnız host'taki 5174 HTTPS geçidine bağlanır,
+`WEB_BASE_URL` yine `https://localhost:5173` kalır. Windows güveni değişmez.
+Alternatif `10.0.2.2` host'u seçilirse sertifikanın
 o host/IP ile de eşleşmesi gerekir; localhost sertifikasını IP'ye yönlendirmek yetmez.
 Vite mevcut HTTPS sertifikası ve backend proxy ayarlarıyla çalışmalıdır.
 Harici tarayıcı, Dart `API_DEV_CERT_BASE64`/SecurityContext güvenini kullanmaz;
