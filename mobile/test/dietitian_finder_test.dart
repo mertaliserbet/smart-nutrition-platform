@@ -8,6 +8,7 @@ import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_api.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_finder_page.dart';
+import 'package:smart_nutrition_mobile/features/dietitians/client_connections_page.dart';
 
 const expert = DietitianListItem(
   '11111111-1111-4111-8111-111111111111',
@@ -79,6 +80,256 @@ void main() {
   final codeSend = find.widgetWithText(
     OutlinedButton,
     'Davet Koduyla İstek Gönder',
+  );
+
+  Future<void> manage(
+    WidgetTester tester, {
+    Brightness brightness = Brightness.light,
+    Size size = const Size(400, 1200),
+    double scale = 1,
+  }) async {
+    await open(tester, brightness: brightness, size: size, scale: scale);
+    final button = find.widgetWithText(
+      OutlinedButton,
+      'Bağlantıları ve paylaşımı yönet',
+    );
+    await visible(tester, button);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    expect(find.byType(ClientConnectionsPage), findsOneWidget);
+  }
+
+  Future<void> filter(WidgetTester tester, String label) async {
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label).last);
+    await tester.pumpAndSettle();
+  }
+
+  RelationshipResponse status(String value) => RelationshipResponse(
+    id: relation.id,
+    clientId: relation.clientId,
+    dietitianId: relation.dietitianId,
+    status: value,
+  );
+  const permission = DataSharingPermission(
+    id: '44444444-4444-4444-8444-444444444444',
+    relationshipId: '33333333-3333-4333-8333-333333333333',
+    isGranted: true,
+  );
+  for (final brightness in Brightness.values) {
+    testWidgets(
+      'sharing is closed by default; explicit dialog grants and revokes in ${brightness.name}',
+      (tester) async {
+        api.active = status('active');
+        await manage(
+          tester,
+          brightness: brightness,
+          size: const Size(320, 640),
+          scale: 1.3,
+        );
+        expect(
+          find.text('İsteğiniz kabul edildi; bağlantınız aktif.'),
+          findsOneWidget,
+        );
+        expect(api.permissionWrites, 0);
+        expect(find.textContaining('Paylaşım izni kapalı'), findsOneWidget);
+        final grant = find.widgetWithText(FilledButton, 'Paylaşıma İzin Ver');
+        await visible(tester, grant);
+        await tester.tap(grant);
+        await tester.pumpAndSettle();
+        expect(find.textContaining('izin veriyor musunuz'), findsOneWidget);
+        await tester.tap(find.text('Vazgeç'));
+        await tester.pumpAndSettle();
+        expect(api.permissionWrites, 0);
+        await tester.tap(grant);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(of: find.byType(AlertDialog), matching: grant),
+        );
+        await tester.pumpAndSettle();
+        expect(api.permissionWrites, 1);
+        expect(api.lastGranted, isTrue);
+        expect(api.lastPermission, isNull);
+        expect(find.text('Paylaşım izni açık.'), findsOneWidget);
+        final revoke = find.widgetWithText(FilledButton, 'İzni Geri Al');
+        await visible(tester, revoke);
+        await tester.tap(revoke);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(of: find.byType(AlertDialog), matching: revoke),
+        );
+        await tester.pumpAndSettle();
+        expect(api.permissionWrites, 2);
+        expect(api.lastGranted, isFalse);
+        expect(api.lastPermission, isNotNull);
+        expect(api.active, isNotNull);
+        expect(find.textContaining('Paylaşım izni kapalı'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+  testWidgets(
+    'client cancels own pending request; no accept/reject/share controls exist',
+    (tester) async {
+      api.pending = [relation];
+      await manage(tester);
+      await filter(tester, 'Onay bekleyen');
+      expect(
+        find.textContaining('Diyetisyenin kabul veya ret'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(FilledButton, 'Kabul et'), findsNothing);
+      expect(find.widgetWithText(FilledButton, 'Reddet'), findsNothing);
+      expect(
+        find.widgetWithText(FilledButton, 'Paylaşıma İzin Ver'),
+        findsNothing,
+      );
+      final cancel = find.widgetWithText(OutlinedButton, 'İsteği İptal Et');
+      await tester.tap(cancel);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'İsteği İptal Et'));
+      await tester.pumpAndSettle();
+      expect(api.ends, 1);
+      expect(api.pending, isEmpty);
+      expect(api.permissionWrites, 0);
+      expect(find.text('Bağlantı isteğiniz iptal edildi.'), findsOneWidget);
+      await filter(tester, 'Sonlandırılan');
+      expect(find.textContaining('Bu bağlantı sona erdi'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'ending active connection requires confirmation and refreshes finder on return',
+    (tester) async {
+      api.active = status('active');
+      api.grant = permission;
+      await manage(tester);
+      final end = find.widgetWithText(OutlinedButton, 'Bağlantıyı Sonlandır');
+      await tester.tap(end);
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('aktif atanmış programı arşivlenir'),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.widgetWithText(FilledButton, 'Bağlantıyı Sonlandır'),
+      );
+      await tester.pumpAndSettle();
+      expect(api.active, isNull);
+      expect(api.ends, 1);
+      expect(api.permissionWrites, 0);
+      expect(find.text('Aktif diyetisyen bağlantınız yok.'), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Aktif diyetisyeniniz yok.'), findsOneWidget);
+    },
+  );
+  testWidgets('rejected and ended history is read only and paginated', (
+    tester,
+  ) async {
+    api.history = [status('rejected')];
+    api.historyTotal = 11;
+    await manage(tester);
+    await filter(tester, 'Reddedilen');
+    expect(
+      find.text('Diyetisyen bağlantı isteğinizi reddetti.'),
+      findsOneWidget,
+    );
+    expect(find.text('İsteği İptal Et'), findsNothing);
+    expect(find.text('Bağlantıyı Sonlandır'), findsNothing);
+    await tester.tap(find.text('Sonraki bağlantılar'));
+    await tester.pumpAndSettle();
+    expect(api.historyPage, 2);
+    expect(api.ends, 0);
+    expect(api.permissionWrites, 0);
+  });
+  for (final failureStatus in [403, 409, 500]) {
+    testWidgets(
+      'permission failure $failureStatus hides stale state and requires explicit reload',
+      (tester) async {
+        api.active = status('active');
+        api.grant = permission;
+        api.permissionFailure = DietitianApiException(
+          'İzin işlemi hatası $failureStatus',
+          statusCode: failureStatus,
+        );
+        await manage(tester);
+        final revoke = find.widgetWithText(FilledButton, 'İzni Geri Al');
+        await tester.tap(revoke);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(of: find.byType(AlertDialog), matching: revoke),
+        );
+        await tester.pumpAndSettle();
+        expect(api.permissionWrites, 1);
+        expect(find.text('Paylaşım izni açık.'), findsNothing);
+        expect(find.text('Paylaşım izniniz geri alındı.'), findsNothing);
+        expect(find.textContaining('Tekrar işlem yapmadan'), findsOneWidget);
+        expect(find.widgetWithText(FilledButton, 'İzni Geri Al'), findsNothing);
+        await tester.tap(find.text('Durumu yenile'));
+        await tester.pumpAndSettle();
+        expect(api.permissionWrites, 1);
+        expect(find.text('Paylaşım izni açık.'), findsOneWidget);
+      },
+    );
+  }
+  testWidgets(
+    'unknown network result does not claim permission or cancellation success',
+    (tester) async {
+      api.pending = [relation];
+      api.endFailure = const DietitianApiException('Bağlantı kesildi.');
+      await manage(tester);
+      await filter(tester, 'Onay bekleyen');
+      await tester.tap(find.widgetWithText(OutlinedButton, 'İsteği İptal Et'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'İsteği İptal Et'));
+      await tester.pumpAndSettle();
+      expect(api.ends, 1);
+      expect(find.text('Bağlantı isteğiniz iptal edildi.'), findsNothing);
+      expect(find.textContaining('Tekrar işlem yapmadan'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'permission read failure is unknown, not closed permission; no mutation control appears',
+    (tester) async {
+      api.active = status('active');
+      api.permissionReadFailure = true;
+      await manage(tester);
+      expect(api.permissionWrites, 0);
+      expect(find.textContaining('Paylaşım izni kapalı'), findsNothing);
+      expect(find.text('Paylaşıma İzin Ver'), findsNothing);
+      expect(find.textContaining('Güncel durum doğrulanmadan'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'loading grant prevents duplicate writes and ignores completion after exit',
+    (tester) async {
+      api.active = status('active');
+      await manage(tester);
+      final grant = find.widgetWithText(FilledButton, 'Paylaşıma İzin Ver');
+      final result = Completer<DataSharingPermission>();
+      api.permissionResult = result.future;
+      await tester.tap(grant);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(of: find.byType(AlertDialog), matching: grant),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(api.permissionWrites, 1);
+      expect(tester.widget<FilledButton>(grant).onPressed, isNull);
+      expect(
+        find.text('Beslenme programları için paylaşım izni verildi.'),
+        findsNothing,
+      );
+      await tester.pageBack();
+      await tester.pump();
+      result.complete(permission);
+      await tester.pumpAndSettle();
+      expect(api.permissionWrites, 1);
+      expect(find.byType(ClientConnectionsPage), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
   );
 
   for (final brightness in Brightness.values) {
@@ -343,11 +594,23 @@ void main() {
       await tester.tap(find.widgetWithText(FilledButton, 'Diyetisyen Bul'));
       await tester.pumpAndSettle();
       expect(find.byType(DietitianFinderPage), findsOneWidget);
+      final manageButton = find.widgetWithText(
+        OutlinedButton,
+        'Bağlantıları ve paylaşımı yönet',
+      );
+      await tester.ensureVisible(manageButton);
+      await tester.tap(manageButton);
+      await tester.pumpAndSettle();
+      expect(find.byType(ClientConnectionsPage), findsOneWidget);
       await session.signOut();
       await tester.pumpAndSettle();
       expect(find.byType(LoginPage), findsOneWidget);
       expect(
         find.byType(DietitianFinderPage, skipOffstage: false),
+        findsNothing,
+      );
+      expect(
+        find.byType(ClientConnectionsPage, skipOffstage: false),
         findsNothing,
       );
       await tester.binding.handlePopRoute();
@@ -374,8 +637,9 @@ class _Session extends AuthSession {
   @override
   Future<JsonApiResponse> authorizedRequest({
     required String path,
-    Map<String, String>? payload,
+    Map<String, Object?>? payload,
     String? profileContext,
+    String? method,
   }) async => (
     statusCode: 200,
     body: {'items': [], 'totalCount': 0},
@@ -396,6 +660,60 @@ class _Api extends DietitianApi {
   DietitianApiException? failure;
   Future<RelationshipResponse>? post;
   Future<DietitianPage<DietitianListItem>>? searchResult;
+  List<RelationshipResponse> history = [];
+  int historyPage = 0, ends = 0, permissionWrites = 0;
+  int? historyTotal;
+  DataSharingPermission? grant, lastPermission;
+  bool? lastGranted;
+  bool permissionReadFailure = false;
+  DietitianApiException? permissionFailure, endFailure;
+  Future<DataSharingPermission>? permissionResult;
+  @override
+  Future<DataSharingPermission?> permission(String relationshipId) async {
+    if (permissionReadFailure) {
+      throw const DietitianApiException('Paylaşım durumu okunamadı.');
+    }
+    return grant;
+  }
+
+  @override
+  Future<DataSharingPermission> setPermission({
+    required String relationshipId,
+    required bool isGranted,
+    DataSharingPermission? current,
+  }) async {
+    permissionWrites++;
+    lastGranted = isGranted;
+    lastPermission = current;
+    if (permissionFailure != null) throw permissionFailure!;
+    grant =
+        await (permissionResult ??
+            Future.value(
+              DataSharingPermission(
+                id: '44444444-4444-4444-8444-444444444444',
+                relationshipId: relationshipId,
+                isGranted: isGranted,
+              ),
+            ));
+    return grant!;
+  }
+
+  @override
+  Future<RelationshipResponse> endRelationship(RelationshipResponse row) async {
+    ends++;
+    if (endFailure != null) throw endFailure!;
+    final ended = RelationshipResponse(
+      id: row.id,
+      clientId: row.clientId,
+      dietitianId: row.dietitianId,
+      status: 'ended',
+    );
+    pending.removeWhere((candidate) => candidate.id == row.id);
+    if (active?.id == row.id) active = null;
+    history.add(ended);
+    return ended;
+  }
+
   @override
   Future<DietitianPage<DietitianListItem>> search({
     required int page,
@@ -417,6 +735,11 @@ class _Api extends DietitianApi {
     }
     if (status == 'active') {
       return (items: [?active], totalCount: active == null ? 0 : 1);
+    }
+    if (status == 'rejected' || status == 'ended') {
+      historyPage = page;
+      final rows = history.where((row) => row.status == status).toList();
+      return (items: rows, totalCount: historyTotal ?? rows.length);
     }
     lastPendingPage = page;
     return (items: pending, totalCount: pendingTotal ?? pending.length);

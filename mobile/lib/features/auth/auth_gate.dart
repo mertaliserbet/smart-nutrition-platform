@@ -7,6 +7,7 @@ import 'register_page.dart';
 import 'auth_session.dart';
 import '../navigation/main_shell.dart';
 import '../dietitians/dietitian_finder_page.dart';
+import '../dietitians/client_connections_page.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
@@ -23,6 +24,7 @@ class AuthGate extends StatelessWidget {
       '/progress' => const AuthGate(initialIndex: 2),
       '/profile' => const AuthGate(initialIndex: 3),
       '/dietitians' => const AuthGate(child: DietitianFinderPage()),
+      '/client-connections' => const AuthGate(child: ClientConnectionsPage()),
       _ => const AuthGate(),
     };
 

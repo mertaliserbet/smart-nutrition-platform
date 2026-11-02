@@ -70,9 +70,11 @@ class AuthSession extends ChangeNotifier {
   /// Reads may recover once after a 401; a mutation is never replayed.
   Future<JsonApiResponse> authorizedRequest({
     required String path,
-    Map<String, String>? payload,
+    Map<String, Object?>? payload,
     String? profileContext,
+    String? method,
   }) async {
+    final verb = method ?? (payload == null ? 'GET' : 'POST');
     final generation = _generation;
     if (_renewal != null) await _renewal;
     if (!isAuthenticated && _current(generation)) await refresh();
@@ -93,24 +95,16 @@ class AuthSession extends ChangeNotifier {
         }
       }
 
-      final response = payload == null
-          ? await getJson(
-              path: path,
-              accessToken: token,
-              profileContext: profileContext,
-              baseUri: _api.baseUri,
-              timeout: _api.timeout,
-              onUnauthorized: unauthorized,
-            )
-          : await postJson(
-              path: path,
-              payload: payload,
-              accessToken: token,
-              profileContext: profileContext,
-              baseUri: _api.baseUri,
-              timeout: _api.timeout,
-              onUnauthorized: unauthorized,
-            );
+      final response = await requestJson(
+        method: verb,
+        path: path,
+        payload: payload,
+        accessToken: token,
+        profileContext: profileContext,
+        baseUri: _api.baseUri,
+        timeout: _api.timeout,
+        onUnauthorized: unauthorized,
+      );
       if (!_current(generation)) {
         throw const LoginApiException(
           'Oturum değişti. Lütfen tekrar giriş yapın.',
@@ -126,7 +120,7 @@ class AuthSession extends ChangeNotifier {
         return response;
       }
       if (!isAuthenticated) await refresh();
-      if (payload != null) return response;
+      if (verb != 'GET') return response;
     }
     throw StateError('Unreachable authentication attempt.');
   }

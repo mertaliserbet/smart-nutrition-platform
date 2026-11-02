@@ -21,7 +21,7 @@ Future<JsonApiResponse> postJson({
   Duration timeout = const Duration(seconds: 20),
   void Function()? onRequestSending,
   void Function()? onUnauthorized,
-}) => _requestJson(
+}) => requestJson(
   method: 'POST',
   path: path,
   payload: payload,
@@ -40,7 +40,7 @@ Future<JsonApiResponse> getJson({
   Uri? baseUri,
   Duration timeout = const Duration(seconds: 20),
   void Function()? onUnauthorized,
-}) => _requestJson(
+}) => requestJson(
   method: 'GET',
   path: path,
   accessToken: accessToken,
@@ -50,10 +50,10 @@ Future<JsonApiResponse> getJson({
   onUnauthorized: onUnauthorized,
 );
 
-Future<JsonApiResponse> _requestJson({
+Future<JsonApiResponse> requestJson({
   required String method,
   required String path,
-  Map<String, String>? payload,
+  Map<String, Object?>? payload,
   String? accessToken,
   String? profileContext,
   Uri? baseUri,
@@ -69,7 +69,9 @@ Future<JsonApiResponse> _requestJson({
   try {
     return await (() async {
       // Only relative API paths may receive a bearer credential.
-      if (!path.startsWith('/api/v1/') ||
+      if (!const ['GET', 'POST', 'PATCH'].contains(method) ||
+          (method == 'GET' && payload != null) ||
+          !path.startsWith('/api/v1/') ||
           path.startsWith('//') ||
           path.contains('\\') ||
           Uri.parse(path).hasScheme) {

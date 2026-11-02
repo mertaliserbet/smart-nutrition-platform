@@ -21,6 +21,16 @@ class RelationshipResponse {
   final String id, clientId, dietitianId, status;
 }
 
+class DataSharingPermission {
+  const DataSharingPermission({
+    required this.id,
+    required this.relationshipId,
+    required this.isGranted,
+  });
+  final String id, relationshipId;
+  final bool isGranted;
+}
+
 typedef DietitianPage<T> = ({List<T> items, int totalCount});
 
 class DietitianApi {
@@ -113,6 +123,124 @@ class DietitianApi {
     return result;
   });
 
+  Future<RelationshipResponse> endRelationship(
+    RelationshipResponse relationship,
+  ) => _safe(() async {
+    if (!_uuid(relationship.id) ||
+        !const ['pending', 'active'].contains(relationship.status)) {
+      throw const DietitianApiException(
+        'Yalnız bekleyen veya aktif bağlantı sonlandırılabilir.',
+      );
+    }
+    final response = await session.authorizedRequest(
+      path: '/api/v1/dietitian-relationships/${relationship.id}/end',
+      method: 'POST',
+      profileContext: 'client',
+    );
+    _success(response, 200, connectionAction: true);
+    final result = _relationship(response.body);
+    if (result.id != relationship.id ||
+        result.clientId != relationship.clientId ||
+        result.dietitianId != relationship.dietitianId ||
+        result.status != 'ended') {
+      throw const DietitianApiException.invalidResponse();
+    }
+    return result;
+  });
+
+  Future<DataSharingPermission?> permission(String relationshipId) =>
+      _safe(() async {
+        if (!_uuid(relationshipId)) {
+          throw const DietitianApiException.invalidResponse();
+        }
+        final path = Uri(
+          path: '/api/v1/data-sharing-permissions',
+          queryParameters: {
+            'relationshipId': relationshipId,
+            'page': '1',
+            'pageSize': '$pageSize',
+          },
+        );
+        final response = await session.authorizedRequest(
+          path: path.toString(),
+          profileContext: 'client',
+        );
+        _success(response, 200, connectionAction: true);
+        final result = _page(response.body, _permission, (row) => row.id);
+        if (result.totalCount > 1 ||
+            result.totalCount != result.items.length ||
+            result.items.any((row) => row.relationshipId != relationshipId)) {
+          throw const DietitianApiException.invalidResponse();
+        }
+        return result.items.firstOrNull;
+      });
+
+  Future<DataSharingPermission> setPermission({
+    required String relationshipId,
+    required bool isGranted,
+    DataSharingPermission? current,
+  }) => _safe(() async {
+    if (!_uuid(relationshipId) ||
+        (current != null &&
+            (!_uuid(current.id) || current.relationshipId != relationshipId))) {
+      throw const DietitianApiException.invalidResponse();
+    }
+    final response = await session.authorizedRequest(
+      path: current == null
+          ? '/api/v1/data-sharing-permissions'
+          : '/api/v1/data-sharing-permissions/${current.id}',
+      method: current == null ? 'POST' : 'PATCH',
+      profileContext: 'client',
+      payload: {
+        if (current == null) ...{
+          'relationshipId': relationshipId,
+          'category': 'nutrition_plans',
+        },
+        'isGranted': isGranted,
+      },
+    );
+    _success(response, current == null ? 201 : 200, connectionAction: true);
+    final result = _permission(response.body);
+    if (result.relationshipId != relationshipId ||
+        result.isGranted != isGranted ||
+        (current != null && current.id != result.id)) {
+      throw const DietitianApiException.invalidResponse();
+    }
+    return result;
+  });
+
+  static DataSharingPermission _permission(Object? value) {
+    final row = _object(value, const [
+      'id',
+      'relationshipId',
+      'category',
+      'isGranted',
+      'consentRecordId',
+      'createdAt',
+      'updatedAt',
+    ]);
+    DateTime? time(Object? value) =>
+        value is String && RegExp(r'(Z|\+00:00)$').hasMatch(value)
+        ? DateTime.tryParse(value)
+        : null;
+    final created = time(row['createdAt']), updated = time(row['updatedAt']);
+    if (!_uuid(row['id']) ||
+        !_uuid(row['relationshipId']) ||
+        row['category'] != 'nutrition_plans' ||
+        row['isGranted'] is! bool ||
+        row['consentRecordId'] != null ||
+        created == null ||
+        updated == null ||
+        updated.isBefore(created)) {
+      throw const DietitianApiException.invalidResponse();
+    }
+    return DataSharingPermission(
+      id: row['id'] as String,
+      relationshipId: row['relationshipId'] as String,
+      isGranted: row['isGranted'] as bool,
+    );
+  }
+
   static Map<String, dynamic> _object(Object? value, List<String> keys) {
     if (value is! Map<String, dynamic> ||
         value.length != keys.length ||
@@ -156,7 +284,10 @@ class DietitianApi {
         (row['status'] == 'pending' &&
             (row['respondedAt'] != null || row['endedAt'] != null)) ||
         (row['status'] == 'active' &&
-            (row['respondedAt'] == null || row['endedAt'] != null))) {
+            (row['respondedAt'] == null || row['endedAt'] != null)) ||
+        (row['status'] == 'rejected' &&
+            (row['respondedAt'] == null || row['endedAt'] != null)) ||
+        (row['status'] == 'ended' && row['endedAt'] == null)) {
       throw const DietitianApiException.invalidResponse();
     }
     return RelationshipResponse(
@@ -191,6 +322,7 @@ class DietitianApi {
     JsonApiResponse response,
     int status, {
     bool invitation = false,
+    bool connectionAction = false,
   }) {
     if (response.statusCode == status) return;
     final code = apiErrorCode(response.body);
@@ -198,11 +330,17 @@ class DietitianApi {
       (401, _) => 'Oturumunuz doğrulanamadı. Lütfen tekrar giriş yapın.',
       (403, _) =>
         'Bu işlem için danışan profilinizle erişim izniniz bulunmuyor.',
+      (404, _) when connectionAction =>
+        'Bağlantı veya paylaşım izni bulunamadı. Güncel durumu yenileyin.',
       (404, _) => 'Diyetisyen artık erişilebilir değil. Listeyi yenileyin.',
+      (409, _) when connectionAction =>
+        'Bağlantı veya paylaşım durumu değişmiş olabilir. Tekrar işlem yapmadan yenileyin.',
       (409, _) =>
         'Bekleyen isteğiniz veya aktif diyetisyeniniz olabilir. Bağlantılarınızı yenileyin.',
       (422, _) when invitation =>
         'Davet kodu geçersiz, süresi dolmuş veya kullanılmış olabilir. Kodu ve seçiminizi kontrol edin.',
+      (422, _) when connectionAction =>
+        'Paylaşım veya bağlantı bilgileri doğrulanamadı. Güncel durumu yenileyin.',
       (422, _) =>
         'Seçilen diyetisyene bağlantı isteği gönderilemedi. Kendinize istek gönderemezsiniz.',
       (429, _) =>

@@ -4,6 +4,7 @@ import '../../core/theme/app_tokens.dart';
 import '../auth/auth_session.dart';
 import '../auth/login_page.dart';
 import 'dietitian_api.dart';
+import 'client_connections_page.dart';
 
 class DietitianFinderPage extends StatefulWidget {
   const DietitianFinderPage({this.api, super.key});
@@ -353,6 +354,29 @@ class _DietitianFinderPageState extends State<DietitianFinderPage> {
                         : () => _loadConnections(),
                     icon: const Icon(Icons.refresh_rounded),
                     label: const Text('Bağlantıları yenile'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _sending || _checking
+                        ? null
+                        : () async {
+                            await Navigator.of(context).push<void>(
+                              MaterialPageRoute<void>(
+                                settings: const RouteSettings(
+                                  name: '/client-connections',
+                                ),
+                                builder: (context) => ClientConnectionsPage(
+                                  api: _api,
+                                  names: Map.of(_names),
+                                ),
+                              ),
+                            );
+                            if (mounted) await _loadConnections();
+                          },
+                    icon: const Icon(Icons.manage_accounts_outlined),
+                    label: const Text(
+                      'Bağlantıları ve paylaşımı yönet',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ]),
                 _card([

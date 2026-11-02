@@ -27,6 +27,38 @@ flutter test
 
 ## Diyetisyen Bul — gerçek API bağlantısı
 
+### Bağlantılarım ve beslenme programı paylaşımı
+
+“Bağlantıları ve paylaşımı yönet” üzerinden aktif/kabul edilen, bekleyen,
+reddedilen ve sonlandırılan ilişkiler sayfalı okunur. Ayrı accepted durumu yoktur:
+danışanın başlattığı pending isteği hedef diyetisyen accept/reject eder.
+Danışan yalnız kendi pending isteğini iptal veya active ilişkisini sonlandırır;
+ikisi de mevcut gövdesiz `POST /dietitian-relationships/{id}/end` kullanır.
+Aktif bağlantı bitince uzman erişimi kapanır; ilgili aktif atanmış program
+sunucudaki mevcut N3 kuralıyla arşivlenir, danışanın kendi geçmişi korunur.
+
+Bağlantı kabulü izin oluşturmaz. Active ilişki için mevcut
+`GET /data-sharing-permissions?relationshipId=...&page=1&pageSize=10` okunur.
+Kayıt yoksa paylaşım kapalıdır; okuma hatası kapalı izin gibi sunulmaz.
+“Paylaşıma İzin Ver” ayrı onay diyaloğundan sonra ilk kayıtta POST ile yalnız
+relationshipId/category=nutrition_plans/isGranted=true gönderir. Mevcut kayıtta
+PATCH yalnız gerçek boolean isGranted gönderir; geri alma false değeridir.
+Kimlik, rol, rıza kaydı veya yeni kategori atanmaz. Tahlil paylaşımı yoktur.
+
+Her işlem JWT ve X-Profile-Context: client kullanır; POST/PATCH, 401 dahil
+otomatik tekrarlanmaz. Yazma sırasında düğmeler kapalıdır. 403/404/409, bozuk
+yanıt veya belirsiz ağ hatasında eski izin/ilişki eylemleri kaldırılır; yeniden
+işlem için kullanıcı “Durumu yenile” seçer. Ekrandan çıkış ve oturum değişimi
+geç yanıtları görünür yapmaz. `/client-connections` doğrudan rotası Auth Gate
+ile korunur. Flutter dışında kod veya ortak sözleşme değişikliği gerekmemiştir.
+
+İlgili API/widget testleri `dietitian_api_test.dart` ve
+`dietitian_finder_test.dart` içindedir. İsteğe bağlı gerçek HTTPS probe'u artık
+uzman kabulü/ret, danışan iptali, izin POST/PATCH, izin öncesi/sonrası uzman
+program erişimi ve ilişki bitişini de sınar. Bu probe cihaz UI testi değildir.
+
+### Arama ve istek gönderme
+
 Üst çubuktaki **Diyetisyen Bul** simgesi veya Profil'deki aynı seçenek,
 Auth Gate ile korunan `/dietitians` ekranını açar. Mevcut açık/koyu tema ve
 alt sekmeler korunur. `GET /api/v1/dietitians?page=1&pageSize=10&query=...`

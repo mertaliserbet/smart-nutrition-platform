@@ -10,6 +10,16 @@ import 'package:smart_nutrition_mobile/features/dietitians/dietitian_api.dart';
 const expertId = '11111111-1111-4111-8111-111111111111';
 const clientId = '22222222-2222-4222-8222-222222222222';
 const relationId = '33333333-3333-4333-8333-333333333333';
+const permissionId = '44444444-4444-4444-8444-444444444444';
+Map<String, Object?> permissionBody(bool granted) => {
+  'id': permissionId,
+  'relationshipId': relationId,
+  'category': 'nutrition_plans',
+  'isGranted': granted,
+  'consentRecordId': null,
+  'createdAt': '2026-11-02T10:00:00Z',
+  'updatedAt': '2026-11-02T11:00:00Z',
+};
 Map<String, Object?> relationship() => {
   'id': relationId,
   'clientId': clientId,
@@ -93,6 +103,221 @@ void main() {
     session.dispose();
     await server.close(force: true);
   });
+
+  test(
+    'pending cancellation uses a bodyless POST end with client context',
+    () async {
+      resource = (r) async {
+        expect(r.method, 'POST');
+        expect(
+          r.uri.toString(),
+          '/api/v1/dietitian-relationships/$relationId/end',
+        );
+        expect(
+          r.headers.value('authorization'),
+          'Bearer synthetic.version0.signature',
+        );
+        expect(r.headers.value('x-profile-context'), 'client');
+        expect(r.headers.value('cookie'), isNull);
+        expect(r.headers.contentType, isNull);
+        expect(await utf8.decoder.bind(r).join(), isEmpty);
+        await reply(r, 200, {
+          ...relationship(),
+          'status': 'ended',
+          'endedAt': '2026-11-02T12:00:00Z',
+        });
+      };
+      final ended = await api.endRelationship(
+        const RelationshipResponse(
+          id: relationId,
+          clientId: clientId,
+          dietitianId: expertId,
+          status: 'pending',
+        ),
+      );
+      expect(ended.status, 'ended');
+    },
+  );
+  test(
+    'permission read is scoped to the relationship; absent permission does not write',
+    () async {
+      resource = (r) async {
+        expect(r.method, 'GET');
+        expect(r.uri.path, '/api/v1/data-sharing-permissions');
+        expect(r.uri.queryParameters, {
+          'relationshipId': relationId,
+          'page': '1',
+          'pageSize': '10',
+        });
+        expect(r.headers.value('x-profile-context'), 'client');
+        expect(r.headers.value('cookie'), isNull);
+        await reply(r, 200, {'items': [], 'totalCount': 0});
+      };
+      expect(await api.permission(relationId), isNull);
+    },
+  );
+  for (final (create, granted) in [
+    (true, true),
+    (false, false),
+    (false, true),
+  ]) {
+    test(
+      'permission ${create ? 'POST' : 'PATCH'} sends a boolean and only approved fields ($granted)',
+      () async {
+        resource = (r) async {
+          expect(r.method, create ? 'POST' : 'PATCH');
+          expect(
+            r.uri.toString(),
+            '/api/v1/data-sharing-permissions${create ? '' : '/$permissionId'}',
+          );
+          expect(
+            r.headers.value('authorization'),
+            'Bearer synthetic.version0.signature',
+          );
+          expect(r.headers.value('cookie'), isNull);
+          expect(r.headers.value('x-profile-context'), 'client');
+          expect(
+            jsonDecode(await utf8.decoder.bind(r).join()),
+            create
+                ? {
+                    'relationshipId': relationId,
+                    'category': 'nutrition_plans',
+                    'isGranted': granted,
+                  }
+                : {'isGranted': granted},
+          );
+          await reply(r, create ? 201 : 200, permissionBody(granted));
+        };
+        final result = await api.setPermission(
+          relationshipId: relationId,
+          isGranted: granted,
+          current: create
+              ? null
+              : DataSharingPermission(
+                  id: permissionId,
+                  relationshipId: relationId,
+                  isGranted: !granted,
+                ),
+        );
+        expect(result.isGranted, granted);
+      },
+    );
+  }
+  test(
+    'foreign, unsupported-category and malformed permission responses fail closed',
+    () async {
+      for (final bad in [
+        {...permissionBody(true), 'relationshipId': expertId},
+        {...permissionBody(true), 'category': 'lab_reports'},
+        {...permissionBody(true), 'isGranted': 'true'},
+        {...permissionBody(true), 'consentRecordId': expertId},
+      ]) {
+        resource = (r) => reply(r, 200, {
+          'items': [bad],
+          'totalCount': 1,
+        });
+        await expectLater(
+          api.permission(relationId),
+          throwsA(isA<DietitianApiException>()),
+        );
+      }
+      resource = (r) => reply(r, 200, permissionBody(true));
+      await expectLater(
+        api.setPermission(
+          relationshipId: relationId,
+          isGranted: false,
+          current: const DataSharingPermission(
+            id: permissionId,
+            relationshipId: relationId,
+            isGranted: true,
+          ),
+        ),
+        throwsA(isA<DietitianApiException>()),
+      );
+    },
+  );
+  for (final status in [403, 404, 409, 500]) {
+    test(
+      'permission failure $status is returned once without create/update fallback',
+      () async {
+        var writes = 0;
+        resource = (r) async {
+          writes++;
+          await r.drain<void>();
+          await reply(r, status, {
+            'error': {'code': 'conflict', 'message': 'private'},
+            'requestId': 'synthetic',
+          });
+        };
+        await expectLater(
+          api.setPermission(relationshipId: relationId, isGranted: true),
+          throwsA(
+            isA<DietitianApiException>().having(
+              (e) => e.statusCode,
+              'status',
+              status,
+            ),
+          ),
+        );
+        expect(writes, 1);
+      },
+    );
+  }
+  for (final method in ['PATCH', 'POST']) {
+    test(
+      '401 $method, including bodyless end, refreshes once without mutation replay',
+      () async {
+        var writes = 0;
+        resource = (r) async {
+          writes++;
+          expect(r.method, method);
+          await r.drain<void>();
+          await reply(r, 401, null);
+        };
+        final action = method == 'PATCH'
+            ? api.setPermission(
+                relationshipId: relationId,
+                isGranted: false,
+                current: const DataSharingPermission(
+                  id: permissionId,
+                  relationshipId: relationId,
+                  isGranted: true,
+                ),
+              )
+            : api.endRelationship(
+                const RelationshipResponse(
+                  id: relationId,
+                  clientId: clientId,
+                  dietitianId: expertId,
+                  status: 'active',
+                ),
+              );
+        await expectLater(action, throwsA(isA<DietitianApiException>()));
+        expect(writes, 1);
+        expect(renewals, 1);
+        expect(session.isAuthenticated, isTrue);
+      },
+    );
+  }
+  test(
+    'connection loss during a PATCH does not claim revocation or clear the session',
+    () async {
+      await server.close(force: true);
+      await expectLater(
+        api.setPermission(
+          relationshipId: relationId,
+          isGranted: false,
+          current: const DataSharingPermission(
+            id: permissionId,
+            relationshipId: relationId,
+            isGranted: true,
+          ),
+        ),
+        throwsA(isA<DietitianApiException>()),
+      );
+      expect(session.isAuthenticated, isTrue);
+    },
+  );
 
   test(
     'search encodes Unicode and pagination; sends verified bearer without cookie or body',
