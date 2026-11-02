@@ -20,7 +20,7 @@ public sealed class RelationshipsController(RelationshipAccessService access, Re
     public async Task<IActionResult> Create(RelationshipRequest request, CancellationToken token)
     {
         if (base.Request.Query.Count != 0 || !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        var actor = await access.RequireAsync(User, token);
+        var actor = await access.RequireAsync(User, token, Request);
         var result = await relationships.RequestAsync(actor, request, HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", token);
         return StatusCode(201, result);
     }
@@ -32,7 +32,7 @@ public sealed class RelationshipsController(RelationshipAccessService access, Re
         if (!DietitiansController.ValidPage(page, pageSize) || HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true ||
             base.Request.Query.Keys.Any(x => x is not ("page" or "pageSize" or "status")) ||
             (status is not null && status is not ("pending" or "active" or "rejected" or "ended"))) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        var actor = await access.RequireAsync(User, token); var query = relationships.Own(actor);
+        var actor = await access.RequireAsync(User, token, Request); var query = relationships.Own(actor);
         if (status is not null) { var selected = Enum.Parse<RelationshipStatus>(status, true); query = query.Where(x => x.Status == selected); }
         var total = await query.CountAsync(token);
         var rows = await query.OrderByDescending(x => x.RequestedAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(token);
@@ -49,12 +49,12 @@ public sealed class RelationshipsController(RelationshipAccessService access, Re
     {
         if (base.Request.Query.Count != 0 || HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true ||
             !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        return Ok(await relationships.TransitionAsync(await access.RequireAsync(User, token), id, action, token));
+        return Ok(await relationships.TransitionAsync(await access.RequireAsync(User, token, Request), id, action, token));
     }
 }
 
 [ApiController, Route("api/v1/dietitians/me/invitation-code")]
-[Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "dietitian")]
+[Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "client,dietitian")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class InvitationCodesController(RelationshipAccessService access, RelationshipService relationships) : ControllerBase
 {
@@ -63,6 +63,6 @@ public sealed class InvitationCodesController(RelationshipAccessService access, 
     {
         if (Request.Query.Count != 0 || HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true ||
             !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        return Ok(await relationships.CreateInvitationAsync(await access.RequireAsync(User, token), HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", token));
+        return Ok(await relationships.CreateInvitationAsync(await access.RequireAsync(User, token, Request, asDietitian: true), HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", token));
     }
 }

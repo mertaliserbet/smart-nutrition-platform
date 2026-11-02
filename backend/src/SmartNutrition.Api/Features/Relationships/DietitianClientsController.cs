@@ -15,14 +15,14 @@ public sealed record ClientListItem(Guid Id, string DisplayName);
 public sealed record ClientDashboardResponse(Guid ClientId, string DisplayName);
 
 [ApiController, Route("api/v1/dietitian/clients")]
-[Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "dietitian")]
+[Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "client,dietitian")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class DietitianClientsController(AppDbContext database, RelationshipAccessService access) : ControllerBase
 {
     private bool HasBody => HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
     private async Task<ProfileIdentity> Actor(CancellationToken token)
     {
-        var actor = await access.RequireAsync(User, token);
+        var actor = await access.RequireAsync(User, token, Request, asDietitian: true);
         if (actor.DietitianId is null || !actor.IsDietitianVerified) throw new ResourceOperationException(403);
         return actor;
     }

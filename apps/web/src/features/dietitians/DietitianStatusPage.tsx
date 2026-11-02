@@ -17,7 +17,7 @@ export function DietitianStatusPage() {
     setProfile(undefined); setMessage(''); setPending(true)
     try {
       const account = await getAccount(controller.signal)
-      if (account.role !== 'dietitian') throw new WebSessionError(403, 'Bu alan diyetisyen başvuruları içindir.')
+      if (account.role !== 'dietitian' && account.role !== 'client') throw new WebSessionError(403, 'Bu alan diyetisyen başvuruları içindir.')
       const result = await getDietitianStatus(controller.signal)
       if (!controller.signal.aborted) setProfile(result)
     } catch (error) {
@@ -43,5 +43,6 @@ export function DietitianStatusPage() {
     </section>}
     <button className="button button-secondary form-submit" disabled={pending} onClick={() => { void load() }}>Durumu yenile</button>
     <Link className="preview-link" to="/hesabim">Hesabım ve çıkış</Link>
+    <Link className="preview-link" to="/uzman-basvurusu">Başvuru seçenekleri</Link>
   </AuthLayout>
 }

@@ -73,7 +73,7 @@ internal static class WebSessionAuthentication
     {
         // MVC routes are case-insensitive and accept trailing slashes; guards must cover the same paths.
         var path = context.Request.Path.Value?.TrimEnd('/').ToLowerInvariant();
-        var web = path is "/api/v1/auth/csrf" or "/api/v1/auth/web-session" or "/api/v1/auth/admin-web-session" ||
+        var web = path is "/api/v1/auth/csrf" or "/api/v1/auth/web-session" or "/api/v1/auth/admin-web-session" or "/api/v1/dietitians/me/application" ||
             path?.StartsWith("/api/v1/admin/", StringComparison.Ordinal) == true;
         var account = path is "/api/v1/auth/me" or "/api/v1/dietitians/me";
         var resource = path?.StartsWith("/api/v1/dietitian-relationships", StringComparison.Ordinal) == true ||

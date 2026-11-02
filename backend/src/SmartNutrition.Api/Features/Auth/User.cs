@@ -67,7 +67,7 @@ public sealed class User
 
     internal void AttachDietitianProfile(DietitianProfile profile)
     {
-        if (Role != UserRole.Dietitian || DietitianProfile is not null)
+        if (Role is not (UserRole.Client or UserRole.Dietitian) || DietitianProfile is not null)
             throw new InvalidOperationException("An eligible dietitian account is required.");
         DietitianProfile = profile;
     }

@@ -22,6 +22,18 @@ public sealed record PagedResponse<T>(IReadOnlyList<T> Items, int TotalCount);
 public sealed class DietitiansController(AppDbContext database, DietitianApplicationService applications,
     VerificationEmailQueue emailQueue) : ControllerBase
 {
+    [HttpPost("me/application"), Authorize(AuthenticationSchemes = WebSessionAuthentication.Scheme, Roles = "client,dietitian")]
+    [Consumes("application/json"), RequestSizeLimit(16384), EnableRateLimiting("dietitian-application")]
+    [ProducesResponseType<DietitianStatusResponse>(201)]
+    public async Task<IActionResult> ApplyExisting(ExistingDietitianApplicationRequest request,
+        [FromServices] WebSessionService sessions, CancellationToken token)
+    {
+        if (Request.Headers.ContainsKey("Authorization") || Request.Query.Count != 0 ||
+            !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        if (!WebSessionService.TryIdentity(User, out var userId, out _, out _)) return Unauthorized(ApiErrors.Create(HttpContext, 401));
+        return CreatedAtAction(nameof(Me), await applications.ApplyExistingAsync(userId, request, User, sessions, token));
+    }
+
     [HttpPost("apply"), AllowAnonymous, Consumes("application/json"), RequestSizeLimit(16384), EnableRateLimiting("dietitian-application")]
     [ProducesResponseType<RegisterUserResponse>(201)]
     public async Task<IActionResult> Apply(DietitianApplicationRequest request, CancellationToken cancellationToken)
@@ -37,14 +49,14 @@ public sealed class DietitiansController(AppDbContext database, DietitianApplica
         catch (RegistrationEmailConflictException) { return Conflict(ApiErrors.Create(HttpContext, 409)); }
     }
 
-    [HttpGet("me"), Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "dietitian")]
+    [HttpGet("me"), Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "client,dietitian")]
     [ProducesResponseType<DietitianStatusResponse>(200)]
     public async Task<IActionResult> Me(CancellationToken cancellationToken)
     {
         if (Request.Query.Count != 0 || HasBody) return BadRequest(ApiErrors.Create(HttpContext, 400));
         if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId)) return Unauthorized(ApiErrors.Create(HttpContext, 401));
         var profile = await database.DietitianProfiles.AsNoTracking()
-            .Where(x => x.UserId == userId && x.User.Role == UserRole.Dietitian && x.User.IsEmailVerified)
+            .Where(x => x.UserId == userId && x.User.Role != UserRole.Admin && x.User.IsEmailVerified)
             .Select(x => new DietitianStatusResponse(x.Id, x.DisplayName, x.IsVerified)).SingleOrDefaultAsync(cancellationToken);
         return profile is null ? NotFound(ApiErrors.Create(HttpContext, 404)) : Ok(profile);
     }
@@ -57,7 +69,7 @@ public sealed class DietitiansController(AppDbContext database, DietitianApplica
         if (HasBody || Request.Query.Keys.Any(key => key is not ("page" or "pageSize" or "query")) ||
             !ValidPage(page, pageSize)) return BadRequest(ApiErrors.Create(HttpContext, 400));
         var profiles = database.DietitianProfiles.AsNoTracking().Where(x => x.IsVerified &&
-            x.User.Role == UserRole.Dietitian && x.User.IsEmailVerified);
+            x.User.Role != UserRole.Admin && x.User.IsEmailVerified);
         if (!string.IsNullOrWhiteSpace(query))
         {
             var pattern = "%" + query.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";

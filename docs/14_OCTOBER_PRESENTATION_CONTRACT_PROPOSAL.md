@@ -1,5 +1,12 @@
 # 14 — 29 Ekim sunumu: sıradaki sözleşme kararları
 
+**02.11.2026 ek onayı:** Mevcut doğrulanmış danışan aynı web hesabıyla Pending
+DietitianProfile başvurusu yapabilir. Admin MFA onayı sonrası ClientProfile ve
+danışan verileri korunarak iki profil birlikte kullanılır. Tek User.role/JWT/
+cookie biçimi değişmez; uzman yetkisi onaylı profilden gelir. Bu alt kapsamda
+eski tek profil/açık çoklu rol notları yerine `04/05/06`daki tarihli karar
+geçerlidir. Public yeni kullanıcı başvurusu ve B1–B3 MFA kuralları korunur.
+
 **Tarih:** 29.10.2026 · **Temel:** ortak `main` / `8705f1f`.
 **Durum: B1–B3 ORTAK ONAYLI.** Kullanıcı 29.10.2026 tarihinde
 “Ortak onay var devam et.” diyerek Uğur–Mert onayını teyit etti.
@@ -21,8 +28,9 @@ mobil etkisi belge ve API sözleşmesi üzerinden raporlanır.
 
 ### B1 — hesap ve başvuru
 
-- Bu ilk dilimde hesap başına tek rol. Mevcut danışan hesabı uzman hesabına
-  otomatik çevrilmez; aynı e-postayla ikinci hesap oluşturulmaz.
+- Hesap başına tek temel rol korunur. 02.11.2026 ek onayıyla mevcut danışan
+  aynı User'a Pending DietitianProfile ekleyebilir; Admin onayı sonrası iki
+  profil birlikte kullanılır. Aynı e-postayla ikinci hesap oluşturulmaz.
 - Mevcut `POST /auth/register` yalnız danışan olmaya devam eder.
 - **Yeni öneri:** `POST /api/v1/dietitians/apply`, oturumsuz JSON:
   `{ email, password, displayName, licenseInfo }`. Dördü zorunlu string;

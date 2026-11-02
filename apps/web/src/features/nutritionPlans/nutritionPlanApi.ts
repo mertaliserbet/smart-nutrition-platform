@@ -58,7 +58,7 @@ async function request(path: string, signal: AbortSignal, method = 'GET', token?
   let response: Response
   try {
     response = await fetch(`/api/v1/nutrition-plans${path}`, { method, signal, credentials: 'same-origin', cache: 'no-store', redirect: 'error',
-      headers: { ...(token ? { 'X-CSRF-TOKEN': token } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) })
+      headers: { 'X-Profile-Context': 'dietitian', ...(token ? { 'X-CSRF-TOKEN': token } : {}), ...(body ? { 'Content-Type': 'application/json' } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) })
   } catch { throw new WebSessionError(0, 'İşlem sonucu doğrulanamadı. Tekrar göndermeden programları yeniden kontrol edin.') }
   if (response.status !== (method === 'POST' && path === '' ? 201 : 200)) {
     const message = response.status === 401 ? 'Oturumunuz doğrulanamadı. Yeniden giriş yapın.'

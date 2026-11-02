@@ -42,7 +42,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
     {
         if (relationshipId == Guid.Empty || !DietitiansController.ValidPage(page, pageSize) || HasBody ||
             Request.Query.Keys.Any(x => x is not ("relationshipId" or "page" or "pageSize"))) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        var actor = await access.RequireAsync(User, token); await OwnRelationship(actor, relationshipId, token);
+        var actor = await access.RequireAsync(User, token, Request); await OwnRelationship(actor, relationshipId, token);
         var query = database.DataSharingPermissions.AsNoTracking().Where(x => x.RelationshipId == relationshipId);
         return Ok(new PagedResponse<DataSharingPermission>(await query.OrderBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(token), await query.CountAsync(token)));
     }
@@ -51,7 +51,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
     public async Task<IActionResult> Get(Guid dataSharingPermissionId, CancellationToken token)
     {
         if (HasBody || Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        var actor = await access.RequireAsync(User, token);
+        var actor = await access.RequireAsync(User, token, Request);
         var row = await database.DataSharingPermissions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == dataSharingPermissionId, token)
             ?? throw new ResourceOperationException(404);
         await OwnRelationship(actor, row.RelationshipId, token); return Ok(row);
@@ -63,7 +63,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
         if (Request.Query.Count != 0 || request.RelationshipId == Guid.Empty || !await WebSessionAuthentication.ValidMutationAsync(HttpContext))
             return BadRequest(ApiErrors.Create(HttpContext, 400));
         if (request.Category != "nutrition_plans" || request.ConsentRecordId is not null) return StatusCode(422, ApiErrors.Create(HttpContext, 422));
-        var actor = await access.RequireAsync(User, token);
+        var actor = await access.RequireAsync(User, token, Request);
         await using var transaction = await database.Database.BeginTransactionAsync(token);
         await WritableRelationship(actor, request.RelationshipId, token);
         if (await database.DataSharingPermissions.AnyAsync(x => x.RelationshipId == request.RelationshipId && x.Category == request.Category, token))
@@ -81,7 +81,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
     {
         if (Request.Query.Count != 0 || !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
         if (request.ConsentRecordId is not null) return StatusCode(422, ApiErrors.Create(HttpContext, 422));
-        var actor = await access.RequireAsync(User, token);
+        var actor = await access.RequireAsync(User, token, Request);
         var candidate = await database.DataSharingPermissions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == dataSharingPermissionId, token)
             ?? throw new ResourceOperationException(404);
         await using var transaction = await database.Database.BeginTransactionAsync(token);

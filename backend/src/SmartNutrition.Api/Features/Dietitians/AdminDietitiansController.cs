@@ -26,7 +26,7 @@ public sealed class AdminDietitiansController(AppDbContext database, IAntiforger
     {
         if (HasBody || Request.Query.Keys.Any(key => key is not ("isVerified" or "page" or "pageSize")) ||
             !DietitiansController.ValidPage(page, pageSize)) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        var query = database.DietitianProfiles.AsNoTracking().Where(x => x.IsVerified == isVerified && x.User.Role == UserRole.Dietitian);
+        var query = database.DietitianProfiles.AsNoTracking().Where(x => x.IsVerified == isVerified && x.User.Role != UserRole.Admin);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderBy(x => x.DisplayName).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize)
             .Select(x => new DietitianReviewItem(x.Id, x.DisplayName, x.LicenseInfo, x.IsVerified)).ToListAsync(cancellationToken);
@@ -52,7 +52,7 @@ public sealed class AdminDietitiansController(AppDbContext database, IAntiforger
         if (targetUserId is null) return NotFound(ApiErrors.Create(HttpContext, 404));
         var target = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {targetUserId.Value} FOR UPDATE")
             .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
-        if (target?.Role != UserRole.Dietitian) return NotFound(ApiErrors.Create(HttpContext, 404));
+        if (target is null || target.Role is not (UserRole.Client or UserRole.Dietitian)) return NotFound(ApiErrors.Create(HttpContext, 404));
         if (!target.IsEmailVerified) return Conflict(ApiErrors.Create(HttpContext, 409));
         var profile = await database.DietitianProfiles.FromSqlInterpolated($"SELECT * FROM dietitian_profiles WHERE id = {dietitianId} FOR UPDATE")
             .AsNoTracking().SingleAsync(cancellationToken);

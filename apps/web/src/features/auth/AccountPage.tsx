@@ -91,6 +91,7 @@ export function AccountPage() {
         <dt>E-posta doğrulaması</dt><dd>Doğrulandı</dd>
       </dl>
       {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
+      {account.role === 'client' && <Link className="preview-link" to="/uzman-basvurusu">Mevcut hesabımla diyetisyen başvurusu</Link>}
       {account.role === 'dietitian' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
       {account.role === 'dietitian' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
       <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>

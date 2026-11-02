@@ -48,8 +48,9 @@ public sealed class RelationshipService(AppDbContext database, RelationshipAcces
         }
         if (targetId is null) throw new ResourceOperationException(422);
         var profile = await database.DietitianProfiles.FromSqlInterpolated($"SELECT * FROM dietitian_profiles WHERE id = {targetId.Value} FOR UPDATE").SingleOrDefaultAsync(token);
-        if (profile is null || !profile.IsVerified || !await database.Users.AnyAsync(x => x.Id == profile.UserId && x.Role == UserRole.Dietitian && x.IsEmailVerified, token))
+        if (profile is null || !profile.IsVerified || !await database.Users.AnyAsync(x => x.Id == profile.UserId && x.Role != UserRole.Admin && x.IsEmailVerified, token))
             throw new ResourceOperationException(code is null ? 404 : 422);
+        if (profile.UserId == actor.UserId) throw new ResourceOperationException(422);
         if (code is not null && (profile.InvitationCodeHash != Hash(code) || profile.InvitationCodeExpiresAt <= clock.GetUtcNow() || profile.InvitationCodeExpiresAt is null))
             throw new ResourceOperationException(422);
         if (await database.DietitianClientRelationships.AnyAsync(x => x.ClientId == actor.ClientId && x.DietitianId == profile.Id && x.Status == RelationshipStatus.Pending, token))

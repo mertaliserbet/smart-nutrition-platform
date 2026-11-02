@@ -7,6 +7,7 @@ using Npgsql;
 using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Models;
+using SmartNutrition.Api.Features.Relationships;
 
 namespace SmartNutrition.Api.Features.Dietitians;
 
@@ -31,9 +32,40 @@ public sealed class DietitianApplicationOptions
     public int RequestsPerMinute { get; set; } = 5;
 }
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class ExistingDietitianApplicationRequest : IValidatableObject
+{
+    [JsonRequired, JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)] public string? DisplayName { get; init; }
+    [JsonRequired, JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)] public string? LicenseInfo { get; init; }
+    public IEnumerable<ValidationResult> Validate(ValidationContext context)
+    {
+        if (DisplayName is null || LicenseInfo is null) yield return new("Application fields are required.");
+    }
+}
+
 public sealed class DietitianApplicationService(AppDbContext database, ILookupNormalizer normalizer,
     IPasswordHasher<User> hasher, IOptions<RegistrationPasswordPolicy> policy, TimeProvider clock)
 {
+    public async Task<DietitianStatusResponse> ApplyExistingAsync(Guid userId, ExistingDietitianApplicationRequest request,
+        System.Security.Claims.ClaimsPrincipal principal, WebSessionService sessions, CancellationToken token)
+    {
+        if (!DietitianProfile.ValidText(request.DisplayName, 120) || !DietitianProfile.ValidText(request.LicenseInfo, 2000))
+            throw new ResourceOperationException(422);
+        await using var transaction = await database.Database.BeginTransactionAsync(token);
+        var user = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {userId} FOR UPDATE")
+            .SingleOrDefaultAsync(token);
+        if (user is null || !user.IsEmailVerified || !await sessions.ValidateAsync(principal, token))
+            throw new ResourceOperationException(401);
+        if (user.Role is not (UserRole.Client or UserRole.Dietitian)) throw new ResourceOperationException(403);
+        if (await database.DietitianProfiles.AnyAsync(x => x.UserId == userId, token)) throw new ResourceOperationException(409);
+        if (user.Role != UserRole.Client || !await database.ClientProfiles.AnyAsync(x => x.UserId == userId, token))
+            throw new ResourceOperationException(403);
+        var profile = new DietitianProfile(user, request.DisplayName!, request.LicenseInfo!);
+        await database.SaveChangesAsync(token);
+        await transaction.CommitAsync(token);
+        return new(profile.Id, profile.DisplayName, profile.IsVerified);
+    }
+
     public async Task<User> ApplyAsync(DietitianApplicationRequest request, CancellationToken cancellationToken)
     {
         Validator.ValidateObject(request, new(request), true);

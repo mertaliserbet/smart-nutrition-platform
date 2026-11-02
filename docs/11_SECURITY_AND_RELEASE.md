@@ -1,5 +1,16 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 02.11.2026 — Çift profil yetki ayrımı
+
+Mevcut doğrulanmış danışanın uzman başvurusu cookie/HTTPS/Origin/CSRF ile kendi
+User'ına bağlanır; rol, hesap kimliği ve onay bayrağı istemciden alınmaz. Pending
+profil yetki vermez. Admin MFA onayı sonrası temel rol/token/cookie değişmez;
+uzman kaynakları güncel onaylı profili, aktif ilişkiyi ve gerekli kategori iznini
+sunucuda denetler. Ortak uçların X-Profile-Context başlığı yalnız işlem bağlamını
+seçer; kendi danışan verisiyle diğer danışanların uzman verileri karıştırılmaz.
+Kendi iki profili arasında ilişki kurulamaz. Admin'in sağlık erişimi açılmaz;
+mevcut danışan verileri, ilişkileri, JWT sürüm kontrolü ve oturum iptali korunur.
+
 ## 02.11.2026 onaylı parola sıfırlama ve JWT güvenlik sürümü
 
 P1–P7 kullanıcı tarafından onaylandı; normatif HTTP/şema `04/05/06`dadır.

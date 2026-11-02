@@ -1,5 +1,15 @@
 # Smart Nutrition — Ortak Backend
 
+## 02.11.2026 — Mevcut danışanla uzman başvurusu
+
+Doğrulanmış danışan cookie/CSRF ile `POST /api/v1/dietitians/me/application`
+üzerinden yalnız displayName/licenseInfo gönderir. Pending profil aynı User'a
+eklenir; Admin MFA onayı sonrası temel rol client kalır. ClientProfile, geçmiş,
+ilişkiler ve mevcut JWT/cookie korunur. Yeni migration veya paket yoktur.
+Ortak ilişki/paylaşım/program uçlarında X-Profile-Context: dietitian uzman
+bağlamını seçer; sunucu güncel onay, sahiplik, aktif ilişki ve izni denetler.
+Başlıksız danışan çağrıları eski davranışı korur. Normatif ayrıntılar docs/06'dadır.
+
 ## 02.11.2026 — P1–P7 parola sıfırlama ve JWT sürüm kontrolü
 
 `AddPasswordReset` additive migration'ı User'a üç gizli reset metadata alanı ve

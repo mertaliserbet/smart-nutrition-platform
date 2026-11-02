@@ -1,5 +1,14 @@
 # Smart Nutrition — Web
 
+## 02.11.2026 — Aynı hesapla diyetisyen başvurusu
+
+`/uzman-basvurusu` yeni hesap veya mevcut doğrulanmış web hesabı seçimini sunar.
+Mevcut hesapta parola/e-posta yeniden alınmaz; yalnız ad ve mesleki açıklama
+cookie/CSRF ile gönderilir. Pending/onaylı başvuru tekrar oluşturulmaz. Hesap
+sayfasından başvuruya ulaşılır; Admin onayı sonrası role=client hesabı da uzman
+alanını kullanır. Uzman API çağrıları ortak uçlarda X-Profile-Context: dietitian
+gönderir; sunucu yetkilendirmesi, MFA ve danışan verileri korunur. Yeni paket yoktur.
+
 ## Gerçek program oluşturma ve atama — N1–N3
 
 Doğrulanmış uzman `/calisma-alani/danisanlar/{clientId}` detayında

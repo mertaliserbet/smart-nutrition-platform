@@ -64,7 +64,7 @@ describe('nutrition program workspace', () => {
     await user.click(await screen.findByRole('button', { name: 'Programı etkinleştir' }))
     expect(await screen.findByText('Beslenme programı etkinleştirildi ve danışana atandı.')).toBeVisible()
     expect(request.mock.calls[1]?.[0]).toBe(`/api/v1/nutrition-plans/${planId}/activate`)
-    expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', headers: { 'X-CSRF-TOKEN': 'synthetic-csrf' } })
+    expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', headers: { 'X-CSRF-TOKEN': 'synthetic-csrf', 'X-Profile-Context': 'dietitian' } })
     expect(request.mock.calls[1]?.[1]?.body).toBeUndefined()
   })
 

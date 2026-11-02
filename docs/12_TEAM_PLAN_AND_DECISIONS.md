@@ -1,5 +1,18 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 02.11.2026 — Aynı hesapta danışan ve uzman profili onayı
+
+Kullanıcı 1. seçeneği onayladı: doğrulanmış danışan mevcut web hesabıyla başvurur;
+Admin onayından sonra aynı hesapla danışan ve diyetisyen özelliklerini kullanır.
+ClientProfile, geçmiş ve ilişkiler korunur; Pending başvuru yetki vermez.
+En küçük çözüm tek User.role/JWT/cookie biçimini korur; ek uzman yetkisini
+güncel onaylı DietitianProfile sağlar. Ortak ilişki/paylaşım/program isteklerinde
+`X-Profile-Context` iki profilin sahiplik bağlamını ayırır; sunucu profili/izni
+yeniden denetler. Admin MFA ve mevcut refresh/credentialsVersion değişmez.
+`04/05/06/11/14` bu alt kapsam için güncellenmiştir; mobil kaynakları korunur.
+Yeni rol sistemi veya migration yoktur. Diğer geliştirici uzman bağlamını
+kullanmadan önce bu ortak sözleşme sürümünü entegre etmelidir.
+
 ## 02.11.2026 — P1–P7 parola sıfırlama kullanıcı onayı
 
 Kullanıcı P1–P7'yi mevcut refresh altyapısına uyarlanmış haliyle onayladı:

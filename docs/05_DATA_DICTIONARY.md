@@ -1,5 +1,22 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## Aynı hesapta çift profil — 02.11.2026 kullanıcı onayı
+
+User aynı anda en fazla bir ClientProfile ve bir DietitianProfile taşıyabilir.
+Mevcut unique User FK'leri korunur; yeni tablo, alan veya migration gerekmez.
+Doğrulanmış danışan web hesabından yapılan başvuru yalnız kendi User'ına bağlı,
+`isVerified=false` DietitianProfile oluşturur (Pending). Yeni User/ClientProfile
+oluşturulmaz; mevcut ClientProfile, parola, credentialsVersion, danışan kayıtları
+ve ilişkileri değişmez. Başvuru ve yinelenme denetimi User kilidi/transaction ile
+serileştirilir. Mevcut profil pending veya onaylı ise ikinci başvuru 409 olur.
+Admin MFA onayı yalnız uzman profilinin isVerified alanını ve mevcut audit'i
+yazar; User.role=client, JWT ve AuthSession rolleri korunur. Kişi hem kendi
+danışan verisine hem onaylı uzman olarak yetkili danışanlarına erişebilir.
+Kendi iki profili arasında diyetisyen ilişkisi kurulamaz. Diğer danışanlara
+erişimde aktif ilişki ve kategori izni zorunluluğu sürer. Admin kapsam dışıdır.
+Yeni kullanıcıların role=dietitian ile mevcut public başvuru akışı korunur;
+bu onay o hesaplara kendiliğinden ClientProfile oluşturmaz.
+
 ## Onaylı parola sıfırlama bütünlüğü — 02.11.2026
 
 User'a yalnız sunucuda tutulan şu alanlar eklenir:
@@ -101,8 +118,8 @@ başvuru/MFA açık notlarının bu dilimdeki yerini alır; diğer şemalar aç�
 | `AuditEvent` | Mevcut alanlar; metadata fiziksel JSONB, bu onay olayında null. action dietitian_verified, resourceType DietitianProfile, resourceId uzman profil UUID'si; actorUserId MFA'lı Admin |
 
 Başvuru User(role=dietitian, isEmailVerified=false) ve profili tek transaction'da
-oluşturur; ClientProfile oluşturmaz. Bu dilimde tek rol vardır; mevcut danışan
-hesabı değiştirilmez. auth/me'de diyetisyen adı kendi DietitianProfile'ından,
+oluşturur; ClientProfile oluşturmaz. Mevcut danışanın aynı hesapla başvurusu için
+02.11.2026 çift profil onayı geçerlidir. auth/me'de diyetisyen adı kendi DietitianProfile'ından,
 danışan adı ClientProfile'dan gelir; profil yoksa null kalır. Admin beş alanlı
 yanıtı yalnız geçerli MFA cookie oturumuyla alabilir; MFA alanları seçilmez.
 
@@ -328,7 +345,7 @@ Bu verilerin tamamı zorla `ActivityLog` veya `BodyMeasurement` içine yerleşti
 
 ## İlişki ve bütünlük kuralları
 
-- `User` 1:0..1 `ClientProfile` **veya** `DietitianProfile` (rol modeli netleştirilecek); `DietitianClientRelationship` üzerinde kullanıcı ID yerine profil ID kullanılır.
+- `User` 1:0..1 `ClientProfile` ve bağımsız 1:0..1 `DietitianProfile`; aynı hesapta ikisi bulunabilir (02.11.2026 onayı). `DietitianClientRelationship` üzerinde kullanıcı ID yerine profil ID kullanılır.
 - `ClientProfile` 1:N `MealLog`, `WaterLog`, `LabReport`, `ActivityLog`, `BodyMeasurement`.
 - `ClientProfile` 1:N `NutritionPlan`, `ClientTask`, `DietitianClientRelationship`, `WearableConnection`; `DietitianProfile` 1:N atadığı ClientTask ve diyetisyen programı. Kişisel programın DietitianProfile bağlantısı yoktur.
 - `MealLog` 1:N `MealLogItem`; `LabReport` 1:N `LabResult`; `NutritionPlan` 1:N `NutritionPlanItem`.

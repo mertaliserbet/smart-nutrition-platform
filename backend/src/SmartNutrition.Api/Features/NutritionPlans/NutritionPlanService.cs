@@ -19,7 +19,7 @@ public sealed class NutritionPlanService(AppDbContext database, RelationshipAcce
         if (actor.Role == UserRole.Client)
         { if (actor.ClientId != clientId) throw new ResourceOperationException(404); return; }
         if (actor.Role != UserRole.Dietitian || actor.DietitianId is null || !actor.IsDietitianVerified ||
-            !await database.DietitianProfiles.AnyAsync(x => x.Id == actor.DietitianId && x.IsVerified && x.User.IsEmailVerified && x.User.Role == UserRole.Dietitian, token))
+            !await database.DietitianProfiles.AnyAsync(x => x.Id == actor.DietitianId && x.IsVerified && x.User.IsEmailVerified && x.User.Role != UserRole.Admin, token))
             throw new ResourceOperationException(403);
         if (!await database.DietitianClientRelationships.AnyAsync(x => x.ClientId == clientId && x.DietitianId == actor.DietitianId && x.Status == RelationshipStatus.Active, token))
             throw new ResourceOperationException(404);

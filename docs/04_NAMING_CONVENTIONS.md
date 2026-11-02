@@ -1,5 +1,15 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## Aynı hesapta danışan ve diyetisyen profili — 02.11.2026 onayı
+
+`UserRole` ve tek `User.role` korunur; rol dizisi veya yeni rol değeri eklenmez.
+Mevcut danışanın başvuru ve Admin onayında `role=client` değişmez. Uzman yetkisi
+güncel `DietitianProfile.isVerified` üzerinden ayrıca doğrulanır.
+`ExistingDietitianApplicationRequest` yalnız `displayName` ve `licenseInfo` taşır;
+`POST /api/v1/dietitians/me/application` mevcut web oturumunun hesabını kullanır.
+Ortak ilişki/paylaşım/program uçlarında `X-Profile-Context: client|dietitian`
+isteğin profil bağlamını seçer; kimlik veya yetki vermez. Ayrıntılar `05/06`dadır.
+
 ## Onaylı parola sıfırlama adları — 02.11.2026
 
 Kullanıcının P1–P7 onayıyla `PasswordResetRequest { email }` ve

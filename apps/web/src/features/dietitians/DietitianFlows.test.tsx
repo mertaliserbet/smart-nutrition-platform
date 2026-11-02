@@ -42,7 +42,7 @@ describe('dietitian application and administrator verification', () => {
     expect(request).not.toHaveBeenCalled()
     fillApplication()
     await user.click(screen.getByRole('button', { name: 'Başvuruyu gönder' }))
-    expect(await screen.findByText('Bu e-posta adresiyle başvuru tamamlanamadı.')).toBeVisible()
+    expect(await screen.findByText('Bu e-posta kayıtlı olabilir. Mevcut hesabınızla giriş yapıp başvurabilirsiniz.')).toBeVisible()
     expect(screen.getByLabelText('Şifre')).toHaveValue('')
     expect(screen.getByRole('form')).toBeVisible()
   })

@@ -1,5 +1,40 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## Mevcut danışanın aynı hesapla uzman başvurusu — 02.11.2026 onayı
+
+Bu bölüm tek profil/çoklu rol açık notlarının bu alt kapsamını kapatır.
+Tek User.role, JWT ve web cookie biçimleri, login/refresh/me yanıtları korunur.
+Danışanın başvuru ve Admin onayından sonra da temel rolü `client` kalır;
+uzman yetkisi her işlemde güncel onaylı DietitianProfile üzerinden denetlenir.
+
+| İşlem | İstek / sonuç |
+|---|---|
+| `POST /api/v1/dietitians/me/application` | Yalnız doğrulanmış danışanın W2 web cookie oturumu, HTTPS/Origin/CSRF; query yok, JSON 16 KiB. Zorunlu `displayName`, `licenseInfo` (B1 sınırları); başka alan kabul edilmez. `201 DietitianStatusResponse { id, displayName, isVerified: false }`, id uzman profil UUID'si; Location `/api/v1/dietitians/me`. Yeni User, e-posta doğrulaması veya oturum oluşturulmaz |
+| `GET /api/v1/dietitians/me` | Mevcut client/dietitian JWT veya W2 cookie; yalnız kendi uzman profili (pending dahil), yoksa 404. Mevcut yanıt korunur |
+
+Kimlik cookie'den çözülür; email/password/userId/role/isVerified girdileri 400.
+Eksik/yanlış tip/null alan 400; boş veya uzun metin 422. Eksik/geçersiz cookie
+401 (önce Origin ihlali varsa 403), Admin/uygun olmayan profil 403; Authorization
+veya eksik CSRF 400. Pending veya onaylı mevcut profil ve yarışan ikinci başvuru
+409; public başvuru ile ortak IP başına 5/dakika limiti aşılırsa 429. Diğer hatalar
+ortak zarfı kullanır. Public `/dietitians/apply` yeni kullanıcı akışı değişmez;
+kayıtlı e-postanın 409 sonucu mevcut hesapla web girişine yönlendirilir.
+
+**İstek profil bağlamı:** `/dietitian-relationships`, `/data-sharing-permissions`
+ve `/nutrition-plans` kaynaklarının mevcut işlemlerinde isteğe bağlı tek
+`X-Profile-Context` başlığı yalnız `client` veya `dietitian` kabul eder.
+Başlık yoksa imzalı temel rolün mevcut davranışı sürer; böylece Flutter'ın
+mevcut danışan çağrıları değişmez. `client` kendi ClientProfile'ını, `dietitian`
+güncel Admin onaylı DietitianProfile'ını gerektirir; eksik/onaysız profil 403,
+yanlış/çoklu başlık 400. Başlık hesap kimliğini/rolünü değiştirmez ve yetki vermez.
+Web uzman alanı bu ortak uçlarda açıkça `dietitian` bağlamı gönderir.
+`/dietitian/clients` ve `/dietitians/me/invitation-code` zaten uzman işlemleridir;
+temel rol client olsa da onaylı profil şartıyla çalışır. Admin kabul edilmez.
+Aktif ilişki, sahiplik, nutrition_plans izni, CSRF ve veri izolasyonu korunur.
+Kendi iki profili arasında ilişki talebi 422'dir (mevcut aktif ilişki çatışması
+önce denetlenirse 409). Onayın kaldırılması sonraki uzman erişimini kapatır.
+Mevcut danışan kayıtları/ilişkileri ve kendi program erişimi korunur.
+
 ## 29.10.2026 N1–N3 ortak onaylı program dilimi
 
 Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Normatif
@@ -60,7 +95,7 @@ bu dilimin güncel normatif istisnasıdır; diğer açık şemalar onaylanmamı�
 | Method + route | İstek | Başarı / yetki |
 |---|---|---|
 | `POST /api/v1/dietitians/apply` | JSON DietitianApplicationRequest: zorunlu email/password/displayName/licenseInfo, ek alan yok; oturumsuz, query yok; 16 KiB | `201 RegisterUserResponse { id }` User UUID. Yalnız dietitian/henüz doğrulanmamış hesap ve profil atomik oluşur. İstemci role/isVerified atayamaz |
-| `GET /api/v1/dietitians/me` | Gövde/query yok; kendi dietitian JWT veya W2 cookie | `200 DietitianStatusResponse { id, displayName, isVerified }`; profil yoksa 404. id uzman profil UUID'si; özel licenseInfo dönmez |
+| `GET /api/v1/dietitians/me` | Gövde/query yok; kendi client/dietitian JWT veya W2 cookie | `200 DietitianStatusResponse { id, displayName, isVerified }`; profil yoksa 404. id uzman profil UUID'si; özel licenseInfo dönmez |
 | `GET /api/v1/dietitians` | Public; zorunlu page/pageSize pozitif integer; opsiyonel query, ada göre harf duyarsız literal arama | `200 { items: DietitianListItem[], totalCount }`; item yalnız id/displayName. Hem e-posta hem uzman doğrulaması gerekir |
 | `POST /api/v1/auth/admin-web-session` | JSON AdminLoginRequest: zorunlu email/password/mfaCode, ek alan/query yok; 4096 byte; W2 CSRF/Origin/HTTPS | `200 CurrentUserResponse`; role=admin, displayName profil yoksa null. Cookie yalnız MFA tüketimi ve oturum commit'inden sonra verilir; JWT/secret yok |
 | `GET /api/v1/admin/dietitians` | Zorunlu isVerified boolean, page/pageSize pozitif integer; başka query/gövde yok; yalnız MFA Admin cookie | `200 { items: DietitianReviewItem[], totalCount }`; item id/displayName/licenseInfo/isVerified; sağlık kaydı yok |
@@ -346,7 +381,7 @@ Geçerli birim/referans yoksa açıklama `unknown` ve sınırlılıkları yansı
 
 ## Kimlik, profil ve ilişki işlemlerinin sınırları
 
-- `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Çoklu rol ve diğer profil sözleşmeleri ayrıca açıktır.
+- `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Aynı hesapta iki profil için 02.11.2026 onayı geçerlidir; diğer profil sözleşmeleri ayrıca açıktır.
 - `POST /auth/login`: aşağıdaki JWT giriş şeması onaylıdır. Doğrulanmamış hesaba veya Admin'e bearer token verilmez. Mobil refresh/logout sözleşmesi 31.10.2026 bölümündedir; web ayrı W2 cookie kaynağını kullanır. Mobil MFA challenge gövdeleri açık kalır.
 - Kendi hesap okuması, kullanıcının bu görevde açıkça istediği `GET /auth/me` yolunu ve aşağıdaki düz beş alanlı yanıtı kullanır. Eski uygulanmamış `GET /me` taslağı yerine bu yol geçerlidir; GET alias/redirect eklenmez. `PATCH /me` ise ayrı açık profil düzenleme taslağıdır: `displayName`, danışanın nullable `birthDate`/`heightCm` alanları hedeflenir; yanıt/rol ayrıntıları kapanmadan uygulanmaz. `role`, `isVerified`, `isEmailVerified` veya MFA/secret alanı bu yoldan yükseltilemez. `licenseInfo` tipi açıkken keyfî JSON kabul edilmez.
 - `GET /dietitians` araması `query` ve pagination kullanabilir; uygun/doğrulanmış uzman profilleri için `id`, `displayName`, `isVerified` gibi paylaşılabilir alanlar sunulur; sağlık kaydı, özel belge veya hesap sırrı dönmez.

@@ -29,7 +29,7 @@ export function DietitianWorkspace() {
     try {
       const token = await getCsrf(controller.signal)
       const user = await getAccount(controller.signal)
-      if (user.role !== 'dietitian') throw new WebSessionError(403, 'Bu çalışma alanı doğrulanmış diyetisyenler içindir.')
+      if (user.role !== 'dietitian' && user.role !== 'client') throw new WebSessionError(403, 'Bu çalışma alanı doğrulanmış diyetisyenler içindir.')
       const profile = await getDietitianStatus(controller.signal)
       if (!controller.signal.aborted) {
         if (!profile.isVerified) navigate('/uzman/basvuru-durumu', { replace: true })

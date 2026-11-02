@@ -16,7 +16,7 @@ public sealed class NutritionPlansController(NutritionPlanService plans, Relatio
 {
     private bool HasBody => HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
     private bool NoInput => !HasBody && Request.Query.Count == 0;
-    private Task<ProfileIdentity> Actor(CancellationToken token) => access.RequireAsync(User, token);
+    private Task<ProfileIdentity> Actor(CancellationToken token) => access.RequireAsync(User, token, Request);
     [HttpPost, Consumes("application/json"), RequestSizeLimit(131072), ProducesResponseType<NutritionPlanResponse>(201)]
     public async Task<IActionResult> Create(CreateNutritionPlanRequest request, CancellationToken token)
     {

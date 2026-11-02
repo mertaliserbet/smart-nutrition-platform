@@ -14,7 +14,7 @@ async function send(path: string, signal: AbortSignal, token?: string): Promise<
   let response: Response
   try {
     response = await fetch(`/api/v1/${path}`, { method: token ? 'POST' : 'GET', signal, credentials: 'same-origin', cache: 'no-store', redirect: 'error',
-      ...(token ? { headers: { 'X-CSRF-TOKEN': token } } : {}) })
+      headers: { 'X-Profile-Context': 'dietitian', ...(token ? { 'X-CSRF-TOKEN': token } : {}) } })
   } catch { throw new WebSessionError(0, 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.') }
   if (response.status !== 200) {
     const message = response.status === 401 ? 'Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.'

@@ -20,6 +20,16 @@ function gated() {
 }
 
 describe('authenticated dietitian workspace', () => {
+  it('opens an approved client account in expert context without changing its role', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({ requestToken: 'csrf' }))
+      .mockResolvedValueOnce(account('client')).mockResolvedValueOnce(status())
+      .mockResolvedValueOnce(Response.json({ items: [], totalCount: 0 }))
+    setup('/calisma-alani/baglantilar')
+    expect(await screen.findByText('Bu durumda bağlantı bulunmuyor.')).toBeVisible()
+    expect(request.mock.calls[3]?.[1]).toMatchObject({ headers: { 'X-Profile-Context': 'dietitian' } })
+    expect(request.mock.calls.some(([, options]) => Boolean(options?.headers && 'Authorization' in options.headers))).toBe(false)
+  })
+
   it('loads actual minimal client data after account and expert checks, without preview data', async () => {
     const request = gated().mockResolvedValueOnce(list())
     setup()
@@ -30,9 +40,9 @@ describe('authenticated dietitian workspace', () => {
     expect(screen.queryByText('Kalori')).not.toBeInTheDocument()
   })
 
-  it('blocks the resource request for an unverified expert and shows the application status', async () => {
-    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({ requestToken: 'csrf' })).mockResolvedValueOnce(account()).mockResolvedValueOnce(status(false))
-      .mockResolvedValueOnce(account()).mockResolvedValueOnce(status(false))
+  it.each(['client', 'dietitian'])('blocks the resource request for an unverified expert (%s)', async role => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({ requestToken: 'csrf' })).mockResolvedValueOnce(account(role)).mockResolvedValueOnce(status(false))
+      .mockResolvedValueOnce(account(role)).mockResolvedValueOnce(status(false))
     setup()
     expect(await screen.findByText('Başvurunuz Admin incelemesini bekliyor.')).toBeVisible()
     expect(request.mock.calls.some(([path]) => String(path).includes('/dietitian/clients'))).toBe(false)
