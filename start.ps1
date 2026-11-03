@@ -1,8 +1,24 @@
-#requires -Version 7.0
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
 Starts the existing local development services in one Windows terminal.
 #>
+
+# Windows PowerShell can launch the services through PowerShell 7 in this same
+# terminal, even when a newly installed pwsh is absent from its inherited PATH.
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    $pwshCommand = Get-Command pwsh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    $pwshCandidates = @(
+        $(if ($pwshCommand) { $pwshCommand.Source })
+        (Join-Path $env:LOCALAPPDATA 'Programs/PowerShell/7/pwsh.exe')
+        (Join-Path $env:ProgramFiles 'PowerShell/7/pwsh.exe')
+    )
+    $pwshPath = $pwshCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) } | Select-Object -First 1
+    if (-not $pwshPath) { throw 'PowerShell 7 bulunamadı. README içindeki tek seferlik terminal kurulumunu tamamlayın.' }
+    Write-Host '[Başlatıcı] Aynı terminalde PowerShell 7 ile devam ediliyor.'
+    & $pwshPath -NoProfile -File $PSCommandPath @args
+    exit $LASTEXITCODE
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -95,8 +111,29 @@ function Write-ServiceLog([string] $Name, [string] $Message, [ConsoleColor] $Col
 
 function Find-Tool([string] $Name) {
     $command = Get-Command $Name -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (-not $command -and $Name -eq 'node') {
+        foreach ($directory in @((Join-Path $env:LOCALAPPDATA 'Programs/nodejs'), (Join-Path $env:ProgramFiles 'nodejs'))) {
+            $candidate = Join-Path $directory 'node.exe'
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                $env:Path = $directory + [IO.Path]::PathSeparator + $env:Path
+                return $candidate
+            }
+        }
+    }
     if (-not $command) { throw "Eksik bağımlılık: $Name PATH içinde bulunamadı. README'deki ilk kurulumu tamamlayın." }
     return $command.Source
+}
+
+function Find-AndroidTool([string] $Name, [string] $RelativePath) {
+    $command = Get-Command $Name -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($command) { return $command.Source }
+    foreach ($sdk in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, (Join-Path $env:LOCALAPPDATA 'Android/sdk'))) {
+        if (-not [string]::IsNullOrWhiteSpace($sdk)) {
+            $candidate = Join-Path $sdk $RelativePath
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+        }
+    }
+    throw "Android SDK aracı bulunamadı: $Name. SDK kurulumunu kontrol edin."
 }
 
 function Start-ServiceProcess {
@@ -230,6 +267,9 @@ function Start-Development {
     $docker = $null
     $flutterApp = $null
     $androidWebApp = $null
+    $startedAvdName = $null
+    $emulator = $null
+    $adbPath = $null
     $mobileTunnels = [Collections.Generic.List[hashtable]]::new()
     [SmartNutrition.Development.Cancellation]::Listen()
     try {
@@ -260,6 +300,9 @@ function Start-Development {
                            'Auth:Jwt:SigningKeyBase64', 'Auth:WebSession:Origin', 'Auth:WebSession:KeyRingPath',
                            'Email:Smtp:Host', 'Email:Smtp:FromAddress')) {
             if ([string]::IsNullOrWhiteSpace((Get-BackendSetting $key))) {
+                if (-not (Test-Path -LiteralPath $secretsFile -PathType Leaf)) {
+                    throw "Backend ayarı eksik: $key. Bu kullanıcı ortamında User Secrets dosyası bulunamadı: $secretsFile"
+                }
                 throw "Eksik backend ayarı: $key. backend/README.md üzerinden environment/User Secrets kurulumunu tamamlayın."
             }
         }
@@ -325,20 +368,32 @@ function Start-Development {
             try {
                 $devices = @(Invoke-ServiceCommand 'Mobil cihaz kontrolü' $flutter.Source @('devices', '--machine') $mobile -TimeoutSeconds 30 -Quiet | ConvertFrom-Json)
                 $emulator = $devices | Where-Object { $_.emulator -and $_.isSupported -and $_.targetPlatform -like 'android-*' } | Sort-Object id | Select-Object -First 1
+                if (-not $emulator) {
+                    $emulatorTool = Find-AndroidTool 'emulator' 'emulator/emulator.exe'
+                    $avds = @((Invoke-ServiceCommand 'Android emülatör listesi' $emulatorTool @('-list-avds') $mobile -Quiet) -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ })
+                    if ($avds.Count -eq 1) {
+                        $startedAvdName = $avds[0]
+                        Write-ServiceLog 'Mobil' "Mevcut Android emülatörü açılıyor: $startedAvdName. Veriler sıfırlanmaz." Cyan
+                        $avdProcess = Start-ServiceProcess 'Emülatör' $emulatorTool @('-avd', $startedAvdName, '-no-snapshot') $mobile
+                        $bootTimer = [Diagnostics.Stopwatch]::StartNew()
+                        while (-not $emulator -and $bootTimer.Elapsed.TotalSeconds -lt 120) {
+                            Pump-ServiceLogs
+                            if ($avdProcess.Process.HasExited) { throw 'Android emülatörü kapandı; yukarıdaki Emülatör logunu kontrol edin.' }
+                            [Threading.Thread]::Sleep(1500)
+                            $devices = @(Invoke-ServiceCommand 'Mobil cihaz kontrolü' $flutter.Source @('devices', '--machine') $mobile -TimeoutSeconds 20 -Quiet | ConvertFrom-Json)
+                            $emulator = $devices | Where-Object { $_.emulator -and $_.isSupported -and $_.targetPlatform -like 'android-*' } | Sort-Object id | Select-Object -First 1
+                        }
+                        if (-not $emulator) { throw 'Android emülatörü zamanında hazır olmadı; Android Studio AVD durumunu kontrol edin.' }
+                    } elseif ($avds.Count -gt 1) {
+                        throw 'Birden fazla Android AVD var; kullanacağınız emülatörü açıp başlatıcıyı tekrar çalıştırın.'
+                    }
+                }
                 if ($emulator) {
                     if (-not (Test-Path (Join-Path $mobile '.dart_tool/package_config.json'))) {
                         Write-ServiceLog 'Mobil' 'Flutter paketleri eksik. mobile içinde flutter pub get çalıştırın; diğer servisler açık kalacak.' Yellow
                     } else {
                         Write-ServiceLog 'Mobil' "Android emülatörü: $($emulator.name) ($($emulator.id))." Cyan
-                        $adbCommand = Get-Command adb -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
-                        $adbPath = if ($adbCommand) { $adbCommand.Source } else { $null }
-                        foreach ($sdk in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME, (Join-Path $env:LOCALAPPDATA 'Android/sdk'))) {
-                            if (-not $adbPath -and -not [string]::IsNullOrWhiteSpace($sdk)) {
-                                $candidate = Join-Path $sdk 'platform-tools/adb.exe'
-                                if (Test-Path -LiteralPath $candidate -PathType Leaf) { $adbPath = $candidate }
-                            }
-                        }
-                        if (-not $adbPath) { throw 'Android SDK adb bulunamadı; SDK kurulumunu kontrol edin.' }
+                        $adbPath = Find-AndroidTool 'adb' 'platform-tools/adb.exe'
                         $androidWebPort = 5173
                         $browserDirectory = Join-Path $env:LOCALAPPDATA 'SmartNutrition/browser-https'
                         if (Test-Path -LiteralPath (Join-Path $browserDirectory 'root-ca.crt')) {
@@ -403,6 +458,18 @@ function Start-Development {
         Write-ServiceLog 'Başlatıcı' 'Bu çalıştırmanın süreçleri kapatılıyor…' Cyan
         if ($flutterApp -and -not $flutterApp.Process.HasExited) {
             try { $flutterApp.Process.StandardInput.WriteLine('q'); $flutterApp.Process.StandardInput.Flush(); [void]$flutterApp.Process.WaitForExit(5000) } catch { }
+        }
+        if ($startedAvdName -and $emulator -and $adbPath) {
+            # Only close the AVD launched here, using its normal shutdown path.
+            try {
+                & $adbPath -s $emulator.id emu kill 2>$null | Out-Null
+                $shutdownTimer = [Diagnostics.Stopwatch]::StartNew()
+                while ($shutdownTimer.Elapsed.TotalSeconds -lt 8) {
+                    & $adbPath -s $emulator.id get-state 2>$null | Out-Null
+                    if ($LASTEXITCODE -ne 0) { break }
+                    [Threading.Thread]::Sleep(200)
+                }
+            } catch { Write-ServiceLog 'Mobil' 'Bu çalıştırmada açılan emülatörün kapanışını kontrol edin.' Yellow }
         }
         # Close the owned tree, including descendants whose launcher has already
         # exited (dotnet/node/Dart/Gradle). Unrelated processes are never selected.

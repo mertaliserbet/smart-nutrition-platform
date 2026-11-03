@@ -23,18 +23,42 @@ Diyetisyen odaklı, danışanlar için mobil uygulama ve diyetisyenler için web
 
 ## Yerel geliştirme — tek terminal
 
-VS Code'da **PowerShell 7** terminalini açıp proje kökünde çalıştırın:
+VS Code veya Windows terminalinde proje kökünde çalıştırın:
 
 ```powershell
 .\start.ps1
 ```
 
-Windows PowerShell 5.1 kullanılıyorsa `pwsh -NoProfile -File .\start.ps1`
-ile PowerShell 7 üzerinden çalıştırılabilir. Script yeni terminal/PowerShell
+VS Code bu proje için `.vscode/settings.json` içindeki **Smart Nutrition
+PowerShell** profilini kullanır. Profil PowerShell 7'yi `RemoteSigned` ile
+başlatır; her terminalde ayrıca izin komutu yazılmaz. Ayar eklenmeden önce
+açılmış terminal süreçleri değişmez: mevcut terminali çöp kutusu düğmesiyle
+bir kez kapatıp **Terminal > New Terminal** açın. Sonraki terminal açılışlarında
+profil otomatik uygulanır. Kullanıcıya özel ve standart PowerShell 7 kurulum
+yolları sırayla kontrol edilir.
+
+Windows PowerShell 5.1 kullanılıyorsa başlatıcı aynı terminalde PowerShell 7'ye
+otomatik geçer. PATH'teki `pwsh`, ardından kullanıcıya özel
+`$env:LOCALAPPDATA/Programs/PowerShell/7/pwsh.exe` ve standart
+`$env:ProgramFiles/PowerShell/7/pwsh.exe` konumları kontrol edilir.
+Node PATH'te yoksa kullanıcıya özel `$env:LOCALAPPDATA/Programs/nodejs/node.exe`
+ve standart Program Files kurulumu bulunur; yalnız alt süreç PATH'i tamamlanır.
+Script yeni terminal/PowerShell
 penceresi veya tarayıcı açmaz; servis loglarını `[Backend]`, `[Web]`, `[Mobil]`
 ve `[Docker]` önekleriyle aynı terminalde gösterir.
 
-**Bir defalık ön koşullar:** Docker Desktop'ın Linux motoru çalışmalı; .NET 10 SDK,
+Windows PowerShell `running scripts is disabled` hatası veriyorsa, bu komut
+betik daha yüklenmeden engellenmiştir. Yalnız kendi hesabınız için bir kez:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+PowerShell 7 ve Node kurulumu tamamlanıp betik politikasına izin verildiğinde
+doğrudan `.\start.ps1` yeterlidir. Bu ayar kullanıcı düzeyindedir; makine
+politikasını veya sertifika güven deposunu değiştirmez.
+
+**Bir defalık ön koşullar:** Docker Desktop'ın Linux motoru çalışmalı; PowerShell 7, .NET 10 SDK,
 web'in desteklediği Node.js (20.19+ / 20.x veya 22.12+) ve mobil için Flutter
 PATH içinde bulunmalıdır. Web paketlerini `apps/web` içinde `npm ci --include=optional`,
 mobil paketlerini `mobile` içinde `flutter pub get` ile kurun.
@@ -62,7 +86,10 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
 - Mobil: önceden açtığınız desteklenen Android emülatörü otomatik seçilir;
   birden fazlaysa cihaz kimliğine göre ilk emülatör kullanılır. Emülatör/Flutter
   yoksa veya mobil çalıştırma başarısızsa uyarı verilir, backend/web açık kalır.
-  Script emülatör açmaz ve grafik arayüzü kontrol etmez.
+  Çalışan cihaz yokken SDK'da tek Android AVD varsa mevcut verileriyle otomatik
+  açılır. Takılı kalmış Quick Boot görüntülerini kullanmamak için soğuk açılış
+  yapılır (`-no-snapshot`); kullanıcı verisi silinmez. Birden fazla AVD varsa önce istediğiniz cihazı açın; script seçim
+  yapmaz, yeni AVD oluşturmaz veya verileri sıfırlamaz. Grafik arayüzü kontrol edilmez.
   Mobil API, `adb reverse tcp:7099 tcp:7099` üzerinden `https://localhost:7099`
   kullanır. Yalnız mevcut açık PEM sertifikası debug'a aktarılır; özel anahtar
   ve TLS doğrulamasını kapatan seçenek kullanılmaz. Script başka hedefe bağlı
@@ -73,7 +100,8 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
 `Ctrl+C`, bu çalıştırmanın uygulama süreçlerini ve alt süreçlerini kapatır;
 Flutter'a önce `q` gönderilir, kalan süreçler Windows Job Object ile sonlandırılır.
 Yalnız scriptin başlattığı PostgreSQL/Mailpit servislerine `docker compose stop`
-uygulanır. Önceden çalışan Docker servisleri ve emülatör kapatılmaz; container,
+uygulanır. Önceden çalışan Docker servisleri ve emülatör kapatılmaz.
+Başlatıcının açtığı AVD normal `adb emu kill` yoluyla kapatılır; container,
 volume veya veritabanı verileri silinmez. Terminali zorla kapatmak yerine `Ctrl+C`
 kullanın; zorla kapatmada Docker servisleri açık kalabilir.
 

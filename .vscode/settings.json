@@ -1,0 +1,12 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "Smart Nutrition PowerShell": {
+      "path": [
+        "${env:LOCALAPPDATA}\\Programs\\PowerShell\\7\\pwsh.exe",
+        "${env:ProgramFiles}\\PowerShell\\7\\pwsh.exe"
+      ],
+      "args": ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "RemoteSigned"]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Smart Nutrition PowerShell"
+}
