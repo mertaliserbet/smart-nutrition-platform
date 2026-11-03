@@ -1,5 +1,16 @@
 # Smart Nutrition — Mobil
 
+## Emülatörde Türkçe karakter girişi
+
+Metin alanları Unicode kabul eder; `adb shell input text` Türkçe/Unicode IME
+girişini temsil etmez. Emülatörde Gboard > Languages > Add keyboard altında
+Türkçe (Türkiye), Türkçe-Q ekleyip dil tuşuyla seçin. Settings > System > Keyboard >
+Physical keyboard altında hem AT Translated Set 2 keyboard hem qwerty2 düzeni
+Turkish olmalıdır. Fiziksel klavye takılıyken ekran klavyesini gösterme seçeneği
+açılabilir. Ayarlar mevcut AVD'de kalıcıdır; uygulama veya başlatıcı bunları
+sıfırlamaz. Diyetisyen aramasının IME composition ve API testleri Türkçe harflerin
+değişmeden korunmasını doğrular; gerçek giriş testi Gboard/fiziksel klavyeyle yapılır.
+
 Flutter/Dart başlangıç uygulaması; Android ve iOS proje dosyaları içerir.
 Ana Sayfa'da örnek verili Dashboard; Beslenme'de gerçek aktif program görünümü
 ve manuel öğün formu; İlerleme ve Profil'de başlangıç ekranları bulunur.

@@ -1,5 +1,20 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 03.11.2026 — Yalnız yerel Mailpit Admin kodu
+
+Kullanıcı Development/Mailpit alternatifini açıkça onayladı (`06`). Bu üretim
+MFA kararı değildir: Mailpit geliştirme kutusu gerçek bağımsız ikinci faktör
+güvencesi sunmaz. Production/Staging'de endpoint ve e-posta kodu tüketimi kapalıdır;
+yerel e-posta ile açılmış mevcut cookie de her istekte bu sınırla reddedilir.
+Flag ve Development yanında SMTP loopback/1025 koşulu aranır. Mevcut TOTP ve
+kurtarma kodu kurulumu/adımı değişmez; Admin bearer yasağı sürer.
+
+6 hane/5 dakika/tek kullanım; 60 saniye aralık, IP başına 5 talep/dakika,
+kod başına 5 başarısız deneme. Yalnız salt+hash süreç belleğinde tutulur; kodlar,
+parolalar, MFA sırları ve SMTP hata içerikleri loglanmaz. Genel boş `202` hesap
+varlığını/teslimi açıklamaz. HTTPS/Origin/CSRF ve açık oturum çakışması korunur.
+Üretim e-posta MFA/kurtarma sistemi bu değişiklikten türetilmez.
+
 ## 02.11.2026 — Çift profil yetki ayrımı
 
 Mevcut doğrulanmış danışanın uzman başvurusu cookie/HTTPS/Origin/CSRF ile kendi

@@ -12,6 +12,21 @@ namespace SmartNutrition.Api.Features.Auth;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class WebSessionController(IAntiforgery antiforgery, WebSessionService sessions) : ControllerBase
 {
+    [HttpPost("admin-email-code"), Consumes("application/json"), RequestSizeLimit(4096), EnableRateLimiting("admin-email-code")]
+    [ProducesResponseType(202), ProducesResponseType(400), ProducesResponseType(403), ProducesResponseType(404)]
+    [ProducesResponseType(409), ProducesResponseType(413), ProducesResponseType(415), ProducesResponseType(429)]
+    public async Task<IActionResult> RequestAdminEmailCode(LoginUserRequest request,
+        [FromServices] AdminEmailCodeStore codes, [FromServices] AdminEmailCodeService service, CancellationToken cancellationToken)
+    {
+        if (!codes.Enabled) return NotFound(ApiErrors.Create(HttpContext, 404));
+        if (Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        await AuthenticateCookie();
+        if (!await ValidCsrf()) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        if (User.Identity?.IsAuthenticated == true) return Conflict(ApiErrors.Create(HttpContext, 409));
+        await service.RequestAsync(request, cancellationToken);
+        return Accepted();
+    }
+
     [HttpPost("admin-web-session")]
     [ProducesResponseType<CurrentUserResponse>(200)]
     [ProducesResponseType(400), ProducesResponseType(401), ProducesResponseType(403), ProducesResponseType(409)]

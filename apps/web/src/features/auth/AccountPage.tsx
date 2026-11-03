@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthLayout } from './AuthLayout'
 import { getAccount, getCsrf, logout, WebSessionError } from './webSessionApi'
 import type { CurrentUserResponse } from './webSessionApi'
@@ -12,6 +12,8 @@ export function AccountPage() {
   const context = useRef<{ token: string; userId: string } | null>(null)
   const operation = useRef<AbortController | null>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const returnTo = location.state?.returnTo === '/yonetici-giris' ? '/yonetici-giris' : '/giris'
 
   async function load() {
     if (operation.current) return
@@ -29,7 +31,7 @@ export function AccountPage() {
       if (!controller.signal.aborted) { context.current = { token, userId: user.id }; setAccount(user) }
     } catch (error) {
       if (!controller.signal.aborted) {
-        if (error instanceof WebSessionError && error.status === 401) navigate('/giris', { replace: true })
+        if (error instanceof WebSessionError && error.status === 401) navigate(returnTo, { replace: true })
         else setMessage(error instanceof WebSessionError ? error.message : 'Hesap okunamadı. Lütfen tekrar deneyin.')
       }
     } finally {
@@ -63,7 +65,7 @@ export function AccountPage() {
         } catch (error) { if (!(error instanceof WebSessionError && error.status === 401)) throw error }
       }
       await logout(token, controller.signal)
-      if (!controller.signal.aborted) { context.current = null; navigate('/giris', { replace: true }) }
+      if (!controller.signal.aborted) { context.current = null; navigate(returnTo, { replace: true }) }
     } catch (error) {
       if (!controller.signal.aborted) {
         if (error instanceof WebSessionError && [400, 401, 403].includes(error.status)) {

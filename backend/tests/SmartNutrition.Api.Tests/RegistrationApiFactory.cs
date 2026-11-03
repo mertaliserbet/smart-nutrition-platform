@@ -27,6 +27,8 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private readonly TimeProvider? _clock;
     private readonly IVerificationEmailSender? _sender;
     private IPasswordResetEmailSender? _resetSender;
+    private IAdminEmailCodeSender? _adminCodeSender;
+    private bool _adminEmailCodes;
     private readonly bool _useSmtp;
     private readonly bool _includeAuthProbe;
     private readonly bool _webSessions;
@@ -65,10 +67,13 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
 
     public static async Task<RegistrationApiFactory> CreateAsync(IInterceptor? interceptor = null,
         TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false,
-        bool webSessions = false, bool webCertificate = false, IPasswordResetEmailSender? resetSender = null)
+        bool webSessions = false, bool webCertificate = false, IPasswordResetEmailSender? resetSender = null,
+        bool adminEmailCodes = false, IAdminEmailCodeSender? adminCodeSender = null)
     {
         var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe, webSessions, webCertificate);
         factory._resetSender = resetSender;
+        factory._adminEmailCodes = adminEmailCodes;
+        factory._adminCodeSender = adminCodeSender;
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -102,17 +107,18 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment(_useSmtp ? "Development" : "Production");
+        builder.UseEnvironment(_useSmtp || _adminEmailCodes ? "Development" : "Production");
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = _testConnection,
+                ["Auth:AdminEmailCode:Enabled"] = _adminEmailCodes.ToString(),
                 ["Auth:WebSession:Origin"] = _webSessions ? "https://localhost" : "",
                 ["Auth:WebSession:KeyRingPath"] = _webSessions ? _keyRing : "",
                 ["Auth:WebSession:KeyProtectionCertificatePath"] = _useWebCertificate ? Path.Combine(_keyRing, "protection.pfx") : "",
                 ["Auth:WebSession:KeyProtectionCertificatePassword"] = _certificatePassword,
-                ["Email:Smtp:Host"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_HOST") : "",
-                ["Email:Smtp:Port"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_PORT") : "587",
+                ["Email:Smtp:Host"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_HOST") : _adminEmailCodes ? "127.0.0.1" : "",
+                ["Email:Smtp:Port"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_PORT") : _adminEmailCodes ? "1025" : "587",
                 ["Email:Smtp:FromAddress"] = _useSmtp ? Environment.GetEnvironmentVariable("SMART_NUTRITION_TEST_SMTP_FROM") : "",
                 ["Email:Smtp:TlsMode"] = _useSmtp ? "None" : "StartTls",
                 ["Email:Smtp:Username"] = "", ["Email:Smtp:Password"] = ""
@@ -120,6 +126,11 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         builder.ConfigureLogging(logging => logging.ClearProviders().AddProvider(_logs));
         builder.ConfigureServices(services =>
         {
+            if (_adminCodeSender is not null)
+            {
+                services.RemoveAll<IAdminEmailCodeSender>();
+                services.AddSingleton(_adminCodeSender);
+            }
             if (_resetSender is not null)
             {
                 services.RemoveAll<IPasswordResetEmailSender>();

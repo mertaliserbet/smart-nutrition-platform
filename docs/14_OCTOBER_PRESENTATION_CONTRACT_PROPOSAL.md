@@ -1,5 +1,11 @@
 # 14 — 29 Ekim sunumu: sıradaki sözleşme kararları
 
+**03.11.2026 yerel sunum ek onayı:** Kullanıcı yalnız Development/Mailpit için
+e-posta giriş kodunu onayladı. Mevcut TOTP/kurtarma kodları korunur; üretimde
+e-posta alternatifi yoktur. Güncel endpoint, süre/deneme sınırları ve yerel
+cookie'nin üretimde reddi `04/05/06/11/12`dedir; aşağıdaki B2'nin üretim MFA
+ve kurulum/kurtarma sınırları geçerlidir. Bu ek onay yeni migration gerektirmez.
+
 **02.11.2026 ek onayı:** Mevcut doğrulanmış danışan aynı web hesabıyla Pending
 DietitianProfile başvurusu yapabilir. Admin MFA onayı sonrası ClientProfile ve
 danışan verileri korunarak iki profil birlikte kullanılır. Tek User.role/JWT/

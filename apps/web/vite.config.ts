@@ -22,6 +22,7 @@ export default defineConfig({
       '/api/v1/auth/web-session': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/me': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/admin-web-session': { target: 'https://localhost:7099', secure: true },
+      '/api/v1/auth/admin-email-code': { target: 'https://localhost:7099', secure: true },
       '/api/v1/dietitians/apply': { target: anonymousAuthTarget, secure: true },
       '/api/v1/dietitians': { target: 'https://localhost:7099', secure: true },
       '/api/v1/admin/dietitians': { target: 'https://localhost:7099', secure: true },

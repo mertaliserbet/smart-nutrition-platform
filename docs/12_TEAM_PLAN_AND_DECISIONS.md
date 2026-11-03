@@ -1,5 +1,16 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 03.11.2026 — Yerel sunum için Admin Mailpit kodu onayı
+
+Kullanıcı “Evet, yalnız yerel Development/Mailpit için ekle” yanıtıyla
+`POST /auth/admin-email-code`, e-posta/şifre+CSRF, 6 hane/5 dakika/tek kullanım,
+60 saniye gönderim aralığı ve 5 yanlış deneme sınırını onayladı. TOTP/kurtarma
+korunur; üretimde e-posta alternatifi açılmaz. `04/05/06/11` bu alt kapsamda
+güncellenir; mevcut Admin hesapları/MFA sırları döndürülmez veya sıfırlanmaz.
+Yeni migration yoktur. Web geliştirme ekranı ve HTTPS proxy yeni yolu kullanır;
+üretim build'inde e-posta seçeneği gösterilmez. Diğer geliştirici bu sözleşme
+sürümünü ortak akışla entegre etmelidir; bu görev commit/push izni değildir.
+
 ## 02.11.2026 — Aynı hesapta danışan ve uzman profili onayı
 
 Kullanıcı 1. seçeneği onayladı: doğrulanmış danışan mevcut web hesabıyla başvurur;

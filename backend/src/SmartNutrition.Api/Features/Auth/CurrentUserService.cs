@@ -6,11 +6,13 @@ using SmartNutrition.Api.Models;
 
 namespace SmartNutrition.Api.Features.Auth;
 
-public sealed class CurrentUserService(AppDbContext database, TimeProvider? clock = null)
+public sealed class CurrentUserService(AppDbContext database, TimeProvider? clock = null, AdminEmailCodeStore? emailCodes = null)
 {
     public async Task<CurrentUserResponse?> GetAsync(ClaimsPrincipal principal, CancellationToken cancellationToken = default)
     {
-        if (principal.Identity?.IsAuthenticated != true) return null;
+        if (principal.Identity?.IsAuthenticated != true ||
+            principal.HasClaim(claim => claim.Type == AdminEmailCodeStore.DevelopmentClaim) &&
+            (emailCodes is null || !emailCodes.AllowsPrincipal(principal))) return null;
         var subjects = principal.FindAll("sub").ToArray();
         var roles = principal.FindAll("role").ToArray();
         if (subjects.Length != 1 || !Guid.TryParseExact(subjects[0].Value, "D", out var userId) ||

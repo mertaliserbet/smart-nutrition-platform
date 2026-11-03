@@ -160,6 +160,15 @@ yalnız kendine ait geçici şema bağlantı havuzunu kapatır; ortak havuza dok
 
 ## Uzman başvurusu ve Admin MFA — B1–B3 (29.10.2026)
 
+**03.11.2026 yerel sunum istisnası:** Development'da
+`Auth:AdminEmailCode:Enabled=true` ve loopback SMTP:1025 ile yönetici giriş
+ekranındaki **E-posta ile kod gönder** mevcut Mailpit'e kod yollar. Önce
+e-posta/şifre girilir; sonra Mailpit'teki 6 haneli kodla aynı formdan giriş yapılır.
+Kod 5 dakika/tek kullanım, gönderim aralığı 60 saniye, hatalı deneme sınırı 5'tir.
+Genel 202 teslim veya oturum garantisi değildir. Yeni yol ve korumalar `06`dadır.
+TOTP/kurtarma kodları değişmez; Production/Staging bu alternatifi ve onun
+cookie'lerini reddeder. Migration, Admin yeniden kurma veya MFA sıfırlama gerekmez.
+
 `docs/14` ortak onayıyla `Features/Dietitians/` ve Admin MFA eklenmiştir.
 `dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
 komutu yeni uzman/audit tablolarını ve sunucu MFA alanlarını ekler. Mevcut

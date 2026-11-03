@@ -1,5 +1,21 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## Yerel Admin kodu — 03.11.2026 onayı
+
+Yeni entity, sütun veya migration yoktur. Yalnız açıkça etkin Development ve
+loopback SMTP:1025 ortamında, mevcut doğrulanmış ve TOTP kurulumu bulunan Admin
+için 6 haneli kriptografik rastgele kod üretilir. Kod yalnız gönderim sırasında
+bellektedir; 32 byte rastgele salt ve SHA-256 hash, User kimliği/parola hash'i/
+credentialsVersion ve mevcut korumalı MFA kurulumu ile süreç belleğinde tutulur.
+Parola/sürüm/MFA kurulumu değişirse bekleyen kod reddedilir. Süre 5 dakika, yeniden gönderim
+aralığı 60 saniye, hatalı deneme sınırı 5'tir. Yeni gönderim eski kodu geçersiz kılar;
+API yeniden başlarsa bütün yerel kodlar düşer. Gönderilemeyen kod kullanılamaz.
+Kod tüketimi tek kazananlıdır; oturum yazması başarısız olsa bile tekrar açılmaz.
+User TOTP sırrı/adımı/kurtarma hash'leri değiştirilmez. Mevcut AuthSession'da
+doğrulama kanıtı tutulur; yerel e-posta oturumunun imzalı cookie claim'i her
+doğrulamada yeniden kontrol edilir, Production/Staging veya kapalı yapılandırmada
+kabul edilmez. HTTP ayrıntıları `06`dadır.
+
 ## Aynı hesapta çift profil — 02.11.2026 kullanıcı onayı
 
 User aynı anda en fazla bir ClientProfile ve bir DietitianProfile taşıyabilir.

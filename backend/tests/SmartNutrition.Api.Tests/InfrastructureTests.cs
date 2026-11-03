@@ -143,7 +143,7 @@ public sealed class InfrastructureTests
         Assert.StartsWith("3.", document.RootElement.GetProperty("openapi").GetString());
         var paths = document.RootElement.GetProperty("paths");
         Assert.Equal(new[] { "/api/v1/admin/dietitians", "/api/v1/admin/dietitians/{dietitianId}/verify",
-            "/api/v1/auth/admin-web-session", "/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/me", "/api/v1/auth/password-reset-requests", "/api/v1/auth/refresh",
+            "/api/v1/auth/admin-email-code", "/api/v1/auth/admin-web-session", "/api/v1/auth/csrf", "/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/me", "/api/v1/auth/password-reset-requests", "/api/v1/auth/refresh",
             "/api/v1/auth/register", "/api/v1/auth/resend-verification", "/api/v1/auth/reset-password", "/api/v1/auth/verify-email", "/api/v1/auth/web-session",
             "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me", "/api/v1/dietitians/me/application", "/api/v1/dietitians/me/invitation-code",
             "/api/v1/dietitian-relationships", "/api/v1/dietitian-relationships/{relationshipId}/accept", "/api/v1/dietitian-relationships/{relationshipId}/reject", "/api/v1/dietitian-relationships/{relationshipId}/end",

@@ -328,7 +328,7 @@ void main() {
         expect(r.uri.queryParameters, {
           'page': '2',
           'pageSize': '10',
-          'query': 'İpek & Özgür',
+          'query': 'Çağrı İpek Şen ıİğĞşŞçÇöÖüÜ & Özgür',
         });
         expect(
           r.headers.value('authorization'),
@@ -343,7 +343,10 @@ void main() {
           'totalCount': 11,
         });
       };
-      final result = await api.search(page: 2, query: ' İpek & Özgür ');
+      final result = await api.search(
+        page: 2,
+        query: ' Çağrı İpek Şen ıİğĞşŞçÇöÖüÜ & Özgür ',
+      );
       expect(result.items.single.displayName, 'İpek Özgür');
       expect(result.totalCount, 11);
     },

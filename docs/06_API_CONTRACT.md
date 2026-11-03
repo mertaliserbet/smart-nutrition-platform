@@ -1,5 +1,33 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## Development/Mailpit Admin kodu — 03.11.2026 açık kullanıcı onayı
+
+Bu istisna yalnız yerel sunum/geliştirme içindir; üretim Admin MFA yöntemi
+TOTP/kurtarma kodu olarak korunur. `Auth:AdminEmailCode:Enabled=true`, Development
+ortamı ve loopback SMTP hostu/1025 portu birlikte gerekir; üretimde flag tek başına
+açamaz. Mailpit gerçek kullanıcıya ait ikinci faktör/üretim e-posta servisi değildir.
+
+| İşlem | İstek | Sonuç |
+|---|---|---|
+| `POST /api/v1/auth/admin-email-code` | Mevcut `LoginUserRequest { email, password }`; HTTPS, tam Origin ve CSRF; query/Authorization yok, JSON 4096 byte | Uygun hesap, yanlış parola, bilinmeyen/uygun olmayan hesap, 60 saniyelik aralık veya SMTP hatası için aynı boş `202`. Kod/token/cookie dönmez. Kapalı ortamda `404`; açık web oturumunda `409`; biçim/CSRF `400`, Origin/HTTPS `403`, medya/boyut `415/413`, IP başına 5/dakika aşımında `429` |
+| `POST /api/v1/auth/admin-web-session` | Mevcut `{ email, password, mfaCode }`; yalnız yukarıdaki yerel ortamda mfaCode e-postadaki 6 haneli kod da olabilir | Başarı mevcut `200 CurrentUserResponse` ve korumalı cookie. Yanlış/süresi dolmuş/kullanılmış/5 başarısız denemeyle kilitlenmiş kod aynı `401`. Mevcut login IP limiti/CSRF/Origin/oturum çakışması korunur |
+
+Kod 5 dakika ve tek kullanımlıktır; hesap başına yeniden gönderim 60 saniyedir.
+Eşzamanlı tüketimde tek oturum kazanır; POST otomatik tekrarlanmaz. Yeni kod eskisini
+geçersiz kılar, API yeniden başlatılması bekleyen kodları siler. Gönderim `202`si
+giriş yapıldığı veya e-posta teslimi doğrulandığı anlamına gelmez. DB oturum yazması
+başarısız olursa e-posta kodu tekrar kullanılamaz; kullanıcı yeni kod ister.
+
+E-posta ile açılan cookie sunucunun imzaladığı `developmentAdminEmailCode=true`
+kanıtını taşır. Her cookie doğrulaması, auth/me ve idle güncellemesinde Development
+ve yerel yapılandırma yeniden denetlenir; bu cookie Production/Staging'de veya
+özellik kapatılınca reddedilir. JSON yanıtlarına claim eklenmez. Admin JWT/bearer
+girişleri kapalı kalır; mevcut TOTP/kurtarma kodları ve kurulumları değiştirilmez.
+
+Web girişinde `409` sunucu koruması kaldırılmaz. Kullanıcı açık hesabı `/hesabim`
+üzerinden görür ve CSRF korumalı açık çıkış işlemini seçer; yalnız sunucunun `204`
+yanıtından sonra Admin girişine döner. Başka hesabın oturumu sessizce kapatılmaz.
+
 ## Mevcut danışanın aynı hesapla uzman başvurusu — 02.11.2026 onayı
 
 Bu bölüm tek profil/çoklu rol açık notlarının bu alt kapsamını kapatır.

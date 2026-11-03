@@ -559,6 +559,35 @@ void main() {
     },
   );
   testWidgets(
+    'Turkish IME composing text is preserved and submitted without transliteration',
+    (tester) async {
+      await open(tester);
+      final field = find.widgetWithText(TextField, 'Diyetisyen adı');
+      await visible(tester, field);
+      await tester.showKeyboard(field);
+      const query = 'Çağrı İpek Şen ıİğĞşŞçÇöÖüÜ';
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: query,
+          selection: TextSelection.collapsed(offset: query.length),
+          composing: TextRange(start: 0, end: 5),
+        ),
+      );
+      await tester.pump();
+      expect(tester.widget<TextField>(field).controller!.text, query);
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: query,
+          selection: TextSelection.collapsed(offset: query.length),
+        ),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Ara'));
+      await tester.pumpAndSettle();
+      expect(api.lastQuery, query);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
     'late mutation result cannot update a page that has been closed',
     (tester) async {
       await open(tester);

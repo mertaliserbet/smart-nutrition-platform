@@ -21,6 +21,64 @@ function fillApplication() {
 }
 
 describe('dietitian application and administrator verification', () => {
+  it('offers a safe account/logout route after a conflicting admin login and returns to admin login only after 204', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf())
+      .mockResolvedValueOnce(new Response(null, { status: 409 }))
+      .mockResolvedValueOnce(csrf()).mockResolvedValueOnce(account('client'))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const { user } = page('/yonetici-giris')
+    fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: 'admin@example.test' } })
+    fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: 'synthetic password' } })
+    fireEvent.change(screen.getByLabelText('Doğrulama veya kurtarma kodu'), { target: { value: '123456' } })
+    await user.click(screen.getByRole('button', { name: 'Güvenli giriş yap' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('açık bir oturum')
+    expect(request).toHaveBeenCalledTimes(2)
+    await user.click(screen.getByRole('link', { name: 'Açık hesabı görüntüle ve çıkış yap' }))
+    expect(await screen.findByText('synthetic@example.test')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Çıkış yap' }))
+    expect(await screen.findByRole('heading', { name: 'Yönetici girişi' })).toBeVisible()
+    expect(request.mock.calls[4]?.[1]).toMatchObject({ method: 'DELETE', headers: { 'X-CSRF-TOKEN': 'synthetic-csrf' } })
+    expect(request.mock.calls.filter(([, options]) => options?.method === 'POST')).toHaveLength(1)
+  })
+
+  it('requests a local email code using CSRF without logging in and blocks repeated delivery', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(new Response(null, { status: 202 }))
+    const { user } = page('/yonetici-giris')
+    fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: ' admin@example.test ' } })
+    fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: ' synthetic password ' } })
+    await user.click(screen.getByRole('button', { name: 'E-posta ile kod gönder' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Bilgileriniz uygunsa')
+    expect(request.mock.calls[1]?.[0]).toBe('/api/v1/auth/admin-email-code')
+    expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', credentials: 'same-origin', redirect: 'error',
+      headers: { 'X-CSRF-TOKEN': 'synthetic-csrf', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@example.test', password: ' synthetic password ' }) })
+    expect(screen.getByRole('button', { name: /Tekrar kod gönder/ })).toBeDisabled()
+    expect(request).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('heading', { name: 'Yönetici girişi' })).toBeVisible()
+    expect(screen.queryByText('Sentetik mesleki kayıt')).not.toBeInTheDocument()
+  })
+
+  it.each([409, 429, 500])('does not claim delivery or retry a failed email-code request (%s)', async status => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(new Response(null, { status }))
+    const { user } = page('/yonetici-giris')
+    fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: 'admin@example.test' } })
+    fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: 'synthetic password' } })
+    await user.click(screen.getByRole('button', { name: 'E-posta ile kod gönder' }))
+    expect(await screen.findByRole('alert')).toBeVisible()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    if (status === 409) expect(screen.getByRole('link', { name: 'Açık hesabı görüntüle ve çıkış yap' })).toBeVisible()
+    expect(request).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the email alternative out of production builds', () => {
+    vi.stubEnv('DEV', false)
+    try {
+      page('/yonetici-giris')
+      expect(screen.queryByRole('button', { name: 'E-posta ile kod gönder' })).not.toBeInTheDocument()
+      expect(screen.getByText(/kimlik doğrulayıcınızdaki kodla/)).toBeVisible()
+    } finally { vi.unstubAllEnvs() }
+  })
+
   it('submits a separate anonymous application with exact fields and only claims success after 201', async () => {
     const request = vi.spyOn(globalThis, 'fetch').mockResolvedValue(Response.json({ id: userId }, { status: 201 }))
     const { user } = page('/uzman-basvurusu'); fillApplication()

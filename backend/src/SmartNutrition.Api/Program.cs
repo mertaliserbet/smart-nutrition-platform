@@ -34,6 +34,10 @@ builder.Services.AddOptions<RefreshTokenOptions>().Bind(builder.Configuration.Ge
 builder.Services.AddScoped<CurrentUserService>();
 builder.Services.AddSingleton<LoginPasswordVerifier>();
 builder.Services.AddScoped<AdminMfaService>();
+builder.Services.AddOptions<AdminEmailCodeOptions>().Bind(builder.Configuration.GetSection(AdminEmailCodeOptions.SectionName));
+builder.Services.AddSingleton<AdminEmailCodeStore>();
+builder.Services.AddScoped<AdminEmailCodeService>();
+builder.Services.AddScoped<IAdminEmailCodeSender, SmtpVerificationEmailSender>();
 builder.Services.AddScoped<DietitianApplicationService>();
 builder.Services.AddScoped<RelationshipAccessService>();
 builder.Services.AddScoped<RelationshipService>();
@@ -74,6 +78,9 @@ builder.Services.AddRateLimiter(options =>
             QueueLimit = 0, AutoReplenishment = true
         }));
     var loginSettings = builder.Configuration.GetSection(LoginOptions.SectionName).Get<LoginOptions>() ?? new();
+    options.AddPolicy("admin-email-code", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = 5, Window = TimeSpan.FromMinutes(1), QueueLimit = 0, AutoReplenishment = true }));
     var resetSettings = builder.Configuration.GetSection(PasswordResetOptions.SectionName).Get<PasswordResetOptions>() ?? new();
     foreach (var (policy, limit) in new[] { ("password-reset-request", resetSettings.RequestsPerMinute),
                  ("password-reset-consume", resetSettings.ConsumeRequestsPerMinute) })

@@ -1,5 +1,14 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## Yerel Admin e-posta kodu — 03.11.2026 kullanıcı onayı
+
+Yalnız Development/Mailpit için `POST /api/v1/auth/admin-email-code` eklenir.
+İstek mevcut `LoginUserRequest { email, password }`, yanıt boş `202`dir.
+Mevcut `AdminLoginRequest.mfaCode` yerel e-posta kodunu da kabul eder; JSON
+alanları ve üretim TOTP/kurtarma sözleşmesi değişmez. İmzalı web cookie'sindeki
+yalnız sunucuya ait `developmentAdminEmailCode` claim'i bu yerel oturumu ayırır;
+hesap yanıtına, JWT'ye veya kullanıcı girdisine eklenmez. Ayrıntılar `05/06/11`dedir.
+
 ## Aynı hesapta danışan ve diyetisyen profili — 02.11.2026 onayı
 
 `UserRole` ve tek `User.role` korunur; rol dizisi veya yeni rol değeri eklenmez.

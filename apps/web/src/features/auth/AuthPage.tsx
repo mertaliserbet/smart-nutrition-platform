@@ -22,6 +22,7 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [notice, setNotice] = useState('')
   const [pending, setPending] = useState(false)
+  const [sessionConflict, setSessionConflict] = useState(false)
   const operation = useRef<AbortController | null>(null)
   const navigate = useNavigate()
   const emailInput = useRef<HTMLInputElement>(null)
@@ -49,7 +50,10 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
       await login({ email: email.trim(), password: submittedPassword }, controller.signal)
       if (!controller.signal.aborted) navigate('/hesabim', { replace: true })
     } catch (error) {
-      if (!controller.signal.aborted) setNotice(error instanceof WebSessionError ? error.message : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.')
+      if (!controller.signal.aborted) {
+        if (error instanceof WebSessionError && error.status === 409) setSessionConflict(true)
+        setNotice(error instanceof WebSessionError ? error.message : 'Giriş tamamlanamadı. Lütfen tekrar deneyin.')
+      }
     } finally {
       if (!controller.signal.aborted) { operation.current = null; setPending(false) }
     }
@@ -81,6 +85,7 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
       </div>}
       {errorMessage && <p className="form-message error-message" role="alert">{errorMessage}</p>}
       {notice && <p className="form-message" role="status">{notice}</p>}
+      {sessionConflict && <Link className="button button-secondary form-submit" to="/hesabim">Açık hesabı görüntüle ve çıkış yap</Link>}
       <button className="button button-primary form-submit" type="submit" disabled={busy}>
         {busy ? 'İşlem sürüyor…' : isLogin ? 'Giriş yap' : 'Sıfırlama bağlantısı iste'}{!busy && <Icon name="arrow" />}
       </button>

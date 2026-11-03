@@ -67,6 +67,11 @@ export async function adminLogin(requestBody: AdminLoginRequest, signal: AbortSi
   return result
 }
 
+export async function requestAdminEmailCode(requestBody: LoginUserRequest, signal: AbortSignal) {
+  const token = await getCsrf(signal)
+  await request('admin-email-code', 202, signal, 'POST', token, requestBody)
+}
+
 export async function getAccount(signal: AbortSignal) {
   return account(await readJson(await request('me', 200, signal)))
 }

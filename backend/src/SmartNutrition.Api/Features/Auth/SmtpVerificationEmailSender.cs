@@ -12,8 +12,12 @@ public interface IVerificationEmailSender
 }
 
 public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, IHostEnvironment environment)
-    : IVerificationEmailSender, IPasswordResetEmailSender
+    : IVerificationEmailSender, IPasswordResetEmailSender, IAdminEmailCodeSender
 {
+    public Task SendAdminCodeAsync(string recipient, string code, CancellationToken cancellationToken) =>
+        SendMessageAsync(recipient, "Smart Nutrition — Yerel yönetici giriş kodu",
+            $"Yerel geliştirme ortamı yönetici giriş kodunuz:\n\n{code}\n\nBu kod 5 dakika geçerlidir ve tek kullanımlıktır.\nBu ileti yalnız geliştirme/Mailpit ortamı içindir.", cancellationToken);
+
     public Task SendAsync(string recipient, string token, CancellationToken cancellationToken) =>
         SendMessageAsync(recipient, "Smart Nutrition — E-posta doğrulama",
             $"E-posta doğrulama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nBu isteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);

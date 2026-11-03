@@ -83,6 +83,12 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
   [liveness](https://localhost:7099/health/live),
   [PostgreSQL readiness](https://localhost:7099/health/ready).
 - Mailpit: [yerel posta kutusu](http://127.0.0.1:8025); PostgreSQL: `127.0.0.1:5433`.
+- Yerel Admin girişi: [Yönetici girişi](https://localhost:5173/yonetici-giris).
+  E-posta/şifreyi girip **E-posta ile kod gönder** seçin; Mailpit'teki 6 haneli
+  kodu forma yazın. Kod 5 dakika/tek kullanım; tekrar gönderim 60 saniye sonradır.
+  Bu seçenek yalnız Development + yerel Mailpit içindir; üretim TOTP korunur.
+  Açık oturum uyarısında **Açık hesabı görüntüle ve çıkış yap** üzerinden mevcut
+  hesabı kontrol edip çıkın; çıkış doğrulandıktan sonra Admin ekranına dönülür.
 - Mobil: önceden açtığınız desteklenen Android emülatörü otomatik seçilir;
   birden fazlaysa cihaz kimliğine göre ilk emülatör kullanılır. Emülatör/Flutter
   yoksa veya mobil çalıştırma başarısızsa uyarı verilir, backend/web açık kalır.
@@ -90,6 +96,12 @@ mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır
   açılır. Takılı kalmış Quick Boot görüntülerini kullanmamak için soğuk açılış
   yapılır (`-no-snapshot`); kullanıcı verisi silinmez. Birden fazla AVD varsa önce istediğiniz cihazı açın; script seçim
   yapmaz, yeni AVD oluşturmaz veya verileri sıfırlamaz. Grafik arayüzü kontrol edilmez.
+  **Türkçe giriş:** Emülatörde Settings > System > Keyboard altında Gboard >
+  Languages bölümüne Türkçe (Türkiye), Türkçe-Q ekleyin; dil tuşuyla seçin.
+  Physical keyboard altında hem AT Translated Set 2 keyboard hem qwerty2 için
+  Turkish düzenini seçin. Show on-screen keyboard açık olabilir. Bu ayarlar AVD
+  kullanıcı verisinde kalır; `start.ps1` bunları sıfırlamaz. `adb shell input text`
+  Unicode yazma testi değildir; Türkçe harfleri gerçek klavye/IME ile deneyin.
   Mobil API, `adb reverse tcp:7099 tcp:7099` üzerinden `https://localhost:7099`
   kullanır. Yalnız mevcut açık PEM sertifikası debug'a aktarılır; özel anahtar
   ve TLS doğrulamasını kapatan seçenek kullanılmaz. Script başka hedefe bağlı

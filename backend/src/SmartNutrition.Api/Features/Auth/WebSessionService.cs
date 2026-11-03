@@ -9,7 +9,7 @@ namespace SmartNutrition.Api.Features.Auth;
 
 public sealed class WebSessionService(AppDbContext database, ILookupNormalizer normalizer,
     IPasswordHasher<User> hasher, LoginPasswordVerifier verifier, TimeProvider clock, CurrentUserService currentUser,
-    AdminMfaService mfa)
+    AdminMfaService mfa, AdminEmailCodeStore emailCodes)
 {
     public async Task<(AuthSession Session, ClaimsPrincipal Principal, CurrentUserResponse Account)?> AdminLoginAsync(
         AdminLoginRequest request, CancellationToken cancellationToken)
@@ -24,7 +24,9 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {candidate.Id} FOR UPDATE")
             .SingleOrDefaultAsync(cancellationToken);
         if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.CredentialsVersion != candidate.CredentialsVersion || locked.Role != UserRole.Admin ||
-            !locked.IsEmailVerified || !mfa.TryConsume(locked, request.MfaCode!, clock.GetUtcNow())) return null;
+            !locked.IsEmailVerified) return null;
+        var emailVerified = emailCodes.TryConsume(locked, request.MfaCode!, clock.GetUtcNow());
+        if (!emailVerified && !mfa.TryConsume(locked, request.MfaCode!, clock.GetUtcNow())) return null;
         var now = clock.GetUtcNow();
         if (verified == PasswordVerificationResult.SuccessRehashNeeded)
             await database.Users.Where(x => x.Id == locked.Id).ExecuteUpdateAsync(setters => setters
@@ -33,6 +35,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         database.AuthSessions.Add(session);
         await database.SaveChangesAsync(cancellationToken);
         var principal = CreatePrincipal(session, UserRole.Admin);
+        if (emailVerified) ((ClaimsIdentity)principal.Identity!).AddClaim(new(AdminEmailCodeStore.DevelopmentClaim, "true"));
         var account = await currentUser.GetAsync(principal, cancellationToken);
         if (account is null) return null;
         await transaction.CommitAsync(cancellationToken);
@@ -92,6 +95,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
 
     public async Task<bool> ValidateAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
+        if (!emailCodes.AllowsPrincipal(principal)) return false;
         if (!TryIdentity(principal, out var userId, out var sessionId, out var role)) return false;
         var now = clock.GetUtcNow();
         return await database.AuthSessions.AsNoTracking().AnyAsync(session => session.Id == sessionId && session.UserId == userId &&
@@ -103,6 +107,7 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
     // Called only after an authorized account read succeeds; authentication/CSRF/probes never extend idle time.
     public async Task<bool> TouchAsync(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
+        if (!emailCodes.AllowsPrincipal(principal)) return false;
         if (!TryIdentity(principal, out var userId, out var sessionId, out var role)) return false;
         var now = clock.GetUtcNow();
         var idle = now.AddMinutes(30);
