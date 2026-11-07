@@ -23,6 +23,7 @@ function enterCredentials() {
 describe('web cookie session', () => {
   it('logs in using CSRF and restores the account without tokens in JS storage or navigation', async () => {
     const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(account())
+      .mockResolvedValueOnce(new Response(null, { status: 404 }))
       .mockResolvedValueOnce(csrf()).mockResolvedValueOnce(account())
     const storage = vi.spyOn(Storage.prototype, 'setItem')
     const { user } = page()
@@ -32,7 +33,7 @@ describe('web cookie session', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hesabım')
     expect(screen.queryByRole('navigation', { name: 'Diyetisyen paneli' })).not.toBeInTheDocument()
     expect(request.mock.calls.map(call => call[0])).toEqual([
-      '/api/v1/auth/csrf', '/api/v1/auth/web-session', '/api/v1/auth/csrf', '/api/v1/auth/me',
+      '/api/v1/auth/csrf', '/api/v1/auth/web-session', '/api/v1/dietitians/me', '/api/v1/auth/csrf', '/api/v1/auth/me',
     ])
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', credentials: 'same-origin',
       body: JSON.stringify({ email: 'synthetic@example.test', password: ' synthetic password 🔒 ' }),
