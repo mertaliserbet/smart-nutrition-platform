@@ -101,7 +101,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddRelationshipsAndSharingPermissions", migration),
             migration => Assert.EndsWith("_AddNutritionPlansAndVersions", migration),
             migration => Assert.EndsWith("_AddRefreshTokens", migration),
-            migration => Assert.EndsWith("_AddPasswordReset", migration));
+            migration => Assert.EndsWith("_AddPasswordReset", migration),
+            migration => Assert.EndsWith("_AddMealLogSharingCategory", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());

@@ -1,5 +1,21 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## G1 — Öğün paylaşım izni, 07.11.2026 ortak onayı
+
+Kullanıcı `17` ortak onayını teyit edip yalnız G1 uygulamasını istedi.
+DataSharingPermission alanları/tipleri korunur. category artık
+`nutrition_plans` veya `meal_logs`; her ikisinde consentRecordId null'dır.
+Kategori değiştirilemez; yalnız danışanın kendi aktif ilişkisinde
+isGranted yazılır. İlişki/kategori unique indeksi korunur. Otomatik satır,
+izin kopyalama veya varsayılan onay yoktur.
+
+`AddMealLogSharingCategory` yalnız ck_permissions_category check kısıtını
+genişletir; tablo/sütun veya öğün kaydı eklemez, eski izinleri değiştirmez.
+Down, meal_logs satırı varsa eski check'i kuramayarak transaction'ı geri
+alır; satır silmez. Önceki yalnız nutrition_plans sınırı bu kapsamda genişler;
+diğer sağlık kategorileri/tahlil onayı açık kalır. Mobil geçiş `06/17`dedir.
+
+
 ## Yerel Admin kodu — 03.11.2026 onayı
 
 Yeni entity, sütun veya migration yoktur. Yalnız açıkça etkin Development ve

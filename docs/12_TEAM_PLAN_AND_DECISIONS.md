@@ -1,5 +1,34 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 07.11.2026 — 12 Kasım aşaması, yalnız G1 ortak onayı
+
+Kullanıcı ön rapordaki “Beslenme, Ölçüm ve Aktivite Modülleri (12.11.2026)”
+aşamasında Uğur'un görevlerini tek tek yapmayı istedi. İlk özellik `17`de
+salt okunur diyetisyen öğün günlüğü olarak somutlaştırıldı. Kullanıcı
+“Ortak onay var; yalnız G1’i uygula” diyerek ortak onayı teyit etti.
+Bu görev yalnız G1 izin altyapısıdır; G2–G3 sonraki adımlardır.
+
+Uğur mevcut izin yapısına bağımsız meal_logs kategorisi, veri koruyan check
+migration'ı, varsayılan kapalı kullanım ayarı ve yetki/regresyon testleri
+ekler. `04/05/06/11` bu kapsamda eşitlenir. Mevcut nutrition_plans ve
+program/MFA/cookie/JWT davranışları korunur. Öğün EF/yazma API'si, Flutter,
+su/ölçüm/aktivite, yorum/görev ve cihaz senkronizasyonu bu görevin dışındadır.
+
+**Mert entegrasyon notu:** Mobil dietitian_api.dart yalnız nutrition_plans
+ve ilişki başına tek izin bekliyor. Çoklu kategori/sayfalama ve kategoriye
+göre ayrı açma/geri çekme uyarlanmadan Relationships:Sharing:MealLogsEnabled
+true yapılmaz. Eksik izin kapalıdır; program izni öğün izni değildir.
+Mevcut satırlar flag kapanınca gizlenmez. Ortak sözleşme main üzerinden
+eşitlenmeden entegrasyon yapılmaz; modül liderlikleri korunur.
+
+**G1 doğrulaması:** Geçici PostgreSQL 17.11'de 40 hedefli testin tamamı ve
+genel backend paketinde 307 test geçti; Mailpit olmadan iki SMTP testi atlandı.
+Build 0 uyarı/0 hata, EF has-pending-model-changes temiz. Mevcut uygulama
+DB'sine migration uygulanmadı; test sunucusu durdurulup geçici küme temizlendi.
+Web ve Flutter kaynakları değişmedi. Sonraki bağımlılık Mert'in mobil çoklu
+kategori/sayfalama uyarlamasıdır; kullanım ayarı bu doğrulanana kadar false kalır.
+
+
 ## 03.11.2026 — Yerel sunum için Admin Mailpit kodu onayı
 
 Kullanıcı “Evet, yalnız yerel Development/Mailpit için ekle” yanıtıyla
