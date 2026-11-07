@@ -1,5 +1,29 @@
 # Smart Nutrition — Web
 
+## 07.11.2026 — Giriş ve gerçek panel deneyimi
+
+Başarılı hesap girişinden sonra `GET /dietitians/me` ile güncel uzman profili
+kontrol edilir. `role=client` kalan çift profilli hesaplar dahil, onaylı uzmanlar
+`/calisma-alani` genel bakışına; bekleyen başvurular başvuru durumuna yönlenir.
+Uzman profili olmayan danışan hesabı `/hesabim` ekranında kalır. Profil kontrolü
+başarısız olduğunda oluşturulmuş oturum korunur ve hesap ekranından yeniden
+kontrol/çıkış yapılabilir. Çalışma alanı girişte onayı tekrar sunucudan doğrular.
+
+Gerçek diyetisyen paneli mevcut tasarım tokenlarıyla genel bakış, danışan
+listesi/detayı, programlar ve bağlantı/davet düzenini kullanır. Genel bakışta
+aktif danışan ve bekleyen istek sayıları mevcut API yanıtlarından gelir;
+yükleme/hata durumunda bilinmeyen sayılar `—` kalır. Sağlık önizlemeleri
+gerçek panele taşınmaz. Responsive menü, klavye odağı ve iki tema desteklenir.
+
+Yönetici girişi `/yonetici-giris`, panel `/yonetim/uzmanlar` (`/yonetim`
+yönlendirir) adresindedir. MFA'lı oturum ve mevcut `isVerified` filtresiyle
+bekleyen/onaylı başvurular görüntülenir; onaylı satırda tekrar onay düğmesi
+yoktur. Yönetici çıkışı onaylandıktan sonra yönetici girişine dönülür.
+
+Bu web düzeltmeleri API/DTO, backend, mobil veya migration değiştirmez.
+Veritabanı migration uygulaması ve yerel Admin kurulumu `backend/README.md`
+adımlarına göre ayrıca yapılır; web tarayıcısından bu işlemler çalıştırılmaz.
+
 ## 02.11.2026 — Aynı hesapla diyetisyen başvurusu
 
 `/uzman-basvurusu` yeni hesap veya mevcut doğrulanmış web hesabı seçimini sunar.

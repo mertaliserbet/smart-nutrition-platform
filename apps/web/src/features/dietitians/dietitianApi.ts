@@ -57,15 +57,15 @@ export async function applyExistingDietitian(body: ExistingDietitianApplicationR
   return result
 }
 
-export async function listApplications(page: number, signal: AbortSignal) {
-  const value = await send(`admin/dietitians?isVerified=false&page=${page}&pageSize=10`, signal)
+export async function listApplications(page: number, signal: AbortSignal, isVerified = false) {
+  const value = await send(`admin/dietitians?isVerified=${isVerified}&page=${page}&pageSize=10`, signal)
   if (typeof value !== 'object' || value === null) throw new WebSessionError(500, 'Başvurular doğrulanamadı.')
   const data = value as Record<string, unknown>
   if (Object.keys(data).sort().join(',') !== 'items,totalCount' || !Array.isArray(data.items) ||
     !Number.isSafeInteger(data.totalCount) || (data.totalCount as number) < 0 || data.items.length > 10 ||
     (data.totalCount as number) < data.items.length) throw new WebSessionError(500, 'Başvurular doğrulanamadı.')
   const items = data.items.map(row => status(row, true) as DietitianReviewItem)
-  if (items.some(row => row.isVerified) || new Set(items.map(row => row.id)).size !== items.length)
+  if (items.some(row => row.isVerified !== isVerified) || new Set(items.map(row => row.id)).size !== items.length)
     throw new WebSessionError(500, 'Başvurular doğrulanamadı.')
   return { items, totalCount: data.totalCount as number }
 }
