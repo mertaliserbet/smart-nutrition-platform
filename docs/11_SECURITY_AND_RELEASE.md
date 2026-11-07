@@ -1,5 +1,21 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 07.11.2026 — G1 öğün paylaşım izin altyapısı
+
+`17` ortak onayıyla yalnız G1 uygulanır. meal_logs izni program izninden
+bağımsızdır; kategori eklenmesi sağlık kaydı erişimini kendiliğinden açmaz.
+Yalnız danışan kendi aktif ilişkisinde mevcut W2 CSRF/Origin veya JWT
+kurallarıyla izin yazar; Admin/diyetisyen danışan adına izin veremez.
+Migration yalnız check kısıtını genişletir; izin backfill'i/veri silme yoktur.
+
+`Relationships:Sharing:MealLogsEnabled` varsayılan false'tur. Eski mobil
+ayrıştırıcı ikinci kategori satırını reddettiğinden Mert'in uyarlaması ve
+regresyonu ortak main'e gelmeden ortak ortamda açılmaz. Kapalı ayar mevcut
+satırı geri çekmeyi engellemez; satır gizlemez veya silmez. meal_logs satırı
+varken eski mobil sürüme dönüş ve migration Down ayrıca değerlendirilir;
+başarısız rollback veri silinerek zorlanmaz. Genel yayın kapıları devam eder.
+
+
 ## 03.11.2026 — Yalnız yerel Mailpit Admin kodu
 
 Kullanıcı Development/Mailpit alternatifini açıkça onayladı (`06`). Bu üretim
