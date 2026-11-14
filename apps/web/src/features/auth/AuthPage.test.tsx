@@ -12,6 +12,19 @@ function renderApp(path = '/giris') {
 }
 
 describe('authentication presentation boundary', () => {
+  it('keeps login links collapsed until their option is opened', async () => {
+    const user = renderApp()
+    const registration = screen.getByText('Kayıt ve başvuru')
+    expect(screen.getByRole('link', { name: 'Danışan hesabı oluştur', hidden: true })).not.toBeVisible()
+    await user.click(registration)
+    expect(screen.getByRole('link', { name: 'Danışan hesabı oluştur' })).toBeVisible()
+    expect(screen.getByRole('link', { name: 'Diyetisyen başvurusu yap' })).toHaveAttribute('href', '/uzman-basvurusu')
+
+    await user.click(screen.getByText('Hesap ve yönetim'))
+    expect(screen.getByRole('link', { name: 'Yönetici girişi' })).toHaveAttribute('href', '/yonetici-giris')
+    expect(screen.getByRole('link', { name: 'Hesabımı aç' })).toHaveAttribute('href', '/hesabim')
+  })
+
   it('labels invalid fields and focuses the first error', async () => {
     const user = renderApp()
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))

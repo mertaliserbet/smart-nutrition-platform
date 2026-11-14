@@ -7,7 +7,7 @@ export function AuthLayout({ title, description, children, isLogin = false, badg
   title: string; description: string; children: ReactNode; isLogin?: boolean; badge?: string
 }) {
   return (
-    <div className="auth-layout">
+    <div className={isLogin ? 'auth-layout auth-layout-login' : 'auth-layout'}>
       <aside className="auth-story">
         <Brand inverse />
         <div className="story-copy">
@@ -24,12 +24,12 @@ export function AuthLayout({ title, description, children, isLogin = false, badg
         <main id="main-content" className="auth-content">
           {!isLogin && <Link to="/giris" className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
           <span className="auth-icon"><Icon name={isLogin ? 'leaf' : 'link'} /></span>
-          <p className="eyebrow">SMART NUTRITION</p>
+          {!isLogin && <p className="eyebrow">SMART NUTRITION</p>}
           <h1 tabIndex={-1}>{title}</h1>
           <p className="auth-description">{description}</p>
           {children}
         </main>
-        <footer className="auth-footer">Diyetisyen ve danışan arasında, daha güçlü bir bağ.</footer>
+        {!isLogin && <footer className="auth-footer">Diyetisyen ve danışan arasında, daha güçlü bir bağ.</footer>}
       </div>
     </div>
   )
