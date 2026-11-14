@@ -32,6 +32,13 @@
 .record-navigation .icon { width: 17px; height: 17px; }
 .record-navigation a[aria-current='page'] { background: var(--surface); color: var(--brand-primary); border-color: var(--border); font-weight: 600; }
 .record-navigation a:hover { color: var(--brand-primary); }
+.meal-preview-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 16px; padding: 16px 24px; border-bottom: 1px solid var(--border); }
+.meal-preview-filters p { width: 100%; font-size: 12px; color: var(--text-secondary); }
+.meal-preview-filters label { display: grid; flex: 1 1 145px; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+.meal-preview-filters input { width: 100%; min-width: 0; min-height: 40px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--text-primary); }
+.meal-preview-filters p[role='alert'] { color: var(--error); }
+.meal-preview-actions, .meal-preview-pagination { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.meal-preview-pagination { justify-content: center; padding: 0 24px 22px; color: var(--text-secondary); font-size: 12px; }
 .record-list { display: grid; gap: 18px; padding: 22px 24px; list-style: none; margin: 0; }
 .meal-record, .measurement-record, .activity-record, .lab-record { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .record-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; padding: 18px 20px; border-bottom: 1px solid var(--border); background: var(--surface-page); }
@@ -86,6 +93,8 @@
   .readonly-badge .icon { display: none; }
   .record-navigation { gap: 2px; padding: 8px; }
   .record-navigation a { padding: 8px; font-size: 11px; }
+  .meal-preview-filters { padding-inline: 16px; }
+  .meal-preview-pagination { padding-inline: 16px; }
   .record-list { padding: 16px; gap: 16px; }
   .record-header { flex-direction: column; gap: 10px; padding: 16px; }
   .meal-items { padding-inline: 16px; }

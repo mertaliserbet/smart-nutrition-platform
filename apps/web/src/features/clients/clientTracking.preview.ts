@@ -36,6 +36,13 @@ export function getPreviewRecords(clientId: string) {
         displayName: 'Şekersiz çay (örnek)', quantityGrams: 200, caloriesKcal: 0,
         proteinGrams: 0, carbsGrams: 0, fatGrams: 0, isEstimated: false }],
     },
+    {
+      id: id(18), clientId, mealType: 'dinner', consumedAt: '2026-10-24T16:00:00Z',
+      source: 'manual', foodAnalysisId: null, createdAt: '2026-10-24T16:04:00Z', note: null,
+      items: [{ id: id(19), mealLogId: id(18), foodItemId: null, recipeId: null,
+        displayName: 'Nohut yemeği (örnek)', quantityGrams: 150, caloriesKcal: null,
+        proteinGrams: null, carbsGrams: null, fatGrams: null, isEstimated: false }],
+    },
   ]
   const waterLogs: WaterLog[] = [
     { id: id(6), clientId, amountMl: 250, consumedAt: '2026-10-25T07:30:00Z', source: 'manual' },

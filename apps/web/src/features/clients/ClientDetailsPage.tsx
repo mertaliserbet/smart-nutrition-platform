@@ -3,7 +3,8 @@ import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
 import { getPreviewRecords, previewClients } from './clientTracking.preview'
 import type { ClientProfileListItem } from './clientTracking.types'
-import { ActivityLogList, BodyMeasurementList, LabReportList, MealLogList, WaterLogList } from './ClientRecordViews'
+import { ActivityLogList, BodyMeasurementList, LabReportList, WaterLogList } from './ClientRecordViews'
+import { MealLogPreview } from './MealLogPreview'
 import { TrackingPreviewControl, TrackingPreviewState } from './TrackingPreviewState'
 import type { TrackingPreviewScenario } from './TrackingPreviewState'
 import './clientTracking.css'
@@ -25,7 +26,7 @@ function ClientDetailsContent({ client }: { client: ClientProfileListItem }) {
   const view = selectedView && Object.hasOwn(recordViews, selectedView) ? selectedView as keyof typeof recordViews : 'ogunler'
   const records = scenario === 'sample' ? getPreviewRecords(client.id) : undefined
   const recordContent = records && {
-    ogunler: <MealLogList clientId={client.id} records={records.mealLogs} />,
+    ogunler: <MealLogPreview clientId={client.id} records={records.mealLogs} />,
     su: <WaterLogList clientId={client.id} records={records.waterLogs} />,
     olcumler: <BodyMeasurementList clientId={client.id} records={records.bodyMeasurements} />,
     aktiviteler: <ActivityLogList clientId={client.id} records={records.activityLogs} />,
