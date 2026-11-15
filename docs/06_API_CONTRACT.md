@@ -1,5 +1,35 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## G1 — Öğün paylaşım izin altyapısı, 07.11.2026 ortak onayı
+
+Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi. Bu bölüm
+R2'nin yalnız nutrition_plans kategori sınırını genişletir; yollar,
+JSON alanları, sahiplik ve W2/JWT güvenlik kuralları korunur.
+G1 öğün okuma/yazma API'sini veya web günlüğünü uygulamaz.
+
+| Mevcut işlem | G1 davranışı |
+|---|---|
+| `POST /api/v1/data-sharing-permissions` | category=nutrition_plans mevcut davranışı; category=meal_logs yalnız kullanım ayarı açıkken kabul edilir. İkisinde consentRecordId yalnız null/atlanmış. Aynı ilişki/kategori tekrarında 409; diğer kategori/dolu consentRecordId 422 |
+| `PATCH /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | Yalnız mevcut isGranted değişir. Kullanım ayarı kapalıyken meal_logs satırına true 422; false geri çekmesi aynı yetkiyle 200 |
+| Mevcut izin GET liste/detay yolları | Aynı alan/yetki korunur. Liste ilişkiye ait birden çok kategori satırı döndürebilir; totalCount filtrelenmiş izin satırı sayısıdır. Kullanım ayarı satırları gizlemez |
+
+POST/PATCH yalnız aktif ilişkinin danışanına aittir; pending/ended 409,
+başka danışanın kaydı 404, diyetisyen yazması 403. Admin kabul edilmez.
+Eksik/false izin erişimi açmaz. İki kategori bağımsızdır; tahlil onayı açılmaz.
+
+Dahili `Relationships:Sharing:MealLogsEnabled` ayarı varsayılan false'tur;
+ortam karşılığı `Relationships__Sharing__MealLogsEnabled`. Kapalıyken yeni
+meal_logs satırı true/false fark etmeksizin 422 olur. Ayar HTTP alanı veya
+danışan izni değildir; true olması otomatik izin sağlamaz. Mert'in tek
+kategori/tek satır bekleyen mobil ayrıştırıcısı çoklu kategori ve sayfalama
+için uyarlanmadan aynı ortamda true yapılmamalıdır. Yeniden false yapmak
+kalan meal_logs satırlarıyla eski mobil sürümü uyumlu hale getirmez; liste
+sözleşmesi istemciye göre değiştirilmez, satırlar gizlenmez veya silinmez.
+
+G2–G3 sonraki ayrı adımdır. Katalogdaki diyetisyen öğün okuma rotası bu
+G1 ile canlı sayılmaz. Diğer kategori/yorum/görev/cihaz kararları açık kalır.
+
+
 ## Development/Mailpit Admin kodu — 03.11.2026 açık kullanıcı onayı
 
 Bu istisna yalnız yerel sunum/geliştirme içindir; üretim Admin MFA yöntemi

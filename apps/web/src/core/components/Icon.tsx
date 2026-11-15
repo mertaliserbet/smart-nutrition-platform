@@ -32,11 +32,11 @@ export function Icon({ name, className = '' }: { name: IconName; className?: str
   )
 }
 
-export function Brand({ inverse = false }: { inverse?: boolean }) {
+export function Brand({ inverse = false, subtitle = 'DİYETİSYEN ÇALIŞMA ALANI' }: { inverse?: boolean; subtitle?: string }) {
   return (
     <div className={`brand ${inverse ? 'brand-inverse' : ''}`}>
       <span className="brand-mark"><Icon name="leaf" /></span>
-      <span>smart<span className="brand-light">nutrition</span><small>DİYETİSYEN ÇALIŞMA ALANI</small></span>
+      <span>smart<span className="brand-light">nutrition</span><small>{subtitle}</small></span>
     </div>
   )
 }

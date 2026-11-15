@@ -1,5 +1,15 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## G1 — Öğün paylaşım kategorisi, 07.11.2026 ortak onayı
+
+Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi.
+`DataSharingPermission.category` string kalır; onaylı kodlar mevcut
+`nutrition_plans` ve ek `meal_logs` olur. Yeni entity/rol/rota yoktur.
+İki kategori bağımsızdır; program izni öğün izni vermez. G1 izin altyapısıdır;
+öğün okuma API'si ve web günlüğü sonraki G2–G3 adımlarıdır.
+Varsayılan kapalı kullanım ve mobil geçiş koşulları `06/17`dedir.
+
+
 ## Yerel Admin e-posta kodu — 03.11.2026 kullanıcı onayı
 
 Yalnız Development/Mailpit için `POST /api/v1/auth/admin-email-code` eklenir.

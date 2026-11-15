@@ -15,9 +15,20 @@ import { DietitianWorkspace } from './features/workspace/DietitianWorkspace'
 function RouteFocus() {
   const { pathname } = useLocation()
   useEffect(() => {
-    const heading = document.querySelector<HTMLHeadingElement>('h1')
-    heading?.focus()
-    document.title = `${heading?.textContent ?? 'Sayfa bulunamadı'} · Smart Nutrition`
+    let lastHeading: HTMLHeadingElement | null = null
+    let lastTitle: string | null = null
+    function updateHeading() {
+      const heading = document.querySelector<HTMLHeadingElement>('h1')
+      if (!heading || (heading === lastHeading && heading.textContent === lastTitle)) return
+      lastHeading = heading; lastTitle = heading.textContent
+      heading.focus()
+      document.title = `${lastTitle} · Smart Nutrition`
+    }
+    // Protected routes render their heading after the asynchronous session checks.
+    const observer = new MutationObserver(updateHeading)
+    observer.observe(document.getElementById('root') ?? document.body, { childList: true, subtree: true, characterData: true })
+    updateHeading()
+    return () => observer.disconnect()
   }, [pathname])
   return null
 }
@@ -36,6 +47,7 @@ export default function App() {
         <Route path="/uzman-basvurusu" element={<DietitianApplicationPage />} />
         <Route path="/uzman/basvuru-durumu" element={<DietitianStatusPage />} />
         <Route path="/yonetici-giris" element={<AdminLoginPage />} />
+        <Route path="/yonetim" element={<Navigate to="/yonetim/uzmanlar" replace />} />
         <Route path="/yonetim/uzmanlar" element={<AdminDietitiansPage />} />
         <Route path="/calisma-alani/*" element={<DietitianWorkspace />} />
         {import.meta.env.DEV && <Route path="/onizleme/*" element={<WorkspacePreview />} />}

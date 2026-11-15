@@ -1,0 +1,64 @@
+.live-workspace { background: var(--surface-page); }
+.live-workspace .sidebar-footer > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.live-workspace .live-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.live-workspace .metric-card > p { font-size: 11px; }
+.live-workspace .dashboard-heading { gap: 20px; }
+.live-workspace .dashboard-heading > .button { flex-shrink: 0; margin-bottom: 24px; }
+.live-workspace .card + .card { margin-top: 24px; }
+.panel-description { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-block: 12px 18px; }
+.panel-inset { padding-inline: 24px; }
+.panel-feedback { padding: 24px; font-size: 13px; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 12px; padding: 20px 24px; }
+.panel-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 20px 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-secondary); }
+.panel-filter, .live-list-toolbar > label:last-child { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-secondary); }
+.live-workspace select { max-width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); background: var(--surface); font: inherit; }
+.live-list-toolbar { flex-wrap: wrap; }
+.live-list-toolbar .search-field { flex: 1; }
+.live-list-toolbar .search-field input { width: 100%; }
+.live-client-list { list-style: none; padding: 0; margin: 0; }
+.live-client-list li + li { border-top: 1px solid var(--border); }
+.live-client-row { display: flex; align-items: center; gap: 16px; padding: 20px 24px; transition: background .15s; }
+.live-client-row:hover { background: var(--surface-subtle); }
+.live-client-row > .icon:last-child { margin-left: auto; flex-shrink: 0; color: var(--text-muted); width: 18px; }
+.client-avatar { display: grid; place-items: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 14px; background: var(--brand-soft); color: var(--brand-primary); font-weight: 650; font-size: 16px; }
+.client-identity { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; }
+.client-identity strong { font-size: 13px; font-weight: 600; }
+.client-identity small { font-size: 11px; color: var(--text-secondary); }
+.access-badge { display: inline-flex; align-items: center; flex-shrink: 0; padding: 6px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; background: var(--brand-soft); color: var(--brand-primary); }
+.live-client-row .access-badge { margin-left: auto; }
+.live-client-row .access-badge + .icon { margin-left: 0; }
+.back-link { margin-bottom: 20px; }
+.client-profile-card { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; padding: 24px; margin-bottom: 24px; }
+.client-profile-card h2 { font-size: 21px; overflow-wrap: anywhere; }
+.client-profile-card p { color: var(--text-secondary); font-size: 12px; margin-top: 7px; }
+.client-profile-card > .access-badge { margin-left: auto; }
+.large-avatar { width: 60px; height: 60px; border-radius: 18px; font-size: 24px; }
+.invitation-card { display: flex; align-items: flex-start; gap: 22px; padding: 28px; margin-bottom: 24px; }
+.invitation-icon { display: grid; place-items: center; flex-shrink: 0; background: var(--brand-soft); color: var(--brand-primary); width: 50px; height: 50px; border-radius: 14px; }
+.invitation-card > div { min-width: 0; }
+.invitation-card h2 { font-size: 19px; margin-bottom: 8px; }
+.invitation-card > div > p { color: var(--text-secondary); font-size: 13px; line-height: 1.7; margin-bottom: 18px; max-width: 65ch; }
+.invitation-code { display: block; font-family: ui-monospace, monospace; font-size: 22px; letter-spacing: 2px; color: var(--brand-primary); margin-block: 8px; overflow-wrap: anywhere; }
+.connection-list { list-style: none; padding: 0; margin: 0; }
+.connection-list li { padding: 24px; }
+.connection-list li + li { border-top: 1px solid var(--border); }
+.connection-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.connection-heading h3, .connection-heading h2 { font-size: 16px; overflow-wrap: anywhere; min-width: 0; }
+.connection-list p { color: var(--text-secondary); font-size: 12px; margin-top: 10px; }
+.connection-id { overflow-wrap: anywhere; }
+.connection-list li > .button { margin-top: 16px; }
+.admin-review-list { padding: 24px; margin: 0; }
+.admin-review-list .expert-license { font-size: 14px; padding: 16px; border-radius: 10px; background: var(--surface-page); margin-block: 10px 20px; }
+.admin-review-list .license-label { margin-top: 24px; font-size: 10px; }
+@media (max-width: 700px) {
+  .live-workspace .dashboard-heading > .button { margin-top: 0; margin-bottom: 20px; }
+  .panel-pagination, .panel-actions, .connection-list li, .admin-review-list { padding: 18px; }
+  .live-client-row { padding: 18px; gap: 12px; flex-wrap: wrap; }
+  .live-client-row .client-identity { flex: 1; }
+  .live-client-row .access-badge { display: none; }
+  .invitation-card { padding: 22px; flex-direction: column; gap: 16px; }
+  .panel-filter { flex-wrap: wrap; }
+  .live-workspace .card-header { flex-wrap: wrap; }
+  .panel-inset { padding-inline: 18px; }
+  .client-profile-card { padding: 20px; }
+}

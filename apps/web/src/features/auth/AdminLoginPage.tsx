@@ -89,5 +89,7 @@ export function AdminLoginPage() {
       {sessionConflict && <Link className="button button-secondary form-submit" to="/hesabim" state={{ returnTo: '/yonetici-giris' }}>Açık hesabı görüntüle ve çıkış yap</Link>}
       <button className="button button-primary form-submit" disabled={pending} type="submit">{pending ? 'Giriş doğrulanıyor…' : 'Güvenli giriş yap'}</button>
     </form>
+    <Link className="preview-link" to="/hesabim" state={{ returnTo: '/yonetici-giris' }}>Açık yönetici hesabımı kontrol et</Link>
+    <Link className="preview-link" to="/giris">Diyetisyen / danışan girişine dön</Link>
   </AuthLayout>
 }
