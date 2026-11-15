@@ -45,8 +45,13 @@ public sealed class DietitianClientRelationship
 public sealed class DataSharingPermission
 {
     private DataSharingPermission() { }
-    internal DataSharingPermission(Guid relationshipId, bool isGranted, DateTimeOffset now)
-    { Id = Guid.NewGuid(); RelationshipId = relationshipId; IsGranted = isGranted; CreatedAt = UpdatedAt = RecordTime.Normalize(now); }
+    internal DataSharingPermission(Guid relationshipId, bool isGranted, DateTimeOffset now, string category = "nutrition_plans")
+    {
+        if (!IsSupportedCategory(category)) throw new ArgumentException("The sharing category is not supported.", nameof(category));
+        Id = Guid.NewGuid(); RelationshipId = relationshipId; Category = category; IsGranted = isGranted;
+        CreatedAt = UpdatedAt = RecordTime.Normalize(now);
+    }
+    internal static bool IsSupportedCategory(string? category) => category is "nutrition_plans" or "meal_logs";
     public Guid Id { get; private set; }
     public Guid RelationshipId { get; private set; }
     public string Category { get; private set; } = "nutrition_plans";
@@ -60,7 +65,7 @@ public sealed class DataSharingPermission
         var rows = builder.Entity<DataSharingPermission>();
         rows.ToTable("data_sharing_permissions", table =>
         {
-            table.HasCheckConstraint("ck_permissions_category", "category = 'nutrition_plans' AND consent_record_id IS NULL");
+            table.HasCheckConstraint("ck_permissions_category", "category IN ('nutrition_plans','meal_logs') AND consent_record_id IS NULL");
             table.HasCheckConstraint("ck_permissions_times", "updated_at >= created_at");
         });
         rows.HasKey(x => x.Id).HasName("pk_data_sharing_permissions");

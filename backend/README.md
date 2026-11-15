@@ -1,5 +1,40 @@
 # Smart Nutrition — Ortak Backend
 
+## 07.11.2026 — G1 öğün paylaşım izin altyapısı
+
+Kullanıcı ortak onayıyla mevcut DataSharingPermission kategorilerine
+`meal_logs` eklendi. `nutrition_plans` bağımsız kalır. Mevcut izin yolları
+ve JSON alanları korunur; satır oluşturma/güncelleme yalnız danışanın kendi
+aktif ilişkisindedir. Yeni kategori öğün API'sini veya sağlık erişimini
+kendiliğinden açmaz; bu teslim yalnız G1'dir (`docs/17`).
+
+`AddMealLogSharingCategory` migration'ı yalnız kategori check kısıtını
+genişletir; eski izinleri, unique indeksi ve tablo alanlarını korur. Yeni
+izin satırı veya otomatik onay oluşturmaz. Normal deployment migration'ı
+`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
+ile uygulanır; bu görev mevcut uygulama veritabanına migration uygulamaz.
+Down, meal_logs satırı varken veri silmek yerine check ihlaliyle geri alınır.
+
+`Relationships:Sharing:MealLogsEnabled` varsayılan false'tur; ortam değişkeni
+`Relationships__Sharing__MealLogsEnabled`. Kapalıyken yeni meal_logs satırı
+ve mevcut satıra true yazması 422; yetkili false geri çekmesi 200 olur.
+GET liste/detay eski satırları gizlemez. Bu bayrak danışan adına izin vermez.
+
+**Mert'e geçiş notu:** Mobil izin ayrıştırıcısı çoklu kategori/sayfalamayı
+destekleyip öğün iznini ayrı ve açık bir danışan işlemiyle yönetmeden ortak
+ortamda bayrak true yapılmaz. Mevcut meal_logs satırları varsa bayrağı
+kapatmak eski mobil sürüme güvenli dönüş sağlamaz. `04/05/06` ve mobil
+uyarlama ortak main üzerinden eşitlenmelidir. Flutter bu görevde değişmez.
+
+**G1 doğrulaması:** `dotnet build SmartNutrition.Backend.slnx --no-restore`
+0 uyarı/0 hata; `dotnet tool run dotnet-ef migrations has-pending-model-changes
+--project src/SmartNutrition.Api --no-build` temiz. Geçici PostgreSQL 17.11'de
+DataSharingPermissionTests/RelationshipApiTests/InfrastructureTests filtresiyle
+40 test geçti; `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`
+genel koşusunda 307 geçti, 2 Mailpit SMTP testi atlandı. Docker açılış hatası
+nedeniyle testler [resmi Windows taşınabilir PostgreSQL dağıtımı](https://www.postgresql.org/download/windows/)
+ile, ayrı geçici küme/DB'de çalıştı. Test sunucusu ve kümesi temizlendi.
+
 ## 02.11.2026 — Mevcut danışanla uzman başvurusu
 
 Doğrulanmış danışan cookie/CSRF ile `POST /api/v1/dietitians/me/application`
