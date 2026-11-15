@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
 import { AuthLayout } from './AuthLayout'
 import { login, WebSessionError } from './webSessionApi'
+import { getDietitianStatus } from '../dietitians/dietitianApi'
 
 type AuthMode = 'login' | 'reset'
 
@@ -47,8 +48,21 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
     operation.current = controller
     setPending(true)
     try {
-      await login({ email: email.trim(), password: submittedPassword }, controller.signal)
-      if (!controller.signal.aborted) navigate('/hesabim', { replace: true })
+      const account = await login({ email: email.trim(), password: submittedPassword }, controller.signal)
+      if (controller.signal.aborted) return
+      let destination = '/hesabim'
+      let accessNotice: string | undefined
+      try {
+        // A verified expert can still have role=client. The current profile decides the destination.
+        const profile = await getDietitianStatus(controller.signal)
+        destination = profile.isVerified ? '/calisma-alani' : '/uzman/basvuru-durumu'
+      } catch (error) {
+        if (error instanceof WebSessionError && error.status === 401) throw error
+        if (!(error instanceof WebSessionError && error.status === 404 && account.role === 'client')) {
+          accessNotice = 'Giriş yapıldı; diyetisyen erişimi şu anda doğrulanamadı. Çalışma alanınızı yeniden açarak kontrol edebilirsiniz.'
+        }
+      }
+      if (!controller.signal.aborted) navigate(destination, { replace: true, state: { accessNotice } })
     } catch (error) {
       if (!controller.signal.aborted) {
         if (error instanceof WebSessionError && error.status === 409) setSessionConflict(true)

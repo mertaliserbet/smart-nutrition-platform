@@ -9,7 +9,7 @@ export function AccountPage() {
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const [logoutFailed, setLogoutFailed] = useState(false)
-  const context = useRef<{ token: string; userId: string } | null>(null)
+  const context = useRef<{ token: string; userId: string; returnTo: string } | null>(null)
   const operation = useRef<AbortController | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -28,7 +28,10 @@ export function AccountPage() {
       // Capture CSRF BEFORE reading the account: a later cookie change cannot authorize an old tab's write.
       const token = await getCsrf(controller.signal)
       const user = await getAccount(controller.signal)
-      if (!controller.signal.aborted) { context.current = { token, userId: user.id }; setAccount(user) }
+      if (!controller.signal.aborted) {
+        context.current = { token, userId: user.id, returnTo: user.role === 'admin' ? '/yonetici-giris' : returnTo }
+        setAccount(user)
+      }
     } catch (error) {
       if (!controller.signal.aborted) {
         if (error instanceof WebSessionError && error.status === 401) navigate(returnTo, { replace: true })
@@ -65,7 +68,7 @@ export function AccountPage() {
         } catch (error) { if (!(error instanceof WebSessionError && error.status === 401)) throw error }
       }
       await logout(token, controller.signal)
-      if (!controller.signal.aborted) { context.current = null; navigate(returnTo, { replace: true }) }
+      if (!controller.signal.aborted) { context.current = null; navigate(captured.returnTo, { replace: true }) }
     } catch (error) {
       if (!controller.signal.aborted) {
         if (error instanceof WebSessionError && [400, 401, 403].includes(error.status)) {
@@ -85,6 +88,7 @@ export function AccountPage() {
   return <AuthLayout title="Hesabım" badge="Hesap" description="Hesap bilgilerinizi görüntüleyebilir ve oturumunuzu kapatabilirsiniz.">
     {pending && <p role="status">İşlem sürüyor…</p>}
     {message && <p className="form-message error-message" role="alert">{message}</p>}
+    {account && typeof location.state?.accessNotice === 'string' && <p className="form-message" role="status">{location.state.accessNotice}</p>}
     {account && <section aria-label="Hesap bilgileri">
       <dl className="account-details">
         <dt>Ad</dt><dd>{account.displayName ?? 'Belirtilmemiş'}</dd>
@@ -94,8 +98,8 @@ export function AccountPage() {
       </dl>
       {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
       {account.role === 'client' && <Link className="preview-link" to="/uzman-basvurusu">Mevcut hesabımla diyetisyen başvurusu</Link>}
-      {account.role === 'dietitian' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
-      {account.role === 'dietitian' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
+      {account.role !== 'admin' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
+      {account.role !== 'admin' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
       <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>
     </section>}
     {logoutFailed && <button className="button button-primary form-submit" disabled={pending} onClick={() => { void signOut() }}>Çıkışı tekrar dene</button>}
