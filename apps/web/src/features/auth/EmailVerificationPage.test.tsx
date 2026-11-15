@@ -20,6 +20,7 @@ describe('email verification', () => {
   it('is reachable from login and never consumes a code automatically from the URL', async () => {
     const request = vi.spyOn(globalThis, 'fetch')
     const user = renderPage('/giris')
+    await user.click(screen.getByText('Hesap ve yönetim'))
     await user.click(screen.getByRole('link', { name: 'E-postamı doğrula' }))
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
     expect(screen.getByLabelText('Doğrulama kodu')).toHaveValue('')
@@ -53,6 +54,7 @@ describe('email verification', () => {
     expect(screen.queryByRole('form')).not.toBeInTheDocument()
     expect(storage).not.toHaveBeenCalled()
     await user.click(screen.getByRole('link', { name: 'Giriş ekranına dön' }))
+    await user.click(screen.getByText('Hesap ve yönetim'))
     await user.click(screen.getByRole('link', { name: 'E-postamı doğrula' }))
     expect(screen.getByLabelText('Doğrulama kodu')).toHaveValue('')
     expect(request).toHaveBeenCalledTimes(1)

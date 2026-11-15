@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
+import { getDietitianStatus } from '../dietitians/dietitianApi'
 import { AuthLayout } from './AuthLayout'
 import { login, WebSessionError } from './webSessionApi'
-import { getDietitianStatus } from '../dietitians/dietitianApi'
+import './login.css'
 
 type AuthMode = 'login' | 'reset'
 
@@ -107,6 +108,50 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
   )
 }
 
+const loginOptions = [
+  {
+    label: 'Kayıt ve başvuru', icon: 'users',
+    links: [
+      { to: '/kayit', label: 'Danışan hesabı oluştur' },
+      { to: '/uzman-basvurusu', label: 'Diyetisyen başvurusu yap' },
+    ],
+  },
+  {
+    label: 'Hesap ve yönetim', icon: 'shield',
+    links: [
+      { to: '/eposta-dogrulama', label: 'E-postamı doğrula' },
+      { to: '/hesabim', label: 'Hesabımı aç' },
+      { to: '/yonetici-giris', label: 'Yönetici girişi' },
+    ],
+  },
+] as const
+
+function LoginOptions() {
+  return (
+    <nav className="login-options" aria-label="Diğer giriş ve hesap işlemleri">
+      {loginOptions.map(({ label, icon, links }) => (
+        <details className="login-option" name="login-options" key={label}>
+          <summary>
+            <span className="login-option-icon"><Icon name={icon} /></span>
+            <span>{label}</span>
+            <span className="login-option-chevron" aria-hidden="true" />
+          </summary>
+          <ul>
+            {links.map(link => (
+              <li key={link.to}>
+                <Link to={link.to}>{link.label}<Icon name="arrow" /></Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+      {import.meta.env.DEV && (
+        <Link className="text-link login-preview-link" to="/onizleme"><Icon name="grid" />Panel tasarımını incele</Link>
+      )}
+    </nav>
+  )
+}
+
 export function AuthPage({ mode }: { mode: AuthMode }) {
   const isLogin = mode === 'login'
   return (
@@ -116,12 +161,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       description={isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
       {!isLogin && <div className="preview-note"><Icon name="info" /><p>Bu ekran bir arayüz önizlemesidir. Bu aşamada sıfırlama e-postası gönderilmez.</p></div>}
       <AuthForm key={mode} mode={mode} />
-      {isLogin && <Link to="/kayit" className="preview-link">Danışan hesabı oluştur<Icon name="arrow" /></Link>}
-      {isLogin && <Link to="/uzman-basvurusu" className="preview-link">Diyetisyen başvurusu yap<Icon name="arrow" /></Link>}
-      {isLogin && <Link to="/yonetici-giris" className="preview-link">Yönetici girişi<Icon name="arrow" /></Link>}
-      {isLogin && <Link to="/eposta-dogrulama" className="preview-link">E-postamı doğrula<Icon name="arrow" /></Link>}
-      {isLogin && <Link to="/hesabim" className="preview-link">Hesabımı aç<Icon name="arrow" /></Link>}
-      {isLogin && import.meta.env.DEV && <Link to="/onizleme" className="preview-link">Panel tasarımını incele<Icon name="arrow" /></Link>}
+      {isLogin && <LoginOptions />}
     </AuthLayout>
   )
 }

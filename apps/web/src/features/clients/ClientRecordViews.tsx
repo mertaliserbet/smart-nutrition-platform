@@ -23,11 +23,22 @@ function RecordTime({ at }: { at: string }) {
   return <time dateTime={at}><Icon name="clock" />{dateFormatter.format(new Date(at))}</time>
 }
 
-export function MealLogList({ clientId, records }: { clientId: string; records: MealLog[] }) {
-  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.consumedAt.localeCompare(a.consumedAt))
-  if (visibleRecords.length === 0) return <EmptyState icon="leaf" title="Henüz öğün kaydı yok">Bu görünümde görüntülenebilecek öğün kaydı bulunmuyor.</EmptyState>
+export function MealLogList({ clientId, records, page }: {
+  clientId: string; records: MealLog[]; page?: { number: number; size: number }
+}) {
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => {
+    const milliseconds = Date.parse(b.consumedAt) - Date.parse(a.consumedAt)
+    if (milliseconds !== 0) return milliseconds
+
+    // Date.parse truncates fractions beyond milliseconds. Keep PostgreSQL's finer ordering.
+    const fractionA = Number(a.consumedAt.match(/\.\d+/)?.[0] ?? 0)
+    const fractionB = Number(b.consumedAt.match(/\.\d+/)?.[0] ?? 0)
+    return fractionB - fractionA
+  })
+  const pageRecords = page ? visibleRecords.slice((page.number - 1) * page.size, page.number * page.size) : visibleRecords
+  if (pageRecords.length === 0) return <EmptyState icon="leaf" title="Henüz öğün kaydı yok">Bu görünümde görüntülenebilecek öğün kaydı bulunmuyor.</EmptyState>
   return <div className="record-list" aria-label="Öğün kayıtları">
-    {visibleRecords.map((record) => <article className="meal-record" key={record.id} aria-labelledby={`meal-${record.id}`}>
+    {pageRecords.map((record) => <article className="meal-record" key={record.id} aria-labelledby={`meal-${record.id}`}>
       <header className="record-header"><div><h3 id={`meal-${record.id}`}>{mealLabels[record.mealType]}</h3><RecordTime at={record.consumedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
       <ul className="meal-items">
         {record.items.filter((item) => item.mealLogId === record.id).map((item) => <li key={item.id}>

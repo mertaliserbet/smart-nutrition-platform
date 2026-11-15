@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -71,6 +71,20 @@ describe('client list preview', () => {
 })
 
 describe('read-only client records', () => {
+  it.each([
+    ['2026-10-25T09:00:00Z', '2026-10-25T09:00:00.001Z'],
+    ['2026-10-25T09:00:00.001Z', '2026-10-25T09:00:00.001001Z'],
+    ['2026-10-25T12:00:00+03:00', '2026-10-25T09:00:00.001Z'],
+  ])('shows the newer meal first for %s and %s', (olderTime, newerTime) => {
+    const records = getPreviewRecords(firstClient.id)!
+    const older = { ...records.mealLogs[0]!, consumedAt: olderTime }
+    const newer = { ...records.mealLogs[1]!, consumedAt: newerTime }
+    render(<MealLogList clientId={firstClient.id} records={[older, newer]} />)
+
+    const meals = screen.getAllByRole('article')
+    expect(meals.map(meal => meal.querySelector('time')?.dateTime)).toEqual([newer.consumedAt, older.consumedAt])
+  })
+
   it('keeps unknown meal values separate from genuine zero values and labels estimates', () => {
     renderApp(detailPath)
     const unknownItem = screen.getByText('Salata (örnek)').closest('li')!
@@ -83,6 +97,51 @@ describe('read-only client records', () => {
     expect(within(zeroItem).queryByText('Tahmini')).not.toBeInTheDocument()
     expect(screen.getByText('Salt okunur')).toBeVisible()
     expect(screen.queryByRole('button', { name: /düzenle|sil|kaydet/i })).not.toBeInTheDocument()
+  })
+
+  it('pages through chronological meal records and resets the page when a UTC filter is applied', async () => {
+    const user = renderApp(detailPath)
+    const nextPage = screen.getByRole('button', { name: 'Sonraki sayfa' })
+    expect(screen.getByRole('status')).toHaveTextContent('3 öğün · Sayfa 1 / 2')
+    expect(screen.getByRole('button', { name: 'Önceki sayfa' })).toBeDisabled()
+    await user.click(nextPage)
+    expect(screen.getByRole('status')).toHaveTextContent('3 öğün · Sayfa 2 / 2')
+    expect(screen.getByText('Nohut yemeği (örnek)')).toBeVisible()
+    expect(screen.queryByText('Mercimek çorbası (örnek)')).not.toBeInTheDocument()
+    expect(nextPage).toBeDisabled()
+
+    const from = screen.getByLabelText('Başlangıç')
+    fireEvent.change(from, { target: { value: '2026-10-25T09:00' } })
+    fireEvent.change(screen.getByLabelText('Bitiş'), { target: { value: '2026-10-25T12:00' } })
+    await user.click(screen.getByRole('button', { name: 'Filtrele' }))
+    expect(screen.getByRole('status')).toHaveTextContent('1 öğün')
+    expect(screen.getByText('Mercimek çorbası (örnek)')).toBeVisible()
+    expect(screen.queryByText('Şekersiz çay (örnek)')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Filtreyi temizle' }))
+    expect(from).toHaveValue('')
+    expect(screen.getByRole('status')).toHaveTextContent('3 öğün · Sayfa 1 / 2')
+  })
+
+  it('distinguishes an invalid range, no matches and a restricted preview', async () => {
+    const user = renderApp(detailPath)
+    const from = screen.getByLabelText('Başlangıç')
+    const to = screen.getByLabelText('Bitiş')
+    const apply = screen.getByRole('button', { name: 'Filtrele' })
+    fireEvent.change(from, { target: { value: '2026-10-26T00:00' } })
+    fireEvent.change(to, { target: { value: '2026-10-25T00:00' } })
+    await user.click(apply)
+    expect(screen.getByRole('alert')).toHaveTextContent('Bitiş tarihi ve saati başlangıçtan sonra olmalı.')
+    expect(screen.getByText('Mercimek çorbası (örnek)')).toBeVisible()
+
+    fireEvent.change(to, { target: { value: '2026-10-27T00:00' } })
+    await user.click(apply)
+    expect(screen.getByText('Bu aralıkta öğün kaydı yok')).toBeVisible()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Önizleme senaryosu' }), 'restricted')
+    expect(screen.getByText('Bu kayıtlar paylaşılmıyor')).toBeVisible()
+    expect(screen.queryByLabelText('Başlangıç')).not.toBeInTheDocument()
+    expect(screen.queryByText('Bu aralıkta öğün kaydı yok')).not.toBeInTheDocument()
   })
 
   it('shows water and measurement units and retains UTC source timestamps', async () => {
