@@ -4,6 +4,7 @@ using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Features.Relationships;
 using SmartNutrition.Api.Features.NutritionPlans;
 using SmartNutrition.Api.Features.MealLogs;
+using SmartNutrition.Api.Features.WaterLogs;
 
 namespace SmartNutrition.Api.Data;
 
@@ -21,6 +22,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<NutritionPlanVersion> NutritionPlanVersions => Set<NutritionPlanVersion>();
     public DbSet<MealLog> MealLogs => Set<MealLog>();
     public DbSet<MealLogItem> MealLogItems => Set<MealLogItem>();
+    public DbSet<WaterLog> WaterLogs => Set<WaterLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,5 +37,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         NutritionPlan.Configure(modelBuilder);
         NutritionPlanVersion.Configure(modelBuilder);
         MealLogMapping.Configure(modelBuilder);
+        WaterLog.Configure(modelBuilder);
     }
 }

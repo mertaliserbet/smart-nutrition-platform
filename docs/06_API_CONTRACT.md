@@ -1,5 +1,63 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 16.11.2026 — Danışanın manuel su kayıt API'si
+
+Kullanıcının doğrudan backend göreviyle mevcut WaterLog CRUD rotaları ve
+alanları uygulandı; yeni günlük toplam yolu aşağıdadır. Yalnız JWT bearer ve
+sunucunun `sub` → User → ClientProfile çözümlemesi kullanılır. İstemci clientId
+göndermez; gövde/query içindeki sahiplik veya tanımsız alanlar 400'dür.
+X-Profile-Context: client desteklenir; başlıksız mevcut hesap bağlamı korunur.
+Uzman bağlamı/profilsiz hesap 403, bozuk/çoklu bağlam başlığı 400'dür. Çift
+profilli hesap kendi client bağlamını kullanır. Cookie tek başına yetki vermez.
+Mevcut JWT/refresh/Admin MFA/web oturumu davranışı değiştirilmez.
+
+| Endpoint | İstek / sonuç |
+|---|---|
+| `POST /api/v1/water-logs` | Zorunlu `{ amountMl, consumedAt, source }`; source yalnız manual. 201 WaterLog + kendi detay Location'ı |
+| `GET /api/v1/water-logs` | Zorunlu page/pageSize; opsiyonel from/to. 200 `{ items, totalCount }` |
+| `GET /api/v1/water-logs/{waterLogId}` | Gövdesiz/query'siz kendi silinmemiş kaydı; 200 WaterLog |
+| `PATCH /api/v1/water-logs/{waterLogId}` | Yalnız amountMl/consumedAt; atlanan korunur. Boş nesne 400, açık null 422. 200 güncel WaterLog |
+| `DELETE /api/v1/water-logs/{waterLogId}` | Gövdesiz/query'siz; mantıksal silme, boş 204. Tekrar erişim/silme 404 |
+| `GET /api/v1/water-logs/daily-total` | Zorunlu from/to gün sınırları; 200 `{ from, to, totalAmountMl }` |
+
+WaterLog yanıtı tam olarak id/clientId/amountMl/consumedAt/source içerir.
+Miktar JSON number ve pozitif decimal/mL'dir; sıfır/negatif 422, bozuk sayı,
+string sayı, eksik zorunlu alan, bozuk tarih/enum 400. POST/PATCH gövde sınırı
+4096 byte'tır. POST'ta wearable/ai_assisted 422; PATCH source/id/clientId ve
+diğer salt okunur alanlar 400'dür. Hedef veya öneri hesabı eklenmez.
+
+Liste page ≥ 1, pageSize 1–100; varsayılan yoktur, Int32 offset taşması 400'dür.
+Sıra consumedAt azalan/id artan; filtre sıralama ve sayfalama öncesinde uygulanır.
+Sayım ve satırlar aynı DB snapshot'ındadır. Tekrarlı/tanımsız query veya GET
+gövdesi 400'dür. consumedAt/from/to mevcut açık Z veya ±HH:mm ofsetli ISO 8601
+kuralını kullanır. Listede from dahil/to hariç; iki sınır varsa from < to.
+Boş, geçersiz veya ofsetsiz tarih/aralık 400'dür.
+
+Günlük toplamda from, seçilen yerel günün 00:00 anı; to, ertesi yerel günün
+00:00 anıdır. Her ikisi zorunlu ve açık ofsetlidir; takvim tarihleri ardışık,
+yerel saatleri 00:00 ve UTC'de from < to olmalıdır. UTC/ofset değerleri doğrulanır;
+bir IANA bölgesinin kurallarını tahmin/tespit etme veya ofsetlerin o bölgeye ait
+olduğunu kanıtlama yapılmaz. İstemci doğru gün sınırlarını gönderir. Farklı
+ofsetler sayesinde 23/25 saatlik günler desteklenir; varsayılan sunucu/cihaz
+saat dilimi yoktur. Yanıt sınırları UTC'dir; toplam sayfalardan bağımsızdır,
+silinmiş/başka danışana ait kayıtları içermez; kayıt yoksa totalAmountMl=0.
+.NET decimal kapasitesini aşan toplam 422'dir; kısmi sonuç verilmez.
+
+Örnek: seçilen 19 Kasım günü için
+`from=2026-11-19T00:00:00%2B03:00&to=2026-11-20T00:00:00%2B03:00`;
+sunucu `2026-11-18T21:00:00Z` dahil / `2026-11-19T21:00:00Z` hariç aralığı
+toplar. URL query'deki `+` işareti `%2B` kodlanmalıdır. Geceyarısının o bölgede
+atlanması/belirsizliği gibi durumlarda istemci açık gün sınırı sağlayamıyorsa
+sunucu sessiz saat dilimi düzeltmesi yapmaz; mevcut 00:00/ardışık gün kuralı
+dışındaki günlük toplam isteği 400'dür. Bu kural yalnız su toplamı dilimidir;
+genel program uyum/saat dilimi kararını değiştirmez.
+
+Tüm uçlar yalnız danışanın kendi verisidir; diyetisyen ilişkisi/kategori izni
+gerekmez. Diyetisyen su okuması, yeni paylaşım kategorisi veya rıza akışı
+eklenmez. Başkasının/olmayan/silinmiş kaydı aynı 404; oturumsuz istek 401'dir.
+Ortak error/requestId, no-store, miktarları loglamama ve 05/11 silme sınırları
+korunur. PATCH/DELETE satır kilidi ve transaction ile atomiktir.
+
 ## 16.11.2026 — Danışanın kendi manuel öğün CRUD uygulaması
 
 Kullanıcının doğrudan backend görevi mevcut aşağıdaki MealLog alanlarını ve
@@ -313,6 +371,7 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 | AI yemek | `GET /api/v1/food-analyses/{analysisId}` | İş durum/sonuç |
 | Su | `GET /api/v1/water-logs` | Kendi su kayıtları |
 | Su | `POST /api/v1/water-logs` | Su ekle |
+| Su | `GET /api/v1/water-logs/daily-total` | Kendi seçilen gün toplamı; yukarıdaki açık gün sınırları |
 | Su | `GET /api/v1/water-logs/{waterLogId}` | Kendi detay |
 | Su | `PATCH /api/v1/water-logs/{waterLogId}` | Kendi kaydını düzelt |
 | Su | `DELETE /api/v1/water-logs/{waterLogId}` | Kendi kaydını sil |

@@ -753,6 +753,49 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.WaterLogs.WaterLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal>("AmountMl")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount_ml");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
+
+                    b.HasKey("Id")
+                        .HasName("pk_water_logs");
+
+                    b.HasIndex("ClientId", "ConsumedAt", "Id")
+                        .IsDescending(false, true, false)
+                        .HasDatabaseName("ix_water_logs_client_consumed_id")
+                        .HasFilter("deleted_at IS NULL");
+
+                    b.ToTable("water_logs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_water_logs_amount", "amount_ml > 0 AND amount_ml < 'Infinity'::numeric");
+
+                            t.HasCheckConstraint("ck_water_logs_source", "source IN ('manual','wearable','ai_assisted')");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Auth.AuthSession", b =>
                 {
                     b.HasOne("SmartNutrition.Api.Features.Auth.User", null)
@@ -885,6 +928,16 @@ namespace SmartNutrition.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_relationships_dietitian_id");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.WaterLogs.WaterLog", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_water_logs_client_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Auth.User", b =>

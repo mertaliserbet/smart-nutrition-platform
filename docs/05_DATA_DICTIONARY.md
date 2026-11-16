@@ -1,5 +1,40 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 16.11.2026 — WaterLog manuel kayıt ve günlük toplam dilimi
+
+Kullanıcının doğrudan backend göreviyle mevcut WaterLog alanları değiştirilmeden
+uygulandı: `id`, `clientId`, `amountMl`, `consumedAt`, `source`. amountMl pozitif
+ve sonlu decimal/mL, PostgreSQL'de ölçek zorlamayan `numeric`; consumedAt UTC
+`timestamptz` ve mikrosaniye hassasiyetindedir. Sıfır, negatif veya bilinmeyen
+miktar geçerli su kaydı değildir; klinik miktar üst sınırı uydurulmaz.
+
+`water_logs.client_id` → `client_profiles.id` FK'si RESTRICT'tir. Silinmemiş
+satırlar için `(client_id, consumed_at DESC, id)` indeksi vardır. DELETE,
+MealLog düzenindeki gibi dahili nullable `deleted_at` işaretler; normal liste,
+detay ve toplam bu satırları dışlar. Yanıta yeni alan eklenmez. Bu işlem kalıcı
+KVKK silme veya saklama süresi kararı değildir; `11`deki yayın kapısı korunur.
+Güncellemede yalnız miktar ve tüketim zamanı değişebilir; sahibi/kaynak sabittir.
+Bu dilimde POST yalnız manual kaynağı kabul eder; cihaz/AI aktarımı eklenmez.
+
+`WaterLogDailyTotalResponse` saklanan entity değildir: `from: instant`,
+`to: instant`, `totalAmountMl: decimal`. Toplam SQL'de yalnız sahibinin
+silinmemiş `[from,to)` kayıtlarından hesaplanır; sayfalama uygulanmaz,
+boş küme 0 mL'dir. Toplam .NET decimal kapasitesini aşarsa 422 döner;
+sessiz yuvarlama veya kısmi toplam verilmez.
+
+Seçilen günün yerel 00:00 başlangıcı ve ertesi günün yerel 00:00 başlangıcı
+istemciden açık UTC/ofsetli anlar olarak gelir. Ofsetler farklı olabilir;
+23/25 saatlik günler desteklenir. İstemci, seçtiği saat diliminin doğru gün
+sınırlarını hesaplamakla sorumludur; sunucu IANA saat dilimi tahmin etmez veya
+cihaz/sunucu saatini günlük sınır olarak kullanmaz. Normal kayıtlarda UTC
+saklama değişmez; bu kural başka modüllerin yerel gün/program uyum kararını
+kapatmaz. Su hedefleri/program hedefleri bu görevin dışındadır.
+
+`AddWaterLogs` yalnız yeni tablo/indeks/kısıt oluşturur. Önceki Auth, öğün,
+program ve paylaşım tablolarına veri yazmaz. Veri bulunan su tablosunu
+(mantıksal silinmiş kayıtlar dahil) düşürecek Down engellenir. Uygulama DB'sine
+otomatik uygulanmaz; migration ayrı geçici PostgreSQL'de doğrulanır.
+
 ## 16.11.2026 — Danışanın manuel öğün saklama dilimi
 
 Kullanıcının doğrudan backend geliştirme göreviyle mevcut MealLog/MealLogItem

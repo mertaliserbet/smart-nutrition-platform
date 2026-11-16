@@ -1,5 +1,13 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 16.11.2026 — Su kayıt backend dilimi
+
+Kullanıcının doğrudan su kayıt API'si görevi mevcut `WaterLog`, `amountMl`,
+`consumedAt`, `source` ve `/water-logs` adlarını korur. Yeni günlük toplam
+yolu `/water-logs/daily-total`, DTO adı `WaterLogDailyTotalResponse` ve düz
+yanıt alanları `from`, `to`, `totalAmountMl`'dir. Toplam mL cinsindedir;
+su hedefi veya yeni bir özet/saklama entity'si değildir. Ayrıntılar `05/06`dadır.
+
 ## G1 — Öğün paylaşım kategorisi, 07.11.2026 ortak onayı
 
 Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi.
