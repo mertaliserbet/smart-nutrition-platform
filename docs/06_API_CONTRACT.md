@@ -1,5 +1,52 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 16.11.2026 — Danışanın kendi manuel öğün CRUD uygulaması
+
+Kullanıcının doğrudan backend görevi mevcut aşağıdaki MealLog alanlarını ve
+rotalarını uygular; kanonik ad/endpoint/zorunlu alan değiştirilmez. Bu dilim
+yalnız JWT bearer kullanır. Kimlik doğrulanmış `sub` → User → ClientProfile
+üzerinden belirlenir; istemci `clientId` göndermez. `X-Profile-Context: client`
+desteklenir; başlık yoksa mevcut hesap bağlamı korunur. `dietitian` bağlamı
+ve ClientProfile bulunmayan hesap 403; geçersiz başlık 400'dür. Çift profilli
+hesap kendi client bağlamında kullanabilir. Cookie tek başına yetkilendirmez.
+Mevcut JWT süre/sürüm kontrolü, refresh ve web oturumu davranışı değişmez.
+
+| Endpoint | Bu dilimdeki davranış |
+|---|---|
+| `POST /api/v1/meal-logs` | Zorunlu mealType/consumedAt/source/items; nullable note/foodAnalysisId. Başarı 201 MealLog + Location |
+| `GET /api/v1/meal-logs` | Zorunlu page/pageSize; page ≥ 1, pageSize 1–100, Int32 offset taşması 400. Opsiyonel from/to; başka query veya tekrarlanan query anahtarı 400. 200 `{ items, totalCount }` |
+| `GET /api/v1/meal-logs/{mealLogId}` | Yalnız kendi silinmemiş kaydı; 200 MealLog |
+| `PATCH /api/v1/meal-logs/{mealLogId}` | mealType/consumedAt/note/items/foodAnalysisId; atlanan korunur, nullable açık null temizler. mealType/consumedAt/items null 422, boş nesne 400. source/sahiplik/kimlik/zaman metadata alanları 400. 200 güncel MealLog |
+| `DELETE /api/v1/meal-logs/{mealLogId}` | Gövdesiz; kendi kaydını normal okumalardan kaldırır, boş 204. Sonraki GET/PATCH/DELETE 404 |
+
+Liste consumedAt azalan/id artan sıralanır; count ve sayfa aynı DB snapshot'ından,
+yalnız kendi silinmemiş/filtrelenmiş kayıtlarından üretilir. from dahil/to hariç;
+ikisi varsa from < to. consumedAt/from/to açık Z veya ±HH:mm ofsetli ISO 8601
+anıdır; eksik ofset/bozuk tarih 400. Zamanlar UTC ve PostgreSQL mikrosaniye
+hassasiyetinde saklanır; yerel gün veya uyum hesabı eklenmez.
+
+Kalem zorunlu alanları displayName/isEstimated; nullable foodItemId/recipeId/
+quantityGrams/caloriesKcal/proteinGrams/carbsGrams/fatGrams'tır. Items 1–100;
+displayName boş olamaz, displayName/note en çok 2000 Unicode kod noktasıdır,
+NUL karakteri kabul edilmez. Bilinen miktar > 0, kcal/makrolar ≥ 0; decimal
+alanlar JSON number olmalıdır. İstek gövdesi en fazla 131072 byte'tır.
+
+Bu manuel dilimde source yalnız manual'dır. Katalog/tarif/AI saklama ve
+yetkilendirmesi henüz olmadığından dolu foodItemId/recipeId/foodAnalysisId
+ve wearable/ai_assisted kaynağı 422 döner; bu sınırlama ilgili entegrasyonun
+onaylandığı veya uygulandığı anlamına gelmez. Nullable anahtarlar yanıtta
+açık null kalır. MealLog ve kalem yanıt alanları aşağıdaki mevcut tabloyla
+aynıdır; yeni summary/hedef/position/deletedAt alanı yoktur.
+
+Başkasının/bulunmayan/silinmiş kaydı aynı 404'ü verir. Sahiplik alanları ve
+tanımsız alanlar 400, alan/bütünlük ihlalleri 422, oturumsuz istek 401'dir;
+ortak error/requestId zarfı ve no-store kullanılır. PATCH kalem yenilemesi
+atomiktir; PATCH/DELETE aynı öğün satırını kilitler. DELETE dahili mantıksal
+silmedir; kalıcı silme/saklama süresi veya KVKK talep süreci bu dilimde
+kesinleştirilmez (`05/11`). Danışanın kendi erişimi diyetisyen ilişkisine,
+paylaşım iznine veya MealLogsEnabled bayrağına bağlı değildir. G1 ve G2/G3
+diyetisyen okuma sınırları korunur; Flutter/web değiştirilmez.
+
 ## G1 — Öğün paylaşım izin altyapısı, 07.11.2026 ortak onayı
 
 Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi. Bu bölüm

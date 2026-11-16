@@ -70,7 +70,7 @@ Future<JsonApiResponse> requestJson({
   try {
     return await (() async {
       // Only relative API paths may receive a bearer credential.
-      if (!const ['GET', 'POST', 'PATCH'].contains(method) ||
+      if (!const ['GET', 'POST', 'PATCH', 'DELETE'].contains(method) ||
           (method == 'GET' && payload != null) ||
           maxResponseBytes <= 0 ||
           !path.startsWith('/api/v1/') ||

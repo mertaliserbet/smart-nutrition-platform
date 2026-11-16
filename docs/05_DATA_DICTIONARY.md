@@ -1,5 +1,36 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 16.11.2026 — Danışanın manuel öğün saklama dilimi
+
+Kullanıcının doğrudan backend geliştirme göreviyle mevcut MealLog/MealLogItem
+alanları ve kanonik adları korunarak PostgreSQL eşlemesi eklendi. Bu kayıt
+yalnız danışanın kendi manuel CRUD akışıdır; G2/G3 diyetisyen okumasını,
+katalog/tarif/AI entegrasyonunu veya yeni paylaşım onayını kapsamaz.
+
+- `meal_logs.client_id` → `client_profiles.id`, `meal_log_items.meal_log_id`
+  → `meal_logs.id`; iki FK de `RESTRICT`. Alt kalemler ayrı tabloda, besin
+  değerleri ölçek zorlamayan nullable `numeric`, zamanlar `timestamptz` tutulur.
+- API miktar ve besin değerlerini kaydedildiği haliyle saklar; gramdan kcal
+  türetmez, bilinmeyen null değerleri sıfıra dönüştürmez. Miktar biliniyorsa
+  pozitif, enerji/makrolar biliniyorsa sonlu ve negatif olmayan değerlerdir.
+- API bu dilimde yalnız `manual` ve null katalog/tarif/analiz referanslarını
+  kabul eder. Referans sütunları korunur; henüz bulunmayan tablolara sahte FK
+  veya doğrulanmış analiz/cihaz kaydı oluşturulmaz.
+- Aktif satırlar için `(client_id, consumed_at DESC, id)` indeksi ve kalem
+  FK indeksi vardır. Kalemlerin istek sırasını koruyan dahili `position`
+  sütunu yeni bir HTTP/domain alanı değildir.
+- DELETE dahili nullable `deleted_at` işaretler; EF normal öğün okumaları
+  bu satırları dışlar, mevcut kalemler korunur. Bu, KVKK silme talebinin
+  tamamlanması veya kalıcı saklama/anonimleştirme süresi kararı değildir.
+  Bu alan yanıt DTO'suna eklenmez; genel yayın/silme kapısı `11`de açıktır.
+- PATCH kalem dizisi verilirse eski kalemler tek transaction içinde yenileriyle
+  değiştirilir; verilmezse kimlikleri korunur. Öğün kimliği, sahibi, kaynak ve
+  oluşturulma zamanı değişmez. Kalem UUID'lerini sunucu üretir.
+- `AddMealLogs` yalnız iki yeni tablo/indeks/kısıt oluşturur; eski tablolara,
+  programlara veya izin kayıtlarına veri yazmaz. Veri bulunan öğün tablolarını
+  düşürecek Down engellenir; boş tablolar geri alınabilir. Uygulama DB'sine
+  otomatik migration uygulanmaz.
+
 ## G1 — Öğün paylaşım izni, 07.11.2026 ortak onayı
 
 Kullanıcı `17` ortak onayını teyit edip yalnız G1 uygulamasını istedi.

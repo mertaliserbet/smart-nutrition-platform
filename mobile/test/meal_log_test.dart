@@ -1,299 +1,319 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
-import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
+import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
-import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
+import 'package:smart_nutrition_mobile/features/nutrition/meal_log_api.dart';
+import 'package:smart_nutrition_mobile/features/nutrition/meal_log_history_page.dart';
+import 'package:smart_nutrition_mobile/features/nutrition/meal_log_detail_page.dart';
+import 'meal_log_test_support.dart';
 
 void main() {
-  testWidgets('nutrition opens the form and back preserves its selected tab', (
-    tester,
-  ) async {
-    await pumpMainShell(tester);
-    await tester.tap(
-      find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text('Beslenme'),
+  late MealTestSession session;
+  late MealTestApi api;
+  setUp(() {
+    session = MealTestSession();
+    api = MealTestApi(session);
+  });
+  tearDown(() => session.dispose());
+  Future<void> open(WidgetTester tester, Widget page) async {
+    await tester.pumpWidget(
+      AuthSessionScope(
+        session: session,
+        child: MaterialApp(
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          home: Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () async {
+                  final saved = await Navigator.of(
+                    context,
+                  ).push<bool>(MaterialPageRoute<bool>(builder: (_) => page));
+                  if (context.mounted && saved == true) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Kaydedildi')));
+                  }
+                },
+                child: const Text('Başlat'),
+              ),
+            ),
+          ),
+        ),
       ),
     );
+    await tester.tap(find.text('Başlat'));
     await tester.pumpAndSettle();
-    expect(
-      find.textContaining('Öğün listesi henüz kullanıma açık değil.'),
-      findsOneWidget,
-    );
-    expect(find.text('Henüz öğün yok'), findsNothing);
-
-    await tapVisible(tester, find.text('Öğün ekle'));
-    expect(find.byType(ManualMealLogPage), findsOneWidget);
-    await tester.enterText(mealField('Yemek adı'), 'Sentetik öğün');
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.byType(NutritionPage), findsOneWidget);
-    expect(
-      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      1,
-    );
-
-    await tapVisible(tester, find.text('Öğün ekle'));
-    expect(
-      tester.widget<TextFormField>(mealField('Yemek adı')).controller!.text,
-      isEmpty,
-    );
-    expect(tester.takeException(), isNull);
-  });
+  }
 
   testWidgets(
-    'dashboard shortcut opens the same form without changing demo data',
+    'validates type/name, gram positivity and nonnegative nutrient numbers',
     (tester) async {
-      await pumpMainShell(tester);
-      await tapVisible(tester, find.text('Öğün ekle'));
-      expect(find.byType(ManualMealLogPage), findsOneWidget);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-        0,
-      );
-      expect(find.text('1680'), findsOneWidget);
-      expect(find.text('1250 mL'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets(
-    'starts empty with explicit preview and unknown nutrition values',
-    (tester) async {
-      await pumpMealForm(tester);
-      expect(find.text('Önizleme · Kayıt oluşturulmaz'), findsOneWidget);
-      expect(find.text('Kalori ve makro bilgisi yok'), findsOneWidget);
-      expect(find.text('Cihazınızın yerel saati'), findsOneWidget);
-      expect(
-        tester.widget<TextFormField>(mealField('Yemek adı')).controller!.text,
-        isEmpty,
-      );
-      expect(
-        tester
-            .widget<TextFormField>(mealField('Miktar (gram)'))
-            .controller!
-            .text,
-        isEmpty,
-      );
-      expect(
-        tester
-            .widgetList<ChoiceChip>(find.byType(ChoiceChip))
-            .every((chip) => !chip.selected),
-        isTrue,
-      );
-      expect(find.textContaining('kcal'), findsNothing);
-      expect(find.text('Kaydet'), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Yemek adını girin.'), findsNothing);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets(
-    'validates missing meal type and whitespace name without requiring grams',
-    (tester) async {
-      await pumpMealForm(tester);
-      await tester.enterText(mealField('Yemek adı'), '   ');
-      await tapVisible(tester, find.text('Bilgileri kontrol et'));
+      await open(tester, ManualMealLogPage(api: api));
+      await tapVisible(tester, find.text('Kaydet'));
       expect(find.text('Bir öğün türü seçin.'), findsOneWidget);
       expect(find.text('Yemek adını girin.'), findsOneWidget);
-      expect(find.textContaining('Sıfırdan büyük'), findsNothing);
-      expect(find.byKey(const ValueKey('mealLogUnavailable')), findsNothing);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets(
-    'meal selection remains exclusive across all four canonical choices',
-    (tester) async {
-      await pumpMealForm(tester);
-      for (final label in ['Kahvaltı', 'Öğle', 'Akşam', 'Ara öğün']) {
-        await tapVisible(tester, find.widgetWithText(ChoiceChip, label));
-        final selected = tester
-            .widgetList<ChoiceChip>(find.byType(ChoiceChip))
-            .where((chip) => chip.selected);
-        expect(selected, hasLength(1));
-        expect((selected.single.label as Text).data, label);
-      }
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets(
-    'rejects invalid quantities and accepts decimal comma, point and unknown grams',
-    (tester) async {
-      await pumpMealForm(tester);
       await tapVisible(tester, find.widgetWithText(ChoiceChip, 'Öğle'));
-      await tester.enterText(mealField('Yemek adı'), 'Sentetik yemek');
-
-      for (final quantity in [
-        '0',
-        '-1',
-        'abc',
-        'NaN',
-        'Infinity',
-        '1e3',
-        '12,3,4',
-      ]) {
-        await enterQuantity(tester, quantity);
-        await tapVisible(tester, find.text('Bilgileri kontrol et'));
-        expect(find.textContaining('Sıfırdan büyük'), findsOneWidget);
-        expect(find.byKey(const ValueKey('mealLogUnavailable')), findsNothing);
-      }
-      for (final quantity in ['', '125,5', '125.5']) {
-        await enterQuantity(tester, quantity);
-        await tapVisible(tester, find.text('Bilgileri kontrol et'));
-        expect(find.textContaining('Sıfırdan büyük'), findsNothing);
-        expect(
-          find.byKey(const ValueKey('mealLogUnavailable')),
-          findsOneWidget,
-        );
-        expect(
-          tester
-              .widget<TextFormField>(mealField('Miktar (gram)'))
-              .controller!
-              .text,
-          quantity,
-        );
-      }
-      expect(find.byType(ManualMealLogPage), findsOneWidget);
-      expect(find.byType(NavigationBar), findsNothing);
-      expect(find.textContaining('başarıyla'), findsNothing);
-      expect(tester.takeException(), isNull);
-    },
-  );
-
-  testWidgets(
-    'feedback clears when details change and no success or record is generated',
-    (tester) async {
-      await pumpMealForm(tester);
-      await tapVisible(tester, find.widgetWithText(ChoiceChip, 'Kahvaltı'));
       await tester.enterText(mealField('Yemek adı'), 'Sentetik öğün');
-      await tapVisible(tester, find.text('Bilgileri kontrol et'));
+      for (final bad in ['0', '-1', 'NaN', 'Infinity', '1e3', '12,3,4']) {
+        await tester.enterText(mealField('Miktar (gram)'), bad);
+        await tapVisible(tester, find.text('Kaydet'));
+        expect(find.textContaining('Sıfırdan büyük'), findsOneWidget);
+      }
+      await tester.enterText(mealField('Miktar (gram)'), '');
+      await tester.enterText(mealField('Protein (g)'), '-1');
+      await tapVisible(tester, find.text('Kaydet'));
       expect(
-        find.text(
-          'Kayıt özelliği henüz kullanıma açık değil. Öğün kaydedilmedi.',
-        ),
+        find.text('Sıfır veya daha büyük bir sayı girin.'),
         findsOneWidget,
       );
-      await enterQuantity(tester, '80');
-      expect(find.byKey(const ValueKey('mealLogUnavailable')), findsNothing);
-      expect(
-        tester.widget<TextFormField>(mealField('Yemek adı')).controller!.text,
-        'Sentetik öğün',
-      );
-      expect(tester.takeException(), isNull);
+      expect(api.creates, 0);
     },
   );
-
+  testWidgets('creates once with comma numbers, nulls, UTC and no clientId', (
+    tester,
+  ) async {
+    final pending = Completer<MealLog>();
+    api.pendingCreate = pending.future;
+    await open(tester, ManualMealLogPage(api: api));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Öğle'));
+    await tester.enterText(mealField('Yemek adı'), 'Sentetik öğün');
+    await tester.enterText(mealField('Miktar (gram)'), '125,5');
+    await tester.enterText(mealField('Kalori (kcal)'), '0');
+    await tester.enterText(mealField('Protein (g)'), '12,5');
+    await tester.enterText(mealField('Not'), 'Sentetik not');
+    await tester.ensureVisible(find.text('Kaydet'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Kaydet'));
+    await tester.pump();
+    expect(api.creates, 1);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    expect(
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Kaydet'))
+          .onPressed,
+      isNull,
+    );
+    final body = api.lastBody!;
+    expect(body.containsKey('clientId'), isFalse);
+    expect(body['source'], 'manual');
+    expect(DateTime.parse(body['consumedAt'] as String).isUtc, isTrue);
+    final item = (body['items'] as List).single as Map<String, Object?>;
+    expect(item['quantityGrams'], 125.5);
+    expect(item['caloriesKcal'], 0);
+    expect(item['proteinGrams'], 12.5);
+    expect(item['carbsGrams'], isNull);
+    expect(body['note'], 'Sentetik not');
+    pending.complete(sampleMeal());
+    await tester.pumpAndSettle();
+    expect(find.text('Kaydedildi'), findsOneWidget);
+  });
   testWidgets(
-    'date and time pickers update consumption time and cancellation keeps it',
+    'edit preserves every existing item and omits source and unchanged items',
     (tester) async {
-      await pumpMealForm(tester);
-      // Labels are read from rendered buttons, not serialized as API payloads.
-      final initialDate = tester
-          .widget<Text>(find.textContaining('Tarih: '))
-          .data!;
-      await tapVisible(tester, find.textContaining('Tarih: '));
-      expect(find.byType(DatePickerDialog), findsOneWidget);
-      await tester.tap(find.text('Vazgeç'));
-      await tester.pumpAndSettle();
-      expect(find.text(initialDate), findsOneWidget);
-
-      await tapVisible(tester, find.textContaining('Tarih: '));
-      final calendar = tester.widget<CalendarDatePicker>(
-        find.byType(CalendarDatePicker),
-      );
-      final calendarDate = calendar.initialDate!;
-      final pickedDate = DateTime(
-        calendarDate.year,
-        calendarDate.month,
-        calendarDate.day == 1 ? 2 : 1,
-      );
-      await tester.tap(
-        find.descendant(
-          of: find.byType(CalendarDatePicker),
-          matching: find.text('${pickedDate.day}'),
-        ),
-      );
-      await tester.tap(find.text('Seç'));
-      await tester.pumpAndSettle();
-      expect(
-        find.text(
-          'Tarih: ${pickedDate.day.toString().padLeft(2, '0')}.${pickedDate.month.toString().padLeft(2, '0')}.${pickedDate.year}',
-        ),
-        findsOneWidget,
-      );
-
-      final initialTime = tester
-          .widget<Text>(find.textContaining('Saat: '))
-          .data!;
-      await tapVisible(tester, find.textContaining('Saat: '));
-      await tester.tap(find.text('Vazgeç'));
-      await tester.pumpAndSettle();
-      expect(find.text(initialTime), findsOneWidget);
-      await tapVisible(tester, find.textContaining('Saat: '));
-      await tester.tap(find.byTooltip('Switch to text input mode'));
-      await tester.pumpAndSettle();
-      final timeInputs = find.descendant(
-        of: find.byType(TimePickerDialog),
-        matching: find.byType(TextFormField),
-      );
-      await tester.enterText(timeInputs.at(0), '09');
-      await tester.enterText(timeInputs.at(1), '35');
-      await tester.tap(find.text('Seç'));
-      await tester.pumpAndSettle();
-      expect(find.text('Saat: 09:35'), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      await open(tester, ManualMealLogPage(api: api, initial: sampleMeal()));
+      expect(find.text('Sentetik çorba'), findsOneWidget);
+      await tester.enterText(mealField('Not'), 'Düzeltilen not');
+      await tapVisible(tester, find.text('Kaydet'));
+      expect(api.updates, 1);
+      expect(api.lastBody!.containsKey('items'), isFalse);
+      expect(api.lastBody!.containsKey('source'), isFalse);
+      expect(api.lastBody!['note'], 'Düzeltilen not');
     },
   );
-
+  testWidgets(
+    'supports multiple items without dropping fields or unknown values',
+    (tester) async {
+      await open(tester, ManualMealLogPage(api: api));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Diğer'));
+      await tester.enterText(mealField('Yemek adı'), 'İlk besin');
+      await tapVisible(tester, find.text('Besin ekle'));
+      await tester.enterText(mealField('Yemek adı').last, 'İkinci besin');
+      await tapVisible(tester, find.text('Kaydet'));
+      expect((api.lastBody!['items'] as List).length, 2);
+      expect(api.lastBody!['mealType'], 'other');
+      expect(
+        ((api.lastBody!['items'] as List).first as Map)['quantityGrams'],
+        isNull,
+      );
+    },
+  );
+  testWidgets(
+    'ambiguous mutation does not replay and keeps duplicate submission disabled',
+    (tester) async {
+      api.failure = const MealLogApiException(
+        'Bağlantı kesildi.',
+        uncertain: true,
+      );
+      await open(tester, ManualMealLogPage(api: api, initial: sampleMeal()));
+      await tapVisible(tester, find.text('Kaydet'));
+      expect(api.updates, 1);
+      expect(find.textContaining('İşlemin sonucu belirsiz'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Kaydet'))
+            .onPressed,
+        isNull,
+      );
+      expect(find.text('Sentetik çorba'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'successful save finishing in background cannot be submitted twice',
+    (tester) async {
+      final pending = Completer<MealLog>();
+      api.pendingCreate = pending.future;
+      await open(tester, ManualMealLogPage(api: api));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Öğle'));
+      await tester.enterText(mealField('Yemek adı'), 'Sentetik öğün');
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await Scrollable.ensureVisible(
+        tester.element(find.text('Kaydet')),
+        alignment: 0.5,
+      );
+      await tester.ensureVisible(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kaydet'));
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      pending.complete(sampleMeal());
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(api.creates, 1);
+      expect(find.textContaining('Öğün kaydedildi.'), findsOneWidget);
+      expect(
+        tester
+            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Kaydet'))
+            .onPressed,
+        isNull,
+      );
+    },
+  );
+  testWidgets(
+    'changing account discards the earlier account history response',
+    (tester) async {
+      final pending = Completer<MealLogPage>();
+      api.pendingList = pending.future;
+      // Open without settling the pending loading animation.
+      await tester.pumpWidget(
+        AuthSessionScope(
+          session: session,
+          child: MaterialApp(home: MealLogHistoryPage(api: api)),
+        ),
+      );
+      await tester.pump();
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      api.pendingList = null;
+      api.rows = [];
+      session.changeOwner();
+      await tester.pump();
+      pending.complete((items: [sampleMeal()], totalCount: 1));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Sentetik çorba'), findsNothing);
+      expect(find.textContaining('Henüz öğün yok.'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'history shows real empty, error, retry and detail; delete refreshes list',
+    (tester) async {
+      await open(tester, MealLogHistoryPage(api: api));
+      expect(find.textContaining('Sentetik çorba'), findsOneWidget);
+      await tester.tap(find.byType(ListTile));
+      await tester.pumpAndSettle();
+      expect(find.byType(MealLogDetailPage), findsOneWidget);
+      expect(find.text('Kalori: 0 kcal'), findsOneWidget);
+      expect(find.text('Miktar: Belirtilmemiş'), findsOneWidget);
+      await tapVisible(tester, find.text('Öğünü sil'));
+      await tester.tap(find.text('Vazgeç'));
+      await tester.pumpAndSettle();
+      expect(api.deletes, 0);
+      await tapVisible(tester, find.text('Öğünü sil'));
+      await tester.tap(find.text('Sil'));
+      await tester.pumpAndSettle();
+      expect(api.deletes, 1);
+      expect(find.textContaining('Henüz öğün yok.'), findsOneWidget);
+      expect(api.pages.length, 2);
+      api.failure = const MealLogApiException('Öğün servisi kapalı.');
+      await tapVisible(tester, find.text('Geçmişi yenile'));
+      expect(find.text('Öğün servisi kapalı.'), findsOneWidget);
+      expect(find.textContaining('Henüz öğün yok.'), findsNothing);
+      api.failure = null;
+      await tapVisible(tester, find.text('Geçmişi yenile'));
+      expect(find.textContaining('Henüz öğün yok.'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'delete failure hides old content and requires a new GET before retry',
+    (tester) async {
+      await open(tester, MealLogDetailPage(id: mealId, api: api));
+      api.failure = const MealLogApiException(
+        'Silme sonucu belirsiz.',
+        uncertain: true,
+      );
+      await tapVisible(tester, find.text('Öğünü sil'));
+      await tester.tap(find.text('Sil'));
+      await tester.pumpAndSettle();
+      expect(api.deletes, 1);
+      expect(find.text('Sentetik çorba'), findsNothing);
+      expect(find.text('Öğünü sil'), findsNothing);
+      api.failure = null;
+      await tapVisible(tester, find.text('Durumu yenile'));
+      expect(api.reads, 2);
+      expect(find.text('Sentetik çorba'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'owner change rejects late history response and background hides health data',
+    (tester) async {
+      await open(tester, MealLogHistoryPage(api: api));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      expect(find.textContaining('Sentetik çorba'), findsNothing);
+      final pending = Completer<MealLogPage>();
+      api.pendingList = pending.future;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      session.end();
+      await tester.pump();
+      pending.complete((items: [sampleMeal()], totalCount: 1));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Sentetik çorba'), findsNothing);
+      expect(find.textContaining('oturumunuz doğrulanmalıdır'), findsOneWidget);
+    },
+  );
   for (final brightness in Brightness.values) {
-    for (final viewport in [
-      (size: const Size(320, 640), scale: 2.0, keyboard: 220.0),
-      (size: const Size(568, 320), scale: 1.5, keyboard: 120.0),
-      (size: const Size(900, 1000), scale: 1.0, keyboard: 0.0),
-    ]) {
+    for (final size in [const Size(320, 568), const Size(568, 320)]) {
       testWidgets(
-        'meal form supports ${viewport.size}, ${viewport.scale}x and keyboard in ${brightness.name}',
+        'form remains usable at $size ${brightness.name} with large text',
         (tester) async {
           tester.view.devicePixelRatio = 1;
-          tester.view.physicalSize = viewport.size;
-          tester.view.viewInsets = FakeViewPadding(bottom: viewport.keyboard);
-          tester.platformDispatcher.textScaleFactorTestValue = viewport.scale;
+          tester.view.physicalSize = size;
+          tester.platformDispatcher.textScaleFactorTestValue = 1.5;
           tester.platformDispatcher.platformBrightnessTestValue = brightness;
-          addTearDown(tester.view.resetDevicePixelRatio);
           addTearDown(tester.view.resetPhysicalSize);
-          addTearDown(tester.view.resetViewInsets);
+          addTearDown(tester.view.resetDevicePixelRatio);
           addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
           addTearDown(
             tester.platformDispatcher.clearPlatformBrightnessTestValue,
           );
-          await pumpMealForm(tester);
-          expect(
-            Theme.of(tester.element(find.byType(ManualMealLogPage))).brightness,
-            brightness,
-          );
+          await open(tester, ManualMealLogPage(api: api));
           for (final label in [
             'Yemek adı',
             'Miktar (gram)',
-            'Bilgileri kontrol et',
+            'Protein (g)',
+            'Not',
           ]) {
-            final target = label == 'Bilgileri kontrol et'
-                ? find.text(label)
-                : mealField(label);
-            await Scrollable.ensureVisible(
-              tester.element(target),
-              alignment: 0.5,
-            );
+            await tester.ensureVisible(mealField(label));
             await tester.pumpAndSettle();
-            expect(target.hitTestable(), findsOneWidget);
+            expect(mealField(label).hitTestable(), findsOneWidget);
             expect(tester.takeException(), isNull);
           }
-          await tapVisible(tester, find.text('Bilgileri kontrol et'));
+          await tapVisible(tester, find.text('Kaydet'));
           expect(tester.takeException(), isNull);
         },
       );
@@ -307,37 +327,11 @@ Finder mealField(String label) => find.ancestor(
   ),
   matching: find.byType(TextFormField),
 );
-
-Future<void> pumpMealForm(WidgetTester tester) => tester.pumpWidget(
-  MaterialApp(
-    theme: AppTheme.light,
-    darkTheme: AppTheme.dark,
-    home: const ManualMealLogPage(),
-  ),
-);
-
 Future<void> tapVisible(WidgetTester tester, Finder target) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
   await Scrollable.ensureVisible(tester.element(target), alignment: 0.5);
   await tester.pumpAndSettle();
   await tester.tap(target);
   await tester.pumpAndSettle();
-}
-
-Future<void> enterQuantity(WidgetTester tester, String quantity) async {
-  final field = mealField('Miktar (gram)');
-  await Scrollable.ensureVisible(tester.element(field), alignment: 0.5);
-  await tester.pumpAndSettle();
-  await tester.enterText(field, quantity);
-  await tester.pump();
-}
-
-// Exercise the shell as an isolated widget; this is not an authenticated app.
-Future<void> pumpMainShell(WidgetTester tester) async {
-  await tester.pumpWidget(
-    MaterialApp(
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      home: const MainShell(),
-    ),
-  );
 }

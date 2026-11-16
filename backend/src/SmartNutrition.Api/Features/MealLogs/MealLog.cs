@@ -3,12 +3,14 @@ using SmartNutrition.Api.Models;
 namespace SmartNutrition.Api.Features.MealLogs;
 
 /// <summary>
-/// Contract-defined model, not registered with EF or exposed as an API request.
-/// The future application layer must resolve ClientId from authenticated User -> ClientProfile.
-/// These local invariants do not establish identity or authorize referenced resources.
+/// The application resolves ClientId from the authenticated User -> ClientProfile.
+/// Local invariants do not authorize referenced resources. HTTP uses explicit DTOs.
 /// </summary>
 public sealed class MealLog
 {
+    private readonly List<MealLogItem> _items = [];
+    private MealLog() { }
+
     public MealLog(
         Guid id,
         Guid clientId,
@@ -50,18 +52,32 @@ public sealed class MealLog
         ConsumedAt = consumedAt.ToUniversalTime();
         Source = source;
         CreatedAt = createdAt.ToUniversalTime();
-        Items = Array.AsReadOnly(snapshot);
+        _items.AddRange(snapshot);
         Note = note;
         FoodAnalysisId = foodAnalysisId;
     }
 
-    public Guid Id { get; }
-    public Guid ClientId { get; }
-    public MealType MealType { get; }
-    public DateTimeOffset ConsumedAt { get; }
-    public string? Note { get; }
-    public RecordSource Source { get; }
-    public Guid? FoodAnalysisId { get; }
-    public DateTimeOffset CreatedAt { get; }
-    public IReadOnlyList<MealLogItem> Items { get; }
+    public Guid Id { get; private set; }
+    public Guid ClientId { get; private set; }
+    public MealType MealType { get; private set; }
+    public DateTimeOffset ConsumedAt { get; private set; }
+    public string? Note { get; private set; }
+    public RecordSource Source { get; private set; }
+    public Guid? FoodAnalysisId { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public IReadOnlyList<MealLogItem> Items => _items.AsReadOnly();
+    internal DateTimeOffset? DeletedAt { get; private set; }
+
+    internal void Revise(MealLog validated, bool replaceItems)
+    {
+        MealType = validated.MealType;
+        ConsumedAt = validated.ConsumedAt;
+        Note = validated.Note;
+        FoodAnalysisId = validated.FoodAnalysisId;
+        if (!replaceItems) return;
+        _items.Clear();
+        _items.AddRange(validated.Items);
+    }
+
+    internal void Delete(DateTimeOffset now) => DeletedAt = now.ToUniversalTime();
 }

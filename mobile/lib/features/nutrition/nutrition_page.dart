@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_tokens.dart';
 import '../auth/auth_session.dart';
 import 'manual_meal_log_page.dart';
+import 'meal_log_history_page.dart';
 import 'nutrition_plan_api.dart';
 
 class NutritionPage extends StatefulWidget {
@@ -239,20 +240,36 @@ class _NutritionPageState extends State<NutritionPage>
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Öğün listesi henüz kullanıma açık değil. Manuel giriş ekranını inceleyebilirsiniz.',
+                      'Kaydettiğiniz öğünleri geçmişinizden inceleyebilir, düzenleyebilir ve silebilirsiniz.',
                     ),
                     const SizedBox(height: 16),
                     FilledButton.icon(
                       onPressed: () async {
-                        await Navigator.of(context).push<void>(
-                          MaterialPageRoute<void>(
+                        final saved = await Navigator.of(context).push<bool>(
+                          MaterialPageRoute<bool>(
                             builder: (context) => const ManualMealLogPage(),
                           ),
                         );
-                        if (mounted) await _reload();
+                        if (context.mounted) {
+                          if (saved == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Öğün kaydedildi.')),
+                            );
+                          }
+                          await _reload();
+                        }
                       },
                       icon: const Icon(Icons.add_rounded),
                       label: const Text('Öğün ekle'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MealLogHistoryPage(),
+                        ),
+                      ),
+                      icon: const Icon(Icons.history),
+                      label: const Text('Öğün geçmişi'),
                     ),
                   ]),
                   _card([

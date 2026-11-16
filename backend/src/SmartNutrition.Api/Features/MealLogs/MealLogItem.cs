@@ -2,6 +2,8 @@ namespace SmartNutrition.Api.Features.MealLogs;
 
 public sealed class MealLogItem
 {
+    private MealLogItem() { }
+
     public MealLogItem(
         Guid id,
         Guid mealLogId,
@@ -44,18 +46,18 @@ public sealed class MealLogItem
         RecipeId = recipeId;
     }
 
-    public Guid Id { get; }
-    public Guid MealLogId { get; }
-    public Guid? FoodItemId { get; }
-    public Guid? RecipeId { get; }
-    public string DisplayName { get; }
+    public Guid Id { get; private set; }
+    public Guid MealLogId { get; private set; }
+    public Guid? FoodItemId { get; private set; }
+    public Guid? RecipeId { get; private set; }
+    public string DisplayName { get; private set; } = null!;
     // Nullable decimal keeps unknown values distinct from measured zero; no rounding is chosen.
-    public decimal? QuantityGrams { get; }
-    public decimal? CaloriesKcal { get; }
-    public decimal? ProteinGrams { get; }
-    public decimal? CarbsGrams { get; }
-    public decimal? FatGrams { get; }
-    public bool IsEstimated { get; }
+    public decimal? QuantityGrams { get; private set; }
+    public decimal? CaloriesKcal { get; private set; }
+    public decimal? ProteinGrams { get; private set; }
+    public decimal? CarbsGrams { get; private set; }
+    public decimal? FatGrams { get; private set; }
+    public bool IsEstimated { get; private set; }
 
     private static void ValidateNonNegative(decimal? value, string parameterName)
     {

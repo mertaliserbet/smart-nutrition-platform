@@ -3,6 +3,7 @@ using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Features.Relationships;
 using SmartNutrition.Api.Features.NutritionPlans;
+using SmartNutrition.Api.Features.MealLogs;
 
 namespace SmartNutrition.Api.Data;
 
@@ -18,6 +19,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<DataSharingPermission> DataSharingPermissions => Set<DataSharingPermission>();
     public DbSet<NutritionPlan> NutritionPlans => Set<NutritionPlan>();
     public DbSet<NutritionPlanVersion> NutritionPlanVersions => Set<NutritionPlanVersion>();
+    public DbSet<MealLog> MealLogs => Set<MealLog>();
+    public DbSet<MealLogItem> MealLogItems => Set<MealLogItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,5 +34,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         DataSharingPermission.Configure(modelBuilder);
         NutritionPlan.Configure(modelBuilder);
         NutritionPlanVersion.Configure(modelBuilder);
+        MealLogMapping.Configure(modelBuilder);
     }
 }

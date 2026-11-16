@@ -160,7 +160,7 @@ class _QuickActions extends StatelessWidget {
       children: [
         const DashboardSectionHeading(
           title: 'Hızlı işlemler',
-          subtitle: 'Demo önizlemeleri · Kayıt oluşturulmaz',
+          subtitle: 'Öğünlerinizi kaydedin; diğer işlemler önizlemedir.',
         ),
         const SizedBox(height: AppTokens.spacingMedium),
         LayoutBuilder(
@@ -191,13 +191,18 @@ class _QuickActions extends StatelessWidget {
                           ),
                         ),
                       ),
-                      onPressed: () {
+                      onPressed: () async {
                         if (action.label == 'Öğün ekle') {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
+                          final saved = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute<bool>(
                               builder: (context) => const ManualMealLogPage(),
                             ),
                           );
+                          if (context.mounted && saved == true) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Öğün kaydedildi.')),
+                            );
+                          }
                         } else {
                           _showPreview(context, action.label);
                         }

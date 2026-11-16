@@ -1,5 +1,14 @@
 # 17 — İlk Uğur adımı: diyetisyenin salt okunur öğün günlüğü
 
+**16.11.2026 Mert bağımlılığı güncellemesi:** Kullanıcının ayrı backend göreviyle
+MealLog/MealLogItem EF eşlemesi, AddMealLogs migration'ı ve danışanın kendi
+JWT/client bağlamlı manuel CRUD API'si eklenmiştir; güncel alan/sınırlar
+`05/06`dadır. Aşağıdaki 07.11 bulgularındaki EF/yazma API'si yokluğu bu alt
+kapsam için tarihseldir. Bu görev G2/G3 onayı veya uygulaması değildir;
+diyetisyen okuma endpointi ve web/Flutter kaynakları değiştirilmez. Mobil
+çoklu kategori/sayfalama uyarlaması hâlâ gereklidir; MealLogsEnabled false
+kalır. Migration uygulama veritabanına otomatik uygulanmaz.
+
 **Tarih:** 07.11.2026 · **Durum: G1 ORTAK ONAYLI; UYGULAMA YALNIZ G1.**
 
 Kullanıcı, ön raporun ikinci sayfasındaki “Beslenme, Ölçüm ve Aktivite

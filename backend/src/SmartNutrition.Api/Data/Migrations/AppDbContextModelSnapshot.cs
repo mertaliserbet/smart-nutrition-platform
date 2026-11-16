@@ -394,6 +394,143 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("ConsumedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consumed_at");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("FoodAnalysisId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("food_analysis_id");
+
+                    b.Property<string>("MealType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("meal_type");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
+
+                    b.HasKey("Id")
+                        .HasName("pk_meal_logs");
+
+                    b.HasIndex("ClientId", "ConsumedAt", "Id")
+                        .IsDescending(false, true, false)
+                        .HasDatabaseName("ix_meal_logs_client_consumed_id")
+                        .HasFilter("deleted_at IS NULL");
+
+                    b.ToTable("meal_logs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_meal_logs_analysis", "food_analysis_id IS NULL OR food_analysis_id <> '00000000-0000-0000-0000-000000000000'::uuid");
+
+                            t.HasCheckConstraint("ck_meal_logs_note", "note IS NULL OR char_length(note) <= 2000");
+
+                            t.HasCheckConstraint("ck_meal_logs_source", "source IN ('manual','wearable','ai_assisted')");
+
+                            t.HasCheckConstraint("ck_meal_logs_type", "meal_type IN ('breakfast','lunch','dinner','snack','other')");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLogItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("CaloriesKcal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("calories_kcal");
+
+                    b.Property<decimal?>("CarbsGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("carbs_grams");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("display_name");
+
+                    b.Property<decimal?>("FatGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("fat_grams");
+
+                    b.Property<Guid?>("FoodItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("food_item_id");
+
+                    b.Property<bool>("IsEstimated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_estimated");
+
+                    b.Property<Guid>("MealLogId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("meal_log_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<decimal?>("ProteinGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("protein_grams");
+
+                    b.Property<decimal?>("QuantityGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("quantity_grams");
+
+                    b.Property<Guid?>("RecipeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("recipe_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_meal_log_items");
+
+                    b.HasIndex("MealLogId")
+                        .HasDatabaseName("ix_meal_log_items_meal_log_id");
+
+                    b.ToTable("meal_log_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_meal_log_items_calories_kcal", "calories_kcal IS NULL OR (calories_kcal >= 0 AND calories_kcal < 'Infinity'::numeric)");
+
+                            t.HasCheckConstraint("ck_meal_log_items_carbs_grams", "carbs_grams IS NULL OR (carbs_grams >= 0 AND carbs_grams < 'Infinity'::numeric)");
+
+                            t.HasCheckConstraint("ck_meal_log_items_fat_grams", "fat_grams IS NULL OR (fat_grams >= 0 AND fat_grams < 'Infinity'::numeric)");
+
+                            t.HasCheckConstraint("ck_meal_log_items_name", "char_length(btrim(display_name)) BETWEEN 1 AND 2000");
+
+                            t.HasCheckConstraint("ck_meal_log_items_position", "position >= 0");
+
+                            t.HasCheckConstraint("ck_meal_log_items_protein_grams", "protein_grams IS NULL OR (protein_grams >= 0 AND protein_grams < 'Infinity'::numeric)");
+
+                            t.HasCheckConstraint("ck_meal_log_items_quantity", "quantity_grams IS NULL OR (quantity_grams > 0 AND quantity_grams < 'Infinity'::numeric)");
+
+                            t.HasCheckConstraint("ck_meal_log_items_references", "(food_item_id IS NULL OR food_item_id <> '00000000-0000-0000-0000-000000000000'::uuid) AND (recipe_id IS NULL OR recipe_id <> '00000000-0000-0000-0000-000000000000'::uuid)");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlan", b =>
                 {
                     b.Property<Guid>("Id")
@@ -670,6 +807,26 @@ namespace SmartNutrition.Api.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLog", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_meal_logs_client_id");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLogItem", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.MealLogs.MealLog", null)
+                        .WithMany("Items")
+                        .HasForeignKey("MealLogId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_meal_log_items_meal_log_id");
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.NutritionPlans.NutritionPlan", b =>
                 {
                     b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
@@ -735,6 +892,11 @@ namespace SmartNutrition.Api.Data.Migrations
                     b.Navigation("ClientProfile");
 
                     b.Navigation("DietitianProfile");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLog", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
