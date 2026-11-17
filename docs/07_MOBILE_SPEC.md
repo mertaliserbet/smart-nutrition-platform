@@ -1,5 +1,10 @@
 # 07 — Danışan mobil uygulaması
 
+**17.11.2026:** Danışan işlemleri mobil uygulamadadır. Danışan, Profil üzerinden
+mevcut hesabıyla diyetisyen başvurusu yapabilir. Onaylı diyetisyen mobilde
+aktif danışanlarını ve bağlantı taleplerini görebilir, talepleri yönetebilir
+ve davet kodu oluşturabilir. Ayrıntılar `06/12`dedir.
+
 ## Kullanıcı deneyimi hedefi
 Play Store hedefini gözeten, sade, hızlı, premium, ekran okuma erişilebilirliğine uygun mobil uygulama. Fotoğraf/kamera akışları beslenme kaydını kolaylaştırmalı; tıbbi doğruluk veya kesin kalori vaadi sunmamalı.
 

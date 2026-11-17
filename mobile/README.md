@@ -133,17 +133,16 @@ hesaplarla gerçek HTTPS akışını çalıştırır. Girdiler `SNP_LIVE_` önek
 PASSWORD, CLIENT_A, CLIENT_B, QUERY, EXPERT_ID, EXPERT_EMAIL, INVITATION ortam
 değişkenleridir; kurulum/temizlik çağırana aittir. Bu test cihaz UI testi değildir.
 
-## Diyetisyen başvurusu için web yönlendirmesi
+## Diyetisyen başvurusu ve danışan yönetimi
 
-Profil → **Diyetisyen Olarak Başvur**, uygulama içindeki bilgilendirme ekranını
-açar. **Web Sitesine Git**, `url_launcher` ile `LaunchMode.externalApplication`
-kullanarak `/uzman-basvurusu` adresini varsayılan tarayıcıya gönderir;
-**Adresi Kopyala** aynı adresi panoya yazar. Tarayıcı hatasında kopyalama seçeneği
-korunur. Mobil form/belge yükleme veya yetki değişimi yoktur; e-posta doğrulaması
-ve mevcut Admin onayı gerekir. Web akışı bağımsızdır, JWT/refresh/cookie/kimlik
-URL veya header ile aktarılmaz. Webde yeni hesap başvurusu mükerrer e-postada
-`409` verir; doğrulanmış danışan mevcut web hesabıyla giriş yapıp aynı User'a
-başvurabilir. Admin onayı sonrası danışan verileri ve temel rol korunur.
+Danışan, **Profil → Diyetisyen Profili ve Başvuru** üzerinden mevcut hesabıyla
+başvuru yapabilir ve onayı takip edebilir. Onaylı diyetisyen aktif danışanları
+listeleyebilir, bağlantıları yönetebilir ve davet kodu oluşturabilir.
+
+Giriş ekranındaki **Diyetisyen hesabı için başvur** yeni hesap başvurusunu açar.
+**Web Sitesine Git**, `url_launcher` ile `/uzman-basvurusu` adresini varsayılan
+tarayıcıda açar. **Adresi Kopyala** aynı adresi panoya yazar. Tarayıcı kendi web
+oturumunu kullanır.
 
 Origin `lib/core/network/web_config.dart` içinde `WEB_BASE_URL` ile yönetilir.
 Yalnız HTTPS scheme/host/port kabul edilir; path, query, fragment veya kimlik

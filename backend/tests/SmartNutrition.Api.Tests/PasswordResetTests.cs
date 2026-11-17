@@ -185,7 +185,14 @@ public sealed class PasswordResetTests
     {
         var sender = new ResetSender();
         await using var factory = await RegistrationApiFactory.CreateAsync(resetSender: sender, webSessions: true);
-        await Seed(factory); using var web = factory.Client(); using var anonymous = factory.Client(false);
+        var userId = await Seed(factory);
+        await using (var db = factory.Database())
+        {
+            var owner = await db.Users.SingleAsync(row => row.Id == userId);
+            db.DietitianProfiles.Add(new SmartNutrition.Api.Features.Dietitians.DietitianProfile(owner, "Synthetic applicant", "Synthetic license"));
+            await db.SaveChangesAsync();
+        }
+        using var web = factory.Client(); using var anonymous = factory.Client(false);
         var csrf = await web.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/web-session")
             { Content = JsonContent.Create(new { email = Email, password = Password }) };

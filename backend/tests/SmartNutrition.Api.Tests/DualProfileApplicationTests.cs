@@ -25,8 +25,11 @@ public sealed class DualProfileApplicationTests
         using var plan = await personal.PostAsJsonAsync("/api/v1/nutrition-plans", Plan()); Assert.Equal(HttpStatusCode.Created, plan.StatusCode);
         var planId = (await Body(plan)).GetProperty("id").GetGuid();
         var existingRelation = await Connect(personal, oldExpertClient, oldExpert.Profile);
-        using var web = f.Client(); await Login(web, owner.Email);
-        using var applied = await Apply(web); Assert.Equal(HttpStatusCode.Created, applied.StatusCode);
+        using var web = f.Client();
+        using var clientOnly = await Write(web, "/api/v1/auth/web-session", new { email = owner.Email, password = Password });
+        Assert.Equal(HttpStatusCode.Unauthorized, clientOnly.StatusCode);
+        using var applied = await Apply(personal); Assert.Equal(HttpStatusCode.Created, applied.StatusCode);
+        await Login(web, owner.Email);
         var expertId = (await Body(applied)).GetProperty("id").GetGuid();
         using var denied = await personal.GetAsync("/api/v1/dietitian/clients?page=1&pageSize=10"); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
         personal.DefaultRequestHeaders.Add("X-Profile-Context", "dietitian");
@@ -36,8 +39,14 @@ public sealed class DualProfileApplicationTests
         using var review = await admin.GetAsync("/api/v1/admin/dietitians?isVerified=false&page=1&pageSize=10");
         Assert.Contains((await Body(review)).GetProperty("items").EnumerateArray(), x => x.GetProperty("id").GetGuid() == expertId);
         using var approve = await Write(admin, $"/api/v1/admin/dietitians/{expertId}/verify"); Assert.Equal(HttpStatusCode.OK, approve.StatusCode);
-        using var duplicate = await Apply(web); Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        using var duplicate = await Apply(personal); Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
         using var account = await web.GetAsync("/api/v1/auth/me"); Assert.Equal("client", (await Body(account)).GetProperty("role").GetString());
+        using var defaultWebProfile = await web.GetAsync($"/api/v1/nutrition-plans/{planId}");
+        Assert.Equal(HttpStatusCode.NotFound, defaultWebProfile.StatusCode);
+        web.DefaultRequestHeaders.Add("X-Profile-Context", "client");
+        using var personalFromWeb = await web.GetAsync($"/api/v1/nutrition-plans/{planId}");
+        Assert.Equal(HttpStatusCode.Forbidden, personalFromWeb.StatusCode);
+        web.DefaultRequestHeaders.Remove("X-Profile-Context");
         using var unchangedPlan = await personal.GetAsync($"/api/v1/nutrition-plans/{planId}"); Assert.Equal(HttpStatusCode.OK, unchangedPlan.StatusCode);
         using var own = await personal.GetAsync("/api/v1/dietitian-relationships?page=1&pageSize=10");
         Assert.Contains((await Body(own)).GetProperty("items").EnumerateArray(), x => x.GetProperty("id").GetGuid() == existingRelation);
@@ -68,29 +77,23 @@ public sealed class DualProfileApplicationTests
     public async Task ConcurrentApplicationsHaveOneProfileAndNeverGrantExpertAccess()
     {
         await using var f = await RegistrationApiFactory.CreateAsync(webSessions: true); var owner = await Seed(f);
-        using var a = f.Client(); using var b = f.Client(); await Login(a, owner.Email); await Login(b, owner.Email);
-        var at = await Csrf(a); var bt = await Csrf(b);
-        var responses = await Task.WhenAll(Write(a, Application, new { displayName = "Synthetic", licenseInfo = "Synthetic license" }, at),
-            Write(b, Application, new { displayName = "Synthetic", licenseInfo = "Synthetic license" }, bt));
+        using var a = await Jwt(f, owner.Id); using var b = await Jwt(f, owner.Id);
+        var responses = await Task.WhenAll(Apply(a), Apply(b));
         Assert.Equal(new[] { 201, 409 }, responses.Select(x => (int)x.StatusCode).Order().ToArray()); foreach (var response in responses) response.Dispose();
         await using var db = f.Database(); Assert.Single(await db.Users.ToArrayAsync()); Assert.Single(await db.ClientProfiles.ToArrayAsync());
         Assert.False((await db.DietitianProfiles.SingleAsync()).IsVerified);
-        using var denied = await Write(a, "/api/v1/dietitians/me/invitation-code"); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        using var denied = await a.PostAsync("/api/v1/dietitians/me/invitation-code", null); Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
     }
 
     [PostgresFact]
-    public async Task ApplicationRequiresCookieCsrfAndCannotSelectEmailUserOrApproval()
+    public async Task ApplicationRequiresBearerAndCannotSelectEmailUserOrApproval()
     {
         foreach (var field in new[] { "email", "userId", "isVerified", "role", "password" })
         {
             await using var f = await RegistrationApiFactory.CreateAsync(webSessions: true); var owner = await Seed(f);
-            using var web = f.Client(); using var anonymous = f.Client(false); using var bearer = await Jwt(f, owner.Id);
-            using var noSession = await anonymous.PostAsJsonAsync(Application, new { displayName = "Synthetic", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.Forbidden, noSession.StatusCode);
-            using var wrongCredential = await bearer.PostAsJsonAsync(Application, new { displayName = "Synthetic", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.BadRequest, wrongCredential.StatusCode);
-            await Login(web, owner.Email);
-            using var noCsrf = new HttpRequestMessage(HttpMethod.Post, Application) { Content = JsonContent.Create(new { displayName = "Synthetic", licenseInfo = "Synthetic" }) };
-            noCsrf.Headers.Add("Origin", "https://localhost"); using var denied = await web.SendAsync(noCsrf); Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
-            using var injected = await Write(web, Application, new Dictionary<string, object?> { ["displayName"] = "Synthetic", ["licenseInfo"] = "Synthetic", [field] = "injected" });
+            using var anonymous = f.Client(false); using var bearer = await Jwt(f, owner.Id);
+            using var noSession = await Apply(anonymous); Assert.Equal(HttpStatusCode.Unauthorized, noSession.StatusCode);
+            using var injected = await bearer.PostAsJsonAsync(Application, new Dictionary<string, object?> { ["displayName"] = "Synthetic", ["licenseInfo"] = "Synthetic", [field] = "injected" });
             Assert.Equal(HttpStatusCode.BadRequest, injected.StatusCode);
             await using var db = f.Database(); Assert.Empty(await db.DietitianProfiles.ToArrayAsync());
         }
@@ -100,15 +103,15 @@ public sealed class DualProfileApplicationTests
     public async Task ExistingApplicationRejectsInvalidShapesAdminAndUnverifiedSession()
     {
         await using var f = await RegistrationApiFactory.CreateAsync(webSessions: true); var owner = await Seed(f);
-        using var web = f.Client(); await Login(web, owner.Email);
-        using var invalid = await Write(web, Application, new { displayName = " ", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.UnprocessableEntity, invalid.StatusCode);
-        using var missing = await Write(web, Application, new { displayName = "Synthetic" }); Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
-        using var query = await Write(web, Application + "?userId=" + owner.Id, new { displayName = "Synthetic", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.BadRequest, query.StatusCode);
+        using var mobile = await Jwt(f, owner.Id);
+        using var invalid = await mobile.PostAsJsonAsync(Application, new { displayName = " ", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.UnprocessableEntity, invalid.StatusCode);
+        using var missing = await mobile.PostAsJsonAsync(Application, new { displayName = "Synthetic" }); Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
+        using var query = await mobile.PostAsJsonAsync(Application + "?userId=" + owner.Id, new { displayName = "Synthetic", licenseInfo = "Synthetic" }); Assert.Equal(HttpStatusCode.BadRequest, query.StatusCode);
         var setup = await Admin(f); using var admin = f.Client(); await Login(admin, setup.Email, setup.Code);
-        using var forbidden = await Apply(admin); Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        using var forbidden = await Apply(admin); Assert.Equal(HttpStatusCode.Unauthorized, forbidden.StatusCode);
         await using var db = f.Database();
         await db.Users.Where(x => x.Id == owner.Id).ExecuteUpdateAsync(setters => setters.SetProperty(x => x.IsEmailVerified, false));
-        using var unverified = await Apply(web); Assert.Equal(HttpStatusCode.Unauthorized, unverified.StatusCode);
+        using var unverified = await Apply(mobile); Assert.Equal(HttpStatusCode.Unauthorized, unverified.StatusCode);
         Assert.Empty(await db.DietitianProfiles.ToArrayAsync());
     }
 
@@ -163,7 +166,7 @@ public sealed class DualProfileApplicationTests
     }
     private static async Task Login(HttpClient client, string email, string? code = null)
     { using var r = await Write(client, code is null ? "/api/v1/auth/web-session" : "/api/v1/auth/admin-web-session", code is null ? new { email, password = Password } : (object)new { email, password = Password, mfaCode = code }); Assert.Equal(HttpStatusCode.OK, r.StatusCode); }
-    private static Task<HttpResponseMessage> Apply(HttpClient web) => Write(web, Application, new { displayName = "Synthetic professional", licenseInfo = "Synthetic license" });
+    private static Task<HttpResponseMessage> Apply(HttpClient mobile) => mobile.PostAsJsonAsync(Application, new { displayName = "Synthetic professional", licenseInfo = "Synthetic license" });
     private static async Task<string> Csrf(HttpClient web) => (await web.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf")).GetProperty("requestToken").GetString()!;
     private static async Task<HttpResponseMessage> Write(HttpClient web, string path, object? body = null, string? csrf = null)
     { using var request = new HttpRequestMessage(HttpMethod.Post, path); if (body is not null) request.Content = JsonContent.Create(body); request.Headers.Add("Origin", "https://localhost"); request.Headers.Add("X-CSRF-TOKEN", csrf ?? await Csrf(web)); return await web.SendAsync(request); }

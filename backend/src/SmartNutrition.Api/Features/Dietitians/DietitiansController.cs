@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -22,16 +24,16 @@ public sealed record PagedResponse<T>(IReadOnlyList<T> Items, int TotalCount);
 public sealed class DietitiansController(AppDbContext database, DietitianApplicationService applications,
     VerificationEmailQueue emailQueue) : ControllerBase
 {
-    [HttpPost("me/application"), Authorize(AuthenticationSchemes = WebSessionAuthentication.Scheme, Roles = "client,dietitian")]
+    [HttpPost("me/application"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "client")]
     [Consumes("application/json"), RequestSizeLimit(16384), EnableRateLimiting("dietitian-application")]
     [ProducesResponseType<DietitianStatusResponse>(201)]
-    public async Task<IActionResult> ApplyExisting(ExistingDietitianApplicationRequest request,
-        [FromServices] WebSessionService sessions, CancellationToken token)
+    public async Task<IActionResult> ApplyExisting(ExistingDietitianApplicationRequest request, CancellationToken token)
     {
-        if (Request.Headers.ContainsKey("Authorization") || Request.Query.Count != 0 ||
-            !await WebSessionAuthentication.ValidMutationAsync(HttpContext)) return BadRequest(ApiErrors.Create(HttpContext, 400));
-        if (!WebSessionService.TryIdentity(User, out var userId, out _, out _)) return Unauthorized(ApiErrors.Create(HttpContext, 401));
-        return CreatedAtAction(nameof(Me), await applications.ApplyExistingAsync(userId, request, User, sessions, token));
+        if (Request.Query.Count != 0) return BadRequest(ApiErrors.Create(HttpContext, 400));
+        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var userId) ||
+            !long.TryParse(User.FindFirst("credentialsVersion")?.Value, NumberStyles.None, CultureInfo.InvariantCulture, out var credentialsVersion))
+            return Challenge(JwtBearerDefaults.AuthenticationScheme);
+        return CreatedAtAction(nameof(Me), await applications.ApplyExistingAsync(userId, credentialsVersion, request, token));
     }
 
     [HttpPost("apply"), AllowAnonymous, Consumes("application/json"), RequestSizeLimit(16384), EnableRateLimiting("dietitian-application")]

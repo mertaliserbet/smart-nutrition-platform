@@ -47,7 +47,7 @@ describe('dietitian application and administrator verification', () => {
     fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: ' admin@example.test ' } })
     fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: ' synthetic password ' } })
     await user.click(screen.getByRole('button', { name: 'E-posta ile kod gönder' }))
-    expect(await screen.findByRole('status')).toHaveTextContent('Bilgileriniz uygunsa')
+    expect(await screen.findByRole('status')).toHaveTextContent('Giriş kodu isteği alındı.')
     expect(request.mock.calls[1]?.[0]).toBe('/api/v1/auth/admin-email-code')
     expect(request.mock.calls[1]?.[1]).toMatchObject({ method: 'POST', credentials: 'same-origin', redirect: 'error',
       headers: { 'X-CSRF-TOKEN': 'synthetic-csrf', 'Content-Type': 'application/json' },
@@ -56,6 +56,27 @@ describe('dietitian application and administrator verification', () => {
     expect(request).toHaveBeenCalledTimes(2)
     expect(screen.getByRole('heading', { name: 'Yönetici girişi' })).toBeVisible()
     expect(screen.queryByText('Sentetik mesleki kayıt')).not.toBeInTheDocument()
+  })
+
+  it('shows the credential error and lets the administrator retry with the corrected password', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf())
+      .mockResolvedValueOnce(new Response(null, { status: 401 }))
+      .mockResolvedValueOnce(csrf()).mockResolvedValueOnce(new Response(null, { status: 202 }))
+    const { user } = page('/yonetici-giris')
+    fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: 'admin@example.test' } })
+    const password = screen.getByLabelText('Şifre')
+    fireEvent.change(password, { target: { value: 'incorrect password' } })
+    const sendButton = screen.getByRole('button', { name: 'E-posta ile kod gönder' })
+    await user.click(sendButton)
+    expect(await screen.findByRole('alert')).toHaveTextContent('E-posta adresi veya şifre hatalı.')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(sendButton).toBeEnabled()
+
+    fireEvent.change(password, { target: { value: 'synthetic password' } })
+    await user.click(sendButton)
+    expect(await screen.findByRole('status')).toHaveTextContent('Giriş kodu isteği alındı.')
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(request).toHaveBeenCalledTimes(4)
   })
 
   it.each([409, 429, 500])('does not claim delivery or retry a failed email-code request (%s)', async status => {
@@ -100,7 +121,7 @@ describe('dietitian application and administrator verification', () => {
     expect(request).not.toHaveBeenCalled()
     fillApplication()
     await user.click(screen.getByRole('button', { name: 'Başvuruyu gönder' }))
-    expect(await screen.findByText('Bu e-posta kayıtlı olabilir. Mevcut hesabınızla giriş yapıp başvurabilirsiniz.')).toBeVisible()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Danışan hesabınızla mobil uygulamadan başvurabilirsiniz.')
     expect(screen.getByLabelText('Şifre')).toHaveValue('')
     expect(screen.getByRole('form')).toBeVisible()
   })
@@ -109,8 +130,16 @@ describe('dietitian application and administrator verification', () => {
     let finish!: (response: Response) => void
     const request = vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(resolve => { finish = resolve }))
     const { user } = page('/uzman-basvurusu'); fillApplication()
+    const password = screen.getByLabelText('Şifre')
+    expect(password).toHaveAccessibleDescription(/8–128 karakter/)
+    await user.click(screen.getByRole('button', { name: 'Şifreyi göster' }))
+    expect(password).toHaveAttribute('type', 'text')
+    expect(password).toHaveValue(' synthetic password ')
+    expect(request).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Başvuruyu gönder' }))
-    expect(screen.getByLabelText('Şifre')).toHaveValue('')
+    expect(password).toHaveValue('')
+    expect(password).toHaveAttribute('type', 'password')
+    expect(screen.getByRole('button', { name: 'Şifreyi göster' })).toBeDisabled()
     fireEvent.submit(screen.getByRole('form')); expect(request).toHaveBeenCalledOnce()
     await act(async () => finish(Response.json({ id: userId, accessToken: 'forbidden' }, { status: 201 })))
     expect(await screen.findByRole('alert')).toHaveTextContent('Başvuru sonucu doğrulanamadı')

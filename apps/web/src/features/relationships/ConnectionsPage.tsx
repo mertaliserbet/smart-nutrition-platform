@@ -27,7 +27,11 @@ export function ConnectionsPage() {
         if (!controller.signal.aborted) setInvitation(result)
       } else {
         await changeRelationship(id!, action, session.dietitianId, session.token, controller.signal)
-        if (!controller.signal.aborted) { setNotice(action === 'accept' ? 'Bağlantı kabul edildi.' : action === 'reject' ? 'Talep reddedildi.' : 'Bağlantı sonlandırıldı.'); state.refresh() }
+        if (!controller.signal.aborted) {
+          setNotice(action === 'accept' ? 'Bağlantı kabul edildi.' : action === 'reject' ? 'Talep reddedildi.' : 'Bağlantı sonlandırıldı.')
+          if (page === 1) state.refresh()
+          else setPage(1)
+        }
       }
     } catch (error) {
       if (!controller.signal.aborted && !session.onFailure(error)) setMessage(error instanceof WebSessionError ? error.message : 'İşlem doğrulanamadı.')

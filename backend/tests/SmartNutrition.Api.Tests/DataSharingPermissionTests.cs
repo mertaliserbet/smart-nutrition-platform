@@ -138,14 +138,14 @@ public sealed class DataSharingPermissionTests
     public async Task CookiePermissionWritesRequireOriginAndCsrfAndMfaAdminCannotGrant()
     {
         await using var factory = await RegistrationApiFactory.CreateAsync(webSessions: true, mealLogSharing: true); var pair = await Seed(factory);
-        using var client = factory.Client(); await LoginCookie(client, pair.Client.Email, "/api/v1/auth/web-session");
+        using var client = factory.Client(); await LoginCookie(client, pair.Expert.Email, "/api/v1/auth/web-session");
         using var noOrigin = await Grant(client, pair.Relationship.Id, "meal_logs"); Assert.Equal(HttpStatusCode.Forbidden, noOrigin.StatusCode);
         using var noCsrfRequest = new HttpRequestMessage(HttpMethod.Post, Route) { Content = JsonContent.Create(new { relationshipId = pair.Relationship.Id, category = "meal_logs", isGranted = true }) };
         noCsrfRequest.Headers.Add("Origin", "https://localhost");
         using var noCsrf = await client.SendAsync(noCsrfRequest); Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
         using var validRequest = new HttpRequestMessage(HttpMethod.Post, Route) { Content = JsonContent.Create(new { relationshipId = pair.Relationship.Id, category = "meal_logs", isGranted = true }) };
         validRequest.Headers.Add("Origin", "https://localhost"); validRequest.Headers.Add("X-CSRF-TOKEN", await Csrf(client));
-        using var valid = await client.SendAsync(validRequest); Assert.Equal(HttpStatusCode.Created, valid.StatusCode);
+        using var valid = await client.SendAsync(validRequest); Assert.Equal(HttpStatusCode.Forbidden, valid.StatusCode);
         using var scope = factory.Services.CreateScope(); var adminUser = new User(Guid.NewGuid(), "SYNTHETIC-SHARING-ADMIN@EXAMPLE.TEST", UserRole.Admin, Password, DateTimeOffset.UtcNow, new PasswordHasher<User>());
         var setup = scope.ServiceProvider.GetRequiredService<AdminMfaService>().Initialize(adminUser, DateTimeOffset.UtcNow);
         await using var db = factory.Database(); db.Users.Add(adminUser); await db.SaveChangesAsync();

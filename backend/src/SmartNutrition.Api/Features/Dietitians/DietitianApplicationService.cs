@@ -46,19 +46,18 @@ public sealed class ExistingDietitianApplicationRequest : IValidatableObject
 public sealed class DietitianApplicationService(AppDbContext database, ILookupNormalizer normalizer,
     IPasswordHasher<User> hasher, IOptions<RegistrationPasswordPolicy> policy, TimeProvider clock)
 {
-    public async Task<DietitianStatusResponse> ApplyExistingAsync(Guid userId, ExistingDietitianApplicationRequest request,
-        System.Security.Claims.ClaimsPrincipal principal, WebSessionService sessions, CancellationToken token)
+    public async Task<DietitianStatusResponse> ApplyExistingAsync(Guid userId, long credentialsVersion,
+        ExistingDietitianApplicationRequest request, CancellationToken token)
     {
         if (!DietitianProfile.ValidText(request.DisplayName, 120) || !DietitianProfile.ValidText(request.LicenseInfo, 2000))
             throw new ResourceOperationException(422);
         await using var transaction = await database.Database.BeginTransactionAsync(token);
         var user = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {userId} FOR UPDATE")
             .SingleOrDefaultAsync(token);
-        if (user is null || !user.IsEmailVerified || !await sessions.ValidateAsync(principal, token))
+        if (user is null || !user.IsEmailVerified || user.Role != UserRole.Client || user.CredentialsVersion != credentialsVersion)
             throw new ResourceOperationException(401);
-        if (user.Role is not (UserRole.Client or UserRole.Dietitian)) throw new ResourceOperationException(403);
         if (await database.DietitianProfiles.AnyAsync(x => x.UserId == userId, token)) throw new ResourceOperationException(409);
-        if (user.Role != UserRole.Client || !await database.ClientProfiles.AnyAsync(x => x.UserId == userId, token))
+        if (!await database.ClientProfiles.AnyAsync(x => x.UserId == userId, token))
             throw new ResourceOperationException(403);
         var profile = new DietitianProfile(user, request.DisplayName!, request.LicenseInfo!);
         await database.SaveChangesAsync(token);

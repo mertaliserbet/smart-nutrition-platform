@@ -106,6 +106,9 @@ public sealed class AdminEmailCodeTests
         originalSecret = admin.TotpSecretProtected;
         await using (var db = factory.Database()) { db.Users.Add(admin); await db.SaveChangesAsync(); }
         using var client = factory.Client();
+        using var wrong = await Write(client, CodePath, new { email = Email, password = "incorrect password" });
+        Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+        Assert.Equal(0, sender.Count);
         using var sent = await Write(client, CodePath, new { email = Email, password = Password });
         Assert.Equal(HttpStatusCode.Accepted, sent.StatusCode); Assert.Equal(1, sender.Count);
         Assert.Empty(await sent.Content.ReadAsStringAsync());
@@ -136,17 +139,27 @@ public sealed class AdminEmailCodeTests
     {
         var sender = new CaptureSender { Fail = true };
         await using var factory = await RegistrationApiFactory.CreateAsync(webSessions: true, adminEmailCodes: true, adminCodeSender: sender);
-        var admin = Admin(); await using (var db = factory.Database()) { db.Users.Add(admin); await db.SaveChangesAsync(); }
+        var nonAdmin = new User(Guid.NewGuid(), "CLIENT@EXAMPLE.TEST", UserRole.Client, Password, Now, new PasswordHasher<User>());
+        await using (var db = factory.Database()) { db.Users.AddRange(Admin(), nonAdmin); await db.SaveChangesAsync(); }
         using var client = factory.Client();
         using var noOrigin = await client.PostAsJsonAsync(CodePath, new { email = Email, password = Password });
         Assert.Equal(HttpStatusCode.Forbidden, noOrigin.StatusCode);
         using var noCsrfRequest = new HttpRequestMessage(HttpMethod.Post, CodePath) { Content = JsonContent.Create(new { email = Email, password = Password }) };
         noCsrfRequest.Headers.Add("Origin", "https://localhost");
         using var noCsrf = await client.SendAsync(noCsrfRequest); Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
-        using var unknown = await Write(client, CodePath, new { email = "unknown@example.test", password = Password });
-        Assert.Equal(HttpStatusCode.Accepted, unknown.StatusCode); Assert.Equal(0, sender.Count);
-        using var wrong = await Write(client, CodePath, new { email = Email, password = "incorrect password" });
-        Assert.Equal(HttpStatusCode.Accepted, wrong.StatusCode); Assert.Equal(0, sender.Count);
+        foreach (var credentials in new[]
+        {
+            new { email = "unknown@example.test", password = Password },
+            new { email = Email, password = "incorrect password" },
+            new { email = nonAdmin.Email, password = Password }
+        })
+        {
+            using var rejected = await Write(client, CodePath, credentials);
+            Assert.Equal(HttpStatusCode.Unauthorized, rejected.StatusCode);
+            var body = await rejected.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("unauthenticated", body.GetProperty("error").GetProperty("code").GetString());
+            Assert.Equal(0, sender.Count);
+        }
         using var smtpFailure = await Write(client, CodePath, new { email = Email, password = Password });
         Assert.Equal(HttpStatusCode.Accepted, smtpFailure.StatusCode); Assert.Equal(1, sender.Count);
         Assert.DoesNotContain("synthetic smtp failure", factory.Logs);
@@ -168,7 +181,7 @@ public sealed class AdminEmailCodeTests
         for (var i = 0; i < 5; i++)
         {
             using var sent = await Write(browser, CodePath, new { email = "unknown@example.test", password = Password });
-            Assert.Equal(HttpStatusCode.Accepted, sent.StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, sent.StatusCode);
         }
         using var limited = await Write(browser, CodePath, new { email = Email, password = Password });
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);

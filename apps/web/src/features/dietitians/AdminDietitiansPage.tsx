@@ -13,7 +13,7 @@ export function AdminDietitiansPage() {
   const [total, setTotal] = useState<number>()
   const [page, setPage] = useState(1)
   const [verified, setVerified] = useState(false)
-  const [displayName, setDisplayName] = useState<string>()
+  const [profile, setProfile] = useState<{ displayName: string; email: string; token: string }>()
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const [notice, setNotice] = useState('')
@@ -23,7 +23,7 @@ export function AdminDietitiansPage() {
 
   function failed(error: unknown) {
     if (error instanceof WebSessionError && [400, 401, 403].includes(error.status)) {
-      csrf.current = null; setItems([]); setTotal(undefined); setDisplayName(undefined)
+      csrf.current = null; setItems([]); setTotal(undefined); setProfile(undefined)
     }
     if (error instanceof WebSessionError && error.status === 401) navigate('/yonetici-giris', { replace: true })
     else setMessage(error instanceof WebSessionError ? error.message : 'İşlem doğrulanamadı. Yeniden kontrol edin.')
@@ -32,14 +32,14 @@ export function AdminDietitiansPage() {
   async function load(targetPage = page, targetVerified = verified) {
     if (operation.current) return
     const controller = new AbortController(); operation.current = controller
-    setItems([]); setTotal(undefined); setDisplayName(undefined); csrf.current = null; setMessage(''); setNotice(''); setPending(true)
+    setItems([]); setTotal(undefined); csrf.current = null; setMessage(''); setNotice(''); setPending(true)
     setVerified(targetVerified); setPage(targetPage)
     try {
       const token = await getCsrf(controller.signal)
       const account = await getAccount(controller.signal)
       if (account.role !== 'admin') throw new WebSessionError(403, 'Bu alan yalnız MFA ile giriş yapan yöneticiler içindir.')
       const result = await listApplications(targetPage, controller.signal, targetVerified)
-      if (!controller.signal.aborted) { csrf.current = token; setItems(result.items); setTotal(result.totalCount); setDisplayName(account.displayName ?? 'Yönetici') }
+      if (!controller.signal.aborted) { csrf.current = token; setItems(result.items); setTotal(result.totalCount); setProfile({ token, displayName: account.displayName ?? 'Yönetici', email: account.email }) }
     } catch (error) { if (!controller.signal.aborted) failed(error) }
     finally { if (!controller.signal.aborted) { operation.current = null; setPending(false) } }
   }
@@ -65,7 +65,7 @@ export function AdminDietitiansPage() {
     finally { if (!controller.signal.aborted) { operation.current = null; setPending(false) } }
   }
 
-  return <WorkspaceLayout audience="admin" displayName={displayName}>
+  return <WorkspaceLayout audience="admin" profile={profile}>
     <div className="page-heading"><p className="eyebrow">YÖNETİM ÇALIŞMA ALANI</p><h1 tabIndex={-1}>Uzman başvuruları</h1><p>Mesleki kayıt açıklamalarını inceleyin ve diyetisyen doğrulamalarını yönetin.</p></div>
     <div className="inline-note"><Icon name="shield" /><p>Uzman onayı yalnız mesleki profili doğrular. Danışan sağlık verilerine erişim sağlamaz.</p></div>
     {pending && <p role="status">İşlem sürüyor…</p>}
@@ -89,6 +89,6 @@ export function AdminDietitiansPage() {
     </div>
     <div className="panel-actions"><button className="button button-secondary" disabled={pending} onClick={() => { void load() }}>Başvuruları yeniden kontrol et</button></div>
     </section>
-    {message && !displayName && <Link className="text-link" to="/yonetici-giris">Yönetici girişine dön</Link>}
+    {message && !profile && <Link className="text-link" to="/yonetici-giris">Yönetici girişine dön</Link>}
   </WorkspaceLayout>
 }

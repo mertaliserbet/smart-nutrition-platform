@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using SmartNutrition.Api.Features.Auth;
+using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Models;
 
 namespace SmartNutrition.Api.Tests;
@@ -23,6 +24,24 @@ public sealed class WebSessionApiTests
     private const string Csrf = "/api/v1/auth/csrf";
     private const string Me = "/api/v1/auth/me";
     private const string CookieName = "__Host-smart-nutrition-session";
+
+    [PostgresFact]
+    public async Task ClientWithoutDietitianProfileCannotCreateOrRestoreAWebSession()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(webSessions: true);
+        var user = await Seed(factory);
+        using var browser = factory.Client();
+        using var first = await SignIn(browser);
+        Assert.Equal(HttpStatusCode.OK, first.StatusCode);
+
+        await using var db = factory.Database();
+        await db.DietitianProfiles.Where(profile => profile.UserId == user.Id).ExecuteDeleteAsync();
+        using var restored = await browser.GetAsync(Me);
+        Assert.Equal(HttpStatusCode.Unauthorized, restored.StatusCode);
+        using var login = await SignIn(browser);
+        Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+        Assert.Single(await db.AuthSessions.ToArrayAsync());
+    }
 
     [PostgresFact]
     public async Task LoginUsesProtectedSessionCookiesAndOnlyTheFiveApprovedAccountFields()
@@ -434,6 +453,7 @@ public sealed class WebSessionApiTests
     private static async Task<User> Seed(RegistrationApiFactory factory)
     {
         var user = new User(Guid.NewGuid(), "SYNTHETIC@EXAMPLE.TEST", UserRole.Client, Password, DateTimeOffset.UtcNow, new PasswordHasher<User>());
+        _ = new DietitianProfile(user, "Synthetic web profile", "Synthetic license");
         await using var database = factory.Database();
         database.Users.Add(user);
         await database.SaveChangesAsync();

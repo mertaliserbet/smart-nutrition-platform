@@ -12,17 +12,19 @@ function renderApp(path = '/giris') {
 }
 
 describe('authentication presentation boundary', () => {
-  it('keeps login links collapsed until their option is opened', async () => {
+  it('shows direct links to the application and admin login', async () => {
     const user = renderApp()
-    const registration = screen.getByText('Kayıt ve başvuru')
-    expect(screen.getByRole('link', { name: 'Danışan hesabı oluştur', hidden: true })).not.toBeVisible()
-    await user.click(registration)
-    expect(screen.getByRole('link', { name: 'Danışan hesabı oluştur' })).toBeVisible()
-    expect(screen.getByRole('link', { name: 'Diyetisyen başvurusu yap' })).toHaveAttribute('href', '/uzman-basvurusu')
-
-    await user.click(screen.getByText('Hesap ve yönetim'))
-    expect(screen.getByRole('link', { name: 'Yönetici girişi' })).toHaveAttribute('href', '/yonetici-giris')
-    expect(screen.getByRole('link', { name: 'Hesabımı aç' })).toHaveAttribute('href', '/hesabim')
+    const application = screen.getByRole('link', { name: 'Diyetisyen başvurusu yap' })
+    const admin = screen.getByRole('link', { name: 'Yönetici girişi' })
+    expect(application).toBeVisible()
+    expect(application).toHaveAttribute('href', '/uzman-basvurusu')
+    expect(admin).toBeVisible()
+    expect(admin).toHaveAttribute('href', '/yonetici-giris')
+    expect(screen.queryByRole('link', { name: 'Danışan hesabı oluştur', hidden: true })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'E-postamı doğrula', hidden: true })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Hesabımı aç', hidden: true })).not.toBeInTheDocument()
+    await user.click(admin)
+    expect(screen.getByRole('heading', { name: 'Yönetici girişi' })).toHaveFocus()
   })
 
   it('labels invalid fields and focuses the first error', async () => {

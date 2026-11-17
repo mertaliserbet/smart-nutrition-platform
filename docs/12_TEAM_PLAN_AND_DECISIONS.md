@@ -1,5 +1,19 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 17.11.2026 — Web ve mobil rol ayrımı
+
+Kullanıcı danışan işlemlerini mobil uygulamaya ayırdı. Web oturumu diyetisyen
+profili olan hesaplara ve MFA ile giriş yapan yöneticilere açıktır. Bekleyen
+uzman profili başvuru takibine, onaylı profil aktif danışan işlemlerine erişir.
+Çift profilli hesap webde uzman bağlamını, mobilde her iki profilini kullanır.
+Mevcut danışanın aynı hesapla uzman başvurusu mobil JWT ile yapılır (`06`).
+
+Web panelinde avatar menüsü hesap bilgilerine ve doğrudan çıkışa erişim sağlar.
+Mobil diyetisyen ekranı başvuru durumunu, aktif danışanları, bağlantıları ve
+davet kodlarını gösterir. Mobil yönetici paneli kullanıcı talimatıyla ertelendi.
+Bir danışan için tek aktif diyetisyen kuralı sürer. İkinci bağlantı denemesi
+mevcut `active_relationship_conflict` hata kodunu kullanır.
+
 ## 07.11.2026 — 12 Kasım aşaması, yalnız G1 ortak onayı
 
 Kullanıcı ön rapordaki “Beslenme, Ölçüm ve Aktivite Modülleri (12.11.2026)”

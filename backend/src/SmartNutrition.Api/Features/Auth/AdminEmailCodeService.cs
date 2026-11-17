@@ -38,15 +38,18 @@ public sealed class AdminEmailCodeStore(IHostEnvironment environment, IOptions<A
     internal bool AllowsPrincipal(ClaimsPrincipal principal) =>
         !principal.HasClaim(claim => claim.Type == DevelopmentClaim) || Enabled;
 
+    internal static bool IsEligible(User user) =>
+        user is { Role: UserRole.Admin, IsEmailVerified: true, TotpSecretProtected: not null };
+
     internal (string Code, object Ticket)? Issue(User user, DateTimeOffset now)
     {
-        if (!Enabled || user.Role != UserRole.Admin || !user.IsEmailVerified || user.TotpSecretProtected is null) return null;
+        if (!Enabled || !IsEligible(user)) return null;
         lock (_sync)
         {
             if (_entries.TryGetValue(user.Id, out var current) && current.SentAt.AddSeconds(60) > now) return null;
             var code = RandomNumberGenerator.GetInt32(1_000_000).ToString("D6", CultureInfo.InvariantCulture);
             var salt = RandomNumberGenerator.GetBytes(32);
-            var entry = new Entry(Hash(salt, code), salt, now, user.PasswordHash, user.CredentialsVersion, user.TotpSecretProtected);
+            var entry = new Entry(Hash(salt, code), salt, now, user.PasswordHash, user.CredentialsVersion, user.TotpSecretProtected!);
             _entries[user.Id] = entry;
             return (code, entry);
         }
@@ -100,14 +103,15 @@ public sealed class AdminEmailCodeService(AppDbContext database, ILookupNormaliz
     IPasswordHasher<User> hasher, LoginPasswordVerifier verifier, AdminEmailCodeStore store,
     IAdminEmailCodeSender sender, TimeProvider clock)
 {
-    public async Task RequestAsync(LoginUserRequest request, CancellationToken cancellationToken)
+    public async Task<bool> RequestAsync(LoginUserRequest request, CancellationToken cancellationToken)
     {
         var email = normalizer.NormalizeEmail(request.Email!.Trim());
         var user = await database.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Email == email, cancellationToken);
         var verified = verifier.Verify(hasher, user, request.Password!);
-        if (user is null || verified == PasswordVerificationResult.Failed) return;
+        if (user is null || verified == PasswordVerificationResult.Failed || !AdminEmailCodeStore.IsEligible(user))
+            return false;
         var challenge = store.Issue(user, clock.GetUtcNow());
-        if (challenge is null) return;
+        if (challenge is null) return true;
         try
         {
             await sender.SendAdminCodeAsync(user.Email, challenge.Value.Code, cancellationToken);
@@ -115,8 +119,9 @@ public sealed class AdminEmailCodeService(AppDbContext database, ILookupNormaliz
         }
         catch (Exception) when (!cancellationToken.IsCancellationRequested)
         {
-            // Match the generic 202 without leaking SMTP errors, account existence or code.
+            // Keep SMTP details and codes out of the response.
             store.Delivered(user.Id, challenge.Value.Ticket, false);
         }
+        return true;
     }
 }

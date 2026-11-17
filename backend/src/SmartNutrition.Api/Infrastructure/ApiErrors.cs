@@ -21,6 +21,8 @@ internal static class ApiErrors
 
         if (statusCode == 409 && codeOverride == "active_nutrition_plan_conflict")
             (code, message) = (codeOverride, "An active nutrition plan already exists.");
+        if (statusCode == 409 && codeOverride == "active_relationship_conflict")
+            (code, message) = (codeOverride, "The client already has an active dietitian relationship.");
         return new { error = new { code, message }, requestId = context.TraceIdentifier };
     }
 

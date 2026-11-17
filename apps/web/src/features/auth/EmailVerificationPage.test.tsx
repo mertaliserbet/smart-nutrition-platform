@@ -17,14 +17,23 @@ function enterToken(value = syntheticToken) {
 }
 
 describe('email verification', () => {
-  it('is reachable from login and never consumes a code automatically from the URL', async () => {
-    const request = vi.spyOn(globalThis, 'fetch')
+  it('is reachable after submitting a dietitian application without automatically consuming a code', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json(
+      { id: '11111111-1111-4111-8111-111111111111' }, { status: 201 },
+    ))
     const user = renderPage('/giris')
-    await user.click(screen.getByText('Hesap ve yönetim'))
+    await user.click(screen.getByRole('link', { name: 'Diyetisyen başvurusu yap' }))
+    expect(screen.getByRole('heading', { name: 'Diyetisyen başvurusu' })).toHaveFocus()
+    fireEvent.change(screen.getByLabelText('Ad ve soyad'), { target: { value: 'Sentetik Diyetisyen' } })
+    fireEvent.change(screen.getByLabelText('E-posta adresi'), { target: { value: 'synthetic@example.test' } })
+    fireEvent.change(screen.getByLabelText('Şifre'), { target: { value: 'synthetic password' } })
+    fireEvent.change(screen.getByLabelText('Mesleki kayıt / belge açıklaması'), { target: { value: 'Sentetik açıklama' } })
+    await user.click(screen.getByRole('button', { name: 'Başvuruyu gönder' }))
+    expect(await screen.findByRole('status')).toHaveTextContent('Başvurunuz kaydedildi.')
     await user.click(screen.getByRole('link', { name: 'E-postamı doğrula' }))
     expect(screen.getByRole('heading', { level: 1 })).toHaveFocus()
     expect(screen.getByLabelText('Doğrulama kodu')).toHaveValue('')
-    expect(request).not.toHaveBeenCalled()
+    expect(request).toHaveBeenCalledExactlyOnceWith('/api/v1/dietitians/apply', expect.objectContaining({ method: 'POST' }))
   })
 
   it('ignores URL token fields and validates malformed input without a request', async () => {
@@ -54,7 +63,7 @@ describe('email verification', () => {
     expect(screen.queryByRole('form')).not.toBeInTheDocument()
     expect(storage).not.toHaveBeenCalled()
     await user.click(screen.getByRole('link', { name: 'Giriş ekranına dön' }))
-    await user.click(screen.getByText('Hesap ve yönetim'))
+    await user.click(screen.getByRole('link', { name: 'Diyetisyen başvurusu yap' }))
     await user.click(screen.getByRole('link', { name: 'E-postamı doğrula' }))
     expect(screen.getByLabelText('Doğrulama kodu')).toHaveValue('')
     expect(request).toHaveBeenCalledTimes(1)

@@ -180,14 +180,18 @@ public sealed class NutritionPlanApiTests
     public async Task CookieProgramMutationsCannotBypassCsrfOrExactOrigin()
     {
         await using var factory = await RegistrationApiFactory.CreateAsync(webSessions: true); var c = await Seed(factory, UserRole.Client);
+        var expert = await Seed(factory, UserRole.Dietitian);
+        using var applicant = await Client(factory, c);
+        using var reviewer = await Client(factory, expert);
+        await Connect(applicant, reviewer, expert.ProfileId);
         using var client = factory.Client(); var csrf = await Csrf(client);
-        using var login = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/web-session") { Content = JsonContent.Create(new { email = c.Email, password = Password }) };
+        using var login = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/web-session") { Content = JsonContent.Create(new { email = expert.Email, password = Password }) };
         login.Headers.Add("Origin", "https://localhost"); login.Headers.Add("X-CSRF-TOKEN", csrf);
         using var signedIn = await client.SendAsync(login); Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
-        using var noOrigin = await client.PostAsJsonAsync(Root, Content()); Assert.Equal(HttpStatusCode.Forbidden, noOrigin.StatusCode);
-        using var missing = new HttpRequestMessage(HttpMethod.Post, Root) { Content = JsonContent.Create(Content()) }; missing.Headers.Add("Origin", "https://localhost");
+        using var noOrigin = await client.PostAsJsonAsync(Root, Content(c.ProfileId)); Assert.Equal(HttpStatusCode.Forbidden, noOrigin.StatusCode);
+        using var missing = new HttpRequestMessage(HttpMethod.Post, Root) { Content = JsonContent.Create(Content(c.ProfileId)) }; missing.Headers.Add("Origin", "https://localhost");
         using var noCsrf = await client.SendAsync(missing); Assert.Equal(HttpStatusCode.BadRequest, noCsrf.StatusCode);
-        using var good = new HttpRequestMessage(HttpMethod.Post, Root) { Content = JsonContent.Create(Content()) }; good.Headers.Add("Origin", "https://localhost"); good.Headers.Add("X-CSRF-TOKEN", await Csrf(client));
+        using var good = new HttpRequestMessage(HttpMethod.Post, Root) { Content = JsonContent.Create(Content(c.ProfileId)) }; good.Headers.Add("Origin", "https://localhost"); good.Headers.Add("X-CSRF-TOKEN", await Csrf(client));
         using var created = await client.SendAsync(good); Assert.Equal(HttpStatusCode.Created, created.StatusCode);
     }
 

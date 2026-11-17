@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 import { Brand, Icon } from '../../core/components/Icon'
 import { ThemeControl } from '../../core/theme/ThemeProvider'
 
-export function AuthLayout({ title, description, children, isLogin = false, badge = 'Arayüz önizlemesi' }: {
-  title: string; description: string; children: ReactNode; isLogin?: boolean; badge?: string
+export function AuthLayout({ title, description, children, isLogin = false, badge = 'Arayüz önizlemesi', backTo = '/giris' }: {
+  title: string; description: string; children: ReactNode; isLogin?: boolean; badge?: string; backTo?: string
 }) {
   return (
     <div className={isLogin ? 'auth-layout auth-layout-login' : 'auth-layout'}>
@@ -22,7 +22,7 @@ export function AuthLayout({ title, description, children, isLogin = false, badg
       <div className="auth-main">
         <header className="auth-header"><span className="preview-badge">{badge}</span><ThemeControl /></header>
         <main id="main-content" className="auth-content">
-          {!isLogin && <Link to="/giris" className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
+          {!isLogin && <Link to={backTo} className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
           <span className="auth-icon"><Icon name={isLogin ? 'leaf' : 'link'} /></span>
           {!isLogin && <p className="eyebrow">SMART NUTRITION</p>}
           <h1 tabIndex={-1}>{title}</h1>

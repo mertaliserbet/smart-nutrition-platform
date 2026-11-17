@@ -156,6 +156,95 @@ void main() {
       expect(await api.permission(relationId), isNull);
     },
   );
+  test(
+    'only the program permission is returned when both categories exist',
+    () async {
+      resource = (r) => reply(r, 200, {
+        'items': [
+          {...permissionBody(true), 'id': expertId, 'category': 'meal_logs'},
+          permissionBody(false),
+        ],
+        'totalCount': 2,
+      });
+      final permission = await api.permission(relationId);
+      expect(permission?.id, permissionId);
+      expect(permission?.isGranted, isFalse);
+    },
+  );
+
+  test(
+    'existing account application uses the bearer and the two approved fields',
+    () async {
+      resource = (r) async {
+        expect(r.method, 'POST');
+        expect(r.uri.path, '/api/v1/dietitians/me/application');
+        expect(r.headers.value('authorization'), startsWith('Bearer '));
+        expect(r.headers.value('cookie'), isNull);
+        expect(jsonDecode(await utf8.decoder.bind(r).join()), {
+          'displayName': 'Synthetic expert',
+          'licenseInfo': 'Synthetic license',
+        });
+        await reply(r, 201, {
+          'id': expertId,
+          'displayName': 'Synthetic expert',
+          'isVerified': false,
+        });
+      };
+      final status = await api.applyExisting(
+        'Synthetic expert',
+        'Synthetic license',
+      );
+      expect(status.isVerified, isFalse);
+      expect(status.id, expertId);
+    },
+  );
+
+  test(
+    'expert acceptance preserves the active-relationship conflict',
+    () async {
+      resource = (request) async {
+        expect(request.method, 'POST');
+        expect(
+          request.uri.path,
+          '/api/v1/dietitian-relationships/$relationId/accept',
+        );
+        expect(request.headers.value('x-profile-context'), 'dietitian');
+        await reply(request, 409, {
+          'error': {
+            'code': 'active_relationship_conflict',
+            'message': 'Active relationship',
+          },
+          'requestId': 'synthetic-request',
+        });
+      };
+      await expectLater(
+        api.changeRelationship(
+          const RelationshipResponse(
+            id: relationId,
+            clientId: clientId,
+            dietitianId: expertId,
+            status: 'pending',
+          ),
+          'accept',
+          asDietitian: true,
+        ),
+        throwsA(
+          isA<DietitianApiException>()
+              .having(
+                (error) => error.code,
+                'code',
+                'active_relationship_conflict',
+              )
+              .having(
+                (error) => error.message,
+                'message',
+                contains('zaten aktif bir diyetisyeni var'),
+              ),
+        ),
+      );
+    },
+  );
+
   for (final (create, granted) in [
     (true, true),
     (false, false),

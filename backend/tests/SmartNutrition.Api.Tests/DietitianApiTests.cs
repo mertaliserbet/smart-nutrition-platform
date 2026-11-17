@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using OtpNet;
 using SmartNutrition.Api.Features.Auth;
+using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Models;
 
 namespace SmartNutrition.Api.Tests;
@@ -58,6 +59,8 @@ public sealed class DietitianApiTests
         using var registration = await client.PostAsJsonAsync("/api/v1/auth/register", new { email = "client@example.test", password = Password, displayName = "Synthetic client" });
         Assert.Equal(HttpStatusCode.Created, registration.StatusCode);
         await db.Users.ExecuteUpdateAsync(setters => setters.SetProperty(x => x.IsEmailVerified, true));
+        db.DietitianProfiles.Add(new DietitianProfile(await db.Users.SingleAsync(), "Synthetic applicant", "Synthetic license"));
+        await db.SaveChangesAsync();
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/web-session")
         { Content = JsonContent.Create(new { email = "client@example.test", password = Password }) };
         request.Headers.Add("Origin", "https://localhost"); request.Headers.Add("X-CSRF-TOKEN", await Csrf(client));
