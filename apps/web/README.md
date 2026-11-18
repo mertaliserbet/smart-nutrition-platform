@@ -1,5 +1,54 @@
 # Smart Nutrition — Web
 
+## 19.11.2026 — U2 gerçek görev yönetimi
+
+Gerçek danışan detayındaki **Danışan görevleri** bölümü U1 API'sini kullanır:
+`GET/POST /api/v1/client-tasks`, `GET/PATCH /{clientTaskId}`,
+`GET /{clientTaskId}/versions`. Vite HTTPS proxy'sine aynı kök eklendi.
+Görev/versiyon sayfaları 10 kayıttır; yanıtlar kanonik DTO ve danışan/uzman/
+görev sahipliğiyle doğrulanır. Cookie same-origin, no-store ve X-Profile-Context
+korunur; yazmada mevcut CSRF kullanılır. JWT/taslak kalıcı depolanmaz.
+
+Yeni görev doğrudan atanır. Uzman yalnız açık görevi düzenler veya onayla
+iptal eder; danışan adına tamamlama ve hatırlatma tercihi yazma yoktur.
+Son tarih cihazın yerel saatinden UTC'ye çevrilir; aynı kalan sunucu zamanının
+mikrosaniyeleri korunur. Kapanmış görev salt okunur, completed zamanı U1'in
+terminal sürüm zamanıdır. 409 taslağı korur; güncel görev okunur, kayıt otomatik
+tekrarlanmaz. İzin/ilişki kaybında yalnız görev içeriği/formları kaldırılır.
+Görünür sekmede 30 sn/fokus/elle yenileme vardır; gizli sekme veri göstermez
+ve yeni okuma yapmaz. Ağda sonucu belirsiz yazma yeniden gönderilmeden önce
+liste kontrol edilir. Formu kapatırken kaydedilmemiş değişiklik uyarısı vardır.
+
+U1 davranışı ve `04/05/06` değişmedi; backend'de yalnız entegrasyon testi
+eklendi. ClientTasksEnabled varsayılan false kalır; M2 mobil kategori/izin
+uyumu doğrulanmadan ortak ortamda açılmaz. Web uzmanı danışan adına izin
+oluşturmaz. Bildirim teslim altyapısı yoktur. Flutter M2 ortak main'dedir
+(d14576f); bu U2 oturumunda Flutter üzerinden doğrulama yapılmadı.
+
+Doğrulama: `node node_modules/vitest/vitest.mjs run --maxWorkers=2` ile
+282 başarılı / 3 opt-in canlı test atlandı (29 görev testi dahil).
+`npm run build` ve `npm run lint` başarılı/uyarısız. Ayrı PostgreSQL 17.11'de
+ilgili API testleri 49/49, backend build 0 uyarı/hata. Uygulama DB'si kullanılmadı.
+
+Görev canlı testi ayrıca gerçek React DOM + HTTPS/cookie/CSRF API ile
+çalıştırıldı; tarayıcı görsel testi veya Flutter testi değildir. Ayrı geçici
+PostgreSQL'i 127.0.0.1:55582 / nutrition_u2_test / nutrition_test ve yalnız bu
+DB'ye bağlı HTTPS API'yi https://localhost:7443 olarak hazırlayın. API'nin test
+ortamında ClientTasksEnabled=true, güvenli web oturumu ve JWT ayarları olmalı;
+test sertifikası güveni yalnız bu sunucuya verilir. Yeni sentetik hesapların
+doğrulanmışlığı psql ile yalnız bu test DB'sinde ayarlanır; uygulama verileri
+seed edilmez/değiştirilmez. Gerekli test ortam değişkenleri:
+
+- `SNP_TASK_WEB_LIVE=1`
+- `SNP_TASK_WEB_ORIGIN=https://localhost:7443`
+- `SNP_TASK_WEB_CA`: test HTTPS sertifikasının PEM dosyası
+- `SNP_TASK_WEB_PSQL`: test PostgreSQL psql.exe dosyasının tam yolu
+
+Ardından `node node_modules/vitest/vitest.mjs run
+src/features/clientTasks/ClientTaskPanel.live.test.tsx --maxWorkers=1`.
+Gerçek akış: webden atama→danışan bearer oturumuyla tamamlama→webde 409 ve
+güncel durum/geçmiş, ayrıca düzenleme/iptal, izin geri çekme ve ilişki sonu.
+
 ## 18.11.2026 — Seçilen program sürümüyle günlük tüketim karşılaştırması
 
 Gerçek danışan detayında bir programın **Program ve tüketimi karşılaştır**

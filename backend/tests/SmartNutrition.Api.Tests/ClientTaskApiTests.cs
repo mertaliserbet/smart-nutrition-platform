@@ -386,6 +386,31 @@ public sealed class ClientTaskApiTests
         using var next = await expert.GetAsync(List(pair.Client.Id)); await Error(next, HttpStatusCode.Forbidden);
     }
 
+    [PostgresFact]
+    public async Task CookieExpertAssignsClientCompletesAndExpertReadsCompletedTaskAndHistory()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(webSessions: true, clientTaskSharing: true);
+        var pair = await Seed(factory, grant: false); using var owner = Bearer(factory, pair.Owner, "client"); using var web = factory.Client();
+        await LoginWeb(web, pair.Expert.Email, "/api/v1/auth/web-session");
+        var csrf = await web.GetFromJsonAsync<JsonElement>("/api/v1/auth/csrf");
+        web.DefaultRequestHeaders.Add("Origin", "https://localhost"); web.DefaultRequestHeaders.Add("X-Profile-Context", "dietitian");
+        web.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf.GetProperty("requestToken").GetString());
+        using var grant = await owner.PostAsJsonAsync("/api/v1/data-sharing-permissions", new { relationshipId = pair.Relationship.Id, category = "client_tasks", isGranted = true });
+        Assert.Equal(HttpStatusCode.Created, grant.StatusCode);
+        var id = (await grant.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var assigned = await Create(web, pair, due: DateTimeOffset.UtcNow.AddDays(1));
+        var own = await owner.GetFromJsonAsync<ClientTaskResponse>(Detail(assigned.Id)); Assert.Equal(assigned, own);
+        var completed = await Patch(owner, assigned, new { expectedVersionNumber = assigned.VersionNumber, status = "completed" });
+        Assert.Equal(ClientTaskStatus.Completed, completed.Status);
+        Assert.Equal(completed, await web.GetFromJsonAsync<ClientTaskResponse>(Detail(assigned.Id)));
+        var list = await web.GetFromJsonAsync<JsonElement>(List(pair.Client.Id)); Assert.Equal("completed", list.GetProperty("items")[0].GetProperty("status").GetString());
+        var history = await web.GetFromJsonAsync<JsonElement>(History(assigned.Id)); Assert.Equal(2, history.GetProperty("totalCount").GetInt32());
+        Assert.Equal(completed.UpdatedAt, history.GetProperty("items")[0].GetProperty("createdAt").GetDateTimeOffset());
+        using var revoke = await owner.PatchAsJsonAsync($"/api/v1/data-sharing-permissions/{id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.OK, revoke.StatusCode);
+        using var denied = await web.GetAsync(Detail(assigned.Id)); await Error(denied, HttpStatusCode.Forbidden);
+        Assert.Equal(completed, await owner.GetFromJsonAsync<ClientTaskResponse>(Detail(assigned.Id)));
+    }
+
     private sealed class TaskClock(DateTimeOffset now) : TimeProvider
     { public DateTimeOffset Now { get; set; } = now; public override DateTimeOffset GetUtcNow() => Now; }
 
