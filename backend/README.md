@@ -1,5 +1,63 @@
 # Smart Nutrition — Ortak Backend
 
+## 18–19.11.2026 — U1 görev sistemi / M2 entegrasyonu
+
+Kullanıcının U1 uygulama onayıyla ClientTask API/PostgreSQL/geçmiş hazırdır.
+React U2 ve Flutter M2 bu teslimde uygulanmaz; kesin sözleşme `docs/04/05/06`.
+
+- `GET /api/v1/client-tasks?page=1&pageSize=20`: danışanın kendi görevleri.
+  Diyetisyen ayrıca `clientId=<ClientProfile UUID>` gönderir. Gövdeler/sayılar
+  aynı yetkili snapshot'tan, yalnız atayanın özgün active ilişkisindendir.
+- `GET /api/v1/client-tasks/{clientTaskId}`: tam 11 alanlı ClientTaskResponse.
+- `POST /api/v1/client-tasks`: `{ "clientId": "<profil UUID>",
+  "description": "Sentetik görev", "dueAt": null }`. Onaylı atayan ve ilişki
+  sunucudan; 201 + Location; pending, versionNumber=1, reminder=false.
+- `PATCH /api/v1/client-tasks/{clientTaskId}`: danışan örneği
+  `{ "expectedVersionNumber": 1, "status": "completed" }`. Danışan yalnız
+  pending→in_progress/completed veya in_progress→completed ve hatırlatma
+  tercihini yazar. Diyetisyen açık görevin description/dueAt'ini değiştirir
+  veya cancelled yapar. Terminal görev değişmez. Eski sürüm 409; otomatik
+  tekrar/overwrite yoktur, GET ile güncel kayıt okunur.
+- `GET /api/v1/client-tasks/{clientTaskId}/versions?page=1&pageSize=20`:
+  `{ items, totalCount }`; her item id/clientTaskId/versionNumber/createdAt/
+  snapshot taşır. Tamamlama zamanı completed snapshot'ın createdAt'idir;
+  recordedByUserId yalnız sunucudadır. Liste/geçmiş sayfaları zorunlu,
+  pageSize en çok 100; listede createdAt DESC/id ASC, geçmişte sürüm DESC.
+
+ClientTaskResponse: id/clientId/dietitianId/relationshipId/description/status/
+dueAt/isReminderEnabled/createdAt/updatedAt/versionNumber. Nullable dueAt
+anahtarı null olarak kalır; kesin zaman açık offset ister ve UTC saklanır.
+Oluşturma/değiştirmede gelecekte olmalı; geç tamamlama mümkündür. Açıklama
+1–2000 Unicode kod noktasıdır. isReminderEnabled yalnız danışan tercihidir,
+varsayılan false; dueAt yoksa true reddedilir, tarih kaldırılırsa false olur.
+Bildirim worker'ı, zamanlama veya teslim garantisi **yoktur**.
+
+JWT ve W2 cookie aynı kaynakları kullanır; çift profilde X-Profile-Context,
+web yazmasında CSRF/Origin zorunludur. Yanıtlar/hatalar no-store'dur.
+Doğrulanmış uzman + atayan sahipliği + özgün active ilişki + bağımsız
+client_tasks izni gerekir. Diğer izinlerden görev erişimi türetilmez. İzin
+geri çekilince diyetisyene 403, ilişki bitince 404; danışanın kendi geçmişi
+korunur. İlişki sonu yalnız açık görevleri atomik cancelled yapıp snapshot
+ekler; yeni ilişki eski görevleri uzmana açmaz. Admin görev erişimi kazanmaz.
+
+M2 önce ortak main'e alınmış bu API'yle eşitlenir; mevcut izin POST/PATCH'inde
+category=client_tasks, consentRecordId=null destekler. Çoklu kategori/sayfalama
+uyumu doğrulanana kadar `Relationships:Sharing:ClientTasksEnabled=false` kalır.
+Bu ayar yeni izin satırını/true yapmayı kapatır; mevcut izni geri çekmeyi veya
+okumayı gizlemez. Kullanıcı açıkça izin vermeden erişim açılmaz.
+
+Migration `20261118204842_AddClientTasks`: yeni görev/geçmiş tabloları, özgün
+ilişki üçlüsü FK/unique ve izin check genişletmesi. Mevcut veri/izinler değişmez;
+görev/geçmiş/client_tasks izin satırı varken Down reddedilir. Uygulama DB'sine
+bu görevde uygulanmadı. Testler yalnız ayrı geçici PostgreSQL üzerinde sentetik
+veri kullanır. Görev test filtresi `FullyQualifiedName~ClientTaskApiTests`.
+
+Son doğrulama (19.11.2026): `dotnet build SmartNutrition.Backend.slnx --no-restore`
+0 uyarı/hata; `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`
+ayrı PostgreSQL 17.11'de 447 başarılı / 2 opt-in Mailpit atlandı / 0 başarısız
+(19 görev testi dahil). `dotnet ef migrations has-pending-model-changes
+--project src/SmartNutrition.Api --no-build` fark bulmadı; `git diff --check` geçti.
+
 ## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
 
 `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison`

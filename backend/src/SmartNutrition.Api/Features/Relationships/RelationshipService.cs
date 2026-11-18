@@ -7,6 +7,7 @@ using SmartNutrition.Api.Data;
 using SmartNutrition.Api.Features.Dietitians;
 using SmartNutrition.Api.Models;
 using SmartNutrition.Api.Features.NutritionPlans;
+using SmartNutrition.Api.Features.ClientTasks;
 
 namespace SmartNutrition.Api.Features.Relationships;
 
@@ -82,8 +83,11 @@ public sealed class RelationshipService(AppDbContext database, RelationshipAcces
             {
                 if (row.Status is not (RelationshipStatus.Active or RelationshipStatus.Pending)) throw new ResourceOperationException(409);
                 if (row.Status == RelationshipStatus.Active)
+                {
                     await database.NutritionPlans.Where(plan => plan.ClientId == row.ClientId && plan.DietitianId == row.DietitianId && plan.Status == NutritionPlanStatus.Active)
                         .ExecuteUpdateAsync(setters => setters.SetProperty(plan => plan.Status, NutritionPlanStatus.Archived), token);
+                    await ClientTaskService.CancelForRelationshipAsync(database, row.Id, actor.UserId, clock.GetUtcNow(), token);
+                }
                 row.End(clock.GetUtcNow());
             }
             else

@@ -1,7 +1,7 @@
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
 > **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
-> **Sürüm:** 1.0 · **Hazırlanma:** 18.11.2026 · **Yaklaşan bitirme toplantısı:** 19.11.2026  
+> **Sürüm:** 1.1 · **Hazırlanma:** 18.11.2026 · **U1 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
 ## 1. Bu dokümanın amacı ve geçerliliği
@@ -63,7 +63,7 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 
 | ID | Görev | Başlama koşulu / teslim ölçütü | İzinli kod alanı |
 |---|---|---|---|
-| **U1** | Görev sistemi API + PostgreSQL | **Hemen başlanabilir.** Mevcut `ClientTask` önerisini kontrol edip Mert'le DTO/durum/yetki kararlarını netleştir. Diyetisyen oluşturma/atama/listeleme, danışan görüntüleme/durum güncelleme; sahiplik, aktif ilişki, gerekli izinler, migration ve testler. | `backend/**`, ilgili `docs/**` |
+| **U1** | Görev sistemi API + PostgreSQL | **Backend uygulandı; ortak main entegrasyonu bekler.** Kullanıcı U1 ürün/teknik kararlarını onaylı kabul edip uygulamayı yetkilendirdi. ClientTask API, bağımsız izin, durum/geçmiş/eşzamanlılık, veri koruyan migration ve testler hazır; kesin sözleşme `04/05/06`. Flutter/React ayrı görevdir. | `backend/**`, ilgili `docs/**` |
 | **U2** | React görev atama ve takip | **U1'e dayanır.** Diyetisyen danışana görev atasın, liste/detay/durum ve değişiklikleri gerçek API'den görsün. | `apps/web/**` |
 | **U3** | Sağlık verisi API + PostgreSQL | **U1 migration'ı birleştirildikten sonra.** Mert ile birim/tarih/kaynak/tekrar kayıt/izin sözleşmesini onayla; yalnız danışanın kendi verileri için güvenli kayıt/okuma/senkronizasyon API'si ve testlerini geliştir. | `backend/**`, ilgili `docs/**` |
 | **U4** | Diyetisyen su görüntüleme | U3 ile migration çakışmayacak sırada: bağımsız `water_logs` izni varsayılan kapalı, onaylı uzman+aktif ilişki+izin okuma API'si; gerçek su günlük toplam/geçmiş React ekranı. | `backend/**`, `apps/web/**`, `docs/**` |
@@ -71,6 +71,23 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 | **U6** | Web/backend regresyon testi | Diyetisyen panelinde program, gerçek öğün, yorumlar, karşılaştırma, ölçüm grafikleri, görevler ve su görüntüleme; gerçek oturum/izin iptali/CSRF/rol testi. | Backend/web test ve rapor |
 
 **U1 kuralı:** Görev durumlarını veya yeni endpointleri Codex kendi başına kesinleştirmez; mevcut güncel sözleşme ve **iki geliştiricinin açık mutabakatı** temel alınır. Aynı kural U3 sağlık verisi birimleri ve paylaşımı için geçerlidir.
+
+**U1 uygulama kaydı — 18–19.11.2026:** Kullanıcı U1 için gerekli ürün/teknik
+kararları onaylı kabul ederek kalan ayrıntılarda mevcut mimariye göre ilerlemeyi
+açıkça yetkilendirdi; bu görevde yeniden onay beklenmez. Yeni
+`20261118204842_AddClientTasks` migration'ı uygulama DB'sine uygulanmadı.
+client_tasks izni varsayılan kapalı; M2 kategori/sayfalama uyumu ve ortak main
+entegrasyonu doğrulanmadan ClientTasksEnabled açılmaz. Görev liste/detay/atama/
+PATCH ve `/client-tasks/{clientTaskId}/versions` sözleşmesi `06`dadır. Danışan
+durum/hatırlatma tercihini, atayan uzman açıklama/son tarih/iptali yönetir;
+ilişki sonu açık görevleri geçmişiyle atomik iptal eder. Bildirim teslimi yoktur.
+U2/U3 başlatılmadı; Git işlemleri ve Flutter/React değişiklikleri yapılmadı.
+
+**U1 doğrulama:** Ayrı geçici PostgreSQL 17.11'de son tam backend koşusu
+447 başarılı / 2 opt-in Mailpit atlandı / 0 başarısız; 19 görev testi dahil.
+Build 0 uyarı/hata; EF model–snapshot farkı yok; git diff --check temiz.
+Uygulama DB migration'ı ve mobil/web uçtan uca prova yapılmadı. Sonraki tek
+adım geliştiricilerin U1'i ortak main'e entegre edip M2 için bu sözleşmeyi paylaşmasıdır.
 
 ## 5. Toplantı dışından kalan ama unutulmayacak işler
 
