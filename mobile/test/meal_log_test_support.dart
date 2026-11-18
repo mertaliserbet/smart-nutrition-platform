@@ -1,6 +1,7 @@
 import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_api.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/meal_log_api.dart';
+import 'package:smart_nutrition_mobile/core/network/json_api.dart';
 
 const mealId = '11111111-1111-4111-8111-111111111111';
 const mealClientId = '22222222-2222-4222-8222-222222222222';
@@ -50,6 +51,35 @@ MealLog sampleMeal({String name = 'Sentetik çorba'}) => MealLog(
 );
 
 class MealTestSession extends AuthSession {
+  // An authenticated fixture with no comments; actual transport is covered by API tests.
+  @override
+  Future<JsonApiResponse> authorizedRequest({
+    required String path,
+    Map<String, Object?>? payload,
+    String? profileContext,
+    String? method,
+    int maxResponseBytes = 65536,
+  }) {
+    if ((method ?? 'GET') == 'GET' &&
+        Uri.parse(path).path.endsWith('/comments')) {
+      return Future.value(
+        const (
+          statusCode: 200,
+          body: {'items': <Object?>[], 'totalCount': 0},
+          hasBody: true,
+          retryAfter: null,
+        ),
+      );
+    }
+    return super.authorizedRequest(
+      path: path,
+      payload: payload,
+      profileContext: profileContext,
+      method: method,
+      maxResponseBytes: maxResponseBytes,
+    );
+  }
+
   bool authenticated = true;
   String owner = '44444444-4444-4444-8444-444444444444';
   @override

@@ -3,11 +3,19 @@ import 'package:flutter/material.dart';
 import '../auth/auth_session.dart';
 import 'meal_log_api.dart';
 import 'manual_meal_log_page.dart';
+import 'meal_log_comment_api.dart';
+import 'meal_log_comments_section.dart';
 
 class MealLogDetailPage extends StatefulWidget {
-  const MealLogDetailPage({required this.id, this.api, super.key});
+  const MealLogDetailPage({
+    required this.id,
+    this.api,
+    this.commentApi,
+    super.key,
+  });
   final String id;
   final MealLogApi? api;
+  final MealLogCommentApi? commentApi;
   @override
   State<MealLogDetailPage> createState() => _MealLogDetailPageState();
 }
@@ -52,6 +60,16 @@ class _MealLogDetailPageState extends State<MealLogDetailPage>
     _meal = null;
     _error = null;
     _busy = _deleting;
+  }
+
+  @override
+  void didUpdateWidget(covariant MealLogDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id || oldWidget.api != widget.api) {
+      _clear();
+      _api = widget.api ?? (_session == null ? null : MealLogApi(_session!));
+      if (_authorized) _load();
+    }
   }
 
   @override
@@ -228,6 +246,20 @@ class _MealLogDetailPageState extends State<MealLogDetailPage>
                 icon: const Icon(Icons.delete_outline),
                 label: const Text('Öğünü sil'),
               ),
+              if (!_busy)
+                MealLogCommentsSection(
+                  key: ValueKey('comments-$_owner-${meal.id}'),
+                  mealLogId: meal.id,
+                  api: widget.commentApi,
+                  onUnavailable: (error) {
+                    if (!mounted || !_authorized) return;
+                    setState(() {
+                      ++_generation;
+                      _meal = null;
+                      _error = error.message;
+                    });
+                  },
+                ),
             ],
             TextButton.icon(
               onPressed: _busy ? null : _load,
