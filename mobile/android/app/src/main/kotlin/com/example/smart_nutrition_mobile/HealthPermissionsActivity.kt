@@ -21,9 +21,11 @@ class HealthPermissionsActivity : Activity() {
                 text = "Smart Nutrition – Cihaz sağlık verileri\n\n" +
                     "Adım, mesafe, egzersiz, aktif kalori ve varsa nabız kayıtları, " +
                     "yalnız seçtiğiniz okuma izinleriyle cihazda görüntülenir. " +
-                    "Sağlık verisi yazılmaz veya sunucuya gönderilmez. " +
-                    "Okunan veriler yalnız ekranın belleğinde tutulur; " +
+                    "Cihazdaki sağlık deposuna veri yazılmaz. Açık aktarım onayınızla " +
+                    "okunabilen kayıtlar hesabınıza senkronize edilebilir; otomatik aktarım yapılmaz. " +
+                    "Cihazdan okunan yerel kopyalar ekranın belleğinde tutulur; " +
                     "ekran kapatıldığında, uygulamadan ayrılınca veya oturum değişince temizlenir.\n\n" +
+                    "Sunucuya aktarılan kayıtlar hesabınızda saklanır; aktarımı durdurmak geçmişi silmez.\n\n" +
                     "İzin vermeden uygulamanın diğer özelliklerini kullanabilirsiniz. " +
                     "Her veri türünün iznini Health Connect > Uygulama izinleri " +
                     "bölümünden değiştirebilir veya geri alabilirsiniz. " +

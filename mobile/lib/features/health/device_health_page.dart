@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../auth/auth_session.dart';
+import '../water/water_log_api.dart' show WaterDayRange;
 import 'device_health_reader.dart';
+import 'health_data_api.dart';
+import 'health_sync_service.dart';
+import 'health_sync_section.dart';
 
 class DeviceHealthPage extends StatefulWidget {
-  const DeviceHealthPage({this.reader, this.now = DateTime.now, super.key});
+  const DeviceHealthPage({
+    this.reader,
+    this.api,
+    this.now = DateTime.now,
+    super.key,
+  });
   final DeviceHealthReader? reader;
+  final HealthDataApi? api;
   final DateTime Function() now;
 
   @override
@@ -20,6 +30,15 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
   DeviceHealthAvailability? _availability;
   Map<DeviceHealthMetric, DeviceHealthReading>? _readings;
   DateTime? _readAt;
+  HealthDataApi? _api;
+  HealthSyncService? _syncer;
+  WearableConnection? _connection;
+  ActivityDailySummary? _summary;
+  String? _serverMessage;
+  bool _consent = false, _serverLoaded = false;
+  DateTime? _transferFrom, _transferTo;
+  String get _provider =>
+      _reader.source.isIOS ? 'health_kit' : 'health_connect';
   bool _changedOwner = false, _busy = false;
   int _revision = 0;
   bool _foreground =
@@ -52,9 +71,14 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
       _readings = null;
       _readAt = null;
       _message = null;
+      _clearServer();
     }
     _session = session;
     _owner ??= session?.user?.id;
+    if (_api == null && session != null) {
+      _api = widget.api ?? HealthDataApi(session);
+      _syncer = HealthSyncService(_api!);
+    }
   }
 
   @override
@@ -66,6 +90,7 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
         _readings = null;
         _readAt = null;
         _message = null;
+        _clearServer();
       }
     });
     // Permission/settings screens can suspend the app. Returning never reads
@@ -75,8 +100,146 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
   @override
   void dispose() {
     ++_revision;
+    _syncer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _clearServer() {
+    _syncer?.cancel();
+    _connection = null;
+    _summary = null;
+    _serverMessage = null;
+    _consent = false;
+    _serverLoaded = false;
+    _transferFrom = null;
+    _transferTo = null;
+  }
+
+  Future<void> _refreshServer(int revision) async {
+    final connection = await _api!.connectionFor(_provider);
+    if (!_current(revision)) throw const HealthReadCancelled();
+    final summary = await _api!.dailySummary(
+      WaterDayRange.forDate(widget.now()),
+    );
+    if (!_current(revision)) throw const HealthReadCancelled();
+    setState(() {
+      _connection = connection;
+      _summary = summary;
+      _serverLoaded = true;
+    });
+  }
+
+  Future<void> _serverAction({bool sync = false, bool toggle = false}) async {
+    if (!_authorized || _busy || _api == null || (sync && !_consent)) return;
+    final revision = ++_revision;
+    final displayedConnection = _connection;
+    var committed = false;
+    setState(() {
+      _busy = true;
+      _serverMessage = null;
+      _summary = null;
+    });
+    try {
+      if (toggle) {
+        final current = displayedConnection;
+        if (current == null) {
+          throw const HealthDataException(
+            'Bağlantı bulunamadı. Önce sunucu bilgilerini yenileyin.',
+          );
+        }
+        if (current.status == 'revoked' && !_consent) {
+          throw const HealthDataException(
+            'Yeniden açmak için aktarımı açıkça onaylayın.',
+          );
+        }
+        _syncer!.cancel();
+        final updated = await _api!.changeStatus(
+          current,
+          current.status == 'active' ? 'revoked' : 'active',
+        );
+        if (!_current(revision)) throw const HealthReadCancelled();
+        setState(() {
+          _connection = updated;
+          _serverLoaded = true;
+          _consent = false;
+          _serverMessage = updated.status == 'active'
+              ? 'Aktarım açıldı; kendiliğinden veri gönderilmedi.'
+              : 'Aktarım durduruldu; önceki kayıtlar korunur.';
+        });
+      } else if (sync) {
+        final now = widget.now();
+        if (!_syncer!.hasPending) {
+          _transferFrom = DateTime(now.year, now.month, now.day);
+          _transferTo = now;
+        }
+        final from = _transferFrom!, to = _transferTo!;
+        if (!from.isBefore(to)) {
+          throw const HealthDataException(
+            'Bugün için henüz okuma aralığı oluşmadı.',
+          );
+        }
+        final readings = await _reader.read(
+          from: from,
+          to: to,
+          isCurrent: () => _current(revision),
+        );
+        if (!_current(revision)) throw const HealthReadCancelled();
+        final samples = [
+          for (final reading in readings.values)
+            if (reading.state == DeviceHealthReadState.data) ...reading.samples,
+        ];
+        setState(() {
+          _readings = readings;
+          _readAt = now;
+        });
+        final result = await _syncer!.synchronize(
+          provider: _provider,
+          samples: samples,
+          consent: _consent,
+          isCurrent: () => _current(revision),
+          canSend: (points) => _reader.canTransmit(
+            points,
+            from: from,
+            to: to,
+            isCurrent: () => _current(revision),
+          ),
+        );
+        if (!_current(revision)) throw const HealthReadCancelled();
+        committed = result.receipts.isNotEmpty;
+        setState(() {
+          _serverMessage = result.receipts.isEmpty
+              ? 'Yeni aktarılabilir kayıt yok; sunucuya sağlık verisi gönderilmedi.'
+              : 'Aktarım sunucu tarafından doğrulandı. Yalnız izinli ve okunabilen kayıtlar aktarıldı.';
+          _consent = false;
+        });
+      }
+      await _refreshServer(revision);
+    } on HealthReadCancelled {
+      // Account/lifecycle invalidation also drops the in-memory pending batch.
+    } on HealthDataException catch (e) {
+      if (_current(revision)) {
+        setState(() {
+          _serverMessage = committed
+              ? 'Aktarım sunucu tarafından doğrulandı; özet yenilenemedi. Sunucu verilerini yeniden yükleyin.'
+              : e.uncertain && _syncer?.hasPending == true
+              ? 'Sonuç belirsiz. İzinler tekrar kontrol edilerek aynı aktarım kimliğiyle elle yeniden deneyebilirsiniz.'
+              : e.message;
+          _connection = null;
+          _serverLoaded = false;
+          _summary = null;
+        });
+      }
+    } catch (_) {
+      if (_current(revision)) {
+        setState(
+          () => _serverMessage =
+              'Aktarım doğrulanamadı. Sunucu bilgilerini yenileyin.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _run({bool permissions = false, bool install = false}) async {
@@ -160,7 +323,7 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
                 const Text(
                   'Adım, mesafe, egzersiz, aktif kalori ve varsa nabız '
                   'kayıtları yalnız izninizle cihazdan okunur. Sağlık verisi '
-                  'yazılmaz ve sunucuya gönderilmez. Bu aşamada yalnız '
+                  'cihaza yazılmaz. Sunucuya aktarım için ayrıca açık onayınız gerekir. Yalnız '
                   'cihazın yerel saatine göre bugün başlayan kayıtlar okunur.',
                 ),
                 const SizedBox(height: 8),
@@ -189,7 +352,7 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
                 if (_busy) ...[
                   const SizedBox(height: 12),
                   const Center(child: CircularProgressIndicator()),
-                  const Text('Cihaz yanıtı bekleniyor…'),
+                  const Text('İşlem sürüyor…'),
                 ],
                 if (_availability == DeviceHealthAvailability.unsupported)
                   const Text('Bu cihazda sağlık verisi okuma desteklenmiyor.'),
@@ -202,6 +365,30 @@ class _DeviceHealthPageState extends State<DeviceHealthPage>
                   ),
                 ],
                 if (_message != null) Text(_message!),
+                HealthSyncSection(
+                  providerLabel: _reader.source.isIOS
+                      ? 'Apple Sağlık'
+                      : 'Health Connect',
+                  busy: _busy,
+                  consent: _consent,
+                  loaded: _serverLoaded,
+                  connection: _connection,
+                  summary: _summary,
+                  message: _serverMessage,
+                  pending: _syncer?.hasPending == true,
+                  onConsent: (value) => setState(() => _consent = value),
+                  onRefresh: () => _serverAction(),
+                  onSync: () => _serverAction(sync: true),
+                  onToggle: () => _serverAction(toggle: true),
+                  onDiscard: () => setState(() {
+                    _syncer?.cancel();
+                    _transferFrom = null;
+                    _transferTo = null;
+                    _consent = false;
+                    _serverMessage =
+                        'Bekleyen deneme bırakıldı. Yeni okuma için yeniden onay verin.';
+                  }),
+                ),
                 if (_readAt == null &&
                     !_busy &&
                     _message == null &&

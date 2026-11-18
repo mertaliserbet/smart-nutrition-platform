@@ -250,6 +250,56 @@ class DeviceHealthReader {
     : source = source ?? PluginDeviceHealthSource();
   final DeviceHealthSource source;
 
+  /// Android can verify READ grants. HealthKit cannot: re-read and require the
+  /// actual pending points to remain visible instead of assuming a READ grant.
+  Future<bool> canTransmit(
+    List<DeviceHealthSample> samples, {
+    required DateTime from,
+    required DateTime to,
+    required bool Function() isCurrent,
+  }) async {
+    if (!isCurrent()) return false;
+    if (await source.availability() != DeviceHealthAvailability.available) {
+      return false;
+    }
+    final checked = <String>{};
+    for (final sample in samples) {
+      if (!isCurrent()) return false;
+      final matches = source
+          .types(sample.metric)
+          .where((type) => type.name == sample.rawType);
+      if (matches.length != 1) return false;
+      final type = matches.single;
+      if (!checked.add(type.name)) continue;
+      try {
+        final permission = await source.hasReadPermission(type);
+        if (!isCurrent() ||
+            permission == false ||
+            (!source.isIOS && permission != true)) {
+          return false;
+        }
+        if (source.isIOS) {
+          final rows = await source.read(sample.metric, type, from, to);
+          if (!isCurrent()) return false;
+          final visible = {for (final row in rows) row.identity: row};
+          for (final pending in samples.where((p) => p.rawType == type.name)) {
+            final row = visible[pending.identity];
+            if (row == null ||
+                row.rawValue != pending.rawValue ||
+                row.rawUnit != pending.rawUnit ||
+                row.recordingMethod != pending.recordingMethod ||
+                row.exerciseType != pending.exerciseType) {
+              return false;
+            }
+          }
+        }
+      } catch (_) {
+        return false;
+      }
+    }
+    return isCurrent();
+  }
+
   Future<void> requestPermissions({required bool Function() isCurrent}) async {
     if (await source.availability() != DeviceHealthAvailability.available ||
         !isCurrent()) {

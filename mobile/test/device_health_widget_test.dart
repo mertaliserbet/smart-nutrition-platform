@@ -47,6 +47,7 @@ void main() {
     await tester.pump();
     await tester.scrollUntilVisible(finder, 200, maxScrolls: 30);
     await tester.ensureVisible(finder);
+    await tester.pumpAndSettle();
     await tester.tap(finder);
     if (settle) {
       await tester.pumpAndSettle();
@@ -61,6 +62,10 @@ void main() {
     await open(tester);
     expect(source.reads, 0);
     expect(source.requests, 0);
+    await tester.scrollUntilVisible(
+      find.text('Henüz cihazdan veri okunmadı.'),
+      200,
+    );
     expect(find.text('Henüz cihazdan veri okunmadı.'), findsOneWidget);
     await tap(tester, 'Bugünün verilerini oku');
     expect(source.reads, 5);
@@ -101,7 +106,11 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.text('Bugün için kayıt bulunamadı.'), findsNothing);
       expect(
-        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Bugünün verilerini oku'),
+            )
+            .onPressed,
         null,
       );
       pending.complete([]);
@@ -163,6 +172,7 @@ void main() {
     ];
     await open(tester);
     await tap(tester, 'Bugünün verilerini oku');
+    await tester.scrollUntilVisible(find.text('Adım'), 200);
     expect(find.textContaining('123 adım · Synthetic Watch'), findsOneWidget);
     session.changeOwner();
     await tester.pumpAndSettle();
@@ -198,6 +208,7 @@ void main() {
       ];
       await open(tester);
       await tap(tester, 'Bugünün verilerini oku');
+      await tester.scrollUntilVisible(find.text('Adım'), 200);
       expect(find.textContaining('Synthetic Watch'), findsOneWidget);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       await tester.pump();
@@ -213,6 +224,7 @@ void main() {
     source.errors[HealthDataType.STEPS] = StateError('synthetic');
     await open(tester);
     await tap(tester, 'Bugünün verilerini oku');
+    await tester.scrollUntilVisible(find.text('Adım'), 200);
     expect(find.text('Veri okunamadı. Yeniden deneyin.'), findsOneWidget);
     source.errors.clear();
     await tap(tester, 'Bugünün verilerini oku');
