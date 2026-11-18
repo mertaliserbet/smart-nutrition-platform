@@ -1,5 +1,38 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 19.11.2026 — U4 diyetisyen su okuması ve M4 izni
+
+U4 kullanıcı uygulama onayıyla bağımsız water_logs kategorisi ve gerçek salt
+okunur uzman yolları uygulanır. Kendi WaterLog CRUD/toplam ve hedef API'leri korunur.
+Normatif DTO/izin/örnek/hata ve mobil açılım notu: [21_WATER_LOG_SHARING_CONTRACT.md](21_WATER_LOG_SHARING_CONTRACT.md).
+
+| Yol | İstek / yanıt |
+|---|---|
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs` | page/pageSize zorunlu, from/to opsiyonel açık-offset instant; 200 `{items:WaterLog[],totalCount}`; consumedAt DESC/id ASC |
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs/daily-total` | zorunlu from/to ardışık yerel 00:00 açık-offset instant; 200 `{from,to,totalAmountMl}`; UTC sınırlar, decimal mL |
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs/daily-history` | page/pageSize/from/to/timeZone zorunlu; IANA/UTC bölgesiyle uyuşan 00:00 sınırları, 1–31 yerel gün; 200 `{items:WaterLogDailyTotalResponse[],totalCount}`; gün ASC, totalCount gün sayısı |
+
+Mevcut sayfa 1+/boyut 1–100/int32 offset ve no-body/tekil-bilinen query kuralları
+geçerlidir. from dahil/to hariç, soft delete/başka danışan toplam dışı, yetkili boş
+gün 0. History her ara günün gerçek timezone sınırını üretir; 22–26 saatlik DST
+aralıkları desteklenir; belirsiz/atlanmış gece yarısı/uyumsuz offset/zone/limit 400.
+Tek gün yolu mevcut kendi su toplamı sınır kuralını aynen kullanır; IANA tahmin etmez.
+
+W2 uzman cookie veya mevcut JWT uzman bağlamı; güncel doğrulanmış uzman + kendi
+active ilişkisi + aynı ilişkide açık water_logs her istekte veriyle aynı snapshot.
+İzin eksik/false veya uzman doğrulaması kayıp 403; yabancı/pending/ended ilişki
+404; Admin MFA erişim vermez. Kayıt değiştirme yetkisi yok, yanıt/hata no-store.
+Kişisel su hedefi yok; nutrition_plans/meal_logs/body_measurements/client_tasks
+izinleri değiştirilmez ve suyu açmaz. Ondalık toplam kapasite aşımı 422, altyapı
+hatası 500; hatalarda toplam/sayı verilmez. Diğer ortak hata kodları korunur.
+
+İzin mevcut POST/PATCH/liste/detay sözleşmesidir: danışan aktif kendi ilişkisinde
+POST `{relationshipId,category:"water_logs",isGranted:true}` →201 izin DTO;
+PATCH `/{dataSharingPermissionId}` `{isGranted:false}` →200. Aynı kategori ikinci
+POST 409, dolu consentRecordId 422, uzman yazması 403. `WaterLogsEnabled=false`
+varsayılanı yeni POST/PATCH true'yu 422 yapar; mevcut PATCH false mümkündür.
+M4'ün kategori/çoklu satır ayrıştırıcısı ortak main'de doğrulanınca ortamda açılır.
+
 ## 18.11.2026 — U1 görev API'si (uygulama onaylı)
 
 Kullanıcı U1 ürün ve teknik kararlarını onaylı kabul edip uygulamayı istedi.

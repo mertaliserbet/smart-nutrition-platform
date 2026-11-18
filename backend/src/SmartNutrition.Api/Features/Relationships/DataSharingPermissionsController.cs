@@ -37,6 +37,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
     {
         "meal_logs" => configuration.GetValue<bool>("Relationships:Sharing:MealLogsEnabled"),
         "client_tasks" => configuration.GetValue<bool>("Relationships:Sharing:ClientTasksEnabled"),
+        "water_logs" => configuration.GetValue<bool>("Relationships:Sharing:WaterLogsEnabled"),
         "body_measurements" => environment.IsDevelopment() && configuration.GetValue<bool>("Relationships:Sharing:BodyMeasurementsEnabled"),
         _ => true
     };

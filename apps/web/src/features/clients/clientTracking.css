@@ -130,3 +130,14 @@
   .water-record { flex-wrap: wrap; padding: 16px; gap: 12px; }
   .water-record > .neutral-badge { margin-left: 56px; }
 }
+
+.water-date-filters input { min-height: 44px; }
+.water-day-total { padding: 20px; border-block: 1px solid var(--border); }
+.water-day-total h3 { margin: 0 0 8px; font-size: 14px; }
+.water-day-total strong { color: var(--tone-blue-text); font-size: 26px; overflow-wrap: anywhere; }
+.water-history { display: grid; gap: 20px; padding: 20px; min-width: 0; }
+.water-history-bar { fill: var(--tone-blue-text); }
+.water-history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.water-history-table caption { text-align: left; margin-bottom: 12px; font-weight: 600; }
+.water-history-table th, .water-history-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.water-history-table td { text-align: right; }
