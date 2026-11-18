@@ -154,7 +154,7 @@ describe('read-only client records', () => {
     await user.click(screen.getByRole('link', { name: 'Ölçümler' }))
     expect(screen.getByText('72,1 kg')).toBeVisible()
     expect(screen.getByText('83,1 cm')).toBeVisible()
-    expect(screen.getAllByText('Bilinmiyor')).toHaveLength(3)
+    expect(screen.getAllByText('Bilinmiyor')).toHaveLength(7)
     expect(screen.queryByText('0 %')).not.toBeInTheDocument()
   })
 

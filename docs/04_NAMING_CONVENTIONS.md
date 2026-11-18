@@ -1,5 +1,13 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — M1–M4 diyetisyen ölçüm görünümü onayı
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini
+istedi. `BodyMeasurement` ve mevcut hipCm/chestCm/note dahil alanlar korunur.
+Ek paylaşım kategorisi `body_measurements`; yalnız diyetisyen ölçüm okumasını açar.
+Mevcut yol `GET /api/v1/dietitian/clients/{clientId}/body-measurements` kullanılır;
+yeni model, rota alias'ı veya diyetisyen yazma yetkisi yoktur. `05/06/18` eşgüdümlüdür.
+
 ## 18.11.2026 — Danışanın vücut ölçümleri
 
 Kullanıcının doğrudan göreviyle mevcut `BodyMeasurement` genişletildi:

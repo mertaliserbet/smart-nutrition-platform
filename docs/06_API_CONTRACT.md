@@ -1,5 +1,45 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 18.11.2026 — M1–M4 diyetisyenin gerçek ölçüm okuması
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini
+istedi. Aşağıdaki alt kapsam, önceki yalnız kendi ölçümü/notları ve açık kategori
+ifadelerinin diyetisyen okumasına ilişkin kısmını tamamlar; kendi CRUD korunur.
+
+`GET /api/v1/dietitian/clients/{clientId}/body-measurements`: gövdesiz; zorunlu
+page ≥ 1/pageSize 1–100, isteğe bağlı from/to. Başka/tekrarlı query, Int32 offset
+taşması ve bozuk/ofsetsiz/boş tarih 400. Web açıkça pageSize=10 gönderir.
+measuredAt için `[from,to)`; iki sınır varsa from < to. Sıra measuredAt azalan,
+eşitlikte id artan. Kendi ölçüm listesinin sortOrder parametresi bu uçta yoktur.
+
+Başarı `200 { items, totalCount }`; her item kendi ölçüm CRUD yanıtındaki tam
+id/clientId/measuredAt/weightKg/waistCm/hipCm/chestCm/bodyFatPercent/note/source
+alanlarıdır. Not dahil mevcut nullable değerler korunur. Silinmiş/yabancı satır
+ve sayılar dönmez. Yetkili boş küme items=[]/totalCount=0 olur; izin reddi veya
+altyapı hatası boş kümeye çevrilmez. Günlük özet/grafik/BMI alanı eklenmez.
+
+Mevcut W2 HTTPS cookie veya JWT; her okumada güncel doğrulanmış hesap, onaylı
+DietitianProfile, aktif ilişki ve aynı ilişkide açık `body_measurements` izni
+denetlenir. Onaylı çift profil temel client rolüyle kabul edilir; web uzman
+bağlamındadır. X-Profile-Context tek başına yetki vermez. Oturumsuz 401;
+uygun olmayan/onaysız uzman veya Admin 403; yabancı/olmayan danışan veya aktif
+olmayan ilişki 404; kendi aktif ilişkisinde eksik/false ölçüm izni 403.
+Kimlik/ilişki/izin/sayım/satırlar aynı PostgreSQL snapshot'ındadır. Commit edilmiş
+izin iptali/ilişki bitişinden sonra başlayan okuma kapanır. Ortak hata zarfı,
+no-store ve sağlık değerlerini loglamama korunur. Diyetisyen ölçüm yazamaz;
+danışanın kendi okuması ilişki/izin şartına bağlanmaz.
+
+Mevcut `/data-sharing-permissions` POST/PATCH/GET yolları bu kategoriye de
+uygulanır; alan ve sahiplik kuralları aynı, consentRecordId yalnız null/atlanmış.
+nutrition_plans/meal_logs/body_measurements birbirini açmaz. Yeni dahili
+`Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam adı
+`Relationships__Sharing__BodyMeasurementsEnabled`. Kapalıyken yeni ölçüm izin
+POST'u (true/false) ve PATCH true 422; mevcut satıra PATCH false 200'dür.
+GET mevcut satırları gizlemez/silmez. Bayrak yalnız izin yazma açılımıdır;
+mevcut açık iznin okunmasını engellemez ve danışan onayı yerine geçmez.
+Mobil ayrıştırıcı/kategori/sayfalama uyarlaması ortak main'de doğrulanmadan
+bayrak açılmaz. Bu teslim Flutter'ı değiştirmez; mobil entegrasyon Mert'tedir.
+
 ## 18.11.2026 — Danışanın kendi kilo ve vücut ölçümleri
 
 Kullanıcı göreviyle mevcut BodyMeasurement yolları uygulandı. Yalnız JWT
