@@ -1,7 +1,7 @@
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
 > **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
-> **Sürüm:** 1.1 · **Hazırlanma:** 18.11.2026 · **U1 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
+> **Sürüm:** 1.2 · **Hazırlanma:** 18.11.2026 · **U2 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
 ## 1. Bu dokümanın amacı ve geçerliliği
@@ -51,7 +51,7 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 | ID | Görev | Başlama koşulu / teslim ölçütü | İzinli kod alanı |
 |---|---|---|---|
 | **M1** | Health Connect / HealthKit izin ve okuma altyapısı | **Hemen başlanabilir.** Desteklenen cihaz/veri türlerini incele, izin akışını kur; adım, mesafe, egzersiz, aktif kalori ve desteklenen nabız okumayı ele al. İzin reddi/veri yok/uyumsuz platform doğru gösterilsin. **Backend'e henüz dokunma.** | `mobile/**` |
-| **M2** | Flutter görev yönetimi | **U1 görev API'si ortak dala birleştirilmiş ve sözleşme paylaşılmış olmalı.** Atanan görev listesi, detay, desteklenen durum geçişleri, son tarih, tamamlama ve geçmiş gerçek API'de çalışsın. | `mobile/**` |
+| **M2** | Flutter görev yönetimi | **Ortak main'e d14576f ile alındı.** Atanan görev listesi/detay, durum geçişleri, son tarih/tamamlama/geçmiş ve client_tasks izin desteği mevcut. Uğur'un U2 oturumunda Flutter canlı doğrulaması yapılmadı; ortak web–Flutter provası ayrıca tamamlanır. | `mobile/**` |
 | **M3** | Sağlık verisi API senkronizasyonu + aktivite ekranı | **U3 sağlık veri API'si birleştirilmiş olmalı.** İzinli kayıtları güvenle senkronize et; çoğaltma yapma; gerçek günlük özet, son senkronizasyon ve hata/boş durumları göster. | `mobile/**` |
 | **M4** | Bağımsız `water_logs` paylaşım izni | **U4 izin kategorisi/API hazır ve birleştirilmiş olmalı.** İzin ver/geri al; `nutrition_plans`, `meal_logs`, `body_measurements` izinlerini değiştirme. | `mobile/**` |
 | **M5** | Mobil şifre sıfırlama entegrasyonu | Mevcut reset backend sözleşmesini doğrula; gerçek API'yle parola sıfırlama ekranını tamamla; eski oturumların sonlanmasını test et. | `mobile/**` |
@@ -63,8 +63,8 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 
 | ID | Görev | Başlama koşulu / teslim ölçütü | İzinli kod alanı |
 |---|---|---|---|
-| **U1** | Görev sistemi API + PostgreSQL | **Backend uygulandı; ortak main entegrasyonu bekler.** Kullanıcı U1 ürün/teknik kararlarını onaylı kabul edip uygulamayı yetkilendirdi. ClientTask API, bağımsız izin, durum/geçmiş/eşzamanlılık, veri koruyan migration ve testler hazır; kesin sözleşme `04/05/06`. Flutter/React ayrı görevdir. | `backend/**`, ilgili `docs/**` |
-| **U2** | React görev atama ve takip | **U1'e dayanır.** Diyetisyen danışana görev atasın, liste/detay/durum ve değişiklikleri gerçek API'den görsün. | `apps/web/**` |
+| **U1** | Görev sistemi API + PostgreSQL | **PR #14 ile ortak main'e alındı (4a1cab4).** ClientTask API, bağımsız izin, durum/geçmiş/eşzamanlılık, veri koruyan migration ve testler hazır; kesin sözleşme `04/05/06`. Uygulama DB'sine migration ayrıca koordineli uygulanır. | `backend/**`, ilgili `docs/**` |
+| **U2** | React görev atama ve takip | **Uygulandı/doğrulandı; ortak main entegrasyonu bekler.** Gerçek danışan çalışma alanında atama, liste/detay, düzenleme/iptal, geçmiş, 409 ve izin/ilişki kaybı. Mevcut API korunur; test sonuçları aşağıda. PR tabanı mobil M2'yi içeren d14576f'tir; Flutter canlı provası ayrıca yapılır. | `apps/web/**`, ilgili backend testleri ve docs |
 | **U3** | Sağlık verisi API + PostgreSQL | **U1 migration'ı birleştirildikten sonra.** Mert ile birim/tarih/kaynak/tekrar kayıt/izin sözleşmesini onayla; yalnız danışanın kendi verileri için güvenli kayıt/okuma/senkronizasyon API'si ve testlerini geliştir. | `backend/**`, ilgili `docs/**` |
 | **U4** | Diyetisyen su görüntüleme | U3 ile migration çakışmayacak sırada: bağımsız `water_logs` izni varsayılan kapalı, onaylı uzman+aktif ilişki+izin okuma API'si; gerçek su günlük toplam/geçmiş React ekranı. | `backend/**`, `apps/web/**`, `docs/**` |
 | **U5** | React şifre sıfırlama entegrasyonu | Var olan reset backend'ini koruyarak web formlarını gerçek API'ye bağla, Mailpit ile doğrula; Admin MFA'yı koru. | `apps/web/**` |
@@ -90,6 +90,17 @@ Uygulama DB migration'ı ve mobil/web uçtan uca prova yapılmadı. Sonraki tek
 adım geliştiricilerin U1'i ortak main'e entegre edip M2 için bu sözleşmeyi paylaşmasıdır.
 
 ## 5. Toplantı dışından kalan ama unutulmayacak işler
+
+**U2 teslim kaydı — 19.11.2026:** U2 kullanıcı onayıyla gerçek U1 API'sine
+bağlandı; yeni endpoint/DTO/model/migration yok. 29 görev React/DTO testi dahil
+tam web koşusu 282 başarılı / 3 opt-in atlandı; gerçek HTTPS+ayrı PostgreSQL
+görev canlı testi ayrıca geçti. İlgili görev/izin/ilişki API testleri 49/49;
+web build/lint ve backend build başarılı. Webden atama→danışan API oturumuyla
+tamamlama→webden güncel durum/geçmiş okuma, 409, düzenleme/iptal, izin geri
+çekme ve ilişki sonu canlı ağ üzerinden doğrulandı. Bu React DOM testidir,
+tarayıcı görsel veya Flutter testi değildir. PR hazırlığında Flutter M2 d14576f
+ile ortak main'den alındı; Flutter testi yapılmadı. ClientTasksEnabled varsayılan
+false korunur. U3 başlatılmadı, uygulama DB migration'ı yapılmadı.
 
 - `water_logs` izninin mobil/web/API uçtan uca doğrulanması (**M4 + U4**).
 - Flutter ve React parola sıfırlama ekranlarının gerçek API'ye bağlanması (**M5 + U5**); şifre sıfırlama backend'i daha önce tamamlandı.

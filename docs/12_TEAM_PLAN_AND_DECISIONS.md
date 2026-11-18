@@ -1,5 +1,35 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 19.11.2026 — U2 React görev atama ve takip teslimi
+
+Kullanıcı U2 için gerekli ortak izin/ürün/teknik kararları onaylı kabul ederek
+uygulamayı istedi. U1, PR #14 ile ortak main'e alınmış ve checkout 4a1cab4 ile
+eşitlenmişti. Bu görevde Git fetch/pull/commit/push/dal değişikliği yapılmadı.
+
+Mevcut gerçek danışan çalışma alanına ClientTaskPanel, U1 DTO doğrulayıcısı,
+yerel son tarihli atama/düzenleme formu, iptal onayı ve sayfalı snapshot geçmişi
+eklendi. 409 taslağı korur, güncel sürümü getirir ve açık yeniden başlatma ister;
+403/404 görev içeriği/formunu kaldırır. Görünür sekmede 30 sn/fokus/elle yenileme
+danışan durum değişikliklerini okur. Varsayılan kapalı görev izin ayarı ve diğer
+kategoriler korunur; uzman danışan adına izin açmaz veya görev tamamlamaz.
+
+`04/05/06` değişmedi; backend üretim kodu/model/migration değişmedi. Yalnız ek
+PostgreSQL entegrasyon testi web cookie atama→danışan bearer tamamlama→uzman
+güncel okuma/geçmiş/izin iptalini doğrular. Flutter/kök dosyaları değişmedi.
+U3 başlatılmadı. Ekran davranışı `08`, tekrar koşma notları web README'dedir.
+
+**Doğrulama:** 29 görev React/DTO testi dahil tam web koşusu 282 başarılı,
+3 opt-in canlı test atlandı. Yeni canlı görev testi ayrıca gerçek HTTPS API ve
+ayrı PostgreSQL 17.11'de çalıştırılıp geçti. Build ve lint başarılı,
+lint uyarısı yok. İlgili görev/izin/ilişki API testleri 49/49; backend build
+0 uyarı/hata. Uygulama DB'sine migration uygulanmadı.
+
+**Sınır:** Canlı web doğrulaması gerçek ağ/API/DB kullanan React DOM testidir;
+tarayıcı görsel provası değildir. U2 doğrulaması sırasında Flutter M2 henüz
+checkout'ta bulunmuyordu. PR hazırlığında ortak main'in yalnız mobil M2 içeren
+d14576f sürümü taban alındı; Flutter üzerinden görev tamamlama denenmedi. Mobil uyum
+doğrulanmadan ortak ortamın ClientTasksEnabled ayarı açılmaz.
+
 ## 18–19.11.2026 — U1 görev sistemi uygulama onayı ve teslim
 
 Kullanıcı U1 için gerekli ürün/teknik kararların onaylı kabul edilmesini,
