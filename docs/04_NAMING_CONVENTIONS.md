@@ -1,5 +1,13 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — Danışanın vücut ölçümleri
+
+Kullanıcının doğrudan göreviyle mevcut `BodyMeasurement` genişletildi:
+ek nullable alanlar `hipCm` (kalça), `chestCm` (göğüs), `note`.
+Mevcut `weightKg`, `waistCm`, `bodyFatPercent`, `measuredAt`, `source`
+adları korunur. Tablo `body_measurements`; DTO kökü `BodyMeasurement` ve
+kanonik rota `/api/v1/body-measurements` değişmez. Diyetisyen erişimi açılmaz.
+
 ## 17.11.2026 — Kişisel günlük beslenme hedefleri
 
 Kullanıcının doğrudan backend göreviyle programsız kişisel hedef saklama ve

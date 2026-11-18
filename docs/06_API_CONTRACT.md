@@ -1,5 +1,38 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 18.11.2026 — Danışanın kendi kilo ve vücut ölçümleri
+
+Kullanıcı göreviyle mevcut BodyMeasurement yolları uygulandı. Yalnız JWT
+bearer; sahiplik sub → User → ClientProfile'dan çözülür. `clientId` gövde
+veya query'de kabul edilmez. `X-Profile-Context: client` ve çift profilli
+hesabın kendi danışan bağlamı desteklenir; diyetisyen/Admin/cookie erişimi
+açılmaz. Danışanın kendi erişimi diyetisyen ilişkisine/iznine bağlı değildir.
+
+| İşlem | Sözleşme |
+|---|---|
+| `POST /api/v1/body-measurements` | Zorunlu `measuredAt`, `source: manual`; nullable/opsiyonel `weightKg`, `waistCm`, `hipCm`, `chestCm`, `bodyFatPercent`, `note`. 201 BodyMeasurement + Location |
+| `GET /api/v1/body-measurements` | Zorunlu page ≥ 1/pageSize 1–100; isteğe bağlı açık UTC/ofsetli from/to ve sortOrder=asc/desc (varsayılan desc). Int32 offset taşması, bilinmeyen/tekrarlanan query 400. 200 `{ items, totalCount }` |
+| `GET /api/v1/body-measurements/{bodyMeasurementId}` | Kendi silinmemiş kaydı, 200 BodyMeasurement |
+| `PATCH /api/v1/body-measurements/{bodyMeasurementId}` | Zaman/ölçüm/not alanları; atlanan korunur, nullable açık null temizlenir. measuredAt null ve son ölçümün temizlenmesi 422; boş nesne 400. source/kimlik/sahiplik değiştirilemez |
+| `DELETE /api/v1/body-measurements/{bodyMeasurementId}` | Gövdesiz, mantıksal silme; boş 204. Sonraki GET/PATCH/DELETE 404 |
+
+Yanıt `id`, `clientId`, `measuredAt`, `source` ve tüm nullable ölçüm/not
+alanlarını içerir; null sıfıra dönüştürülmez. En az bir ölçüm zorunludur;
+kg/cm > 0, bodyFatPercent 0–100, not en çok 2000 Unicode karakter ve NUL
+içeremez. Geçersiz değer 422; yanlış JSON türü/alanı veya ofsetsiz tarih
+400; ortak hata zarfı korunur. Tüm değerler decimal/numeric'tir; yeni bir
+klinik üst sınır veya yuvarlama kuralı seçilmez. Bu aşamada yalnız manual
+kaynak oluşturulur; giyilebilir/AI senkronizasyonu uygulanmış sayılmaz.
+
+Tarih filtresi measuredAt üzerinde `[from,to)`; ikisi varsa from < to.
+UTC mikro-saniye saklanır. Varsayılan measuredAt azalan, eşitlikte id artan;
+grafikler `sortOrder=asc` ile measuredAt/id artan sayfaları tüketir. Ayrı
+grafik endpointi veya günlük toplam yoktur. Sayım ve satırlar aynı PostgreSQL
+snapshot'ından gelir. PATCH/DELETE aynı kayıt satırını kilitler. Silinen
+kayıt normal okumalardan çıkar; kalıcı saklama/purge politikası belirlenmez.
+Başka danışanın kayıtları 404, oturumsuz 401, uygun olmayan profil 403;
+yanıtlar no-store'dur. Diyetisyen paylaşım kategorisi/rotası bu teslimde açılmaz.
+
 ## 17.11.2026 — Danışanın kişisel günlük beslenme hedefleri
 
 Kullanıcının doğrudan backend göreviyle kişisel hedefler NutritionPlan'dan
@@ -493,7 +526,7 @@ Aşağıdaki POST alanlarında `?` isteğe bağlı/nullable alanı gösteren dok
 |---|---|---|
 | `MealLog` | `mealType`, `consumedAt`, `source`, `items`; opsiyonel `note`, `foodAnalysisId`. Her item: `displayName`, `isEstimated`; nullable `foodItemId`, `recipeId`, `quantityGrams`, `caloriesKcal`, `proteinGrams`, `carbsGrams`, `fatGrams` | `201/200`: `id`, `clientId`, `mealType`, `consumedAt`, `note`, `source`, `foodAnalysisId`, `createdAt`, `items`. Item yanıtında ayrıca `id`, `mealLogId`. En az bir item; gram/kcal/makro kuralları `05`e uyar; tüm referanslar yetkili kaynaklara ait olmalı |
 | `WaterLog` | `amountMl`, `consumedAt`, `source`; PATCH yalnız miktar/zaman | `201/200`: `id`, `clientId`, `amountMl`, `consumedAt`, `source`. Miktar pozitif decimal/mL; sıfır/negatif `422` |
-| `BodyMeasurement` | `measuredAt`, `source`; nullable `weightKg`, `waistCm`, `bodyFatPercent`. PATCH zaman ve ölçümleri düzeltir | `201/200`: `id`, `clientId` ve aynı ölçüm alanları/source. Son durumda en az bir ölçüm; kg/cm pozitif, yüzde 0–100; aksi `422` |
+| `BodyMeasurement` | `measuredAt`, `source`; nullable `weightKg`, `waistCm`, `hipCm`, `chestCm`, `bodyFatPercent`, `note`. PATCH zaman/ölçüm/not alanlarını düzeltir | `201/200`: `id`, `clientId` ve aynı ölçüm/not/source alanları. Son durumda en az bir ölçüm; kg/cm pozitif, yüzde 0–100; aksi `422`. 18.11.2026 kullanıcı göreviyle kalça/göğüs/not eklendi |
 | `ActivityLog` | Manuel girişte `activityType`, `startedAt`, `source: manual`; nullable `durationMinutes`, `distanceKm`, `caloriesKcal`. PATCH tür/zaman/ölçümleri düzeltir | `201/200`: `id`, `clientId`, giriş alanları, nullable `externalRecordId`, `wearableConnectionId`. Dakika/km/kcal negatif olamaz; aktif/toplam enerji anlamı **AÇIK**tır |
 | `LabReport` | `collectedAt`, `results`; nullable `labName`, `note`. Her result: `testName`, `value`, `unit`; nullable `testCode`, `referenceLow`, `referenceHigh`. PATCH aynı alanları düzeltir | `201/200`: `id`, `clientId`, `collectedAt`, `labName`, `note`, `createdAt`, `results`; her result ayrıca `id`, `labReportId`, sunucunun hesapladığı `flag`. En az bir result; bilinen iki sınırda low <= high; eksik/uyumsuz referans `unknown` |
 

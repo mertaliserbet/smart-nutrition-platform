@@ -299,6 +299,72 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.BodyMeasurements.BodyMeasurement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<decimal?>("BodyFatPercent")
+                        .HasColumnType("numeric")
+                        .HasColumnName("body_fat_percent");
+
+                    b.Property<decimal?>("ChestCm")
+                        .HasColumnType("numeric")
+                        .HasColumnName("chest_cm");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<decimal?>("HipCm")
+                        .HasColumnType("numeric")
+                        .HasColumnName("hip_cm");
+
+                    b.Property<DateTimeOffset>("MeasuredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("measured_at");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("source");
+
+                    b.Property<decimal?>("WaistCm")
+                        .HasColumnType("numeric")
+                        .HasColumnName("waist_cm");
+
+                    b.Property<decimal?>("WeightKg")
+                        .HasColumnType("numeric")
+                        .HasColumnName("weight_kg");
+
+                    b.HasKey("Id")
+                        .HasName("pk_body_measurements");
+
+                    b.HasIndex("ClientId", "MeasuredAt", "Id")
+                        .HasDatabaseName("ix_body_measurements_client_measured_id")
+                        .HasFilter("deleted_at IS NULL");
+
+                    b.ToTable("body_measurements", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_body_measurements_note", "note IS NULL OR char_length(note) <= 2000");
+
+                            t.HasCheckConstraint("ck_body_measurements_present", "weight_kg IS NOT NULL OR waist_cm IS NOT NULL OR hip_cm IS NOT NULL OR chest_cm IS NOT NULL OR body_fat_percent IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_body_measurements_source", "source IN ('manual','wearable','ai_assisted')");
+
+                            t.HasCheckConstraint("ck_body_measurements_values", "(weight_kg IS NULL OR (weight_kg > 0 AND weight_kg < 'Infinity'::numeric)) AND (waist_cm IS NULL OR (waist_cm > 0 AND waist_cm < 'Infinity'::numeric)) AND (hip_cm IS NULL OR (hip_cm > 0 AND hip_cm < 'Infinity'::numeric)) AND (chest_cm IS NULL OR (chest_cm > 0 AND chest_cm < 'Infinity'::numeric)) AND (body_fat_percent IS NULL OR body_fat_percent BETWEEN 0 AND 100)");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Dietitians.AuditEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -869,6 +935,16 @@ namespace SmartNutrition.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_refresh_tokens_users_user_id");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.BodyMeasurements.BodyMeasurement", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_body_measurements_client_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Dietitians.AuditEvent", b =>
