@@ -58,6 +58,18 @@
 .record-note { display: flex; align-items: flex-start; gap: 8px; padding: 13px 20px; background: var(--surface-page); color: var(--text-secondary); font-size: 11px; }
 .record-note .icon { width: 15px; height: 15px; margin-top: 2px; }
 .record-footnote { font-size: 11px; color: var(--text-secondary); line-height: 1.8; }
+.meal-comments { padding: 16px 20px; border-top: 1px solid var(--border); }
+.meal-comments h4 { margin: 18px 0 12px; }
+.meal-comments form { display: grid; gap: 8px; margin: 16px 0; }
+.meal-comments textarea { width: 100%; box-sizing: border-box; padding: 12px; resize: vertical; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-primary); font: inherit; }
+.meal-comment-list { list-style: none; margin: 0; padding: 0; }
+.meal-comment-list li { padding: 14px 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.meal-comment-list time { display: block; color: var(--text-secondary); font-size: 11px; margin-top: 5px; }
+.meal-comment-list .meal-comment-reply { margin-left: 16px; padding-left: 12px; border-left: 2px solid var(--border); }
+.meal-comment-text, .meal-comment-list blockquote { white-space: pre-wrap; overflow-wrap: anywhere; }
+.meal-comment-list blockquote { margin: 12px 0; padding: 8px; color: var(--text-secondary); background: var(--surface-page); }
+.meal-comment-context { color: var(--text-secondary); font-size: 12px; }
+.meal-comment-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
 .water-record { display: flex; align-items: center; gap: 16px; padding: 20px; border: 1px solid var(--border); border-radius: 10px; }
 .water-record > div { min-width: 0; }
 .water-record strong { display: block; font-size: 22px; font-weight: 550; margin-bottom: 6px; }

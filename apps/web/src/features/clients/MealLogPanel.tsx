@@ -5,6 +5,7 @@ import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { MealLogList } from './ClientRecordViews'
 import { getMealLogs } from './mealLogApi'
+import { MealLogComments } from './MealLogComments'
 import './clientTracking.css'
 
 export function MealLogPanel({ clientId }: { clientId: string }) {
@@ -16,6 +17,8 @@ function MealLogContent({ clientId }: { clientId: string }) {
   const [range, setRange] = useState<{ from?: string; to?: string }>({})
   const [page, setPage] = useState(1)
   const [error, setError] = useState('')
+  const [accessError, setAccessError] = useState('')
+  const denied = useCallback((error: WebSessionError) => setAccessError(error.message), [])
   const load = useCallback(async (signal: AbortSignal) => {
     try { return { kind: 'ready' as const, ...await getMealLogs(clientId, page, range, signal) } }
     catch (error) {
@@ -58,17 +61,18 @@ function MealLogContent({ clientId }: { clientId: string }) {
     </form>
     {state.pending && <p className="panel-feedback" role="status">Öğünler okunuyor…</p>}
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
+    {accessError && <p className="panel-feedback error-message" role="alert">{accessError}</p>}
     {state.data?.kind === 'denied' && <p className="panel-feedback" role="alert">{state.data.message}</p>}
-    {state.data?.kind === 'ready' && <>
+    {state.data?.kind === 'ready' && !accessError && <>
       {state.data.items.length === 0
         ? <EmptyState icon="leaf" title={range.from || range.to ? 'Bu aralıkta öğün kaydı yok' : 'Henüz öğün kaydı yok'}>Başka bir tarih aralığı seçebilir veya öğünleri yenileyebilirsiniz.</EmptyState>
-        : <MealLogList clientId={clientId} records={state.data.items} />}
+        : <MealLogList clientId={clientId} records={state.data.items} renderComments={meal => <MealLogComments mealLogId={meal.id} onAccessDenied={denied} />} />}
       <div className="meal-preview-pagination">
         <button className="button button-secondary" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Önceki öğün sayfası</button>
         <p role="status">{state.data.totalCount} öğün · Sayfa {page}</p>
         <button className="button button-secondary" disabled={page * 10 >= state.data.totalCount} onClick={() => setPage(value => value + 1)}>Sonraki öğün sayfası</button>
       </div>
     </>}
-    <div className="panel-actions"><button className="button button-secondary" disabled={state.pending} onClick={refresh}>Öğünleri yenile</button></div>
+    <div className="panel-actions"><button className="button button-secondary" disabled={state.pending} onClick={() => { setAccessError(''); refresh() }}>Öğünleri yenile</button></div>
   </section>
 }

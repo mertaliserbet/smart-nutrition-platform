@@ -1,5 +1,6 @@
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
+import type { ReactNode } from 'react'
 import type { ActivityLog, BodyMeasurement, LabFlag, LabReport, LabResult, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
 
 const sourceLabels: Record<RecordSource, string> = {
@@ -23,8 +24,8 @@ function RecordTime({ at }: { at: string }) {
   return <time dateTime={at}><Icon name="clock" />{dateFormatter.format(new Date(at))}</time>
 }
 
-export function MealLogList({ clientId, records, page }: {
-  clientId: string; records: MealLog[]; page?: { number: number; size: number }
+export function MealLogList({ clientId, records, page, renderComments }: {
+  clientId: string; records: MealLog[]; page?: { number: number; size: number }; renderComments?: (record: MealLog) => ReactNode
 }) {
   const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => {
     const milliseconds = Date.parse(b.consumedAt) - Date.parse(a.consumedAt)
@@ -53,6 +54,7 @@ export function MealLogList({ clientId, records, page }: {
         </li>)}
       </ul>
       {record.note && <p className="record-note"><Icon name="info" />{record.note}</p>}
+      {renderComments?.(record)}
     </article>)}
     <p className="record-footnote">Tahmini değerler kesin ölçüm değildir. Diyetisyen görünümü danışanın tüketim kayıtlarını değiştirmez.</p>
   </div>
