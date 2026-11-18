@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../nutrition/nutrition_plan_api.dart';
 import 'dashboard_data.dart';
 import 'dashboard_widgets.dart';
+import '../personal_nutrition_targets/personal_nutrition_target_api.dart';
+import '../personal_nutrition_targets/target_progress.dart';
 
 class DashboardLiveCards {
   static List<Widget> _state<T>(AsyncSnapshot<T> snapshot, String subject) {
@@ -24,6 +26,9 @@ class DashboardLiveCards {
     AsyncSnapshot<DashboardMeals> meals,
     AsyncSnapshot<NutritionPlanResponse?> plan,
     VoidCallback retry,
+    AsyncSnapshot<PersonalNutritionTargetResponse> targets,
+    VoidCallback retryTargets,
+    VoidCallback editTargets,
   ) => DashboardCard(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -45,25 +50,34 @@ class DashboardLiveCards {
         ] else
           ..._state(meals, 'Öğünler'),
         const SizedBox(height: 8),
-        if (plan.connectionState == ConnectionState.done && !plan.hasError)
-          Text(
-            plan.data?.dailyCaloriesTargetKcal == null
-                ? 'Henüz hedef belirlenmedi'
-                : 'Program hedefi: ${dashboardNumber(plan.data!.dailyCaloriesTargetKcal!)} kcal',
-          )
-        else if (plan.connectionState == ConnectionState.waiting)
-          const Text('Hedef bilgisi yükleniyor…')
-        else if (plan.hasError)
-          const Text('Hedef bilgisi alınamadı.'),
-        if (meals.hasError)
-          TextButton(
-            onPressed: retry,
-            child: const Text('Öğünleri yenile'),
+        NutritionTargetProgress(
+          target: EffectiveNutritionTarget.resolve(
+            'dailyCaloriesTargetKcal',
+            targets,
+            plan: plan,
           ),
+          unit: 'kcal',
+          consumed: meals.data?.calories.value,
+          complete: meals.data?.calories.missing == 0,
+        ),
+        TextButton(
+          onPressed: editTargets,
+          child: const Text('Günlük hedeflerim'),
+        ),
+        if (targets.hasError)
+          TextButton(
+            onPressed: retryTargets,
+            child: const Text('Hedefleri yenile'),
+          ),
+        if (meals.hasError)
+          TextButton(onPressed: retry, child: const Text('Öğünleri yenile')),
       ],
     ),
   );
-  static Widget macros(AsyncSnapshot<DashboardMeals> meals) => DashboardCard(
+  static Widget macros(
+    AsyncSnapshot<DashboardMeals> meals,
+    AsyncSnapshot<PersonalNutritionTargetResponse> targets,
+  ) => DashboardCard(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -74,8 +88,35 @@ class DashboardLiveCards {
         const SizedBox(height: 12),
         if (meals.hasData) ...[
           Text('Protein: ${meals.data!.protein.label('g')}'),
+          NutritionTargetProgress(
+            target: EffectiveNutritionTarget.resolve(
+              'dailyProteinTargetGrams',
+              targets,
+            ),
+            unit: 'g',
+            consumed: meals.data!.protein.value,
+            complete: meals.data!.protein.missing == 0,
+          ),
           Text('Karbonhidrat: ${meals.data!.carbs.label('g')}'),
+          NutritionTargetProgress(
+            target: EffectiveNutritionTarget.resolve(
+              'dailyCarbsTargetGrams',
+              targets,
+            ),
+            unit: 'g',
+            consumed: meals.data!.carbs.value,
+            complete: meals.data!.carbs.missing == 0,
+          ),
           Text('Yağ: ${meals.data!.fat.label('g')}'),
+          NutritionTargetProgress(
+            target: EffectiveNutritionTarget.resolve(
+              'dailyFatTargetGrams',
+              targets,
+            ),
+            unit: 'g',
+            consumed: meals.data!.fat.value,
+            complete: meals.data!.fat.missing == 0,
+          ),
           if ([
             meals.data!.protein,
             meals.data!.carbs,
@@ -85,7 +126,6 @@ class DashboardLiveCards {
         ] else
           ..._state(meals, 'Öğünler'),
         const SizedBox(height: 8),
-        const Text('Makro hedefleri: Henüz hedef belirlenmedi'),
       ],
     ),
   );
@@ -124,10 +164,7 @@ class DashboardLiveCards {
         ] else
           ..._state(snapshot, 'Program'),
         if (snapshot.hasError)
-          TextButton(
-            onPressed: retry,
-            child: const Text('Programı yenile'),
-          ),
+          TextButton(onPressed: retry, child: const Text('Programı yenile')),
         FilledButton.tonal(
           onPressed: open,
           child: const Text('Beslenmeye göz at', textAlign: TextAlign.center),
@@ -165,10 +202,7 @@ class DashboardLiveCards {
             ),
         ] else
           ..._state(meals, 'Öğünler'),
-        TextButton(
-          onPressed: open,
-          child: const Text('Öğün geçmişi'),
-        ),
+        TextButton(onPressed: open, child: const Text('Öğün geçmişi')),
       ],
     ),
   );

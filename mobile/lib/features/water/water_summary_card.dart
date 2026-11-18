@@ -4,6 +4,7 @@ import '../auth/auth_session.dart';
 import '../home/dashboard_widgets.dart';
 import 'water_log_api.dart';
 import 'water_log_form_page.dart';
+import '../personal_nutrition_targets/target_progress.dart';
 
 class WaterHistoryPage extends StatelessWidget {
   const WaterHistoryPage({this.api, this.now = DateTime.now, super.key});
@@ -23,9 +24,11 @@ class WaterSummaryCard extends StatefulWidget {
     this.active = true,
     this.refreshRevision = 0,
     this.showHistory = false,
+    this.target,
     super.key,
   });
   final WaterLogApi? api;
+  final EffectiveNutritionTarget? target;
   final DateTime Function() now;
   final bool active, showHistory;
   final int refreshRevision;
@@ -269,6 +272,12 @@ class _WaterSummaryCardState extends State<WaterSummaryCard>
             ),
           ),
         if (_total == 0) const Text('Bugün henüz su kaydınız yok.'),
+        if (widget.target != null)
+          NutritionTargetProgress(
+            target: widget.target!,
+            unit: 'mL',
+            consumed: _total,
+          ),
         Wrap(
           spacing: 8,
           runSpacing: 4,

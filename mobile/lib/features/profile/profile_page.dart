@@ -28,6 +28,12 @@ class ProfilePage extends StatelessWidget {
             icon: const Icon(Icons.person_search_outlined),
             label: const Text('Diyetisyen Bul', textAlign: TextAlign.center),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed('/personal-nutrition-targets'),
+            child: const Text('Günlük hedeflerim'),
+          ),
         ],
       ),
     );

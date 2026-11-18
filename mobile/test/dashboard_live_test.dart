@@ -12,6 +12,8 @@ import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
 import 'package:smart_nutrition_mobile/features/water/water_log_api.dart';
 import 'water_test_support.dart';
+import 'personal_target_test_support.dart';
+import 'package:smart_nutrition_mobile/features/personal_nutrition_targets/personal_nutrition_target_api.dart';
 
 MealLog meal({
   num? calories = 125,
@@ -74,12 +76,14 @@ void main() {
   late _Meals meals;
   late _Plans plans;
   late WaterTestApi water;
+  late TargetTestApi targets;
   late DateTime now;
   setUp(() {
     session = WaterTestSession();
     meals = _Meals(session);
     plans = _Plans(session);
     water = WaterTestApi(session);
+    targets = TargetTestApi(session);
     now = DateTime(2026, 11, 17, 12);
   });
   tearDown(() => session.dispose());
@@ -102,6 +106,7 @@ void main() {
                   onViewNutrition: () {},
                   mealApi: meals,
                   planApi: plans,
+                  targetApi: targets,
                   waterApi: water,
                   now: () => now,
                   active: active,
@@ -212,7 +217,7 @@ void main() {
       expect(find.text('0 kcal'), findsNothing);
       expect(find.text('0 mL'), findsNothing);
       expect(find.text('Henüz hedef belirlenmedi'), findsNothing);
-      expect(find.text('Hedef bilgisi alınamadı.'), findsOneWidget);
+      expect(find.text('Hedef bilgisi alınamadı.'), findsWidgets);
       meals.result = null;
       plans.result = null;
       water.pendingTotal = null;
@@ -246,11 +251,15 @@ void main() {
           onViewNutrition: () => opened = true,
           mealApi: meals,
           planApi: plans,
+          targetApi: targets,
           waterApi: water,
           now: () => now,
         ),
       );
-      expect(find.text('Program hedefi: 1800 kcal'), findsOneWidget);
+      expect(
+        find.text('Hedef: 1800 kcal · Kaynak: Diyetisyen programı'),
+        findsOneWidget,
+      );
       expect(find.text('Gerçek API programı'), findsOneWidget);
       expect(find.text('Programdaki su hedefi: 2100 mL'), findsOneWidget);
       expect(
@@ -268,6 +277,8 @@ void main() {
       final previousMeals = Completer<List<MealLog>>();
       final previousPlan = Completer<NutritionPlanResponse?>();
       final previousWater = Completer<num>();
+      final previousTargets = Completer<PersonalNutritionTargetResponse>();
+      targets.pendingRead = previousTargets.future;
       meals.result = previousMeals.future;
       plans.result = previousPlan.future;
       water.pendingTotal = previousWater.future;
@@ -275,6 +286,7 @@ void main() {
       meals.result = null;
       plans.result = null;
       water.pendingTotal = null;
+      targets.pendingRead = null;
       session.changeOwner();
       await tester.pumpAndSettle();
       previousMeals.complete([
@@ -282,6 +294,9 @@ void main() {
       ]);
       previousPlan.complete(null);
       previousWater.complete(999);
+      previousTargets.complete(
+        const PersonalNutritionTargetResponse(dailyCaloriesTargetKcal: 999),
+      );
       await tester.pumpAndSettle();
       expect(find.textContaining('999'), findsNothing);
       expect(find.textContaining('Önceki kullanıcının'), findsNothing);
@@ -304,6 +319,58 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('0 kcal'), findsOneWidget);
       expect(find.text('0 mL'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'personal goals compare actual consumption and saving refreshes Dashboard',
+    (tester) async {
+      meals.rows = [meal()];
+      water.total = 500;
+      targets.value = const PersonalNutritionTargetResponse(
+        dailyCaloriesTargetKcal: 500,
+        dailyProteinTargetGrams: 40,
+        dailyCarbsTargetGrams: 80,
+        dailyFatTargetGrams: 20,
+        dailyWaterTargetMl: 2000,
+      );
+      await pump(tester);
+      expect(find.text('125 / 500 kcal · %25'), findsOneWidget);
+      expect(find.text('500 / 2000 mL · %25'), findsOneWidget);
+      expect(find.text('Hedef: 40 g · Kaynak: Kişisel hedef'), findsOneWidget);
+      expect(
+        tester
+            .widgetList<LinearProgressIndicator>(
+              find.byType(LinearProgressIndicator),
+            )
+            .map((w) => w.value),
+        everyElement(.25),
+      );
+      await tap(tester, 'Günlük hedeflerim');
+      await tester.enterText(
+        find.byKey(const ValueKey('dailyCaloriesTargetKcal')),
+        '1000',
+      );
+      await tap(tester, 'Hedefleri kaydet');
+      expect(targets.writes.single, {'dailyCaloriesTargetKcal': 1000});
+      expect(find.text('125 / 1000 kcal · %12,5'), findsOneWidget);
+      expect(targets.reads, greaterThanOrEqualTo(3));
+    },
+  );
+  testWidgets(
+    'failed target read is never no target and explicit retry recovers progress',
+    (tester) async {
+      targets.readFailure = const PersonalNutritionTargetApiException(
+        'Sentetik hedef hatası',
+      );
+      await pump(tester);
+      expect(find.text('Hedef bilgisi alınamadı.'), findsWidgets);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      targets.readFailure = null;
+      targets.value = const PersonalNutritionTargetResponse(
+        dailyWaterTargetMl: 2000,
+      );
+      await tap(tester, 'Hedefleri yenile');
+      expect(find.text('0 / 2000 mL · %0'), findsOneWidget);
     },
   );
   testWidgets(

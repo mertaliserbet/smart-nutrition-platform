@@ -247,6 +247,12 @@ class _NutritionPageState extends State<NutritionPage>
                       'Kaydettiğiniz öğünleri geçmişinizden inceleyebilir, düzenleyebilir ve silebilirsiniz.',
                     ),
                     const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pushNamed('/personal-nutrition-targets'),
+                      child: const Text('Günlük hedeflerim'),
+                    ),
                     FilledButton.icon(
                       onPressed: () async {
                         final saved = await Navigator.of(context).push<bool>(

@@ -10,6 +10,9 @@ import '../nutrition/nutrition_plan_api.dart';
 import '../water/water_log_api.dart';
 import '../water/water_log_form_page.dart';
 import '../water/water_summary_card.dart';
+import '../personal_nutrition_targets/personal_nutrition_target_api.dart';
+import '../personal_nutrition_targets/personal_nutrition_target_page.dart';
+import '../personal_nutrition_targets/target_progress.dart';
 import 'dashboard_data.dart';
 import 'dashboard_live_cards.dart';
 import 'dashboard_widgets.dart';
@@ -21,6 +24,7 @@ class HomePage extends StatefulWidget {
     this.waterApi,
     this.mealApi,
     this.planApi,
+    this.targetApi,
     this.refreshRevision = 0,
     this.now = DateTime.now,
     super.key,
@@ -31,6 +35,7 @@ class HomePage extends StatefulWidget {
   final WaterLogApi? waterApi;
   final MealLogApi? mealApi;
   final NutritionPlanApi? planApi;
+  final PersonalNutritionTargetApi? targetApi;
   final int refreshRevision;
   final DateTime Function() now;
   @override
@@ -39,15 +44,18 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _waterRevision = 0;
-  int _mealRevision = 0, _planRevision = 0;
+  int _mealRevision = 0, _planRevision = 0, _targetRevision = 0;
   AuthSession? _session;
   MealLogApi? _mealApi;
   NutritionPlanApi? _planApi;
+  PersonalNutritionTargetApi? _targetApi;
   String? _owner;
   WaterDayRange? _day;
   Timer? _midnight;
   AsyncSnapshot<DashboardMeals> _meals = const AsyncSnapshot.nothing();
   AsyncSnapshot<NutritionPlanResponse?> _plan = const AsyncSnapshot.nothing();
+  AsyncSnapshot<PersonalNutritionTargetResponse> _targets =
+      const AsyncSnapshot.nothing();
   bool _foreground =
       WidgetsBinding.instance.lifecycleState == null ||
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
@@ -65,10 +73,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _clear() {
     ++_mealRevision;
     ++_planRevision;
+    ++_targetRevision;
     _day = null;
     _midnight?.cancel();
     _meals = const AsyncSnapshot.nothing();
     _plan = const AsyncSnapshot.nothing();
+    _targets = const AsyncSnapshot.nothing();
   }
 
   @override
@@ -78,6 +88,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         AuthSessionScope.maybeOf(context) ??
         widget.mealApi?.session ??
         widget.planApi?.session ??
+        widget.targetApi?.session ??
         widget.waterApi?.session;
     if (!identical(session, _session) || _owner != session?.user?.id) {
       _clear();
@@ -88,12 +99,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _planApi =
           widget.planApi ??
           (session == null ? null : NutritionPlanApi(session));
+      _targetApi =
+          widget.targetApi ??
+          (session == null ? null : PersonalNutritionTargetApi(session));
     }
     if (!_canRead) {
       _clear();
     } else {
       if (_meals.connectionState == ConnectionState.none) _loadMeals();
       if (_plan.connectionState == ConnectionState.none) _loadPlan();
+      if (_targets.connectionState == ConnectionState.none) _loadTargets();
     }
   }
 
@@ -103,16 +118,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (oldWidget.active != widget.active ||
         oldWidget.refreshRevision != widget.refreshRevision ||
         oldWidget.mealApi != widget.mealApi ||
-        oldWidget.planApi != widget.planApi) {
+        oldWidget.planApi != widget.planApi ||
+        oldWidget.targetApi != widget.targetApi) {
       _clear();
       _mealApi =
           widget.mealApi ?? (_session == null ? null : MealLogApi(_session!));
       _planApi =
           widget.planApi ??
           (_session == null ? null : NutritionPlanApi(_session!));
+      _targetApi =
+          widget.targetApi ??
+          (_session == null ? null : PersonalNutritionTargetApi(_session!));
       if (_canRead) {
         _loadMeals();
         _loadPlan();
+        _loadTargets();
       }
     }
   }
@@ -124,6 +144,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (_canRead) {
       _loadMeals();
       _loadPlan();
+      _loadTargets();
     }
   }
 
@@ -212,12 +233,53 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _loadTargets() async {
+    if (!_canRead ||
+        _targetApi == null ||
+        _targets.connectionState == ConnectionState.waiting) {
+      return;
+    }
+    final revision = ++_targetRevision;
+    setState(() => _targets = const AsyncSnapshot.waiting());
+    try {
+      final response = await _targetApi!.get();
+      if (mounted && _canRead && revision == _targetRevision) {
+        setState(
+          () =>
+              _targets = AsyncSnapshot.withData(ConnectionState.done, response),
+        );
+      }
+    } catch (error) {
+      if (mounted && _canRead && revision == _targetRevision) {
+        setState(
+          () => _targets = AsyncSnapshot.withError(
+            ConnectionState.done,
+            error is PersonalNutritionTargetApiException
+                ? error.message
+                : 'Kişisel hedefler yüklenemedi.',
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _openTargets() async {
+    if (!_canRead) return;
+    final owner = _owner;
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => PersonalNutritionTargetPage(api: _targetApi),
+      ),
+    );
+    if (mounted && _canRead && owner == _owner) await _refresh();
+  }
+
   Future<void> _refresh() async {
     setState(() {
       _clear();
       ++_waterRevision;
     });
-    await Future.wait([_loadMeals(), _loadPlan()]);
+    await Future.wait([_loadMeals(), _loadPlan(), _loadTargets()]);
   }
 
   Future<void> _addMeal() async {
@@ -269,13 +331,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _meals,
       _plan,
       _loadMeals,
+      _targets,
+      _loadTargets,
+      _openTargets,
     );
-    final macros = DashboardLiveCards.macros(_meals);
+    final macros = DashboardLiveCards.macros(_meals, _targets);
     final water = WaterSummaryCard(
       api: widget.waterApi,
       now: widget.now,
       active: widget.active,
       refreshRevision: _waterRevision,
+      target: EffectiveNutritionTarget.resolve(
+        'dailyWaterTargetMl',
+        _targets,
+        plan: _plan,
+      ),
     );
     final plan = DashboardLiveCards.program(
       _plan,

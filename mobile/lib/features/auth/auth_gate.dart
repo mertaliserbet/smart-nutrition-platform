@@ -9,6 +9,7 @@ import '../navigation/main_shell.dart';
 import '../dietitians/dietitian_finder_page.dart';
 import '../dietitians/client_connections_page.dart';
 import 'web_panel_link.dart';
+import '../personal_nutrition_targets/personal_nutrition_target_page.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
@@ -24,6 +25,9 @@ class AuthGate extends StatelessWidget {
       '/nutrition' => const AuthGate(initialIndex: 1),
       '/progress' => const AuthGate(initialIndex: 2),
       '/profile' => const AuthGate(initialIndex: 3),
+      '/personal-nutrition-targets' => const AuthGate(
+        child: PersonalNutritionTargetPage(),
+      ),
       '/dietitians' => const AuthGate(child: DietitianFinderPage()),
       '/client-connections' => const AuthGate(child: ClientConnectionsPage()),
       '/dietitian-account' => const AuthGate(child: WebPanelPage()),
