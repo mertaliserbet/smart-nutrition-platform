@@ -4,6 +4,7 @@ import { useWorkspaceRead } from '../workspace/workspaceSession'
 import { getClientDashboard, getClients } from './relationshipApi'
 import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './relationshipApi'
 import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
+import { MealLogPanel } from '../clients/MealLogPanel'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
 
@@ -40,5 +41,6 @@ export function LiveClientDetailsPage() {
     {state.pending && <p role="status">Danışan okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}
     {state.data && <section className="card client-profile-card"><span className="client-avatar large-avatar" aria-hidden="true">{state.data.displayName.slice(0, 1).toLocaleUpperCase('tr-TR')}</span><div><h2>{state.data.displayName}</h2><p>Aktif danışan bağlantınız bulunuyor.</p></div><span className="access-badge">Aktif bağlantı</span></section>}
     {state.data && <NutritionPlanPanel key={state.data.clientId} clientId={state.data.clientId} />}
+    {state.data && <MealLogPanel key={`meals-${state.data.clientId}`} clientId={state.data.clientId} />}
   </>
 }
