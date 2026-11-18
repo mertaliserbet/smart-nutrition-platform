@@ -27,6 +27,7 @@ public sealed class DataSharingPermissionTests
     [Theory]
     [InlineData("nutrition_plans")]
     [InlineData("meal_logs")]
+    [InlineData("body_measurements")]
     public void CategoriesKeepTheExistingResponseFields(string category)
     {
         var row = new DataSharingPermission(Guid.NewGuid(), false, DateTimeOffset.UtcNow, category);
@@ -56,6 +57,77 @@ public sealed class DataSharingPermissionTests
         var added = Assert.IsType<AddCheckConstraintOperation>(operations[1]);
         Assert.Equal("data_sharing_permissions", added.Table);
         Assert.Equal("category IN ('nutrition_plans','meal_logs') AND consent_record_id IS NULL", added.Sql);
+    }
+
+    [Fact]
+    public void MeasurementSharingMigrationOnlyExtendsTheCategoryCheck()
+    {
+        var operations = new AddBodyMeasurementSharingCategory().UpOperations;
+        Assert.Equal(2, operations.Count);
+        Assert.Equal("ck_permissions_category", Assert.IsType<DropCheckConstraintOperation>(operations[0]).Name);
+        var added = Assert.IsType<AddCheckConstraintOperation>(operations[1]);
+        Assert.Equal("data_sharing_permissions", added.Table);
+        Assert.Equal("category IN ('nutrition_plans','meal_logs','body_measurements') AND consent_record_id IS NULL", added.Sql);
+    }
+
+    [PostgresFact]
+    public async Task MeasurementRolloutIsIndependentAndOnlyOwnerCanGrantOrWithdraw()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(bodyMeasurementSharing: true, environment: "Development");
+        var pair = await Seed(factory); var other = await Seed(factory);
+        using var owner = Bearer(factory, pair.Client); using var expert = Bearer(factory, pair.Expert); using var stranger = Bearer(factory, other.Client);
+        using var created = await Grant(owner, pair.Relationship.Id, "body_measurements"); Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var row = await created.Content.ReadFromJsonAsync<JsonElement>(); var id = row.GetProperty("id").GetGuid();
+        using var mealRead = await expert.GetAsync($"/api/v1/dietitian/clients/{pair.ClientProfile.Id}/meal-logs?page=1&pageSize=10");
+        Assert.Equal(HttpStatusCode.Forbidden, mealRead.StatusCode);
+        using var programRead = await expert.GetAsync($"/api/v1/nutrition-plans?clientId={pair.ClientProfile.Id}&page=1&pageSize=10");
+        Assert.Equal(HttpStatusCode.Forbidden, programRead.StatusCode);
+        using var duplicate = await Grant(owner, pair.Relationship.Id, "body_measurements"); Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+        using var meal = await Grant(owner, pair.Relationship.Id, "meal_logs"); Assert.Equal(HttpStatusCode.UnprocessableEntity, meal.StatusCode);
+        using var program = await Grant(owner, pair.Relationship.Id, "nutrition_plans"); Assert.Equal(HttpStatusCode.Created, program.StatusCode);
+        using var expertWrite = await expert.PatchAsJsonAsync($"{Route}/{id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.Forbidden, expertWrite.StatusCode);
+        using var foreignWrite = await stranger.PatchAsJsonAsync($"{Route}/{id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.NotFound, foreignWrite.StatusCode);
+        using var revoked = await owner.PatchAsJsonAsync($"{Route}/{id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.OK, revoked.StatusCode);
+        using var consent = await owner.PostAsJsonAsync(Route, new { relationshipId = other.Relationship.Id, category = "body_measurements", isGranted = true, consentRecordId = Guid.NewGuid() });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, consent.StatusCode);
+        using var list = await expert.GetAsync($"{Route}?relationshipId={pair.Relationship.Id}&page=1&pageSize=10");
+        Assert.Equal(2, (await list.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("totalCount").GetInt32());
+    }
+
+    [PostgresFact]
+    public async Task DisabledMeasurementRolloutRejectsNewRowsButKeepsExistingRowsWithdrawable()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(mealLogSharing: true); var pair = await Seed(factory);
+        using var owner = Bearer(factory, pair.Client);
+        foreach (var granted in new[] { false, true })
+        { using var rejected = await Grant(owner, pair.Relationship.Id, "body_measurements", granted); Assert.Equal(HttpStatusCode.UnprocessableEntity, rejected.StatusCode); }
+        using var meal = await Grant(owner, pair.Relationship.Id, "meal_logs"); Assert.Equal(HttpStatusCode.Created, meal.StatusCode);
+        await using var db = factory.Database(); var row = new DataSharingPermission(pair.Relationship.Id, true, DateTimeOffset.UtcNow, "body_measurements");
+        db.DataSharingPermissions.Add(row); await db.SaveChangesAsync();
+        using var read = await owner.GetAsync($"{Route}/{row.Id}"); Assert.Equal(HttpStatusCode.OK, read.StatusCode);
+        using var enable = await owner.PatchAsJsonAsync($"{Route}/{row.Id}", new { isGranted = true }); Assert.Equal(HttpStatusCode.UnprocessableEntity, enable.StatusCode);
+        using var revoke = await owner.PatchAsJsonAsync($"{Route}/{row.Id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.OK, revoke.StatusCode);
+        db.ChangeTracker.Clear(); Assert.False((await db.DataSharingPermissions.SingleAsync(x => x.Id == row.Id)).IsGranted);
+    }
+
+    [PostgresFact]
+    public async Task MeasurementCategoryMigrationPreservesOldPermissionsAndRefusesLossyRollback()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(); var pair = await Seed(factory);
+        await using var db = factory.Database(); var migrator = db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20261118121322_AddBodyMeasurements");
+        var program = new DataSharingPermission(pair.Relationship.Id, true, DateTimeOffset.UtcNow);
+        var meal = new DataSharingPermission(pair.Relationship.Id, false, DateTimeOffset.UtcNow, "meal_logs");
+        db.DataSharingPermissions.AddRange(program, meal); await db.SaveChangesAsync();
+        await db.Database.MigrateAsync(); db.ChangeTracker.Clear();
+        Assert.True((await db.DataSharingPermissions.SingleAsync(x => x.Id == program.Id)).IsGranted);
+        Assert.False((await db.DataSharingPermissions.SingleAsync(x => x.Id == meal.Id)).IsGranted);
+        var measurement = new DataSharingPermission(pair.Relationship.Id, false, DateTimeOffset.UtcNow, "body_measurements");
+        db.DataSharingPermissions.Add(measurement); await db.SaveChangesAsync();
+        var error = await Assert.ThrowsAsync<PostgresException>(() => migrator.MigrateAsync("20261118121322_AddBodyMeasurements"));
+        Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
+        db.ChangeTracker.Clear(); Assert.Equal(3, await db.DataSharingPermissions.CountAsync());
+        Assert.False(db.Database.HasPendingModelChanges());
     }
 
     [PostgresFact]

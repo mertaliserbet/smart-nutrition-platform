@@ -17,6 +17,24 @@ Mevcut izin açılım bayrağı yalnız izin yazmayı yönetir, karşılaştırm
 var olan açık izin kontrolünü kaldırmaz. Actor/iki izin/snapshot/tüketim aynı
 repeatable-read transaction'ındadır. Admin sağlık erişimi yoktur.
 
+## 18.11.2026 — Diyetisyenin gerçek ölçüm okuması
+
+`GET /api/v1/dietitian/clients/{clientId}/body-measurements` mevcut ölçüm
+kaydını cookie/JWT ile, güncel onaylı uzman + aktif ilişki + body_measurements
+izniyle salt okunur döndürür. Zorunlu page/pageSize (1–100), opsiyonel açık
+UTC/ofsetli from/to ve sortOrder=asc/desc; varsayılan measuredAt azalan/id
+artan, from dahil/to hariçtir. sortOrder=asc kronolojik grafik okumaları içindir.
+Not ve nullable ölçümler kendi CRUD yanıtıyla aynıdır. Normatif ayrıntı docs/06'dadır.
+
+`AddBodyMeasurementSharingCategory` yalnız izin kategori check'ini genişletir;
+ölçüm tablosuna/izin satırlarına veri yazmaz. Yeni kategori satırı varken Down
+veri silmek yerine durur. Mevcut uygulama DB'sine bu görev otomatik migration uygulamaz.
+`Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam değişkeni
+`Relationships__Sharing__BodyMeasurementsEnabled`. Mobil yeni kategori/sayfalama
+uyarlaması doğrulanmadan açılmaz. Yalnız Development'ta true etkili olur;
+Production/Staging override'ı yeni izin yazmasını açmaz. Mevcut iznin okunması
+ve geri çekilmesi korunur.
+
 ## 07.11.2026 — G1 öğün paylaşım izin altyapısı
 
 Kullanıcı ortak onayıyla mevcut DataSharingPermission kategorilerine

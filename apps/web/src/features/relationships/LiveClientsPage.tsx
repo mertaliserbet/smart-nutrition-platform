@@ -5,6 +5,7 @@ import { getClientDashboard, getClients } from './relationshipApi'
 import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './relationshipApi'
 import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
 import { MealLogPanel } from '../clients/MealLogPanel'
+import { BodyMeasurementPanel } from '../clients/BodyMeasurementPanel'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
 
@@ -29,7 +30,7 @@ export function LiveClientsPage() {
         <div className="panel-pagination"><button className="button button-secondary" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Önceki sayfa</button><span>Sayfa {page}</span><button className="button button-secondary" disabled={page * 10 >= state.data.totalCount} onClick={() => setPage(value => value + 1)}>Sonraki sayfa</button></div>
       </>}
       <div className="panel-actions"><button className="button button-secondary" disabled={state.pending} onClick={state.refresh}>Listeyi yenile</button></div>
-    </section><div className="inline-note"><Icon name="shield" /><p>Danışan detaylarında yalnızca paylaşım izni verilen programlar görüntülenir.</p></div>
+    </section><div className="inline-note"><Icon name="shield" /><p>Danışan detaylarında her kayıt türü kendi paylaşım izniyle görüntülenir.</p></div>
   </>
 }
 export function LiveClientDetailsPage() {
@@ -42,5 +43,6 @@ export function LiveClientDetailsPage() {
     {state.data && <section className="card client-profile-card"><span className="client-avatar large-avatar" aria-hidden="true">{state.data.displayName.slice(0, 1).toLocaleUpperCase('tr-TR')}</span><div><h2>{state.data.displayName}</h2><p>Aktif danışan bağlantınız bulunuyor.</p></div><span className="access-badge">Aktif bağlantı</span></section>}
     {state.data && <NutritionPlanPanel key={state.data.clientId} clientId={state.data.clientId} />}
     {state.data && <MealLogPanel key={`meals-${state.data.clientId}`} clientId={state.data.clientId} />}
+    {state.data && <BodyMeasurementPanel key={`measurements-${state.data.clientId}`} clientId={state.data.clientId} />}
   </>
 }

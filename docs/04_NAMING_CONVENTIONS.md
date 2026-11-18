@@ -20,6 +20,23 @@ NutritionPlanItem şeklidir. JSON camelCase; C#/Dart/TS aynı kavramları kullan
 Alan ve hesap kuralları `05`, HTTP ve profil/izin kontrolleri `06`dadır.
 Bu adım bir uyum yüzdesi veya tarihsel aktivasyon modeli tanımlamaz.
 
+## 18.11.2026 — Ortak ölçüm geliştirmelerinin birleştirilmesi
+
+Kullanıcı kararıyla Uğur'un web ölçüm ekranı/ortak migration'ı ve Mert'in
+kronolojik okuma/Development sınırı birlikte korunur. Mevcut GET yolunda
+sortOrder=asc/desc desteklenir; kategori/DTO alan adları değişmez. Tek
+paylaşım migration'ı `20261118122704_AddBodyMeasurementSharingCategory`dir;
+aynı işi yapan ikinci migration kullanılmaz. BodyMeasurementsEnabled yalnız
+Development'ta açılabilir; mobil kategori uyarlamasına kadar varsayılan kapalıdır.
+
+## 18.11.2026 — M1–M4 diyetisyen ölçüm görünümü onayı
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini
+istedi. `BodyMeasurement` ve mevcut hipCm/chestCm/note dahil alanlar korunur.
+Ek paylaşım kategorisi `body_measurements`; yalnız diyetisyen ölçüm okumasını açar.
+Mevcut yol `GET /api/v1/dietitian/clients/{clientId}/body-measurements` kullanılır;
+yeni model, rota alias'ı veya diyetisyen yazma yetkisi yoktur. `05/06/18` eşgüdümlüdür.
+
 ## 18.11.2026 — Danışanın vücut ölçümleri
 
 Kullanıcının doğrudan göreviyle mevcut `BodyMeasurement` genişletildi:

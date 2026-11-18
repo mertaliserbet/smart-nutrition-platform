@@ -12,6 +12,14 @@ gizlenmez. Geçmişte hangi sürümün aktif olduğu veya uyum yüzdesi iddia ed
 kaldırılır; odak/görünürlük dönüşü ve yenilemede yetki yeniden okunur.
 Tam sözleşme `04/05/06`, karar kaydı `19`dadır; Flutter görünümü Mert'indir.
 
+**18.11.2026 M1–M4:** Gerçek danışan detayında ölçüm listesi mevcut ölçüm API'sine
+bağlanır: kilo/bel/kalça/göğüs/yağ oranı/not, kaynak ve zaman salt okunur görünür.
+10'lu sunucu sayfalaması, açık UTC tarih filtresi ve elle/fokusa dönüşte yenileme
+kullanılır. İzin reddi/bağlantı bitişi/boş/hata ayrı; yenileme veya danışan/oturum
+değişiminde eski sağlık verisi/sayılar gizlenir, geç yanıtlar yok sayılır.
+Program/öğün/ölçüm izinleri bağımsızdır; sentetik önizlemeye dönüş yoktur.
+İlk adım grafik/uyum hesabı eklemez. Normatif kaynak `04/05/06`, mobil açılım `18`dir.
+
 **17.11.2026:** Web girişi, başvurusu bulunan diyetisyen profilleri ve MFA ile
 giriş yapan yöneticiler içindir. Danışan işlemleri mobil uygulamada yapılır.
 Panelin sağ üstündeki avatar hesap ve çıkış menüsünü açar. Çıkış onaylandığında

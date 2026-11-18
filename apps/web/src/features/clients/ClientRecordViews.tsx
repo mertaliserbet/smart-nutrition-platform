@@ -65,11 +65,13 @@ export function WaterLogList({ clientId, records }: { clientId: string; records:
 }
 
 export function BodyMeasurementList({ clientId, records }: { clientId: string; records: BodyMeasurement[] }) {
-  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.measuredAt.localeCompare(a.measuredAt))
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) =>
+    Date.parse(b.measuredAt) - Date.parse(a.measuredAt) || Number(b.measuredAt.match(/\.\d+/)?.[0] ?? 0) - Number(a.measuredAt.match(/\.\d+/)?.[0] ?? 0))
   if (visibleRecords.length === 0) return <EmptyState icon="chart" title="Henüz ölçüm kaydı yok">Bu görünümde görüntülenebilecek ölçüm kaydı bulunmuyor.</EmptyState>
   return <div className="record-list" aria-label="Ölçüm kayıtları">{visibleRecords.map((record) => <article className="measurement-record" key={record.id}>
     <header className="record-header"><RecordTime at={record.measuredAt} /><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
-    <dl className="record-quantities measurement-quantities"><Quantity label="Kilo" value={record.weightKg} unit="kg" /><Quantity label="Bel çevresi" value={record.waistCm} unit="cm" /><Quantity label="Vücut yağ oranı" value={record.bodyFatPercent} unit="%" /></dl>
+    <dl className="record-quantities measurement-quantities"><Quantity label="Kilo" value={record.weightKg} unit="kg" /><Quantity label="Bel çevresi" value={record.waistCm} unit="cm" /><Quantity label="Kalça çevresi" value={record.hipCm} unit="cm" /><Quantity label="Göğüs çevresi" value={record.chestCm} unit="cm" /><Quantity label="Vücut yağ oranı" value={record.bodyFatPercent} unit="%" /></dl>
+    {record.note && <p className="record-note"><Icon name="info" />{record.note}</p>}
   </article>)}<p className="record-footnote">Ölçümler kaydedildiği tarih ve birimle gösterilir. Bu ekran klinik değerlendirme veya hedef önerisi üretmez.</p></div>
 }
 

@@ -1,5 +1,29 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 18.11.2026 — Birleştirilen ölçüm paylaşımı kuralları
+
+Kullanıcı kararıyla BodyMeasurementsEnabled yalnız Development'ta true
+etkili olacak şekilde sınırlandırıldı; varsayılan false korunur. Production/
+Staging override'ı yeni izin satırı veya PATCH true açmaz. Aktif ilişkide mevcut
+izni geri çeken PATCH false mümkündür; ayar satır gizlemez/silmez ve verilmiş
+iznin yerine geçmez. Eski mobil kategori/sayfalama uyarlanmadan ortak ortamda
+açılmaz. Uğur'un web görünümü ve ortak migration'ı korunur; tek migration
+kullanılır. Yetki snapshot'ı ve kronolojik okuma için ek regresyonlar korunur.
+
+## 18.11.2026 — Bağımsız ölçüm paylaşımı, M1–M4
+
+Kullanıcının `18` uygulama onayıyla body_measurements ayrı izin kategorisidir.
+Eksik izin kapalıdır; program/öğün izninden türetilmez ve otomatik verilmez.
+Ölçüm okumasında güncel onaylı uzman, aktif ilişki ve aynı ilişkide açık ölçüm
+izni sayı/satırlarla aynı DB snapshot'ında denetlenir. Admin sağlık erişimi
+kazanmaz. Not dahil yanıtlar no-store; hata/loglarda sağlık değerleri yoktur.
+
+BodyMeasurementsEnabled varsayılan false kalır. Mert'in mobil kategori/sayfalama
+uyarlaması ortak main'e gelmeden izin yazması açılmaz. Kapalı ayar mevcut satırı
+geri çekmeyi veya okumayı gizlemez; danışan onayının yerine geçmez. Migration
+yalnız kategori check'ini genişletir; veri/backfill/purge yoktur, kayıplı rollback
+zorlanmaz. Kendi ölçüm CRUD, MFA/cookie/JWT ve genel yayın kapıları korunur.
+
 ## 07.11.2026 — G1 öğün paylaşım izin altyapısı
 
 `17` ortak onayıyla yalnız G1 uygulanır. meal_logs izni program izninden

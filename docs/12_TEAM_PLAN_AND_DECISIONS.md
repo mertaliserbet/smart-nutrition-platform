@@ -53,6 +53,28 @@ Flutter, migration, veritabanı modeli ve kişisel hedef API'si değişmedi.
 main'ini hedefleyen ayrı PR'ını incelemek; mobil entegrasyondan önce iki
 checkout'un birleştirilmiş onaylı main sürümüyle eşitlenmesi gerekir.
 
+## 18.11.2026 — İlk Uğur ölçüm adımı, M1–M4 uygulama onayı
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak kodlamaya devam edilmesini
+istedi. Mert'in `d234ae3` ölçüm saklama/kendi CRUD teslimi ve öneri PR #11 ortak
+main'e alındı (`0678c3c`); hipCm/chestCm/note dahil güncel şema kullanılır.
+Uğur mevcut izin modeline bağımsız body_measurements, veri koruyan kategori
+migration'ı, aynı snapshot'ta yetkili diyetisyen okuması ve gerçek React ölçüm
+bölümünü ekler. `04/05/06/08/11/18` bu dilimle eşgüdümlüdür.
+
+Bu onay yorum/görev/uyum hesaplarının açık sözleşmelerini kapatmaz; listedeki
+ilk adımdır. Mert'in ölçüm entity/CRUD/migration ve Flutter kayıt alanları
+devralınmaz. Mobil kategori/sayfalama uyarlaması Mert'te kalır; bu doğrulanana
+kadar BodyMeasurementsEnabled varsayılan false'tur. Yeni izin otomatik verilmez.
+
+**Doğrulama:** Ayrı geçici PostgreSQL 17.11'de genel backend koşusu 388 başarılı,
+2 Mailpit testi atlandı; ek izin bağımsızlığı HTTP kontrolü başarılı. 180 web
+testi, web production build/lint ve backend build geçti (0 uyarı/0 hata).
+EF has-pending-model-changes temiz. Ölçüm liste bileşeni sentetik önizlemede
+açık/koyu tema ve 390/1280 px genişliklerde görsel olarak kontrol edildi;
+oturumlu canlı mobil–web tarayıcı provası ve mobil izin uyarlaması bekler.
+Mevcut uygulama DB'sine migration uygulanmadı; Flutter kaynakları değişmedi.
+
 ## 18.11.2026 — Mobil danışan girişi ve web paneli bağlantısı
 
 Kullanıcı şimdilik mobilde normal danışan girişini; giriş ekranında diyetisyeni
