@@ -1,5 +1,22 @@
 # Smart Nutrition — Web
 
+## 19.11.2026 — U4 gerçek su takibi
+
+Danışan çalışma alanındaki WaterLogPanel gerçek uzman su liste/toplam/geçmiş
+yollarına bağlıdır. Gün seçimi, 10'lu kayıt listesi, mL/saat/kaynak ve 31 güne
+kadar IANA/DST sınırlarıyla günlük SVG grafik + tablo kullanılır; paket eklenmedi.
+Mevcut WaterLogList mikro-saniye/offset sırasını korur. Kişisel hedef API'si
+çağrılmaz, izin açma/yazma işlemi sunulmaz. İzin/ilişki reddi, hata ve boş
+başarılı gün farklıdır; hata 0 gösterilmez. Oturum/danışan/tarih değişiminde
+geç yanıtlar elenir, no-store ve görünür sekme yenilemesi kullanılır.
+
+API ve Flutter M4 açılımı [21 teslim notunda](../../docs/21_WATER_LOG_SHARING_CONTRACT.md).
+WaterLogsEnabled mobil beş kategori uyumu doğrulanana kadar false kalır.
+React testleri `node node_modules/vitest/vitest.mjs run --maxWorkers=2`;
+`npm run build` ve `npm run lint` ile doğrulanır. Testler sentetik DTO'lu
+React DOM testidir; API/PostgreSQL uçtan uca akışı backend testlerindedir.
+Flutter veya fiziksel tarayıcı görsel provası yapılmış sayılmaz.
+
 ## 19.11.2026 — U2 gerçek görev yönetimi
 
 Gerçek danışan detayındaki **Danışan görevleri** bölümü U1 API'sini kullanır:

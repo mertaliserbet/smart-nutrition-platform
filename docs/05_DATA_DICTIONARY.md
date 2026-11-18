@@ -1,5 +1,23 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 19.11.2026 — U4 water_logs / WaterLog
+
+U4 kullanıcı uygulama onayıyla `DataSharingPermission.category` destek kümesine
+bağımsız `water_logs` eklenir. Eksik/false izin kapalı; diğer dört kategori
+erişim vermez, yeni ilişkide su izni otomatik oluşturulmaz. Unique ilişki/kategori,
+yalnız null consentRecordId ve güncel active ilişki/sahiplik kuralları korunur.
+`WaterLogsEnabled` yeni izin yazım açılımı varsayılan false; M4 ayrıştırıcı ve
+beş kategori sayfalaması doğrulanmadan açılmaz. Geri çekme ayar kapalıyken de mümkündür.
+
+WaterLog modeli/CRUD/indexleri değişmez: id/clientId UUID, amountMl pozitif
+decimal mL, consumedAt UTC instant, source mevcut RecordSource; soft delete.
+Günlük projeksiyon `WaterLogDailyTotalResponse {from,to,totalAmountMl}`;
+from/to UTC, toplam decimal mL. History aynı projeksiyondan sayfalı gün listesidir,
+tablo/entity değildir. En çok 31 gün, IANA timeZone + uyuşan endpoint offsetleri,
+başlangıç dahil/bitiş hariç; DST günleri ayrı sınırlanır. Yetkili boş gün sıfır,
+hata/izin reddi sıfır değildir. Kişisel hedef paylaşılmaz; program hedefi bağımsız
+nutrition_plans yetkisine tabidir. Tam sınır/örnekler [M4 sözleşmesinde](21_WATER_LOG_SHARING_CONTRACT.md).
+
 ## 18.11.2026 — U1 ClientTask / ClientTaskVersion
 
 Kullanıcının U1 uygulama onayıyla görev şeması ve bağımsız paylaşımı kapanmıştır.

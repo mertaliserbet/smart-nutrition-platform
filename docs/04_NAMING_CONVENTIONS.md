@@ -1,5 +1,14 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 19.11.2026 — U4 bağımsız su paylaşımı
+
+Kullanıcı U4 uygulama onayıyla kategori kodu `water_logs` olur. Kanonik
+`WaterLog` ve mevcut `WaterLogDailyTotalResponse` korunur; yeni su entity'si
+yoktur. Diyetisyen salt okunur yolları `/dietitian/clients/{clientId}/water-logs`,
+`/daily-total`, `/daily-history`; tarih geçmişi aynı günlük DTO'yu sayfalar.
+JSON `amountMl`, `consumedAt`, `source`, `from`, `to`, `totalAmountMl` aynı kalır;
+çok günlük sorguda IANA `timeZone` kullanılır. Ayrıntı `05/06` ve [M4 teslimi](21_WATER_LOG_SHARING_CONTRACT.md).
+
 ## 18.11.2026 — U1 görev sistemi uygulama onayı
 
 Kullanıcı U1 ürün/teknik kararlarını onaylı kabul ederek backend uygulamasını

@@ -61,7 +61,9 @@ export function MealLogList({ clientId, records, page, renderComments }: {
 }
 
 export function WaterLogList({ clientId, records }: { clientId: string; records: WaterLog[] }) {
-  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => b.consumedAt.localeCompare(a.consumedAt))
+  const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) =>
+    Date.parse(b.consumedAt) - Date.parse(a.consumedAt) ||
+    Number(b.consumedAt.match(/\.\d+/)?.[0] ?? 0) - Number(a.consumedAt.match(/\.\d+/)?.[0] ?? 0) || a.id.localeCompare(b.id))
   if (visibleRecords.length === 0) return <EmptyState icon="plan" title="Henüz su kaydı yok">Bu görünümde görüntülenebilecek su kaydı bulunmuyor.</EmptyState>
   return <ul className="record-list water-records" aria-label="Su kayıtları">{visibleRecords.map((record) => <li className="water-record" key={record.id}><span className="water-icon"><Icon name="water" /></span><div><strong>{numberFormatter.format(record.amountMl)} mL</strong><RecordTime at={record.consumedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></li>)}</ul>
 }

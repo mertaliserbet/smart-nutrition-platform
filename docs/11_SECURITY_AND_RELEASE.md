@@ -1,5 +1,30 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 19.11.2026 — U4 bağımsız su paylaşımı
+
+Kullanıcının U4 onayıyla water_logs ayrı, eksik/false durumda kapalı kategoridir.
+Hiçbir otomatik grant/backfill yoktur; diğer izinler suya erişim vermez. Yeni
+izin yazma açılımı WaterLogsEnabled=false kalır; M4'ün beş kategori ayrıştırıcısı
+ve sayfalaması doğrulanmadan açılmaz. Kapalı ayar mevcut izni geri çekmeyi
+engellemez, satırları gizlemez. Uzman veya Admin danışan adına izin veremez.
+
+Diyetisyen su liste/toplam/geçmiş yolları güncel doğrulanmış uzman, kendi active
+ilişkisi ve o ilişkide açık water_logs iznini her istekte verilerle aynı
+RepeatableRead snapshot'ında denetler. Başlamış yetkili okuma tamamlanabilir;
+geri çekme/ilişki sonu/doğrulama kaybı sonrası yeni istek reddedilir. Sayı/toplam
+izinsiz yanıta çıkmaz; hata sıfır değildir. Cookie/JWT/CSRF, no-store ve sağlık
+değerlerini loglamama korunur. Kendi danışan su CRUD'u ilişkiden bağımsızdır.
+
+Kişisel su hedefi paylaşılmaz; program hedefi ayrı nutrition_plans yetkisi ister.
+U4 su görünümü hedef istemez; izinli tüketim program erişiminden bağımsızdır.
+React öğrenilen 403/404'te su içeriğini/sayıları/grafiği kaldırır; danışan, oturum,
+tarih değişimi ve gizli sekmede eski veri gizlenir, geç yanıtlar elenir. Kalıcı
+sağlık cache'i/yeni üçüncü taraf yoktur. History en çok 31 yerel gün ve 100'lük
+sayfa sınırındadır; IANA gün sınırları doğrulanır, atlanan/belirsiz gece yarısı
+tahmin edilmez. Salt kategori check migration'ı eski verileri korur; false dahil
+su izin satırı varken Down reddedilir. Uygulama DB'sine uygulanmaz; yalnız
+sentetik/ayrı PostgreSQL testleri. Genel KVKK/retention/yayın kapıları geçerlidir.
+
 ## 19.11.2026 — U3 kendi sağlık verisi ve aktarım iptali
 
 Kullanıcı U3 birim/tarih/kaynak/izin kararlarını uygulama yetkisiyle onayladı.

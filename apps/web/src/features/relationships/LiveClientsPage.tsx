@@ -6,6 +6,7 @@ import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './r
 import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
 import { MealLogPanel } from '../clients/MealLogPanel'
 import { BodyMeasurementPanel } from '../clients/BodyMeasurementPanel'
+import { WaterLogPanel } from '../clients/WaterLogPanel'
 import { ClientTaskPanel } from '../clientTasks/ClientTaskPanel'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
@@ -46,5 +47,6 @@ export function LiveClientDetailsPage() {
     {state.data && <ClientTaskPanel clientId={state.data.clientId} />}
     {state.data && <MealLogPanel key={`meals-${state.data.clientId}`} clientId={state.data.clientId} />}
     {state.data && <BodyMeasurementPanel key={`measurements-${state.data.clientId}`} clientId={state.data.clientId} />}
+    {state.data && <WaterLogPanel clientId={state.data.clientId} />}
   </>
 }

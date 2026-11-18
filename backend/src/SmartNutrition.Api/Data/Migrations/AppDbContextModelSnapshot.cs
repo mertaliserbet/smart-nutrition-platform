@@ -605,10 +605,6 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("duration_minutes");
 
-                    b.Property<decimal?>("RawDurationMinutes")
-                        .HasColumnType("numeric")
-                        .HasColumnName("raw_duration_minutes");
-
                     b.Property<DateTimeOffset?>("EndedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("ended_at");
@@ -621,6 +617,10 @@ namespace SmartNutrition.Api.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean")
                         .HasColumnName("is_deleted");
+
+                    b.Property<decimal?>("RawDurationMinutes")
+                        .HasColumnType("numeric")
+                        .HasColumnName("raw_duration_minutes");
 
                     b.Property<string>("Source")
                         .IsRequired()
@@ -655,9 +655,9 @@ namespace SmartNutrition.Api.Data.Migrations
 
                     b.HasIndex("WearableConnectionId", "ClientId");
 
-                    b.HasIndex("WearableRecordId", "WearableConnectionId", "ClientId");
-
                     b.HasIndex("ClientId", "StartedAt", "Id");
+
+                    b.HasIndex("WearableRecordId", "WearableConnectionId", "ClientId");
 
                     b.ToTable("activity_logs", null, t =>
                         {
@@ -1318,7 +1318,7 @@ namespace SmartNutrition.Api.Data.Migrations
 
                     b.ToTable("data_sharing_permissions", null, t =>
                         {
-                            t.HasCheckConstraint("ck_permissions_category", "category IN ('nutrition_plans','meal_logs','body_measurements','client_tasks') AND consent_record_id IS NULL");
+                            t.HasCheckConstraint("ck_permissions_category", "category IN ('nutrition_plans','meal_logs','body_measurements','client_tasks','water_logs') AND consent_record_id IS NULL");
 
                             t.HasCheckConstraint("ck_permissions_times", "updated_at >= created_at");
                         });

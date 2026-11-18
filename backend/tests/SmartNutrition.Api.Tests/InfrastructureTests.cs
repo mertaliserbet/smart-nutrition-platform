@@ -118,7 +118,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddBodyMeasurementSharingCategory", migration),
             migration => Assert.EndsWith("_AddMealLogComments", migration),
             migration => Assert.EndsWith("_AddClientTasks", migration),
-            migration => Assert.EndsWith("_AddHealthDataSync", migration));
+            migration => Assert.EndsWith("_AddHealthDataSync", migration),
+            migration => Assert.EndsWith("_AddWaterLogSharingCategory", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -169,6 +170,7 @@ public sealed class InfrastructureTests
             "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}", "/api/v1/meal-logs/{mealLogId}/comments", "/api/v1/dietitian/clients/{clientId}/meal-logs",
             "/api/v1/personal-nutrition-targets", "/api/v1/body-measurements", "/api/v1/body-measurements/{bodyMeasurementId}", "/api/v1/dietitian/clients/{clientId}/body-measurements",
             "/api/v1/water-logs", "/api/v1/water-logs/{waterLogId}", "/api/v1/water-logs/daily-total",
+            "/api/v1/dietitian/clients/{clientId}/water-logs", "/api/v1/dietitian/clients/{clientId}/water-logs/daily-total", "/api/v1/dietitian/clients/{clientId}/water-logs/daily-history",
             "/api/v1/activity-logs", "/api/v1/activity-logs/{activityLogId}", "/api/v1/activity-logs/daily-summary", "/api/v1/health-metric-samples",
             "/api/v1/wearable-connections", "/api/v1/wearable-connections/{wearableConnectionId}", "/api/v1/wearable-connections/sync",
             "/api/v1/wearable-connections/{wearableConnectionId}/records", "/api/v1/wearable-connections/{wearableConnectionId}/records/{wearableRecordId}",
