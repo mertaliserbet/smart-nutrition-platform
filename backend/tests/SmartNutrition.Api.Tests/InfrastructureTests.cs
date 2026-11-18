@@ -89,7 +89,7 @@ public sealed class InfrastructureTests
         Assert.Equal([typeof(AuthSession).FullName!, typeof(ClientProfile).FullName!, typeof(RefreshToken).FullName!, typeof(User).FullName!,
             typeof(SmartNutrition.Api.Features.BodyMeasurements.BodyMeasurement).FullName!,
             typeof(SmartNutrition.Api.Features.Dietitians.AuditEvent).FullName!, typeof(SmartNutrition.Api.Features.Dietitians.DietitianProfile).FullName!,
-            typeof(SmartNutrition.Api.Features.MealLogs.MealLog).FullName!, typeof(SmartNutrition.Api.Features.MealLogs.MealLogItem).FullName!,
+            typeof(SmartNutrition.Api.Features.MealLogs.MealLog).FullName!, typeof(SmartNutrition.Api.Features.MealLogs.MealLogComment).FullName!, typeof(SmartNutrition.Api.Features.MealLogs.MealLogItem).FullName!,
             typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlan).FullName!, typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion).FullName!,
             typeof(SmartNutrition.Api.Features.PersonalNutritionTargets.PersonalNutritionTarget).FullName!,
             typeof(SmartNutrition.Api.Features.Relationships.DataSharingPermission).FullName!, typeof(SmartNutrition.Api.Features.Relationships.DietitianClientRelationship).FullName!,
@@ -111,7 +111,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddWaterLogs", migration),
             migration => Assert.EndsWith("_AddPersonalNutritionTargets", migration),
             migration => Assert.EndsWith("_AddBodyMeasurements", migration),
-            migration => Assert.EndsWith("_AddBodyMeasurementSharingCategory", migration));
+            migration => Assert.EndsWith("_AddBodyMeasurementSharingCategory", migration),
+            migration => Assert.EndsWith("_AddMealLogComments", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -158,7 +159,7 @@ public sealed class InfrastructureTests
             "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me", "/api/v1/dietitians/me/application", "/api/v1/dietitians/me/invitation-code",
             "/api/v1/dietitian-relationships", "/api/v1/dietitian-relationships/{relationshipId}/accept", "/api/v1/dietitian-relationships/{relationshipId}/reject", "/api/v1/dietitian-relationships/{relationshipId}/end",
             "/api/v1/data-sharing-permissions", "/api/v1/data-sharing-permissions/{dataSharingPermissionId}", "/api/v1/dietitian/clients", "/api/v1/dietitian/clients/{clientId}/dashboard",
-            "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}", "/api/v1/dietitian/clients/{clientId}/meal-logs",
+            "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}", "/api/v1/meal-logs/{mealLogId}/comments", "/api/v1/dietitian/clients/{clientId}/meal-logs",
             "/api/v1/personal-nutrition-targets", "/api/v1/body-measurements", "/api/v1/body-measurements/{bodyMeasurementId}", "/api/v1/dietitian/clients/{clientId}/body-measurements",
             "/api/v1/water-logs", "/api/v1/water-logs/{waterLogId}", "/api/v1/water-logs/daily-total",
             "/api/v1/nutrition-plans", "/api/v1/nutrition-plans/active", "/api/v1/nutrition-plans/{nutritionPlanId}", "/api/v1/nutrition-plans/{nutritionPlanId}/activate", "/api/v1/nutrition-plans/{nutritionPlanId}/archive",

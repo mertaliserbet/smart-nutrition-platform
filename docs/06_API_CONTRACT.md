@@ -1,5 +1,41 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 18.11.2026 — Onaylı öğün yorumu ve danışan yanıtı
+
+Kullanıcı model/DTO, metin sınırı, tek seviyeli yanıt ve geçmiş erişimini
+açıkça onayladı. Aşağıdaki sözleşme önceki yorum taslağının yerini alır.
+
+- `GET /api/v1/meal-logs/{mealLogId}/comments?page=1&pageSize=10`:
+  200 `{ items, totalCount }`; zorunlu page>=1, pageSize 1–100. createdAt/id
+  artan, düz sayfalı liste; yanıttaki parentCommentId kök yorumu gösterir.
+  Başka/tekrarlı query, Int32 offset taşması veya GET gövdesi 400.
+- `POST /api/v1/meal-logs/{mealLogId}/comments`: JSON yalnız zorunlu `text`
+  ve isteğe bağlı/null `parentCommentId`. Kök için null/atlanmış; yanıt için
+  aynı öğünün kök yorum ID'si. Yazar/clientId/zaman istemciden kabul edilmez.
+  Başarı 201, gövde `MealLogCommentResponse`; ayrı detay rotası yoktur.
+  Her kaydın alanları id/mealLogId/authorUserId/text/createdAt/parentCommentId;
+  null parent alanı atlanmaz. Kimlikler ve UTC zaman sunucudan gelir.
+- Metin kırpıldıktan sonra 1–2000 Unicode skaler karakter; boş/null/NUL/uzun
+  metin ve boş parent UUID 422. Eksik text/bozuk JSON/tip/ek alan/query 400.
+  Aynı öğünde olmayan veya bulunmayan ebeveyn 404; yanıta yanıt 422.
+- Mevcut JWT ve uzman W2 cookie oturumu; profil bağlamı client/dietitian.
+  Cookie yazımları HTTPS, doğru Origin ve oturuma bağlı CSRF gerektirir;
+  cookie danışan bağlamı açmaz. Header tek başına yetki vermez; Admin 403.
+  Kök yorumu yalnız onaylı diyetisyen, yanıtı yalnız öğünün sahibi danışan
+  oluşturur; aksi rol/işlem 403. Bir köke birden fazla danışan yanıtı olabilir.
+- Danışan kendi geçmişini okur/yanıtlar; bu hak ilişki veya paylaşım iznine
+  bağlı değildir. Diyetisyen hem okuma hem yazmada onaylı profil, aktif ilişki
+  ve aynı ilişkinin açık meal_logs iznine ihtiyaç duyar. İzin geçmiş yorumları
+  da kapsar; kategori için ayrı/otomatik izin oluşturulmaz. İzin yoksa 403;
+  yabancı/olmayan/silinmiş öğün veya ilişkisiz diyetisyen 404. Yetkisiz oturum
+  401; ortak error/requestId ve no-store korunur. İçerik hatalara/loga konmaz.
+- GET'te aktör/öğün/ilişki/izin/sayım/liste aynı repeatable-read snapshot'ında
+  okunur; başlamış okuma bitebilir, iptal commit'inden sonraki okuma kapanır.
+  POST aktör/danışan/öğün kilitleriyle izin iptali/ilişki bitişi/öğün silmeyle
+  sıralanır; bekleme sonrası güncel yetki yeniden denetlenir.
+- Düzenleme/silme, ayrı detay, bildirim veya genel sohbet eklenmez. Aynı kaynağa
+  PATCH/DELETE 405'tir. İstemciler yazmayı otomatik tekrarlamamalıdır.
+
 ## 18.11.2026 — K1–K4 seçilen sürümle günlük tüketim karşılaştırması
 
 Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
@@ -717,14 +753,12 @@ ClientTask yanıtı: `id`, `clientId`, `dietitianId`, `description`, `status`, `
 
 Rıza oluşturmak tek başına paylaşım izni oluşturmaz; DataSharingPermission ilgili onaya ayrıca bağlanır. Yalnız doğru endpoint çağrıldı diye kullanıcıya gösterilmemiş metne açık onay verilmiş sayılmaz. Kanıt/tür/kapsam tasarımı `05/11` ile tamamlanır; otomatik rıza veya genel tek checkbox varsayılmaz.
 
-## Açık şemaya bağlı yorum ve OCR işlemleri
+## Açık şemaya bağlı OCR işlemi
 
 Bu bölümdeki yollar **önerilen HTTP karşılıklarıdır**; `04/05`te açık olan kanonik alt kayıt adları ve tam DTO'lar onaylanmadan uygulama/mock üretimine dayanak değildir.
 
 | Method + route | İstek/yanıtın bilinen kısmı | Açık karar ve güvence |
 |---|---|---|
-| `GET /api/v1/meal-logs/{mealLogId}/comments` | Pagination; `200 { items, totalCount }`. Yorum alan önerisi `05`teki `id`, `mealLogId`, `authorUserId`, `text`, `createdAt`, nullable `parentCommentId` | Danışan kendi öğünü; diyetisyen aktif ilişki ve öğün/yorum için uygun kategori izniyle. Kanonik yorum modeli/yanıtının nihai onayı beklenir |
-| `POST /api/v1/meal-logs/{mealLogId}/comments` | Önerilen gövde `text`, nullable `parentCommentId`; yazar auth'tan. Onay sonrası `201` yorum | Cevap için aynı POST önerilir; ayrı REST yolu varsayılmaz, kalıcı yorum/cevap modeli `04/05` onayına bağlıdır. Başka öğünün ebeveyni `422/404`; döngü kurulamaz. Cevap derinliği ve moderasyon açık; düzenleme/silme yolları henüz eklenmez |
 | `POST /api/v1/lab-reports/ocr` | Önerilen yükleme: multipart `document` dosyası (PDF/fotoğraf); danışanın kendi kapsamı | Kabul edilen dosya tür/limitleri, senkron/asenkron iş, OCR taslak/id/durum/response yapısı ve onay kaydı AÇIK ŞEMA. Bunlar seçilmeden `200/202`, jobId veya yeni durum enumu kesinleştirilmez |
 
 OCR yalnız taslak çıkarır; tamamlanmış LabReport veya klinik değerlendirme üretmez. Kullanıcı test/değer/birim/tarih/referansı kontrol edip düzeltir ve açıkça onayladıktan sonra mevcut `POST /lab-reports` gövdesiyle doğrulanmış kayıt oluşturulur. OCR işi tamamlandı diye otomatik POST/insight tetiklenmez. Kullanıcı onayının sunucuda kanıtlanacağı tasarım açık olduğundan yeni `isConfirmed`/`ocrJobId` alanı bu belgede uydurulmaz. Dosya yükleme hataları `413/415`, yetki hataları ortak kurallara uyar.
@@ -1023,7 +1057,7 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 
 ## Kalan açık kararlar ve belge uyumu
 
-- Yorum ad/veri yapıları, tarif bileşenleri/görünürlük/geçmişi, görev durum/geçiş/son tarih/hatırlatma ve nutrition_plans dışı kategori kodları açık kalır. N1–N3 program sürüm/alternatif DTO'su bu listeden çıkarılmıştır.
+- Tarif bileşenleri/görünürlük/geçmişi, görev durum/geçiş/son tarih/hatırlatma ve nutrition_plans dışı kategori kodları açık kalır. N1–N3 program sürüm/alternatif DTO'su bu listeden çıkarılmıştır.
 - Genel atomik program replace/geçişi, programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve yerel gün/saat dilimi politikası açıktır. N1–N3 arşivleme ve aktif ilişki bitişinde atanmışı arşivleme onaylıdır.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.

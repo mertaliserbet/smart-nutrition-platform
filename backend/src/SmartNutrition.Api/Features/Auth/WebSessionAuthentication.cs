@@ -80,7 +80,8 @@ internal static class WebSessionAuthentication
             path?.StartsWith("/api/v1/nutrition-plans", StringComparison.Ordinal) == true ||
             path?.StartsWith("/api/v1/data-sharing-permissions", StringComparison.Ordinal) == true ||
             path?.StartsWith("/api/v1/dietitian/clients", StringComparison.Ordinal) == true || path == "/api/v1/dietitians/me/invitation-code";
-        if (web || account || resource)
+        var mealComments = path?.StartsWith("/api/v1/meal-logs/", StringComparison.Ordinal) == true && path.EndsWith("/comments", StringComparison.Ordinal);
+        if (web || account || resource || mealComments)
         {
             context.Response.Headers.CacheControl = "no-store";
             var authorization = context.Request.Headers.ContainsKey("Authorization");
@@ -90,7 +91,7 @@ internal static class WebSessionAuthentication
                 return;
             }
         }
-        if (web || (resource && context.Request.Cookies.ContainsKey(CookieName)))
+        if (web || ((resource || mealComments) && context.Request.Cookies.ContainsKey(CookieName)))
         {
             var settings = context.RequestServices.GetRequiredService<IOptions<WebSessionOptions>>().Value;
             if (!settings.Enabled) { await ApiErrors.WriteAsync(context, 500); return; }

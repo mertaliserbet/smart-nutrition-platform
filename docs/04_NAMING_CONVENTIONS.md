@@ -1,5 +1,17 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — Onaylı öğün yorumları ve danışan yanıtları
+
+Kullanıcı bu dar kapsamı açıkça onayladı. Tek model `MealLogComment`, tablo
+`meal_log_comments`; yanıt da aynı modelde nullable `parentCommentId` ile tutulur.
+DTO'lar `CreateMealLogCommentRequest` ve `MealLogCommentResponse` olur.
+JSON: id/mealLogId/authorUserId/text/createdAt/parentCommentId. Kök yorumu
+yetkili diyetisyen, tek seviyeli yanıtı öğünün sahibi danışan yazar.
+`GET/POST /api/v1/meal-logs/{mealLogId}/comments` ortak kaynaktır; ayrı reply,
+detay, düzenleme/silme rotası veya sohbet modeli yoktur. Alanlar ve yetki `05/06`dadır.
+Önceki yorum model adı/DTO onay bekliyor notları bu kapsam için kapanmıştır;
+bildirim, moderasyon ve düzenleme/silme kararları bu onaya dahil değildir.
+
 ## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
 
 Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
@@ -329,7 +341,7 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 - Her görevde önce bu sözlük, ilgili `05/06` bölümü ve `12` kararı eşleştirilir. Mevcut kavram bulunduğunda aynı kök ad kullanılır; mobil/web, kişisel/diyetisyen veya manuel/AI/cihaz ayrımı tek başına eşanlamlı entity üretmez.
 - Her platform kendi diline uygun modeli tutar; kavram, JSON anahtarları, enum değerleri ve kimlik anlamları ortak kalır. Aynı platformda aynı sözleşmenin kopya modelleri veya farklı alan adlarıyla paralel sürümleri üretilmez.
 - Feature-based yapı ve tek sorumluluk ilkesi korunur. Her küçük metot/widget için dosya, her model için gereksiz service/repository/arayüz katmanı veya derin klasör açılması bu sözlüğün gereği değildir. Ortak bileşen/servis gerçek tekrar, sorumluluk veya test ihtiyacı olduğunda çıkarılır.
-- Yorum/cevap, bildirim ve PDF raporu gibi kalan özelliklerin ayrı entity gerektirip gerektirmediği bu adlandırma güncellemesiyle belirlenmez. B/R/N ortak onayları başvuru/davet ve program sürüm/alternatif yapısını kapatmıştır; sözlükte olmayan diğer ad/alias için teklif ve ortak onay gerekir.
+- Bildirim ve PDF raporu gibi kalan özelliklerin ayrı entity gerektirip gerektirmediği bu adlandırma güncellemesiyle belirlenmez. B/R/N ortak onayları başvuru/davet ve program sürüm/alternatif yapısını kapatmıştır; sözlükte olmayan diğer ad/alias için teklif ve ortak onay gerekir.
 
 ## Değişiklik yönetimi — kritik
 
@@ -345,4 +357,4 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 - Tek aktif ilişki/program kuralları onaylıdır; R/N dilimleri DB unique indeksleriyle uygular. Birden fazla aktif diyetisyen veya program gelecekte yeni ürün/sözleşme onayı gerektirir.
 - NutritionPlan.dietitianId nullable ve kişisel/atanmış sahiplik N1–N3 ile `05/06`da eşitlendi. Ayrı PersonalPlan modeli üretilmez.
 - `Recipe`, `ClientTask` ve `DataSharingPermission` adlarının ayrıntılı veri/API karşılıkları henüz yoktur. `ConsentRecord` tek başına diyetisyen/kategori bazlı erişim yapısını tanımlamaz. Alanlar, ilişkiler, kategori/durum değerleri ve endpointler için öneri ve iki tarafın onayı gerekir.
-- Program dışı/makro kişisel hedefler, yorum/cevap/bildirim ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile kapandı. ActivityLog sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir.
+- Program dışı/makro kişisel hedefler, bildirim ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile kapandı. ActivityLog sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir.

@@ -1,5 +1,22 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 18.11.2026 — Onaylı MealLogComment
+
+Kullanıcı onayıyla tek kalıcı `MealLogComment` modeli uygulanır:
+id: uuid; mealLogId: uuid; authorUserId: uuid; text: string;
+createdAt: UTC instant (PostgreSQL mikrosaniye); parentCommentId: uuid?.
+Kimlik/yazar/zaman sunucudan gelir. Metin kırpılır; 1–2000 Unicode skaler
+karakter, boş/beyaz alan veya NUL kabul edilmez. İçerik düz metindir.
+MealLog ve User FK'leri RESTRICT; `(mealLogId,parentCommentId)` aynı öğündeki
+yorumun `(mealLogId,id)` anahtarına bağlıdır. Liste indeksi mealLogId/createdAt/id.
+API yalnız kök diyetisyen yorumu ve ona bağlı birden fazla danışan yanıtı
+oluşturur; yanıta yanıt/döngü oluşturulamaz. Kayıtlar EF üzerinden güncellenmez.
+Öğünün mantıksal silinmesi yorumları tüm normal erişimlerden kaldırır;
+fiziksel silme/saklama politikası eklenmez. Yeni migration yalnız yorum tablosu,
+FK/indeks/check ekler; eski verileri ve izinleri değiştirmez. Down, yorum
+varken veri kaybettirecek DROP işlemini reddeder.
+Bildirim, moderasyon, düzenleme/silme ve genel sohbet bu teslimin dışındadır.
+
 ## 18.11.2026 — K1–K4 günlük program–tüketim hesabı
 
 Kullanıcının açık `19` K1–K4 onayıyla aşağıdaki **hesaplanan**, kalıcı olmayan
@@ -507,7 +524,7 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 - `MealLogItem.recipeId` veya `NutritionPlanItem.recipeId` doluysa tarif mevcut ve ilgili kullanıcıya erişilebilir olmalıdır. Tarif/katalog değişikliği önceki tüketim değerlerini veya program geçmişini yeniden yazamaz; kayıttaki değerler tüketim anındaki veriyi korur. `foodItemId` ile `recipeId`nin birlikte kullanım kuralı **AÇIK**tır; aynı kalem iki kez hesaba katılmaz.
 - Görevin son tarihi ve isteğe bağlı hatırlatma tercihi tutulmalıdır. **Alan önerileri:** `dueAt: instant?` ve `isReminderEnabled: boolean`; son tarihin yalnız gün mü kesin saat mi olduğu, zorunluluğu, varsayılan tercih ve hatırlatma zamanlaması **AÇIK**tır. Bunlar onaylanmadan son tarih için keyfî alan/tip veya görev enumu eklenmez. Görev geçmişi ilişki sona erince eski diyetisyene yeni erişim sağlamaz.
 - **Yorum ilişkisi:** `MealLog` 1:N yorum, `User` 1:N yazdığı yorum; cevap aynı öğünün bir yorumuna bağlıdır. Yazar danışanın kendisi veya o öğüne erişmeye yetkili diyetisyen olmalıdır. Başka öğüne/başka danışana cevap bağlantısı ve döngü kurulamaz. Diyetisyenin yorum yetkisi güncel ilişki/paylaşım kontrollerinden bağımsız değildir; bu yapı sohbet özelliği değildir.
-- **Yorum için asgari alan önerisi:** `id: uuid`, `mealLogId: uuid`, `authorUserId: uuid`, `text: string`, `createdAt: instant`, `parentCommentId: uuid?` (null ise kök yorum). Kanonik yorum model adı `04`te yoktur; ayrı yorum/cevap modelleri, cevap derinliği, düzenleme/silme ve moderasyon kuralları **AÇIK**tır. Bu öneri henüz onaylı payload değildir.
+- **Yorum/yanıt alanları:** Üstteki onaylı MealLogComment bölümü geçerlidir; tek model ve tek seviyeli yanıt kullanılır. Düzenleme/silme, bildirim ve moderasyon bu teslimin dışındadır.
 - İlk sürüm yorum/cevap bildirimleri ile görev hatırlatmaları ilgili kayıt ve alıcıyla ilişkilendirilmelidir; bildirimde sağlık içeriği gösterimi paylaşım iznini aşamaz. Bildirim modeli, saklama ve teslim kanalı açık olduğundan yeni notification entity'si tanımlanmaz.
 
 ## Laboratuvar ve cihaz
@@ -569,7 +586,7 @@ Günlük kalori, makro ve su toplamları `MealLogItem`/`WaterLog` kayıtlarında
 ## `06_API_CONTRACT.md` ile uyumsuzluklar (bu görevde değiştirilmedi)
 
 - Plan oluşturma/düzenleme/aktif etme işlemleri yalnız diyetisyen için anlatılır; kişisel NutritionPlan sahipliği, nullable `dietitianId` ve danışanın kendi programını düzenlemesi API'ye yansıtılmalıdır. Mevcut endpointler bu dosyada değiştirilmez veya yeni alternatif rota üretilmez.
-- `Recipe`, `ClientTask`, `DataSharingPermission` ve yeni `recipeId`/`wearableConnectionId` bağlantılarının request/response karşılıkları yoktur. Sürüm/alternatif, yorum/cevap, son tarih/hatırlatma ve tahlil açık onayı için de payload/yetki kuralları tamamlanmalıdır.
+- `Recipe`, `ClientTask`, `DataSharingPermission` ve yeni `recipeId`/`wearableConnectionId` bağlantılarının request/response karşılıkları yoktur. Sürüm/alternatif, son tarih/hatırlatma ve tahlil açık onayı için de payload/yetki kuralları tamamlanmalıdır.
 - Mevcut enum değerleri korunmuştur; görev durumları, paylaşım kategorileri ve provider değerleri henüz belirlenmemiştir. Bunlar serbest string olarak istemcilerde ayrı ayrı uydurulamaz. API null/eksik alan ve PATCH davranışı netleştirilmelidir.
 - Aktivite sağlayıcı kimliği, tekilleştirme, adım/nabız ve aktif enerji ayrımı mevcut API örneklerinde tanımlı değildir. Lab OCR taslağı/kullanıcı onayı, güvenli birim dönüşümü ve LabInsight yanıt ayrıntıları da eksiktir.
 - Fotoğraf analizi önerilerinde makrolar eksiktir; `limitations` biçim/konumu belgeler arasında netleştirilmelidir. E-posta doğrulama, şifre sıfırlama ve Admin MFA'nın HTTP ayrıntıları bu veri sözlüğüyle belirlenmez.
@@ -578,7 +595,7 @@ Günlük kalori, makro ve su toplamları `MealLogItem`/`WaterLog` kayıtlarında
 
 Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve öğün alternatifleri **onaylı gereksinimlerdir**; yeniden açık ürün kararı sayılmaz. Açık kalanlar:
 
-- Sürüm/alternatif/yorum alt kayıtlarının kanonik adları, alanları ve saklama biçimi; tüketim–program sürümü eşleştirmesi. Öğün kayıtlarının kendi sürümleme ihtiyacı ayrıca açıktır.
+- Sürüm/alternatif alt kayıtlarının kanonik adları, alanları ve saklama biçimi; tüketim–program sürümü eşleştirmesi. Öğün kayıtlarının kendi sürümleme ihtiyacı ayrıca açıktır.
 - Tarif bileşenleri, toplam/porsiyon temeli, görünürlük ve değişiklik geçmişi; kişisel makro hedef alanları, programsız hedeflerin yeri ve öneri hesaplama yöntemi.
 - Görev son tarihinin gün/saat anlamı ve nullability'si, durum geçişleri, hatırlatma tercihleri; yorum/cevap moderasyonu ve bildirim teslim modeli.
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.

@@ -24,6 +24,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<NutritionPlanVersion> NutritionPlanVersions => Set<NutritionPlanVersion>();
     public DbSet<MealLog> MealLogs => Set<MealLog>();
     public DbSet<MealLogItem> MealLogItems => Set<MealLogItem>();
+    public DbSet<MealLogComment> MealLogComments => Set<MealLogComment>();
     public DbSet<WaterLog> WaterLogs => Set<WaterLog>();
     public DbSet<PersonalNutritionTarget> PersonalNutritionTargets => Set<PersonalNutritionTarget>();
     public DbSet<BodyMeasurement> BodyMeasurements => Set<BodyMeasurement>();
@@ -41,6 +42,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         NutritionPlan.Configure(modelBuilder);
         NutritionPlanVersion.Configure(modelBuilder);
         MealLogMapping.Configure(modelBuilder);
+        MealLogComment.Configure(modelBuilder);
         WaterLog.Configure(modelBuilder);
         PersonalNutritionTarget.Configure(modelBuilder);
         BodyMeasurement.Configure(modelBuilder);
