@@ -5,6 +5,7 @@ import '../auth/auth_session.dart';
 import 'manual_meal_log_page.dart';
 import 'meal_log_history_page.dart';
 import 'nutrition_plan_api.dart';
+import 'meal_comparison_page.dart';
 
 class NutritionPage extends StatefulWidget {
   const NutritionPage({
@@ -159,6 +160,16 @@ class _NutritionPageState extends State<NutritionPage>
             : 'Diyetisyeniniz tarafından atanmış program · Salt okunur',
       ),
       Text('Aktif program · Sürüm ${plan.versionNumber}'),
+      if (plan.dietitianId != null)
+        OutlinedButton.icon(
+          onPressed: () => Navigator.of(context).push<void>(
+            MaterialPageRoute<void>(
+              builder: (_) => MealComparisonPage(planApi: _api),
+            ),
+          ),
+          icon: const Icon(Icons.compare_arrows),
+          label: const Text('Program ve tüketimi karşılaştır'),
+        ),
       Text(
         'Başlangıç: ${_date(plan.startDate)}${plan.endDate == null ? '' : ' · Bitiş: ${_date(plan.endDate!)}'}',
       ),

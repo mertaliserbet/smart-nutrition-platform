@@ -44,7 +44,11 @@ class DietitianApi {
   DietitianApi(this.session);
   final AuthSession session;
   static const pageSize = 10;
-  static const sharingCategories = ['nutrition_plans', 'meal_logs'];
+  static const sharingCategories = [
+    'nutrition_plans',
+    'meal_logs',
+    'body_measurements',
+  ];
 
   Future<DietitianStatusResponse?> profile() => _safe(() async {
     final response = await session.authorizedRequest(

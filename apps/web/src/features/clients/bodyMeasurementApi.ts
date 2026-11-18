@@ -21,9 +21,10 @@ function measurement(value: unknown, clientId: string): BodyMeasurement {
   return row as BodyMeasurement
 }
 
-export async function getBodyMeasurements(clientId: string, page: number, range: { from?: string; to?: string }, signal: AbortSignal): Promise<PagedResponse<BodyMeasurement>> {
+export async function getBodyMeasurements(clientId: string, page: number, range: { from?: string; to?: string }, signal: AbortSignal, sortOrder?: 'asc'): Promise<PagedResponse<BodyMeasurement>> {
   if (!isUuid(clientId)) throw new WebSessionError(404, 'Danışan bulunamadı.')
   const params = new URLSearchParams({ page: String(page), pageSize: '10' })
+  if (sortOrder) params.set('sortOrder', sortOrder)
   if (range.from) params.set('from', range.from)
   if (range.to) params.set('to', range.to)
   let response: Response
@@ -47,4 +48,22 @@ export async function getBodyMeasurements(clientId: string, page: number, range:
   const items = result.items.map(value => measurement(value, clientId))
   if (new Set(items.map(item => item.id)).size !== items.length) throw invalid()
   return { items, totalCount: result.totalCount as number }
+}
+
+// Charts cover the complete filtered history, independently of the visible diary page.
+export async function getBodyMeasurementHistory(clientId: string, range: { from?: string; to?: string }, signal: AbortSignal, expectedTotal: number): Promise<BodyMeasurement[]> {
+  const records: BodyMeasurement[] = []
+  const ids = new Set<string>()
+  for (let page = 1; records.length < expectedTotal; page++) {
+    signal.throwIfAborted()
+    const result = await getBodyMeasurements(clientId, page, range, signal, 'asc')
+    if (result.totalCount !== expectedTotal || result.items.length === 0) throw invalid()
+    for (const row of result.items) {
+      if (ids.has(row.id)) throw invalid()
+      ids.add(row.id)
+      records.push(row)
+    }
+    if (records.length > expectedTotal) throw invalid()
+  }
+  return records
 }

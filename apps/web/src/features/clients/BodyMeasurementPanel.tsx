@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { EmptyState } from '../../core/components/EmptyState'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { BodyMeasurementList } from './ClientRecordViews'
-import { getBodyMeasurements } from './bodyMeasurementApi'
+import { getBodyMeasurementHistory, getBodyMeasurements } from './bodyMeasurementApi'
+import { BodyMeasurementCharts } from './BodyMeasurementCharts'
 import './clientTracking.css'
 
 export function BodyMeasurementPanel({ clientId }: { clientId: string }) {
@@ -19,7 +20,14 @@ function BodyMeasurementContent({ clientId }: { clientId: string }) {
   const [page, setPage] = useState(1)
   const [error, setError] = useState('')
   const load = useCallback(async (signal: AbortSignal) => {
-    try { return { kind: 'ready' as const, ...await getBodyMeasurements(clientId, page, range, signal) } }
+    if (document.visibilityState !== 'visible') return { kind: 'hidden' as const }
+    try {
+      const result = await getBodyMeasurements(clientId, page, range, signal)
+      const history = page === 1 && result.items.length === result.totalCount
+        ? result.items
+        : await getBodyMeasurementHistory(clientId, range, signal, result.totalCount)
+      return { kind: 'ready' as const, ...result, history }
+    }
     catch (error) {
       if (error instanceof WebSessionError && [403, 404].includes(error.status)) return { kind: 'denied' as const, message: error.message }
       throw error
@@ -27,12 +35,17 @@ function BodyMeasurementContent({ clientId }: { clientId: string }) {
   }, [clientId, page, range])
   const state = useWorkspaceRead(load)
   const refresh = state.refresh
+  const refreshRef = useRef(refresh)
+  useEffect(() => { refreshRef.current = refresh }, [refresh])
   useEffect(() => {
-    const recheck = () => { if (document.visibilityState === 'visible') refresh() }
+    const invalidate = () => refreshRef.current()
+    const recheck = () => { if (document.visibilityState === 'visible') invalidate() }
+    // No push contract exists: revalidate visible data periodically and on return.
+    const timer = window.setInterval(recheck, 30_000)
     window.addEventListener('focus', recheck)
-    document.addEventListener('visibilitychange', recheck)
-    return () => { window.removeEventListener('focus', recheck); document.removeEventListener('visibilitychange', recheck) }
-  }, [refresh])
+    document.addEventListener('visibilitychange', invalidate)
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', recheck); document.removeEventListener('visibilitychange', invalidate) }
+  }, [])
 
   function applyFilter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -58,6 +71,7 @@ function BodyMeasurementContent({ clientId }: { clientId: string }) {
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
     {state.data?.kind === 'denied' && <p className="panel-feedback" role="alert">{state.data.message}</p>}
     {state.data?.kind === 'ready' && <>
+      {state.data.history.length > 0 && <BodyMeasurementCharts records={state.data.history} />}
       {state.data.items.length === 0
         ? <EmptyState icon="chart" title={state.data.totalCount > 0 ? 'Bu sayfada ölçüm kaydı kalmadı' : range.from || range.to ? 'Bu aralıkta ölçüm kaydı yok' : 'Henüz ölçüm kaydı yok'}>Tarih aralığını değiştirebilir, önceki sayfaya dönebilir veya ölçümleri yenileyebilirsiniz.</EmptyState>
         : <BodyMeasurementList clientId={clientId} records={state.data.items} />}

@@ -9,7 +9,7 @@ import 'water_test_support.dart';
 
 void main() {
   test(
-    'real HTTPS: independent program and meal grants/revokes, active relationship and ownership',
+    'real HTTPS: three independent sharing grants/revokes, active relationship and ownership',
     () async {
       final container = Platform.environment['SNP_SHARING_CONTAINER']!;
       expect(
@@ -124,6 +124,51 @@ void main() {
           (await api.permissions(active.id)).where((p) => p.isGranted),
           hasLength(2),
         );
+        expect(
+          (await api.permissions(
+            active.id,
+          )).any((p) => p.category == 'body_measurements'),
+          isFalse,
+        );
+        var measurements = await api.setPermission(
+          relationshipId: active.id,
+          category: 'body_measurements',
+          isGranted: true,
+        );
+        expect(
+          {
+            for (final p in await api.permissions(active.id))
+              p.category: p.isGranted,
+          },
+          {
+            'nutrition_plans': true,
+            'meal_logs': true,
+            'body_measurements': true,
+          },
+        );
+        measurements = await api.setPermission(
+          relationshipId: active.id,
+          category: 'body_measurements',
+          current: measurements,
+          isGranted: false,
+        );
+        expect(
+          {
+            for (final p in await api.permissions(active.id))
+              p.category: p.isGranted,
+          },
+          {
+            'nutrition_plans': true,
+            'meal_logs': true,
+            'body_measurements': false,
+          },
+        );
+        measurements = await api.setPermission(
+          relationshipId: active.id,
+          category: 'body_measurements',
+          current: measurements,
+          isGranted: true,
+        );
         program = await api.setPermission(
           relationshipId: active.id,
           current: program,
@@ -142,9 +187,27 @@ void main() {
           isGranted: false,
         );
         expect(
+          {
+            for (final p in await api.permissions(active.id))
+              p.category: p.isGranted,
+          },
+          {
+            'nutrition_plans': false,
+            'meal_logs': false,
+            'body_measurements': true,
+          },
+        );
+        measurements = await api.setPermission(
+          relationshipId: active.id,
+          category: 'body_measurements',
+          current: measurements,
+          isGranted: false,
+        );
+        expect(
           (await api.permissions(active.id)).every((p) => !p.isGranted),
           isTrue,
         );
+        expect(measurements.isGranted, isFalse);
         expect(program.isGranted, isFalse);
         expect(meals.isGranted, isFalse);
         await expectLater(

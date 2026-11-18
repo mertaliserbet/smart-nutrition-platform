@@ -239,12 +239,8 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
   ) async {
     if (row.status != 'active') return;
     final current = _permissions[category];
-    final label = category == 'meal_logs'
-        ? 'Öğün kayıtları'
-        : 'Beslenme programları';
-    final action = category == 'meal_logs'
-        ? (granted ? 'Öğün paylaşımına izin ver' : 'Öğün iznini geri al')
-        : (granted ? 'Paylaşıma İzin Ver' : 'İzni Geri Al');
+    final label = _sharingLabel(category);
+    final action = _sharingAction(category, granted);
     final confirmed = await _confirm(
       action,
       granted
@@ -267,6 +263,20 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
           : 'Paylaşım izniniz geri alındı.',
     );
   }
+
+  String _sharingLabel(String category) => switch (category) {
+    'meal_logs' => 'Öğün kayıtları',
+    'body_measurements' => 'Vücut ölçümleri',
+    _ => 'Beslenme programları',
+  };
+
+  String _sharingAction(String category, bool granted) => switch (category) {
+    'meal_logs' =>
+      granted ? 'Öğün paylaşımına izin ver' : 'Öğün iznini geri al',
+    'body_measurements' =>
+      granted ? 'Ölçüm paylaşımına izin ver' : 'Ölçüm iznini geri al',
+    _ => granted ? 'Paylaşıma İzin Ver' : 'İzni Geri Al',
+  };
 
   Widget _connection(RelationshipResponse row) {
     return Card(
@@ -296,13 +306,15 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
               for (final category in DietitianApi.sharingCategories) ...[
                 const SizedBox(height: 16),
                 Text(
-                  category == 'meal_logs'
-                      ? 'Öğün kayıtları'
-                      : 'Beslenme programları',
+                  _sharingLabel(category),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  category == 'meal_logs'
+                  category == 'body_measurements'
+                      ? (_permissions[category]?.isGranted == true
+                            ? 'Ölçüm paylaşımı açık.'
+                            : 'Ölçüm paylaşımı kapalı. Bağlantı, program veya öğün izni ölçüm paylaşımını açmaz.')
+                      : category == 'meal_logs'
                       ? (_permissions[category]?.isGranted == true
                             ? 'Öğün paylaşımı açık.'
                             : 'Öğün paylaşımı kapalı. Bağlantı veya program izni öğün paylaşımını açmaz.')
@@ -311,7 +323,9 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
                             : 'Paylaşım izni kapalı. Bağlantı onayı tek başına paylaşım izni vermez.'),
                 ),
                 Text(
-                  category == 'meal_logs'
+                  category == 'body_measurements'
+                      ? 'Bu izin yalnız vücut ölçümlerinizi kapsar; diğer paylaşım izinleriniz bağımsızdır.'
+                      : category == 'meal_logs'
                       ? 'Öğün izni bağımsızdır; program izni öğün paylaşımını açmaz.'
                       : 'Bu izin yalnız beslenme programlarını kapsar.',
                 ),
@@ -326,13 +340,10 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
                         )
                       : null,
                   child: Text(
-                    category == 'meal_logs'
-                        ? (_permissions[category]?.isGranted == true
-                              ? 'Öğün iznini geri al'
-                              : 'Öğün paylaşımına izin ver')
-                        : (_permissions[category]?.isGranted == true
-                              ? 'İzni Geri Al'
-                              : 'Paylaşıma İzin Ver'),
+                    _sharingAction(
+                      category,
+                      _permissions[category]?.isGranted != true,
+                    ),
                   ),
                 ),
               ],
@@ -363,7 +374,7 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
               padding: const EdgeInsets.all(AppTokens.spacingMedium),
               children: [
                 const Text(
-                  'İsteği siz başlatırsınız; kabul veya ret yanıtını diyetisyen verir. Program ve öğün paylaşım izinlerini birbirinden bağımsız yönetirsiniz.',
+                  'İsteği siz başlatırsınız; kabul veya ret yanıtını diyetisyen verir. Program, öğün ve vücut ölçümü paylaşım izinlerini birbirinden bağımsız yönetirsiniz.',
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(

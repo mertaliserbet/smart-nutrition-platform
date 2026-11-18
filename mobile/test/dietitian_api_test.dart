@@ -109,22 +109,32 @@ void main() {
         pages.add(r.uri.queryParameters['page']);
         await reply(r, 200, {
           'items': [
-            r.uri.queryParameters['page'] == '1'
-                ? permissionBody(true)
-                : {
-                    ...permissionBody(false),
-                    'id': expertId,
-                    'category': 'meal_logs',
-                  },
+            switch (r.uri.queryParameters['page']) {
+              '1' => permissionBody(true),
+              '2' => {
+                ...permissionBody(false),
+                'id': expertId,
+                'category': 'meal_logs',
+              },
+              _ => {
+                ...permissionBody(false),
+                'id': clientId,
+                'category': 'body_measurements',
+              },
+            },
           ],
-          'totalCount': 2,
+          'totalCount': 3,
         });
       };
       final rows = await api.permissions(relationId);
-      expect(pages, ['1', '2']);
+      expect(pages, ['1', '2', '3']);
       expect(
         {for (final r in rows) r.category: r.isGranted},
-        {'nutrition_plans': true, 'meal_logs': false},
+        {
+          'nutrition_plans': true,
+          'meal_logs': false,
+          'body_measurements': false,
+        },
       );
     },
   );
@@ -158,50 +168,52 @@ void main() {
       }
     },
   );
-  for (final create in [true, false]) {
-    for (final granted in [true, false]) {
-      test(
-        'meal ${create ? 'POST' : 'PATCH'} only changes selected category to $granted',
-        () async {
-          var calls = 0;
-          resource = (r) async {
-            calls++;
-            expect(r.method, create ? 'POST' : 'PATCH');
-            expect(r.headers.value('x-profile-context'), 'client');
-            expect(r.headers.value('cookie'), isNull);
-            expect(
-              jsonDecode(await utf8.decoder.bind(r).join()),
-              create
-                  ? {
-                      'relationshipId': relationId,
-                      'category': 'meal_logs',
-                      'isGranted': granted,
-                    }
-                  : {'isGranted': granted},
+  for (final category in ['meal_logs', 'body_measurements']) {
+    for (final create in [true, false]) {
+      for (final granted in [true, false]) {
+        test(
+          '$category ${create ? 'POST' : 'PATCH'} only changes selected category to $granted',
+          () async {
+            var calls = 0;
+            resource = (r) async {
+              calls++;
+              expect(r.method, create ? 'POST' : 'PATCH');
+              expect(r.headers.value('x-profile-context'), 'client');
+              expect(r.headers.value('cookie'), isNull);
+              expect(
+                jsonDecode(await utf8.decoder.bind(r).join()),
+                create
+                    ? {
+                        'relationshipId': relationId,
+                        'category': category,
+                        'isGranted': granted,
+                      }
+                    : {'isGranted': granted},
+              );
+              await reply(r, create ? 201 : 200, {
+                ...permissionBody(granted),
+                'category': category,
+              });
+            };
+            final result = await api.setPermission(
+              relationshipId: relationId,
+              category: category,
+              isGranted: granted,
+              current: create
+                  ? null
+                  : DataSharingPermission(
+                      id: permissionId,
+                      relationshipId: relationId,
+                      category: category,
+                      isGranted: true,
+                    ),
             );
-            await reply(r, create ? 201 : 200, {
-              ...permissionBody(granted),
-              'category': 'meal_logs',
-            });
-          };
-          final result = await api.setPermission(
-            relationshipId: relationId,
-            category: 'meal_logs',
-            isGranted: granted,
-            current: create
-                ? null
-                : const DataSharingPermission(
-                    id: permissionId,
-                    relationshipId: relationId,
-                    category: 'meal_logs',
-                    isGranted: true,
-                  ),
-          );
-          expect(result.category, 'meal_logs');
-          expect(result.isGranted, granted);
-          expect(calls, 1);
-        },
-      );
+            expect(result.category, category);
+            expect(result.isGranted, granted);
+            expect(calls, 1);
+          },
+        );
+      }
     }
   }
   test(

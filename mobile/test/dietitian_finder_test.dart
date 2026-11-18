@@ -169,7 +169,7 @@ void main() {
     },
   );
   testWidgets(
-    'meal sharing is independent of program grant and each revoke preserves the other',
+    'three sharing categories are independent and each revoke preserves the others',
     (tester) async {
       api.active = status('active');
       api.grant = permission;
@@ -195,13 +195,69 @@ void main() {
       expect(api.lastCategory, 'meal_logs');
       expect(api.grant?.isGranted, isTrue);
       expect(api.mealGrant?.isGranted, isTrue);
+      final bodyButton = find.byKey(
+        const ValueKey('sharing-body_measurements'),
+      );
+      await visible(tester, bodyButton);
+      expect(find.textContaining('Ölçüm paylaşımı kapalı'), findsOneWidget);
+      expect(api.bodyGrant, isNull);
+      await change('body_measurements', 'Ölçüm paylaşımına izin ver');
+      expect(api.lastPermission, isNull);
+      expect(api.lastCategory, 'body_measurements');
+      expect(api.bodyGrant?.isGranted, isTrue);
+      expect(api.grant?.isGranted, isTrue);
+      expect(api.mealGrant?.isGranted, isTrue);
+      await change('body_measurements', 'Ölçüm iznini geri al');
+      expect(api.lastPermission?.category, 'body_measurements');
+      expect(api.bodyGrant?.isGranted, isFalse);
+      expect(api.grant?.isGranted, isTrue);
+      expect(api.mealGrant?.isGranted, isTrue);
+      await change('body_measurements', 'Ölçüm paylaşımına izin ver');
       await change('nutrition_plans', 'İzni Geri Al');
       expect(api.lastCategory, 'nutrition_plans');
       expect(api.mealGrant?.isGranted, isTrue);
+      expect(api.bodyGrant?.isGranted, isTrue);
       await change('meal_logs', 'Öğün iznini geri al');
       expect(api.mealGrant?.isGranted, isFalse);
       expect(api.grant?.isGranted, isFalse);
-      expect(api.permissionWrites, 3);
+      expect(api.bodyGrant?.isGranted, isTrue);
+      expect(api.permissionWrites, 6);
+    },
+  );
+  testWidgets(
+    'body rollout rejection requires explicit refresh without changing other categories',
+    (tester) async {
+      api.active = status('active');
+      api.grant = permission;
+      api.permissionFailure = const DietitianApiException(
+        'Ölçüm paylaşımı sunucuda kullanılamıyor.',
+        statusCode: 422,
+      );
+      await manage(tester);
+      final button = find.byKey(const ValueKey('sharing-body_measurements'));
+      await visible(tester, button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(
+            FilledButton,
+            'Ölçüm paylaşımına izin ver',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(api.permissionWrites, 1);
+      expect(api.grant?.isGranted, isTrue);
+      expect(api.mealGrant, isNull);
+      expect(api.bodyGrant, isNull);
+      expect(find.text('Ölçüm paylaşımı açık.'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('sharing-body_measurements')),
+        findsNothing,
+      );
+      expect(find.textContaining('Tekrar işlem yapmadan'), findsOneWidget);
     },
   );
   testWidgets(
@@ -827,7 +883,7 @@ class _Api extends DietitianApi {
   List<RelationshipResponse> history = [];
   int historyPage = 0, ends = 0, permissionWrites = 0;
   int? historyTotal;
-  DataSharingPermission? grant, mealGrant, lastPermission;
+  DataSharingPermission? grant, mealGrant, bodyGrant, lastPermission;
   String? lastCategory;
   Future<List<DataSharingPermission>>? permissionsResult;
   bool? lastGranted;
@@ -839,7 +895,7 @@ class _Api extends DietitianApi {
     if (permissionReadFailure) {
       throw const DietitianApiException('Paylaşım durumu okunamadı.');
     }
-    return permissionsResult ?? [?grant, ?mealGrant];
+    return permissionsResult ?? [?grant, ?mealGrant, ?bodyGrant];
   }
 
   @override
@@ -858,7 +914,9 @@ class _Api extends DietitianApi {
         await (permissionResult ??
             Future.value(
               DataSharingPermission(
-                id: category == 'meal_logs'
+                id: category == 'body_measurements'
+                    ? '66666666-6666-4666-8666-666666666666'
+                    : category == 'meal_logs'
                     ? '55555555-5555-4555-8555-555555555555'
                     : '44444444-4444-4444-8444-444444444444',
                 category: category,
@@ -866,7 +924,9 @@ class _Api extends DietitianApi {
                 isGranted: isGranted,
               ),
             ));
-    if (category == 'meal_logs') {
+    if (category == 'body_measurements') {
+      bodyGrant = result;
+    } else if (category == 'meal_logs') {
       mealGrant = result;
     } else {
       grant = result;

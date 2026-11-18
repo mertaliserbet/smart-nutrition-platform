@@ -26,6 +26,74 @@ public sealed class NutritionPlanMealComparisonApiTests
         $"/api/v1/nutrition-plans/{plan.GetProperty("id").GetGuid()}/versions/{plan.GetProperty("versionId").GetGuid()}/meal-comparison?from={Uri.EscapeDataString(from)}&to={Uri.EscapeDataString(to)}";
 
     [PostgresFact]
+    public async Task AssignedProgramWithNoItemsForSelectedDayKeepsActualConsumptionAndOwnerAccess()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(); var pair = await Seed(factory);
+        using var owner = Bearer(factory, pair.Owner, "client"); using var expert = Bearer(factory, pair.Expert);
+        using var absent = await owner.GetAsync("/api/v1/nutrition-plans/active"); await Error(absent, HttpStatusCode.NotFound);
+        using var created = await expert.PostAsJsonAsync("/api/v1/nutrition-plans", new
+        {
+            clientId = pair.Client.Id, title = Private, startDate = "2026-11-01", endDate = "2026-11-30",
+            dailyCaloriesTargetKcal = 1000m,
+            items = new[] { new { dayOfWeek = 4, mealType = "lunch", description = Private, sortOrder = 0 } }
+        });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var plan = await created.Content.ReadFromJsonAsync<JsonElement>();
+        using var activated = await expert.PostAsync($"/api/v1/nutrition-plans/{plan.GetProperty("id").GetGuid()}/activate", null);
+        Assert.Equal(HttpStatusCode.OK, activated.StatusCode);
+        var active = await owner.GetFromJsonAsync<JsonElement>("/api/v1/nutrition-plans/active");
+        Assert.Equal(pair.Profile.Id, active.GetProperty("dietitianId").GetGuid());
+
+        // Wednesday has no prescribed items. Neither planned food nor consumption is invented.
+        var empty = await Read(owner, plan);
+        Assert.All(empty.Meals, meal => { Assert.Empty(meal.PlannedItems); Assert.Equal(0, meal.Actual.ItemCount); });
+        Assert.Equal(0, empty.Actual.MealLogCount); Assert.Null(empty.CaloriesDifferenceKcal);
+        await Meal(owner, calories: 125.5m, type: "snack");
+        var consumed = await Read(expert, plan);
+        Assert.All(consumed.Meals, meal => Assert.Empty(meal.PlannedItems));
+        Assert.Equal(1, consumed.Meals.Single(x => x.MealType == MealType.Snack).Actual.MealLogCount);
+        Assert.Equal(new NutritionValueSummary(125.5m, 0), consumed.Actual.CaloriesKcal);
+        Assert.Equal(-874.5m, consumed.CaloriesDifferenceKcal);
+        Assert.Equal(plan.GetProperty("versionId").GetGuid(), consumed.NutritionPlanVersion.Id);
+
+        using var ended = await owner.PostAsync($"/api/v1/dietitian-relationships/{pair.Relationship.Id}/end", null);
+        Assert.Equal(HttpStatusCode.OK, ended.StatusCode);
+        using var denied = await expert.GetAsync(Route(plan)); await Error(denied, HttpStatusCode.NotFound);
+        Assert.Equal(consumed.Actual, (await Read(owner, plan)).Actual);
+    }
+
+    [PostgresFact]
+    public async Task MultipleItemsAndMealTypesPreserveMissingMacrosSeparatelyFromGenuineZero()
+    {
+        await using var factory = await RegistrationApiFactory.CreateAsync(); var pair = await Seed(factory);
+        using var owner = Bearer(factory, pair.Owner, "client"); var plan = await Plan(owner);
+        using var created = await owner.PostAsJsonAsync("/api/v1/meal-logs", new
+        {
+            mealType = "breakfast", consumedAt = "2026-11-18T08:00:00Z", source = "manual",
+            items = new[]
+            {
+                new { displayName = "Synthetic first food", isEstimated = false, caloriesKcal = (decimal?)200.25m, proteinGrams = (decimal?)10.5m, carbsGrams = (decimal?)null, fatGrams = (decimal?)0m },
+                new { displayName = "Synthetic second food", isEstimated = true, caloriesKcal = (decimal?)null, proteinGrams = (decimal?)0m, carbsGrams = (decimal?)12.25m, fatGrams = (decimal?)null },
+                new { displayName = "Synthetic third food", isEstimated = false, caloriesKcal = (decimal?)50.75m, proteinGrams = (decimal?)null, carbsGrams = (decimal?)0m, fatGrams = (decimal?)4.5m }
+            }
+        });
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        await Meal(owner, calories: 100m, type: "dinner");
+        var body = await Read(owner, plan);
+        Assert.Equal(2, body.Actual.MealLogCount); Assert.Equal(4, body.Actual.ItemCount); Assert.Equal(1, body.Actual.EstimatedItemCount);
+        Assert.Equal(new NutritionValueSummary(351m, 1), body.Actual.CaloriesKcal);
+        Assert.Equal(new NutritionValueSummary(10.5m, 2), body.Actual.ProteinGrams);
+        Assert.Equal(new NutritionValueSummary(12.25m, 2), body.Actual.CarbsGrams);
+        Assert.Equal(new NutritionValueSummary(4.5m, 1), body.Actual.FatGrams);
+        Assert.Null(body.CaloriesDifferenceKcal);
+        var breakfast = body.Meals.Single(x => x.MealType == MealType.Breakfast);
+        Assert.Equal(3, breakfast.Actual.ItemCount); Assert.Equal(2, breakfast.PlannedItems.Count);
+        Assert.Equal(breakfast.PlannedItems[0].AlternativeGroupId, breakfast.PlannedItems[1].AlternativeGroupId);
+        Assert.Equal(new NutritionValueSummary(10.5m, 1), breakfast.Actual.ProteinGrams);
+        Assert.Equal(0, body.Meals.Single(x => x.MealType == MealType.Other).Actual.ItemCount);
+    }
+
+    [PostgresFact]
     public async Task OwnComparisonWorksWithoutRelationshipAndUsesNullableValuesAndAlternatives()
     {
         await using var factory = await RegistrationApiFactory.CreateAsync(); var pair = await Seed(factory);
