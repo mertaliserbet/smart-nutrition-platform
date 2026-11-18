@@ -1,5 +1,77 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 18.11.2026 — U1 görev API'si (uygulama onaylı)
+
+Kullanıcı U1 ürün ve teknik kararlarını onaylı kabul edip uygulamayı istedi.
+Kanonik ClientTask ve mevcut kaynak yolları korunur; geçmiş yolu aynı kaynağa
+eklenir. Aşağıdaki bölüm önceki görev AÇIK ŞEMA notlarının yerini alır.
+
+Tüm yollar `/api/v1/client-tasks` tabanındadır. JWT veya W2 web cookie kabul
+edilir; iki kimlik birlikte 400. Mevcut X-Profile-Context kuralları geçerlidir;
+çift profilli hesap mobilde client/dietitian bağlamını açık seçer, web yalnız
+uzman bağlamıdır. Admin/MFA sağlık görevi erişimi vermez. Web yazmaları geçerli
+Origin ve oturuma bağlı CSRF ister; bearer yazmasına CSRF eklenmez. Yanıtlar,
+hatalar dahil no-store; ortak hata zarfı korunur.
+
+| Method + ek yol | Request | Response |
+|---|---|---|
+| `GET` | Zorunlu page>=1, pageSize=1..100; diyetisyende ayrıca zorunlu clientId=ClientProfile UUID. Danışan clientId göndermez; kapsam kimliğindendir | `200 { items: ClientTaskResponse[], totalCount }`; yalnız yetkili küme, createdAt DESC/id ASC. Yetkili boş liste 200 |
+| `GET /{clientTaskId}` | Gövde/query yok | `200 ClientTaskResponse` |
+| `POST` | `CreateClientTaskRequest`: zorunlu clientId: uuid, description: string; isteğe bağlı dueAt: offsetli ISO instant veya null (yoksa null). Başka alan alınmaz | `201 ClientTaskResponse`, Location=`/api/v1/client-tasks/{id}`. Oluşturma doğrudan atamadır; atayan ve özgün ilişki sunucudan, pending/version=1/reminder=false |
+| `PATCH /{clientTaskId}` | `PatchClientTaskRequest`: zorunlu expectedVersionNumber: pozitif integer; en az bir description/dueAt/status/isReminderEnabled. Alan yetkileri aşağıdadır | `200 ClientTaskResponse`; gerçek değişiklikte sürüm+1/geçmiş. Aynı açık değer no-op, sürüm artmaz; eski sürüm 409 |
+| `GET /{clientTaskId}/versions` | Zorunlu page/pageSize, aynı sınırlar; başka query/gövde yok | `200 { items: ClientTaskVersionResponse[], totalCount }`; versionNumber DESC; güncel görevle aynı erişim |
+
+ClientTaskResponse tam ve düz alanları: `id`, `clientId`, `dietitianId`,
+`relationshipId`, `description`, `status`, `dueAt`, `isReminderEnabled`,
+`createdAt`, `updatedAt`, `versionNumber`. dueAt anahtarı daima vardır,
+bilinmiyorsa null; zamanlar UTC'dir. ClientTaskVersionResponse tam alanları:
+`id`, `clientTaskId`, `versionNumber`, `createdAt`, `snapshot` (o sürümün tam
+ClientTaskResponse'u). recordedByUserId dahili kalır. Tamamlama zamanı ilk
+completed snapshot'ının createdAt değeridir. Geçmiş satırları değişmez.
+
+- Açıklama kırpılır; 1–2000 Unicode kod noktası, boş/NUL metin 422.
+  dueAt kesin zaman, isteğe bağlı; gün veya ofsetsiz tarih 400. Oluşturma ve
+  gerçek tarih değişikliği anında gelecekte olmalı, aksi 422. Mevcut son tarih
+  geçmiş olsa da geç tamamlama mümkündür; overdue ayrı status değildir.
+- Danışan yalnız status ve isReminderEnabled yazar. pending→in_progress veya
+  completed; in_progress→completed. Geri geçiş 409; danışanın cancelled isteği
+  403. Diyetisyen açık görevde description/dueAt yazar veya cancelled yapar;
+  danışan adına ilerletme/tamamlama ve hatırlatma tercihi yazma 403.
+  completed/cancelled görevde PATCH 409 (aynı değer dahil), yeniden açma yoktur.
+- isReminderEnabled varsayılan false; yalnız danışanın tercihidir. dueAt yokken
+  true 422; dueAt kaldırılınca false olur. Bildirim/teslim/zamanlama API'si,
+  worker veya teslim garantisi yoktur; true yanıtı teslim vaadi değildir.
+- PATCH gönderilmeyen alanı korur; null yalnız dueAt'i temizler. Zorunlu
+  değişiklik alanına null 422, yanlış JSON tipi 400, bilinmeyen status 422.
+  Yalnız expectedVersionNumber/boş gövde, eksik önkoşul, salt okunur/ek alan,
+  query çoğaltma/ek query ve GET gövdesi 400. Hatalı tür/içerik 415; yazma
+  gövdesi en çok 32768 byte (413). Sunucu alanları/hedef/atayan değiştirilemez.
+- Diyetisyenin her işleminde güncel onaylı uzman + özgün active ilişki +
+  bağımsız client_tasks izni + atayan sahipliği gerekir. Mevcut ilişkide izin
+  eksik/false 403; başka danışan/atayan veya bitmiş/pending/başka ilişki 404.
+  Danışanın kendi liste/detay/geçmişi ilişki/izinden bağımsızdır. Diyetisyende
+  clientId verilmemesi/boş olması ve danışanda gönderilmesi 400; POST'ta boş hedef UUID 422.
+- İzin geri çekme diyetisyenin yeni erişimini kapatır, görevi değiştirmez;
+  danışan kendi görev durum/tercihini yönetebilir. İlişki sonu açık görevleri
+  aynı transaction'da cancelled yapıp geçmiş ekler. Yeni ilişki, aynı uzmanla
+  kurulsa bile eski görevleri o uzmana açmaz. Tamamlanmış görev korunur.
+- İzin mevcut `/api/v1/data-sharing-permissions` POST/PATCH yollarıyla,
+  category=`client_tasks`, consentRecordId=null olarak yalnız danışanca yönetilir.
+  İzin yoksa kapalı; program/öğün/ölçüm izni görev izni değildir. Yeni izin
+  yaratma (false dahil) ve true yapma `Relationships:Sharing:ClientTasksEnabled`
+  varsayılan false nedeniyle mobil uyum doğrulanana kadar 422'dir. Kapalı ayar
+  mevcut satırı gizlemez, false ile geri çekmeyi veya verilmiş izni yok saymaz.
+- Yazma işleminde mevcut User→ClientProfile→görev kilit sırası kullanılır;
+  izin/ilişki kilit beklemesinden sonra tekrar kontrol edilir. PATCH önkoşulu
+  görev kilidi altında denetlenir; eşzamanlı aynı sürümden biri 200, diğeri 409.
+  İstemci 409'da güncel kaydı okuyup kullanıcı düzenlemesini tekrar değerlendirir;
+  otomatik overwrite/retry yapılmaz. İçerik/geçmiş/ilişki iptali atomiktir.
+  Okumalar yetki/sayı/sayfa için aynı RepeatableRead snapshot'ını kullanır;
+  iptalden önce başlayan yetkili okuma tamamlanabilir, sonraki istek reddedilir.
+
+Flutter M2 ve React U2 bu teslimin dışındadır. Migration
+`20261118204842_AddClientTasks` uygulama DB'sine otomatik uygulanmaz.
+
 ## 18.11.2026 — Onaylı öğün yorumu ve danışan yanıtı
 
 Kullanıcı model/DTO, metin sınırı, tek seviyeli yanıt ve geçmiş erişimini
@@ -732,14 +804,15 @@ Yeni yollar aynı kanonik kökten türetilir. Aşağıda **AÇIK ŞEMA** bulunan
 | `PATCH /api/v1/recipes/{recipeId}` | Kendi tarifinde `name` ve onaylanacak bileşen alanları | `200` Recipe; bileşen/değişiklik geçmişi AÇIK ŞEMA. Önceki MealLogItem ve plan geçmişi yeniden hesaplanıp değiştirilmez |
 | `GET /api/v1/client-tasks` | Pagination; diyetisyen için izinli `clientId`, danışan için kendi kapsamı | `200 { items, totalCount }`; ClientTask alanları `05`teki gibi. Diyetisyen yalnız atayan tarafsa ve güncel ilişki/kategori izni varsa erişir |
 | `GET /api/v1/client-tasks/{clientTaskId}` | Gövdesiz | `200` kendi danışan görevi veya yetkili atayan diyetisyenin görevi |
-| `POST /api/v1/client-tasks` | Diyetisyenden `clientId`, `description`; atayan `dietitianId` auth'tan | `201` ClientTask; ilk status değeri, son tarih ve hatırlatma AÇIK ŞEMA. Bu kararlar onaylanmadan eksik görev oluşturma DTO'su uygulanmaz |
-| `PATCH /api/v1/client-tasks/{clientTaskId}` | Atayan diyetisyenin açıklama düzeltmesi; status/son tarih/hatırlatma değişiklikleri AÇIK ŞEMA | `200` güncel ClientTask. Danışanın hangi durum geçişini yapabileceği açık olduğundan keyfî status veya atayan/hedef kimlik değişikliği kabul edilmez |
+| `POST /api/v1/client-tasks` | U1 CreateClientTaskRequest: clientId, description, nullable dueAt | `201` ClientTaskResponse; kimlik/ilişki/başlangıç durumu sunucudan, yukarıdaki U1 kuralları |
+| `PATCH /api/v1/client-tasks/{clientTaskId}` | U1 PatchClientTaskRequest; expectedVersionNumber ve role göre değişiklikler | `200` ClientTaskResponse; yetki/geçiş/409 kuralları U1 bölümündedir |
+| `GET /api/v1/client-tasks/{clientTaskId}/versions` | Zorunlu page/pageSize | U1 sayfalı değişmez ClientTaskVersionResponse geçmişi; güncel görev yetkisi |
 | `GET /api/v1/data-sharing-permissions` | Danışanın kendi kapsamı; opsiyonel `relationshipId`, pagination | `200 { items, totalCount }`; DataSharingPermission alanları `05`teki gibi. Başkasının ilişkisi okunamaz |
 | `GET /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | Gövdesiz | `200` danışanın kendi ilişki izni |
 | `POST /api/v1/data-sharing-permissions` | `relationshipId`, `category`, `isGranted`, nullable `consentRecordId` | `201` DataSharingPermission; yalnız ilişkinin danışanı yönetir. Aynı ilişki/kategori ikinci kaydı `409`; kategori kodları AÇIK ŞEMA |
 | `PATCH /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | `isGranted`, nullable `consentRecordId`; ilişki/kategori değiştirilemez | `200` güncel izin; geri çekme `isGranted: false` ile yapılır, geçmiş silinmez. Diyetisyen/Admin danışan adına izni açamaz |
 
-ClientTask yanıtı: `id`, `clientId`, `dietitianId`, `description`, `status`, `createdAt`; açık son tarih/hatırlatma alanları henüz buna eklenmez. DataSharingPermission yanıtı: `id`, `relationshipId`, `category`, `isGranted`, `consentRecordId`, `createdAt`, `updatedAt`. `id`/zamanlar sunucudan gelir. Recipe/ClientTask silme ve yorum moderasyon kuralları açık olduğundan sırf CRUD tamamlama amacıyla ek DELETE yolları oluşturulmaz.
+ClientTask yanıtı yukarıdaki U1 bölümündeki tam 11 alanı kullanır. DataSharingPermission yanıtı: `id`, `relationshipId`, `category`, `isGranted`, `consentRecordId`, `createdAt`, `updatedAt`. `id`/zamanlar sunucudan gelir. Recipe/ClientTask için sırf CRUD tamamlama amacıyla DELETE yolu oluşturulmaz; görev iptali PATCH status=cancelled ile yapılır.
 
 İzin verme isteğinde ilişki danışana ait olmalı; sağlık verisi erişimi her durumda active ilişkiye bağlıdır. Pending/ended ilişkide izin düzenlemenin ayrıntısı **AÇIK**tır; izni önceden kaydetmek veri erişimi vermez. Tahlil kategorisini açarken ilgili danışana ait, kapsamı uygun ve geri çekilmemiş açık onay bağlantısı yoksa `422 consent_required`; izin geri çekme için yeni onay aranmaz. Kategori listesi onaylanmadan `lab`, `all` gibi varsayılan kodlar uydurulmaz; iznin satır bazında varlığı tek başına erişim izni değildir.
 
@@ -1057,7 +1130,7 @@ Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **k
 
 ## Kalan açık kararlar ve belge uyumu
 
-- Tarif bileşenleri/görünürlük/geçmişi, görev durum/geçiş/son tarih/hatırlatma ve nutrition_plans dışı kategori kodları açık kalır. N1–N3 program sürüm/alternatif DTO'su bu listeden çıkarılmıştır.
+- Tarif bileşenleri/görünürlük/geçmişi ve henüz onaylanmamış kategori kodları açık kalır. Görev durum/geçiş/son tarih/tercih ve client_tasks U1 ile kapanmıştır; hatırlatma teslimi ayrıca geliştirilir. N1–N3 program sürüm/alternatif DTO'su da kapanmıştır.
 - Genel atomik program replace/geçişi, programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve yerel gün/saat dilimi politikası açıktır. N1–N3 arşivleme ve aktif ilişki bitişinde atanmışı arşivleme onaylıdır.
 - OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
 - Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.

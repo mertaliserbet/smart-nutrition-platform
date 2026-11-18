@@ -1,5 +1,36 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 18–19.11.2026 — U1 görev erişimi, geçmiş ve izin iptali
+
+Kullanıcının U1 uygulama onayıyla client_tasks bağımsız paylaşım kategorisidir;
+eksik izin kapalıdır, nutrition_plans/meal_logs/body_measurements yetki vermez.
+Yalnız danışan kendi aktif ilişkisinin iznini açar/geri alır. Yeni izin yazması
+Relationships:Sharing:ClientTasksEnabled=false ile kapalıdır; M2 çoklu kategori/
+sayfalama uyumu doğrulanmadan ortak ortamda açılmaz. Ayar eski satırı gizlemez,
+mevcut izni geri çekmeyi veya danışanın kendi görevlerini okumayı engellemez.
+
+Diyetisyen her görev okuma/yazma/geçmiş işleminde güncel doğrulanmış uzman,
+atayan sahipliği, görevin özgün active ilişkisi ve açık izni denetler. Başka
+danışan/atayan/bitmiş ilişki 404; aktif ilişkide eksik/geri çekilmiş izin 403.
+Yeni ilişki eski görevleri açmaz. Danışanın kendi okuması ilişkisizdir; ilişki
+sonu açık görevleri aynı transaction'da iptal eder ve sürüm geçmişi ekler.
+Admin MFA görev verisi erişimi vermez. Aktör User UUID'si geçmişte dahili
+saklanır; yanıt, hata ve uygulama logunda görev içeriği/kimlik bilgisi sızmaz.
+
+User→ClientProfile kilit sırası izin geri çekme/ilişki sonu/görev yazmasında
+ortaktır; beklemeden sonra ilişki/izin yeniden kontrol edilir. Görev kilidinde
+sürüm karşılaştırılır; eski sürüm 409. Görev ve immutable snapshot tek transaction;
+geçmiş hatası görevi/ilişkiyi kısmen değiştiremez. Yetki ve okuma sayıları aynı
+RepeatableRead snapshot'ındadır; başlamış yetkili okuma tamamlanabilir, iptal
+sonrası yeni istek reddedilir. Yanıtlar no-store, cookie işlemleri CSRF/Origin
+korumalıdır; JWT/birleşik kimlik ve çift profil sınırları korunur.
+
+Migration yalnız yeni görev/geçmiş tabloları, ilişki üçlüsü tekilliği ve kategori
+check genişletmesi ekler; mevcut veri/izinleri değiştirmez. Veri bulunan Down
+reddedilir. Uygulama DB'sine uygulanmaz; ayrı geçici PostgreSQL üzerinde sentetik
+test yapılır. Bildirim tercihi saklamak teslim/worker/üretim yayını değildir;
+genel saklama/silme/KVKK/yayın kapıları geçerlidir.
+
 ## 18.11.2026 — Birleştirilen ölçüm paylaşımı kuralları
 
 Kullanıcı kararıyla BodyMeasurementsEnabled yalnız Development'ta true

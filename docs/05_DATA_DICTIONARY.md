@@ -1,5 +1,47 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 18.11.2026 — U1 ClientTask / ClientTaskVersion
+
+Kullanıcının U1 uygulama onayıyla görev şeması ve bağımsız paylaşımı kapanmıştır.
+Önceki görev durum/son tarih/hatırlatma açık notlarının yerini bu bölüm alır.
+
+| Model | Alanlar / tipler | Bütünlük |
+|---|---|---|
+| `ClientTask` | `id`, `clientId`, `dietitianId`, `relationshipId`: uuid; `description`: string; `status`: ClientTaskStatus; `dueAt`: instant?; `isReminderEnabled`: boolean; `createdAt`, `updatedAt`: instant; `versionNumber`: integer | Hedef ClientProfile, atayan DietitianProfile, özgün DietitianClientRelationship. İlişki/hedef/atayan üçlüsü composite FK ile eşleşir; kimlikler ve createdAt değişmez. Açıklama kırpılır, 1–2000 Unicode kod noktası, boş/NUL içerik reddedilir |
+| `ClientTaskVersion` | `id`, `clientTaskId`, `recordedByUserId`: uuid; `versionNumber`: integer; `createdAt`: instant; `snapshot`: ClientTaskResponse biçiminde JSONB | Oluşturma ve her gerçek değişiklikte append-only EF kaydı; task+version tek transaction. Aynı task/version tekildir. Aktör User bağlantısı yalnız sunucuda; HTTP'ye çıkmaz. Snapshot önceki açıklama/durum/son tarih/tercihi korur |
+
+- Başlangıç pending, versionNumber=1, isReminderEnabled=false, updatedAt=createdAt.
+  Durumlar pending/in_progress/completed/cancelled. Danışan pending'den
+  in_progress veya completed'a; in_progress'ten completed'a geçebilir.
+  Atayan diyetisyen yalnız açık görevin açıklama/son tarihini değiştirir veya
+  cancelled yapar. Terminal görev değişmez; aynı açık değer no-op'tur,
+  yeni sürüm üretmez. Geç kalma ayrı durum değildir; geç tamamlama kabul edilir.
+- dueAt nullable kesin UTC instant'tır. Gönderilen tarih açık offset içermeli;
+  oluşturma veya gerçek tarih değişikliğinde sunucu zamanından ileride olmalı.
+  PostgreSQL mikrosaniyesine normalize edilir, gün sınırı/saat dilimi varsayılmaz.
+  Eski, değişmeyen dueAt'in geçmiş olması başka geçerli değişikliği engellemez.
+- Hatırlatma yalnız danışanın göreve ait tercihidir. dueAt yokken true olamaz;
+  diyetisyen dueAt'i kaldırdığında tercih otomatik false olur. Teslim/zamanlama
+  işi yoktur. Tamamlama zamanı completed durumuna geçen sürümün createdAt'idir.
+- client_tasks eksikse kapalıdır; başka kategori erişim vermez. Yalnız danışan
+  kendi aktif ilişkisinde mevcut DataSharingPermission yollarından izin yönetir.
+  `Relationships:Sharing:ClientTasksEnabled` varsayılan false, yeni izin yaratma
+  ve true yapmayı kapatır; mevcut satırlar okunabilir/geri çekilebilir.
+- Diyetisyen onaylı profil + özgün active ilişki + açık izin + atayan sahipliği
+  ile erişir. İzin geri çekilmesi durumu değiştirmez; danışan kendi görevinde
+  durum/tercih işlemlerini sürdürebilir. İlişki sonunda yalnız o ilişkinin açık
+  görevleri aynı transaction'da cancelled olur ve geçmiş eklenir. Yeni ilişki
+  eski görevi diyetisyene açmaz. Danışanın tüm kendi geçmiş okumaları sürer.
+- Yazma, izin geri çekme ve ilişki sonu mevcut User→ClientProfile kilit sırasını
+  kullanır; PATCH görev kilidinde expectedVersionNumber karşılaştırır. Sürüm
+  uyuşmazlığı 409; geçmiş yazma hatası tüm işlemi geri alır. Okuma yetki/sayı/
+  sayfa için RepeatableRead snapshot kullanır; iptalden önce başlayan yetkili
+  okuma tamamlanabilir, sonraki okuma güncel izni denetler.
+- Restrict FK'ler, durum/metin/zaman/tercih check'leri ve görev/sürüm tekilliği
+  PostgreSQL'de de korunur. Migration veri silmez/izin backfill etmez; görev,
+  geçmiş veya client_tasks izin satırı varken Down reddedilir. Genel silme ve
+  saklama için `11` geçerlidir; bu görev DELETE API'si oluşturmaz.
+
 ## 18.11.2026 — Onaylı MealLogComment
 
 Kullanıcı onayıyla tek kalıcı `MealLogComment` modeli uygulanır:
@@ -517,12 +559,12 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 | Kavram | Asgari alanlar | İlişki / bütünlük |
 |---|---|---|
 | `Recipe` | `id: uuid`, `userId: uuid`, `name: string`, `createdAt: instant` | `userId` → tarifi oluşturan User; bir kullanıcının N tarifi olabilir. Recipe 1:N bileşenden oluşur; FoodItem ile eşleşen bileşen ilgili besine bağlanır. Bileşen modeli/yapısı ve tarif görünürlüğü **AÇIK**tır |
-| `ClientTask` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `description: string`, `status: string`, `createdAt: instant` | Görev bir danışana ve atayan diyetisyene bağlıdır; atama için aktif/yetkili ilişki gerekir. Durum değerleri ve kimin hangi geçişi yapacağı **AÇIK**tır; serbest rastgele durum değerleri kabul edilmez |
+| `ClientTask` | U1 bölümündeki 11 alan; ayrıca değişmez ClientTaskVersion geçmişi | Görev özgün ilişkiye, danışana ve atayan diyetisyene bağlıdır; onaylı durum/geçiş/izin kuralları yukarıdadır |
 | `DataSharingPermission` | `id: uuid`, `relationshipId: uuid`, `category: string`, `isGranted: boolean`, `consentRecordId: uuid?`, `createdAt: instant`, `updatedAt: instant` | `relationshipId` → DietitianClientRelationship; danışan/diyetisyen bu ilişkiden türetilir, tekrar saklanmaz. Kategori listesi **AÇIK**tır. Aynı ilişki/kategori için tek güncel izin bulunur; değişiklikler audit/rıza geçmişini silmez |
 
 - Tarif bileşenlerinin miktar/birim bilgisi ve pişmiş toplam/porsiyon temeli korunmadan hesaplanmış enerji/makro gösterilmez; kaynak ve belirsizlik görünür tutulur. Bilinen gram miktarı `decimal` ve pozitiftir; bilinmeyen miktar sıfır sayılmaz. Bileşenlerin gram/adet dönüşümü, katalog dışı bileşen yapısı ve tarifin daha sonra değişmesindeki sürümleme yöntemi **AÇIK**tır.
 - `MealLogItem.recipeId` veya `NutritionPlanItem.recipeId` doluysa tarif mevcut ve ilgili kullanıcıya erişilebilir olmalıdır. Tarif/katalog değişikliği önceki tüketim değerlerini veya program geçmişini yeniden yazamaz; kayıttaki değerler tüketim anındaki veriyi korur. `foodItemId` ile `recipeId`nin birlikte kullanım kuralı **AÇIK**tır; aynı kalem iki kez hesaba katılmaz.
-- Görevin son tarihi ve isteğe bağlı hatırlatma tercihi tutulmalıdır. **Alan önerileri:** `dueAt: instant?` ve `isReminderEnabled: boolean`; son tarihin yalnız gün mü kesin saat mi olduğu, zorunluluğu, varsayılan tercih ve hatırlatma zamanlaması **AÇIK**tır. Bunlar onaylanmadan son tarih için keyfî alan/tip veya görev enumu eklenmez. Görev geçmişi ilişki sona erince eski diyetisyene yeni erişim sağlamaz.
+- Görevin nullable dueAt ve varsayılan false isReminderEnabled alanları U1 ile kesinleşmiştir; bildirim teslim/zamanlaması ayrıca geliştirilir. Görev geçmişi ilişki sona erince eski diyetisyene yeni erişim sağlamaz.
 - **Yorum ilişkisi:** `MealLog` 1:N yorum, `User` 1:N yazdığı yorum; cevap aynı öğünün bir yorumuna bağlıdır. Yazar danışanın kendisi veya o öğüne erişmeye yetkili diyetisyen olmalıdır. Başka öğüne/başka danışana cevap bağlantısı ve döngü kurulamaz. Diyetisyenin yorum yetkisi güncel ilişki/paylaşım kontrollerinden bağımsız değildir; bu yapı sohbet özelliği değildir.
 - **Yorum/yanıt alanları:** Üstteki onaylı MealLogComment bölümü geçerlidir; tek model ve tek seviyeli yanıt kullanılır. Düzenleme/silme, bildirim ve moderasyon bu teslimin dışındadır.
 - İlk sürüm yorum/cevap bildirimleri ile görev hatırlatmaları ilgili kayıt ve alıcıyla ilişkilendirilmelidir; bildirimde sağlık içeriği gösterimi paylaşım iznini aşamaz. Bildirim modeli, saklama ve teslim kanalı açık olduğundan yeni notification entity'si tanımlanmaz.
@@ -586,8 +628,8 @@ Günlük kalori, makro ve su toplamları `MealLogItem`/`WaterLog` kayıtlarında
 ## `06_API_CONTRACT.md` ile uyumsuzluklar (bu görevde değiştirilmedi)
 
 - Plan oluşturma/düzenleme/aktif etme işlemleri yalnız diyetisyen için anlatılır; kişisel NutritionPlan sahipliği, nullable `dietitianId` ve danışanın kendi programını düzenlemesi API'ye yansıtılmalıdır. Mevcut endpointler bu dosyada değiştirilmez veya yeni alternatif rota üretilmez.
-- `Recipe`, `ClientTask`, `DataSharingPermission` ve yeni `recipeId`/`wearableConnectionId` bağlantılarının request/response karşılıkları yoktur. Sürüm/alternatif, son tarih/hatırlatma ve tahlil açık onayı için de payload/yetki kuralları tamamlanmalıdır.
-- Mevcut enum değerleri korunmuştur; görev durumları, paylaşım kategorileri ve provider değerleri henüz belirlenmemiştir. Bunlar serbest string olarak istemcilerde ayrı ayrı uydurulamaz. API null/eksik alan ve PATCH davranışı netleştirilmelidir.
+- ClientTask/ClientTaskVersion U1 ve DataSharingPermission onaylı kategorileri tarihli bölümlerle `06`ya eşittir. Recipe, wearableConnectionId ve kalan tahlil açık onayı ayrıntıları ayrıca tamamlanır.
+- Mevcut enumlar korunur; görev durumları ve PATCH/null kuralları U1 ile tanımlıdır. Onaylanmamış paylaşım kategorileri/provider değerleri istemcilerde serbest string olarak uydurulamaz.
 - Aktivite sağlayıcı kimliği, tekilleştirme, adım/nabız ve aktif enerji ayrımı mevcut API örneklerinde tanımlı değildir. Lab OCR taslağı/kullanıcı onayı, güvenli birim dönüşümü ve LabInsight yanıt ayrıntıları da eksiktir.
 - Fotoğraf analizi önerilerinde makrolar eksiktir; `limitations` biçim/konumu belgeler arasında netleştirilmelidir. E-posta doğrulama, şifre sıfırlama ve Admin MFA'nın HTTP ayrıntıları bu veri sözlüğüyle belirlenmez.
 
@@ -597,7 +639,7 @@ Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve ö�
 
 - Sürüm/alternatif alt kayıtlarının kanonik adları, alanları ve saklama biçimi; tüketim–program sürümü eşleştirmesi. Öğün kayıtlarının kendi sürümleme ihtiyacı ayrıca açıktır.
 - Tarif bileşenleri, toplam/porsiyon temeli, görünürlük ve değişiklik geçmişi; kişisel makro hedef alanları, programsız hedeflerin yeri ve öneri hesaplama yöntemi.
-- Görev son tarihinin gün/saat anlamı ve nullability'si, durum geçişleri, hatırlatma tercihleri; yorum/cevap moderasyonu ve bildirim teslim modeli.
+- Görev alan/durum/son tarih/tercih U1 ile kapandı; yorum/cevap moderasyonu ve bildirim teslim modeli açık kalır.
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
 - Nabız/adım/aktif enerji veri yapıları, platform/cihaz desteği ve manuel/cihaz örtüşme politikası; günlük zaman dilimi ve yeniden senkronizasyon anahtarları.
 - Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.

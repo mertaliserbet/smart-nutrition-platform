@@ -1,5 +1,26 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — U1 görev sistemi uygulama onayı
+
+Kullanıcı U1 ürün/teknik kararlarını onaylı kabul ederek backend uygulamasını
+yetkilendirdi. Görevin tek kanonik adı `ClientTask`, değişmez geçmişi
+`ClientTaskVersion`, durum tipi `ClientTaskStatus` olur. JSON durumları yalnız
+`pending`, `in_progress`, `completed`, `cancelled` değerleridir.
+
+- `CreateClientTaskRequest`, `PatchClientTaskRequest`, `ClientTaskResponse`,
+  `ClientTaskVersionResponse` aynı kökü kullanır. PATCH önkoşulu
+  `expectedVersionNumber`; sunucunun sürümü `versionNumber`dır.
+- Mevcut kimlik/açıklama/durum/createdAt korunur; `relationshipId`, `dueAt`,
+  `isReminderEnabled`, `updatedAt`, `versionNumber` eklenir. Profil UUID'leri
+  User UUID'si değildir. İlişki/atayan/hedef kimlikleri sonradan değişmez.
+- Bağımsız paylaşım kodu `client_tasks`; program/öğün/ölçüm izni yerine geçmez.
+  PostgreSQL tabloları `client_tasks`, `client_task_versions` olur.
+- İsteğe bağlı `dueAt` kesin UTC zamandır; takvim günü değildir.
+  `isReminderEnabled` yalnız görev bazında danışan tercihidir; teslim sistemi
+  veya yeni notification modeli ifade etmez. Tam davranış `05/06`dadır.
+- Flutter ve React bu teslimde değişmez; M2/U2 aynı sözleşmeyi tüketir.
+  Aşağıdaki tarihsel görev şeması açık notları U1 için geçerli değildir.
+
 ## 18.11.2026 — Onaylı öğün yorumları ve danışan yanıtları
 
 Kullanıcı bu dar kapsamı açıkça onayladı. Tek model `MealLogComment`, tablo
@@ -227,7 +248,7 @@ Bu bölüm yalnız kavram adlarını netleştirir; yeni entity/tablo zorunluluğ
 |---|---|---|
 | Kişisel beslenme programı | `NutritionPlan` | Diyetisyensiz danışanın oluşturduğu program da aynı kavramdır. `PersonalPlan`, `PersonalNutritionPlan` veya `ClientPlan` adlı eşanlamlı model üretilmez; N1–N3 sahiplik ve düzenleme kuralları `05/06`dadır |
 | Özel tarif | `Recipe` | Tarif kavramıdır; katalog besini `FoodItem` ve gerçek tüketim kalemi `MealLogItem` ile karıştırılmaz. İçerik, porsiyon, hesaplama ve katalog bağlantısının yapısı ayrıca kararlaştırılır |
-| Diyetisyenin danışana atadığı görev | `ClientTask` | Danışan görevidir; C# asenkron `Task` tipi, antrenman programı veya yalnız bildirim anlamında kullanılmaz. Alanlar, durum değerleri ve geçişler henüz tanımlı değildir |
+| Diyetisyenin danışana atadığı görev | `ClientTask` | Danışan görevidir; C# asenkron `Task` tipi veya yalnız bildirim değildir. U1 alan/durum/geçmiş sözleşmesi `05/06`dadır |
 | Kategori bazlı veri paylaşım izni | `DataSharingPermission` | Danışanın hangi veri kategorisini hangi diyetisyenle paylaşabildiği kavramıdır. Mevcut `ConsentRecord` izin/rıza geçmişini ifade eder; erişim izni ile rıza kaydı eşanlamlı değildir. Aralarındaki ilişki ve kategori listesi açıktır |
 
 `FoodRecipe`/`CustomRecipe` ile `Recipe`, `DietitianTask`/`NutritionTask` ile `ClientTask`, `SharingPermission`/`DataAccessPermission` ile `DataSharingPermission` için paralel eşanlamlı modeller oluşturulmaz. Adlandırma karşılığı seçilmesi bu kavramların ayrı saklama modelleri olacağını kesinleştirmez.
@@ -334,7 +355,7 @@ istek başlığı `X-CSRF-TOKEN` olur. Mobil JWT girişine cookie/CSRF şartı e
 | `LabFlag` | `low`, `normal`, `high`, `unknown` |
 | `RecordSource` | `manual`, `wearable`, `ai_assisted` |
 
-Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `camelCase` olabilir; API'deki sabit değerler aynen korunur (ör. `AiAssisted` / `aiAssisted` → `ai_assisted`). TypeScript temsil seçimi de JSON değerini değiştirmez. `status`, `source`, `flag` gibi mevcut alanlar keyfî olarak yeniden adlandırılmaz. Görev durumları, paylaşım kategorileri, sağlayıcılar ve kişisel/diyetisyen program ayrımı için henüz yeni enum veya değer listesi onaylanmamıştır.
+Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `camelCase` olabilir; API'deki sabit değerler aynen korunur (ör. `AiAssisted` / `aiAssisted` → `ai_assisted`). TypeScript temsil seçimi de JSON değerini değiştirmez. `status`, `source`, `flag` gibi mevcut alanlar keyfî olarak yeniden adlandırılmaz. Görev durumları U1 ClientTaskStatus değerlerini kullanır; henüz onaylanmamış kategori/sağlayıcı değerleri bu kuralla kendiliğinden kesinleşmez.
 
 ## İki Codex için aynı kavramı kullanma ve modülerlik
 
@@ -356,5 +377,5 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 - Mevcut ortak model adları ve enum değerleri korunmuştur. `/users` yalnız eski bir admin önerisidir; `06`da endpoint olarak tanımlı değildir. Bu dosyadaki kaynak adları method, payload veya erişim yetkisi onayı yerine geçmez.
 - Tek aktif ilişki/program kuralları onaylıdır; R/N dilimleri DB unique indeksleriyle uygular. Birden fazla aktif diyetisyen veya program gelecekte yeni ürün/sözleşme onayı gerektirir.
 - NutritionPlan.dietitianId nullable ve kişisel/atanmış sahiplik N1–N3 ile `05/06`da eşitlendi. Ayrı PersonalPlan modeli üretilmez.
-- `Recipe`, `ClientTask` ve `DataSharingPermission` adlarının ayrıntılı veri/API karşılıkları henüz yoktur. `ConsentRecord` tek başına diyetisyen/kategori bazlı erişim yapısını tanımlamaz. Alanlar, ilişkiler, kategori/durum değerleri ve endpointler için öneri ve iki tarafın onayı gerekir.
+- ClientTask/ClientTaskVersion U1 ile, DataSharingPermission onaylı kategorileri ilgili tarihli bölümlerle tanımlıdır. Recipe ve kalan kategori/ConsentRecord ayrıntıları ayrıca onay gerektirir.
 - Program dışı/makro kişisel hedefler, bildirim ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile kapandı. ActivityLog sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir.

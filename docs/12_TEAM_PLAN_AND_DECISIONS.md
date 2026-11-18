@@ -1,5 +1,39 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 18–19.11.2026 — U1 görev sistemi uygulama onayı ve teslim
+
+Kullanıcı U1 için gerekli ürün/teknik kararların onaylı kabul edilmesini,
+kalan ayrıntılarda mevcut mimariye göre ilerlenmesini ve tekrar onay aşamasında
+durulmadan backend/sözleşme/migration/testlerin uygulanmasını açıkça istedi.
+Önceki U1-1–U1-6 karar paketi bu kapsamda uygulanmıştır; bağımsız client_tasks,
+özgün ilişkiye bağlı görev, pending/in_progress/completed/cancelled, nullable
+kesin dueAt, danışana ait varsayılan false hatırlatma tercihi, sürümlü değişmez
+geçmiş ve expectedVersionNumber önkoşulu `04/05/06`ya işlendi. Bildirim teslimi
+bu dilim değildir. Önceki hazırlık tablosunun görev şeması açıkları kapanır;
+diğer modüllere onay çıkarılmaz.
+
+Uğur yalnız backend ve ilgili docs dosyalarını değiştirdi. Uygulama mevcut
+main checkout'unda kullanıcı talimatıyla dal/geçmiş değiştirilmeden hazırlandı;
+Git fetch/pull/commit/push/merge/rebase yapılmadı. Flutter/React/kök dosyaları
+değişmedi. U2/U3 başlatılmadı. Yeni migration:
+`20261118204842_AddClientTasks`; uygulama veritabanına uygulanmadı.
+
+Mert'in M2 entegrasyonu, kodun geliştiricilerce ortak main'e alınması ve aynı
+sözleşme sürümünün paylaşılmasından sonra yapılır. M2, client_tasks izin
+satırını, çoklu kategori sayfalamasını, sürümlü PATCH ve görev geçmişini destekler;
+uyum doğrulanmadan Relationships:Sharing:ClientTasksEnabled false kalır.
+Danışanın clientId göndermediği GET liste/detay/geçmiş ve yalnız yetkili durum/
+tercih PATCH'i kullanılır. 409 sonrası güncel kayıt okunur; otomatik overwrite
+yapılmaz. Koordinasyon belgesindeki U1 teslim kaydı ve `06` kesin kaynaktır.
+
+**Doğrulama:** Son backend build 0 uyarı/0 hata; ayrı geçici PostgreSQL 17.11
+üzerinde tam paket **447 başarılı, 2 atlanan, 0 başarısız** (449 toplam).
+19 ClientTask API testi bu koşuya dahildir. Atlananlar yalnız opt-in Mailpit
+SMTP testleridir. EF has-pending-model-changes temiz; git diff --check geçti.
+İzin/ilişki yarışları, snapshot tutarlılığı, eşzamanlı sürüm çatışması, rol/CSRF,
+geç tamamlama, FK/check/unique kısıtları, veri koruyan Up ve kayıplı Down reddi
+gerçek PostgreSQL'de sınandı. Uygulama DB'si ve mobil/web canlı prova yapılmadı.
+
 ## 18.11.2026 — İkinci Uğur adımı, K1–K4 ortak kullanıcı onayı
 
 Fork ve yerel main, ortak main `0678c3c` ile fast-forward eşitlendi; ilk
@@ -403,11 +437,11 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 
 | Alan | Açık ayrıntı / sonraki işlem |
 |---|---|
-| Ortak sözleşmeler | `05`te kişisel program için `dietitianId` nullable, `06`da kişisel/atanmış yetkiler ve yeni kaynak yolları tanımlıdır. Tamamlanacaklar: alternatif/sürüm yapısı, tarif bileşenleri, hedefler, yorum/cevap, görev durumları, kategori/izin ve bildirim DTO'ları; mevcut metinlerdeki eski kontrol notlarının ortak onayla düzeltilmesi. Kritik bağımlılıklar aşağıdaki hazırlık tablosundadır |
+| Ortak sözleşmeler | `05`te kişisel program için `dietitianId` nullable, `06`da kişisel/atanmış yetkiler ve yeni kaynak yolları tanımlıdır. U1 görev DTO/durum/geçmiş ve client_tasks izni kapanmıştır. Kalan tarif, bildirim teslimi ve onaylanmamış kategori ayrıntıları ile tarihsel kontrol notları ilgili özellik kapsamında ele alınır; kritik bağımlılıklar aşağıdaki hazırlık tablosundadır |
 | Rol ve uzman doğrulama | Kullanıcının birden çok rol/profil taşıyıp taşıyamayacağı; başvuru belgeleri, doğrulama ölçütleri, ret/yeniden başvuru ve doğrulama geri alma süreci. Doğrulayan tarafın Admin olması kesinleşmiştir |
 | İlişki ve paylaşım | Davet kodu üretimi, ömrü ve kötüye kullanım kontrolleri; kategori listesi, varsayılan izinler, tahlil açık onayının kapsamı ve geri çekme akışı; geçmiş paylaşımın sınırları |
 | Program ve hedefler | Kişisel programdan diyetisyen programına geçiş ve ilişkinin bitişindeki aktif program davranışı; sürüm saklama/gösterim yöntemi, öğün alternatiflerinin yapısı, tüketim eşleştirme ve uyum hesabı; güvenli kişisel öneri hesaplama yöntemi |
-| Yorum, görev ve bildirim | Yorum/cevap düzenleme-silme ve moderasyon kuralları; görev türleri, durum değerleri, geçiş yetkileri ve saat dilimi; bildirim kanalları, teslim altyapısı ve hatırlatma tercihleri. İlk sürüm yorum/cevap/bildirim kapsamı onaylıdır |
+| Yorum, görev ve bildirim | Görev alan/durum/geçiş/son tarih/tercih U1 ile kapandı; ayrı görev türü/tekrar sistemi eklenmedi. Yorum/cevap düzenleme-silme/moderasyon, bildirim kanalı ve teslim altyapısı açık. İlk sürüm yorum/cevap/bildirim kapsamı korunur |
 | Besin ve AI kaynakları | Hibrit kataloğun kaynakları, birleştirme/öncelik kuralları ve lisansları; tarif hesaplama ve görünürlük; hazır model/API seçimi, veri seti ve değerlendirme ölçütleri. Fotoğraf saklama ve anonimleştirme ayrıca kararlaştırılır |
 | Laboratuvar | Test kod standardı, birim dönüşümleri, referans doğrulama kuralları, OCR sağlayıcısı ve hata kontrolü; opsiyonel ML için izinli veri ve bilimsel validasyon. OCR'nin manuel girişten sonra gelmesi ve kullanıcı onayı zorunluluğu kesindir |
 | Sağlık platformları | Android/iOS ilk önceliği, desteklenen OS/cihazlar, veri türlerinin platform karşılıkları, izin ve senkronizasyon ayrıntıları; adım/nabız gibi verilerin şeması ve kaynak bazlı tekilleştirme/örtüşme politikası. Tüm saatlerin doğrudan entegrasyonu garanti değildir |
@@ -428,7 +462,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
 | Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
 | Program sürümü ve geçiş | N1–N3 ile gün/miktar/alternatif/snapshot/DTO, archive ve ilişki bitişinde active atanmışı arşivleme kapandı. Genel atomik replace, programsız/makro hedef ve uyum hesabı açık | Onaylı backend/web uygulandı; mobil aynı main'e göre entegre olur. Başka aktif program sahibinin açık durdurması gerekir; iki aktif veya sahiplik silme yok |
-| Tarif, görev ve yorum | Tarif bileşen/porsiyon/görünürlük, görev durum/geçiş/son tarih/hatırlatma, yorum kanonik adı/moderasyonu ve bildirim DTO/kanalları açık | Metadata/yol taslakları tam feature sözleşmesi sayılmaz. İlk sürüm yorum/cevap/bildirim şartı nedeniyle bunların onayı ilk sürüm planında önceliklidir |
+| Tarif, görev ve yorum | Görev DTO/durum/geçiş/son tarih/tercih ve bağımsız client_tasks U1 ile kapandı; tarif/moderasyon/bildirim teslimi açık | U1 backend/migration/test teslimidir; M2/U2 ortak main entegrasyonundan sonra başlar. Bildirim teslimi uygulanmış sayılmaz |
 | OCR, lab ve cihaz | OCR taslak/onay kanıtı ve sync gövdeleri, adım/nabız/aktif enerji modelleri, kaynak örtüşmesi; LabInsight method/limitations ve değişen tahlil geçmişi açık | Manuel girişi engellemez; bu entegrasyonlara başlanmadan ilgili veri/HTTP parçası kapatılmalı. Yeni genel job/ölçüm modeli uydurulmaz |
 | Eski sözleşme kontrol notları | `04`, `05`teki tek aktif kuralları/nullable dietitianId ve yeni kaynakları hâlâ eksik sayıyor, ConsentRecord endpoint kararı yok diyor; `05`, güncel `06`daki kişisel program, kaynak yolları, PATCH ve makro alanlarını eski halleriyle anlatıyor | `04/05/06` için ayrı, iki tarafça onaylı düzeltme gerekir. Bu inceleme bu üç dosyada değişiklik yapma onayı değildir |
 | Sürüm kapsamı ifadesi | `06`nın sonundaki ilk sürüm bildirimleri ve PDF raporlarını aynı cümlede anması takvimi belirsizleştiriyor | Karar 2/7 ilk sürüm web paneli ve yorum/cevap/bildirim şartıdır; karar 17 PDF kapsamını onaylar, yayın tarihini sabitlemez. `01`deki aşama ayrımı esas alınır; `06` ifadesi ortak onayla netleştirilmeli |
