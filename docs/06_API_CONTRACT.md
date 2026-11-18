@@ -682,11 +682,18 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 | Ölçüm | `DELETE /api/v1/body-measurements/{bodyMeasurementId}` | Kendi ölçümünü sil |
 | Aktivite | `GET /api/v1/activity-logs` | Kendi aktiviteleri |
 | Aktivite | `POST /api/v1/activity-logs` | Aktivite ekle |
+| Aktivite | `GET /api/v1/activity-logs/daily-summary` | U3 kendi günlük özeti, açık offsetli yerel gün sınırları |
 | Aktivite | `GET /api/v1/activity-logs/{activityLogId}` | Kendi detay |
 | Aktivite | `PATCH /api/v1/activity-logs/{activityLogId}` | Kendi kaydını düzelt; kaynak kimliğini sahteleştiremez |
 | Aktivite | `DELETE /api/v1/activity-logs/{activityLogId}` | Kendi kaydını sil |
-| Cihaz | `GET /api/v1/wearable-connections` | İzinli bağlantılar |
-| Cihaz | `POST /api/v1/wearable-connections/sync` | İzinli/uyumlu senkronizasyon (sonraki aşama) |
+| Cihaz | `GET /api/v1/wearable-connections` | Kendi bağlantıları; page/pageSize zorunlu |
+| Cihaz | `POST /api/v1/wearable-connections` | Provider için aynı kararlı kendi bağlantısını al/oluştur; 200 |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}` | Kendi bağlantısı/senkronizasyon durumu |
+| Cihaz | `PATCH /api/v1/wearable-connections/{wearableConnectionId}` | expectedVersionNumber + active/revoked aktarım tercihi |
+| Cihaz | `POST /api/v1/wearable-connections/sync` | U3 atomik, sürümlü, batchId ile tekrar güvenli aktarım |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}/records` | Kendi native kaynak başlıkları/tombstone ve sürümleri |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}/records/{wearableRecordId}` | Kendi kaynak başlığı |
+| Sağlık | `GET /api/v1/health-metric-samples` | Kendi adım/mesafe/aktif enerji/nabız örnekleri; page/pageSize |
 | Laboratuvar | `GET /api/v1/lab-reports` | Kendi raporları |
 | Laboratuvar | `POST /api/v1/lab-reports` | Ölçüm + değerler ekle |
 | Laboratuvar | `GET /api/v1/lab-reports/{labReportId}` | Rapor detay |
@@ -699,7 +706,7 @@ Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir.
 | Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/meal-logs` | İzinli öğün kayıtları |
 | Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/water-logs` | İzinli su kayıtları |
 | Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/body-measurements` | İzinli ölçümler |
-| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/activity-logs` | İzinli aktiviteler |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/activity-logs` | Sonraki aşama taslağı; U3 uygulamaz, hiçbir paylaşım izni bu yolu açmaz |
 | Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/lab-reports` | İzinli tahlil özet/sonuçları |
 | Plan | `POST /api/v1/nutrition-plans` | Danışan kişisel, diyetisyen yetkili danışanına taslak program oluşturur |
 | Plan | `PATCH /api/v1/nutrition-plans/{nutritionPlanId}` | Danışan yalnız kendi kişisel, diyetisyen yalnız kendi atadığı programı düzenler |
@@ -712,20 +719,24 @@ Yeni tarif/görev/paylaşım yolları ve açık şemalı işlemler aşağıdaki 
 
 ## Günlük kayıtlar — request/response ve eksik işlemler
 
-Aşağıdaki POST alanlarında `?` isteğe bağlı/nullable alanı gösteren dokümantasyon işaretidir; gerçek JSON anahtarına eklenmez. Aynı alanların PATCH'te gönderilmeyenleri korunur. `source` oluşturma kaynağını belirtir; sıradan PATCH ile kaynağı/dış kimliği değiştirip cihaz kaydı üretilemez.
+Aşağıdaki POST alanlarında `?` isteğe bağlı/nullable alanı gösteren dokümantasyon işaretidir; gerçek JSON anahtarına eklenmez. Aynı alanların PATCH'te gönderilmeyenleri korunur; **U3 ActivityLog tam alanlı sürümlü PATCH istisnası aşağıdadır**. `source` oluşturma kaynağını belirtir; sıradan PATCH ile kaynağı/dış kimliği değiştirip cihaz kaydı üretilemez.
 
 | Kaynak | POST gövdesi / düzenlenebilir alanlar | Başarılı yanıt ve doğrulama |
 |---|---|---|
 | `MealLog` | `mealType`, `consumedAt`, `source`, `items`; opsiyonel `note`, `foodAnalysisId`. Her item: `displayName`, `isEstimated`; nullable `foodItemId`, `recipeId`, `quantityGrams`, `caloriesKcal`, `proteinGrams`, `carbsGrams`, `fatGrams` | `201/200`: `id`, `clientId`, `mealType`, `consumedAt`, `note`, `source`, `foodAnalysisId`, `createdAt`, `items`. Item yanıtında ayrıca `id`, `mealLogId`. En az bir item; gram/kcal/makro kuralları `05`e uyar; tüm referanslar yetkili kaynaklara ait olmalı |
 | `WaterLog` | `amountMl`, `consumedAt`, `source`; PATCH yalnız miktar/zaman | `201/200`: `id`, `clientId`, `amountMl`, `consumedAt`, `source`. Miktar pozitif decimal/mL; sıfır/negatif `422` |
 | `BodyMeasurement` | `measuredAt`, `source`; nullable `weightKg`, `waistCm`, `hipCm`, `chestCm`, `bodyFatPercent`, `note`. PATCH zaman/ölçüm/not alanlarını düzeltir | `201/200`: `id`, `clientId` ve aynı ölçüm/not/source alanları. Son durumda en az bir ölçüm; kg/cm pozitif, yüzde 0–100; aksi `422`. 18.11.2026 kullanıcı göreviyle kalça/göğüs/not eklendi |
-| `ActivityLog` | Manuel girişte `activityType`, `startedAt`, `source: manual`; nullable `durationMinutes`, `distanceKm`, `caloriesKcal`. PATCH tür/zaman/ölçümleri düzeltir | `201/200`: `id`, `clientId`, giriş alanları, nullable `externalRecordId`, `wearableConnectionId`. Dakika/km/kcal negatif olamaz; aktif/toplam enerji anlamı **AÇIK**tır |
+| `ActivityLog` | Manuel `activityType`, `startedAt`, `source: manual`; `durationMinutes`, `distanceKm`, `caloriesKcal` anahtarları zorunlu, değerleri nullable. PATCH source olmadan aynı beş alanın tam yeni değerlerini + expectedVersionNumber alır; DELETE query'de expectedVersionNumber ister | `201/200`: id/clientId ve giriş alanları; endedAt, rawDurationMinutes, externalRecordId, wearableConnectionId, wearableRecordId nullable; versionNumber/createdAt/updatedAt. En az bir ölçüm; süre >0/≤10080 dk, km/aktif kcal ≥0. Cihaz kaydı yalnız sync'ten değişir |
 | `LabReport` | `collectedAt`, `results`; nullable `labName`, `note`. Her result: `testName`, `value`, `unit`; nullable `testCode`, `referenceLow`, `referenceHigh`. PATCH aynı alanları düzeltir | `201/200`: `id`, `clientId`, `collectedAt`, `labName`, `note`, `createdAt`, `results`; her result ayrıca `id`, `labReportId`, sunucunun hesapladığı `flag`. En az bir result; bilinen iki sınırda low <= high; eksik/uyumsuz referans `unknown` |
 
 - Bu kaynakların GET detayları aynı yetkili kaynak yanıtını, GET listeleri aynı kaynaklardan `items` ve `totalCount` döndürür. DELETE gövdesizdir. Yazma işlemlerinde ortak hatalara ek olarak referans/yabancı kaynak ihlalleri `422` veya varlık sızdırmayan `404`, geçmiş/silme kısıtıyla çakışma `409`dur.
 - MealLog için manuel ve kullanıcı onaylı `ai_assisted` akışları ayrıdır. AI bağlantısı verildiyse aynı danışana ait uygun tamamlanmış analiz doğrulanır; `foodAnalysisId` mevcut sözleşmedeki gibi opsiyoneldir. `foodItemId`/`recipeId` birlikte kullanım kuralı `05`te **AÇIK**tır; iki referanstan çift kalori hesaplanmaz.
-- `source = wearable` yalnız izinli senkronizasyon akışında kaynak bilgisiyle kabul edilir. Aktivitede aynı danışana ait `wearableConnectionId` gerekir; `externalRecordId` sağlayıcı kimliğidir. Sıradan manuel POST'a bu alanları eklemek senkronizasyon yetkisi vermez. Sync request/response ayrıntıları **AÇIK ŞEMA**dır; kaynak anahtarı ve manuel/cihaz örtüşmesi kararlaştırılmadan sahte kayıtla kapatılmaz.
-- `GET /wearable-connections` yalnız danışanın kendi bağlantılarını `200 { items, totalCount }` içinde `id`, `clientId`, `provider`, `status`, nullable `lastSyncedAt` ile döndürür; secret dönmez. Provider/status kodları ve sync gövdesi açık kalır; OS izni ile diyetisyene paylaşım izni aynı şey değildir.
+- **U3 sağlık sözleşmesi / 19.11.2026:** Tam DTO, yanıt alanları, sentetik request örnekleri ve M1→M3 eşlemesi [20_HEALTH_DATA_SYNC_CONTRACT.md](20_HEALTH_DATA_SYNC_CONTRACT.md) içindedir; bu normatif API sözleşmesinin parçasıdır. Yalnız doğrulanmış client JWT + client profil bağlamı; diyetisyen/Admin/web cookie erişimi yok. userId/clientId alınmaz; bağlantı oturum sahibine ait olmalı, yabancı ID 404. Yeni kategori paylaşım izni açılmaz.
+- Provider health_connect/health_kit, bağlantı status active/revoked; OS izni kanıtı değildir. Bağlantı DTO'su id/clientId/provider/status/versionNumber/lastSyncedAt/lastAttemptAt/lastSyncStatus/lastErrorCode. Sync `{wearableConnectionId,batchId,changes}` → `{batchId,wearableConnectionId,committedAt,records}`; her değişiklik operation upsert/delete, metric, sourceId/externalRecordId/rawType/expectedVersionNumber taşır; upsert ayrıca sourceName/recordingMethod/rawUnit, exercise'ta exerciseType ve samples ister. Her örnek startedAt/endedAt/rawValue; HR delta upsert ve açık deletedSampleStarts desteklenir. Grup başlığı ve örnek DTO alanları teslim notunda tam listelidir.
+- Kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId, nabız alt anahtarı normalize UTC başlangıcı. Stable native ID zorunlu; eksik reddedilir. Raw COUNT/METER/MINUTE/KILOCALORIE/BEATS_PER_MINUTE sunucuda count/km/minutes/kcal/bpm olur; kcal yalnız aktif enerjidir. UTC mikro-saniye, ≤7 gün aralık, HR nokta, end en çok sunucu+5 dk; exercise süre farkı ≤1 ms. Bilinmeyenler sıfır olmaz.
+- En çok 100 kaynak/1000 örnek işlemi/512 KiB; tüm batch atomik, kısmi kabul yok. batchId+aynı normalize içerik ilk yanıtı döndürür; farklı içerik 409 sync_batch_conflict. Yeni kaynak expectedVersionNumber=0, gerçek değişiklik güncel sürüm ister; eski sürüm 409 source_version_conflict, exact desired-state no-op sürümü artırmaz. Silme tombstone'dur, boş/eksik batch 422'dir ve toplu silme değildir; HR eksik noktalar korunur. Kayıt/senkronizasyon durumu aynı transaction; başarısız/boş işlem lastSyncedAt ilerletmez.
+- Günlük summary açık offsetli ardışık yerel gece yarıları (22–26 saat) alır. conservative_overlap_v1 metric bazında manuel → health_connect → health_kit → sourceId → uzun aralık → erken başlangıç → kararlı anahtar önceliğiyle doğrudan örtüşen düşük kayıtları bütünüyle dışlar. Scalar gün aşımı ve süresiz manuel ölçüm tahmini oranlanmaz (unallocatedCount); süre gün kesişiminden hesaplanır. Ham kayıtlar korunur; ölçüm yoksa null. Özet örtüşme/eksiklik sayımları ve isPartial içerir; metric başına sorguda >100000 aday 422 aggregation_limit_exceeded. Tanı/tedavi veya otomatik beslenme hedefi değişikliği yoktur.
+- Hatalar ortak zarftadır. 403 sync_disabled; 409 source_version_conflict/sync_batch_conflict/source_record_read_only; 413 sync_batch_limit/payload_too_large; 422 unsupported_provider/unsupported_metric/unsupported_source_type/unsupported_unit/invalid_source_identity/invalid_interval/invalid_value/duration_mismatch/invalid_sync_batch/duplicate_source_record/aggregation_limit_exceeded. Şekil/offset/query 400, mevcut auth 401/403 ve varlık sızdırmayan 404 korunur. Tüm sağlık yanıt/hataları no-store.
 - Tahlil PATCH sonrası eski LabInsight değişen değerlerin güncel açıklamasıymış gibi gösterilemez; yeniden analiz ve geçmiş gösterimi politikası **AÇIK**tır. Kullanıcı onayı olmayan OCR taslağı bu CRUD gövdelerine otomatik taşınmaz.
 - `GET /food-items?query=...` yalnız katalog aramasıdır; `200 { items, totalCount }` içinde FoodItem'ın `05`teki gram temeli, enerji/makro ve `dataSource` alanları bulunur. Yeni katalog yazma endpointi bu görevde açılmaz.
 - Diyetisyen günlük kayıt listeleri aynı pagination/zaman filtrelerini ve aynı kaynak şekillerini kullanır; her biri ilgili kategori iznini kontrol eder. Dashboard yalnız izinli bileşenleri sunabilir; kapalı kategoriyi sıfır ölçüm gibi göstermez, izinsiz kayıtlardan sayı/trend sızdırmaz. Dashboard'un tam bileşen şeması ayrıca netleştirilmelidir.
@@ -814,7 +825,7 @@ Yeni yollar aynı kanonik kökten türetilir. Aşağıda **AÇIK ŞEMA** bulunan
 
 ClientTask yanıtı yukarıdaki U1 bölümündeki tam 11 alanı kullanır. DataSharingPermission yanıtı: `id`, `relationshipId`, `category`, `isGranted`, `consentRecordId`, `createdAt`, `updatedAt`. `id`/zamanlar sunucudan gelir. Recipe/ClientTask için sırf CRUD tamamlama amacıyla DELETE yolu oluşturulmaz; görev iptali PATCH status=cancelled ile yapılır.
 
-İzin verme isteğinde ilişki danışana ait olmalı; sağlık verisi erişimi her durumda active ilişkiye bağlıdır. Pending/ended ilişkide izin düzenlemenin ayrıntısı **AÇIK**tır; izni önceden kaydetmek veri erişimi vermez. Tahlil kategorisini açarken ilgili danışana ait, kapsamı uygun ve geri çekilmemiş açık onay bağlantısı yoksa `422 consent_required`; izin geri çekme için yeni onay aranmaz. Kategori listesi onaylanmadan `lab`, `all` gibi varsayılan kodlar uydurulmaz; iznin satır bazında varlığı tek başına erişim izni değildir.
+İzin verme isteğinde ilişki danışana ait olmalı; **diyetisyenin paylaşılan sağlık verisine erişimi** active ilişkiye bağlıdır. Danışanın kendi verisi ilişkiye bağlı değildir; U3 sağlık yolları hiçbir kategoriyle diyetisyene açılmaz. Pending/ended ilişkide izin düzenlemenin ayrıntısı **AÇIK**tır; izni önceden kaydetmek veri erişimi vermez. Tahlil kategorisini açarken ilgili danışana ait, kapsamı uygun ve geri çekilmemiş açık onay bağlantısı yoksa `422 consent_required`; izin geri çekme için yeni onay aranmaz. Kategori listesi onaylanmadan `lab`, `all` gibi varsayılan kodlar uydurulmaz; iznin satır bazında varlığı tek başına erişim izni değildir.
 
 ### ConsentRecord — açık onay kaydı ve geri çekme
 

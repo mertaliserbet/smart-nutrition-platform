@@ -265,7 +265,7 @@ public sealed class ClientTaskApiTests
         var pair = await Seed(factory, grant: false); var other = await Seed(factory, grant: false);
         await using (var db = factory.Database())
         {
-            var before = await Fingerprint(db); await db.Database.MigrateAsync(); Assert.Equal(before, await Fingerprint(db));
+            var before = await Fingerprint(db); await db.GetService<IMigrator>().MigrateAsync("20261118204842_AddClientTasks"); Assert.Equal(before, await Fingerprint(db));
             // Even an ungranted task permission is data and must prevent downgrade.
             db.DataSharingPermissions.Add(new DataSharingPermission(pair.Relationship.Id, false, DateTimeOffset.UtcNow, "client_tasks")); await db.SaveChangesAsync();
             await Assert.ThrowsAsync<PostgresException>(() => db.GetService<IMigrator>().MigrateAsync(PreviousMigration));

@@ -16,6 +16,7 @@ using SmartNutrition.Api.Features.WaterLogs;
 using SmartNutrition.Api.Features.PersonalNutritionTargets;
 using SmartNutrition.Api.Features.BodyMeasurements;
 using SmartNutrition.Api.Features.ClientTasks;
+using SmartNutrition.Api.Features.HealthData;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
@@ -53,6 +54,9 @@ builder.Services.AddScoped<WaterLogService>();
 builder.Services.AddScoped<PersonalNutritionTargetService>();
 builder.Services.AddScoped<BodyMeasurementService>();
 builder.Services.AddScoped<ClientTaskService>();
+builder.Services.AddScoped<HealthDataService>();
+builder.Services.AddScoped<ActivityLogService>();
+builder.Services.AddScoped<ActivitySummaryService>();
 builder.Services.AddSingleton<RelationshipMutationLimits>();
 builder.Services.AddOptions<RelationshipLimitOptions>().Bind(builder.Configuration.GetSection("Relationships:Limits"))
     .Validate(options => options.RequestsPerMinute > 0 && options.InvitationCodesPerMinute > 0).ValidateOnStart();
@@ -172,7 +176,10 @@ if (adminSetup)
 
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/api/v1/auth", StringComparison.OrdinalIgnoreCase))
+    if (context.Request.Path.StartsWithSegments("/api/v1/auth", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Path.StartsWithSegments("/api/v1/activity-logs", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Path.StartsWithSegments("/api/v1/wearable-connections", StringComparison.OrdinalIgnoreCase) ||
+        context.Request.Path.StartsWithSegments("/api/v1/health-metric-samples", StringComparison.OrdinalIgnoreCase))
         context.Response.OnStarting(() =>
         {
             context.Response.Headers.CacheControl = "no-store";

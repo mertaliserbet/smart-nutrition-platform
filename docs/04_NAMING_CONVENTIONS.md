@@ -235,6 +235,9 @@ Tip adları C#, Dart ve TypeScript'te `PascalCase` olarak aynıdır. Üçüncü 
 | Tahlil değeri | `LabResult` | `labResult` | `LabReport.results` altında |
 | Tahlil açıklayıcı analizi | `LabInsight` | `labInsight` | `/lab-reports/{labReportId}/insights` |
 | Cihaz bağlantısı | `WearableConnection` | `wearableConnection` | `/wearable-connections` |
+| Native sağlık kaynak kaydı | `WearableRecord` | `wearableRecord` | `/wearable-connections/{wearableConnectionId}/records` |
+| Skaler sağlık/nabız örneği | `HealthMetricSample` | `healthMetricSample` | `/health-metric-samples`; exercise aynı `ActivityLog`dur |
+| Atomik aktarım makbuzu | `WearableSyncBatch` | `wearableSyncBatch` | `/wearable-connections/sync` işlem sonucu; ayrı yazma kaynağı değildir |
 | İzin/rıza kaydı | `ConsentRecord` | `consentRecord` | henüz endpoint kararı yok |
 | Denetim olayı | `AuditEvent` | `auditEvent` | yalnız backend/admin; endpoint kararı yok |
 
@@ -260,7 +263,7 @@ Bu bölüm yalnız kavram adlarını netleştirir; yeni entity/tablo zorunluluğ
 - **Program, plan ve tüketim:** Ürün metnindeki “plan/program” aynı `NutritionPlan` kavramıdır. Kişisel ve diyetisyen programları toplamında en fazla bir aktif program vardır; öğün alternatifleri ve sürüm geçmişi desteklenir. `NutritionPlanItem` tavsiye, `MealLog` gerçek tüketim, `MealLogItem` tüketilen kalemdir. Danışan diyetisyen programını/hedeflerini değiştiremez; gerçek tüketimi serbestçe kaydeder. N1–N3 sahiplik, gün/miktar/alternatif ve sürüm yapıları `05/06`da onaylıdır; programsız/makro hedefler açıktır.
 - **Besin, tarif ve AI:** `FoodItem` hibrit kataloğun besin girdisidir; sağlayıcı değişince eşanlamlı entity adı oluşturulmaz. `Recipe` tarif, `FoodAnalysis` fotoğraf/galeri analizidir. Tahmini kalori/makro ve porsiyon kullanıcı onayından geçer; analiz otomatik tüketim kaydı değildir. Sürekli kamera analizi sonraki aşamadır.
 - **Tahlil ve açıklama:** Manuel giriş ve daha sonra kullanıcı onaylı PDF/fotoğraf OCR aynı `LabReport`/`LabResult` kavramlarını kullanır; giriş yöntemi ayrı rapor entity'si oluşturmaz. `LabInsight` açıklayıcı değerlendirmedir; tanı/tedavi değildir. Geçerli birim/aralık yoksa `LabResult.flag` değeri `unknown` olur; ML opsiyoneldir. PDF dışa aktarma raporu ile laboratuvar raporu aynı kavram sayılmaz.
-- **Aktivite ve ölçüm:** `ActivityLog` fiziksel aktivite kaydı, `BodyMeasurement` vücut ölçümü, `WearableConnection` sağlık platformu bağlantısıdır. Health Connect/HealthKit'ten gelen adım, mesafe, egzersiz, süre, aktif kalori ve nabız kapsamı onaylıdır; bunların tümünün `ActivityLog` içine konacağı varsayılmaz. Kaynak/geçmiş ve tekilleştirme korunur; ayrı sağlık verilerinin model ve birim adları açık kalır. Antrenör veya antrenman programı kavramı eklenmez.
+- **Aktivite ve ölçüm — U3 / 19.11.2026:** `ActivityLog` manuel/cihaz egzersizidir, `BodyMeasurement` değişmez. `WearableConnection` provider'ı `health_connect/health_kit`, aktarım durumu `active/revoked`dur. `WearableRecord` native kaynak başlığı, `HealthMetricSample` yalnız `steps/distance/active_energy/heart_rate` örneği; `exercise` aynı ActivityLog'a bağlanır. Birimler `count/km/kcal/bpm`, süre `minutes`; caloriesKcal yalnız aktif enerjidir. `WearableSyncBatch` tekrar güvenli atomik aktarım makbuzudur. OS izni paylaşım izni değildir; U3 yalnız kendi danışan verisidir. Tam eşleme ve kaynak kuralları [M3 teslim notunda](20_HEALTH_DATA_SYNC_CONTRACT.md) tanımlıdır.
 - **Paylaşım, rıza ve yetki:** Aktif ilişki tek başına kategori erişimi vermez; tahliller için ayrıca açık onay gerekir. `DataSharingPermission`, `ConsentRecord`, rol yetkisi ve cihaz/işletim sistemi izni birbirinin yerine kullanılmaz. Geri çekilen izinle yeni erişim verilmez. `Admin` özel sağlık verilerini varsayılan göremez; Audit Log mevcut `AuditEvent` kavramıdır.
 
 ## Dil ve dosya kuralları
@@ -296,7 +299,7 @@ DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domai
 - Değer+birim ayrılmaz: laboratuvar `value`, `unit`, `referenceLow`, `referenceHigh`; rapordaki laboratuvar aralığı saklanır.
 - Yeni boolean adlarında `is...`/`has...` tercih edilir; ör. `isVerified`, `isEstimated`. Mevcut sözleşmedeki `ConsentRecord.granted` korunur; genel kural gerekçesiyle `isGranted` olarak değiştirilmez.
 - İşleme durumu `status`; sabit string enumlar **lowercase** ve gerektiğinde `snake_case`.
-- `RecordSource` manuel/cihaz/AI destekli kaynağı, `FoodItem.dataSource` besin veri kaynağını, `WearableConnection.provider` platform sağlayıcısını ifade eder; bu alanlar eşanlamlı sayılmaz. `externalRecordId` dış kaynak kimliğidir; tekilleştirmede sağlayıcıyla bağlantısı `05/06`da netleştirilmelidir.
+- `RecordSource` manuel/cihaz/AI destekli kaynağı, `FoodItem.dataSource` besin veri kaynağını, `WearableConnection.provider` platform sağlayıcısını ifade eder; eşanlamlı değildir. U3 kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId; nabız alt örneği normalize UTC başlangıcıdır. Bağlantı ID'si yeniden POST'ta değişmez; hash veya sahte UUID dış kaynak ID'sinin yerine geçmez.
 - Adet/gram dönüşümü, nabız/adım alanları, aktif kalori ayrımı, görev son tarihi, paylaşım kategorileri ve kişisel makro hedefleri için yeni alan veya birim anahtarı bu belgede üretilmez. `null` bilinmeyen, `0` gerçek sıfırdır; eksik değerler yeni ad veya sahte sıfırla gizlenmez.
 
 ### Onaylı kayıt ve e-posta doğrulama adları — 27.10.2026
@@ -378,4 +381,4 @@ Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `ca
 - Tek aktif ilişki/program kuralları onaylıdır; R/N dilimleri DB unique indeksleriyle uygular. Birden fazla aktif diyetisyen veya program gelecekte yeni ürün/sözleşme onayı gerektirir.
 - NutritionPlan.dietitianId nullable ve kişisel/atanmış sahiplik N1–N3 ile `05/06`da eşitlendi. Ayrı PersonalPlan modeli üretilmez.
 - ClientTask/ClientTaskVersion U1 ile, DataSharingPermission onaylı kategorileri ilgili tarihli bölümlerle tanımlıdır. Recipe ve kalan kategori/ConsentRecord ayrıntıları ayrıca onay gerektirir.
-- Program dışı/makro kişisel hedefler, bildirim ve sağlık platformlarının tüm veri türleri için ayrıntılı yapı/adlandırma açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile kapandı. ActivityLog sağlayıcı eşlemesi; laboratuvar test kodları/birim dönüşümleri; hibrit katalog kaynağı/lisansı ve model/API sağlayıcısı ayrıca netleştirilmelidir.
+- Bildirim teslimi, U3 dışındaki sağlık türleri, laboratuvar test kodları/birim dönüşümleri ve hibrit katalog kaynağı/lisansı açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile; ActivityLog sağlayıcı/birim/kaynak eşlemesi U3 ile kapandı.

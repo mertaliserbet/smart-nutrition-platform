@@ -8,6 +8,7 @@ using SmartNutrition.Api.Features.WaterLogs;
 using SmartNutrition.Api.Features.PersonalNutritionTargets;
 using SmartNutrition.Api.Features.BodyMeasurements;
 using SmartNutrition.Api.Features.ClientTasks;
+using SmartNutrition.Api.Features.HealthData;
 
 namespace SmartNutrition.Api.Data;
 
@@ -31,6 +32,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<BodyMeasurement> BodyMeasurements => Set<BodyMeasurement>();
     public DbSet<ClientTask> ClientTasks => Set<ClientTask>();
     public DbSet<ClientTaskVersion> ClientTaskVersions => Set<ClientTaskVersion>();
+    public DbSet<WearableConnection> WearableConnections => Set<WearableConnection>();
+    public DbSet<WearableRecord> WearableRecords => Set<WearableRecord>();
+    public DbSet<HealthMetricSample> HealthMetricSamples => Set<HealthMetricSample>();
+    public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+    public DbSet<WearableSyncBatch> WearableSyncBatches => Set<WearableSyncBatch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,5 +57,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         BodyMeasurement.Configure(modelBuilder);
         ClientTask.Configure(modelBuilder);
         ClientTaskVersion.Configure(modelBuilder);
+        HealthDataModel.Configure(modelBuilder);
     }
 }

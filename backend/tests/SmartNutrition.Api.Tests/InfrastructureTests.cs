@@ -90,6 +90,9 @@ public sealed class InfrastructureTests
             typeof(SmartNutrition.Api.Features.BodyMeasurements.BodyMeasurement).FullName!,
             typeof(SmartNutrition.Api.Features.ClientTasks.ClientTask).FullName!, typeof(SmartNutrition.Api.Features.ClientTasks.ClientTaskVersion).FullName!,
             typeof(SmartNutrition.Api.Features.Dietitians.AuditEvent).FullName!, typeof(SmartNutrition.Api.Features.Dietitians.DietitianProfile).FullName!,
+            typeof(SmartNutrition.Api.Features.HealthData.ActivityLog).FullName!, typeof(SmartNutrition.Api.Features.HealthData.HealthMetricSample).FullName!,
+            typeof(SmartNutrition.Api.Features.HealthData.WearableConnection).FullName!, typeof(SmartNutrition.Api.Features.HealthData.WearableRecord).FullName!,
+            typeof(SmartNutrition.Api.Features.HealthData.WearableSyncBatch).FullName!,
             typeof(SmartNutrition.Api.Features.MealLogs.MealLog).FullName!, typeof(SmartNutrition.Api.Features.MealLogs.MealLogComment).FullName!, typeof(SmartNutrition.Api.Features.MealLogs.MealLogItem).FullName!,
             typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlan).FullName!, typeof(SmartNutrition.Api.Features.NutritionPlans.NutritionPlanVersion).FullName!,
             typeof(SmartNutrition.Api.Features.PersonalNutritionTargets.PersonalNutritionTarget).FullName!,
@@ -114,7 +117,8 @@ public sealed class InfrastructureTests
             migration => Assert.EndsWith("_AddBodyMeasurements", migration),
             migration => Assert.EndsWith("_AddBodyMeasurementSharingCategory", migration),
             migration => Assert.EndsWith("_AddMealLogComments", migration),
-            migration => Assert.EndsWith("_AddClientTasks", migration));
+            migration => Assert.EndsWith("_AddClientTasks", migration),
+            migration => Assert.EndsWith("_AddHealthDataSync", migration));
         Assert.IsType<PasswordHasher<User>>(scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         Assert.IsType<UpperInvariantLookupNormalizer>(scope.ServiceProvider.GetRequiredService<ILookupNormalizer>());
         Assert.NotNull(scope.ServiceProvider.GetRequiredService<UserRegistrationService>());
@@ -165,6 +169,9 @@ public sealed class InfrastructureTests
             "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}", "/api/v1/meal-logs/{mealLogId}/comments", "/api/v1/dietitian/clients/{clientId}/meal-logs",
             "/api/v1/personal-nutrition-targets", "/api/v1/body-measurements", "/api/v1/body-measurements/{bodyMeasurementId}", "/api/v1/dietitian/clients/{clientId}/body-measurements",
             "/api/v1/water-logs", "/api/v1/water-logs/{waterLogId}", "/api/v1/water-logs/daily-total",
+            "/api/v1/activity-logs", "/api/v1/activity-logs/{activityLogId}", "/api/v1/activity-logs/daily-summary", "/api/v1/health-metric-samples",
+            "/api/v1/wearable-connections", "/api/v1/wearable-connections/{wearableConnectionId}", "/api/v1/wearable-connections/sync",
+            "/api/v1/wearable-connections/{wearableConnectionId}/records", "/api/v1/wearable-connections/{wearableConnectionId}/records/{wearableRecordId}",
             "/api/v1/nutrition-plans", "/api/v1/nutrition-plans/active", "/api/v1/nutrition-plans/{nutritionPlanId}", "/api/v1/nutrition-plans/{nutritionPlanId}/activate", "/api/v1/nutrition-plans/{nutritionPlanId}/archive",
             "/api/v1/nutrition-plans/{nutritionPlanId}/versions", "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}",
             "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison" }.Order(),

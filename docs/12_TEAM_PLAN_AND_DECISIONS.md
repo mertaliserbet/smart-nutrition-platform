@@ -1,5 +1,23 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 19.11.2026 — U3 sağlık API / PostgreSQL ve M3 sözleşmesi
+
+Kullanıcı tüm U3 ortak izin/ürün/teknik kararlarını uygulama yetkisiyle onayladı.
+Kanonik ActivityLog/WearableConnection korundu; WearableRecord kaynak başlığı,
+kontrollü HealthMetricSample ve WearableSyncBatch receipt eklendi. M1'in gerçek
+rawType/rawUnit/sourceId/externalRecordId ve çok noktalı nabız yapısı incelendi;
+mobil/web dosyası değiştirilmedi. Yalnız kendi doğrulanmış client JWT'si erişir;
+uzman/Admin/kategori paylaşımı açılmadı. Aktarım tercihi OS izni değildir.
+
+UTC/birim, sürüm/idempotency, explicit delta silme, transaction/limit ve
+conservative_overlap_v1 günlük hesap kuralları `04/05/06` ve somut
+[M3 entegrasyon notunda](20_HEALTH_DATA_SYNC_CONTRACT.md) kapandı. Gün aşan skaler
+ölçüm oranlanmaz, eksiklik işaretlenir. Hiçbir değer otomatik hedef/teşhis üretmez.
+Migration `20261118222117_AddHealthDataSync`, birleştirilmiş U1 sonrası eklendi;
+eski migration silinmedi/yeniden adlandırılmadı, uygulama DB'sine uygulanmadı.
+Gerçek PostgreSQL doğrulaması ve cihaz/M3 teslim sınırları koordinasyon kaydındadır.
+M3 ayrı görevdir; bu oturum M3 veya U4'ü başlatmaz.
+
 ## 19.11.2026 — U2 React görev atama ve takip teslimi
 
 Kullanıcı U2 için gerekli ortak izin/ürün/teknik kararları onaylı kabul ederek
@@ -474,7 +492,7 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 | Yorum, görev ve bildirim | Görev alan/durum/geçiş/son tarih/tercih U1 ile kapandı; ayrı görev türü/tekrar sistemi eklenmedi. Yorum/cevap düzenleme-silme/moderasyon, bildirim kanalı ve teslim altyapısı açık. İlk sürüm yorum/cevap/bildirim kapsamı korunur |
 | Besin ve AI kaynakları | Hibrit kataloğun kaynakları, birleştirme/öncelik kuralları ve lisansları; tarif hesaplama ve görünürlük; hazır model/API seçimi, veri seti ve değerlendirme ölçütleri. Fotoğraf saklama ve anonimleştirme ayrıca kararlaştırılır |
 | Laboratuvar | Test kod standardı, birim dönüşümleri, referans doğrulama kuralları, OCR sağlayıcısı ve hata kontrolü; opsiyonel ML için izinli veri ve bilimsel validasyon. OCR'nin manuel girişten sonra gelmesi ve kullanıcı onayı zorunluluğu kesindir |
-| Sağlık platformları | Android/iOS ilk önceliği, desteklenen OS/cihazlar, veri türlerinin platform karşılıkları, izin ve senkronizasyon ayrıntıları; adım/nabız gibi verilerin şeması ve kaynak bazlı tekilleştirme/örtüşme politikası. Tüm saatlerin doğrudan entegrasyonu garanti değildir |
+| Sağlık platformları | U3 beş veri türünün şema/birim/zaman/kaynak/tekrar/izin ve örtüşme sözleşmesini kapattı (04/05/06/20). M3 mobil HTTP aktarımı, fiziksel Android/iOS doğrulaması ve üretim cihaz/OS kapsamı ayrı teslimdir; tüm saatlerin doğrudan desteği garanti değildir |
 | Auth ve ortam | Mobil refresh/iptal/saklama, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim, Admin MFA yöntemi/kurtarma ve üretim anahtar/audit/proxy; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt, e-posta doğrulama, JWT ve W2 web oturumu yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
 | Tasarım ve kullanıcı kapsamı | Renk paleti, font, token değerleri, navigasyon ve 2–3 mobil ekran/web dashboard tasarım onayı; ülke/dil kapsamı, doğum tarihi zorunluluğu ve ücretli model. Açık/koyu tema desteği artık seçim beklemiyor |
 | Veri koruma ve yayın | Sağlık verisi, fotoğraf/OCR dosyaları ve PDF raporları için saklama, silme ve yedek politikaları; üçüncü taraf/yurt dışı aktarım, audit kapsamı ve istisnai Admin erişimi. `11_SECURITY_AND_RELEASE.md` yayın kapısı korunur |
@@ -490,10 +508,10 @@ Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kar
 |---|---|---|
 | Auth ve profil | Register/verify/resend, JWT login, hesap özeti, W2 web cookie/CSRF/iptal ve 31.10.2026 backend mobil refresh/aile iptali kapanmıştır. Profil düzenleme/uzman profili, mobil güvenli saklama/istemci yenileme, sıfırlama ve mobil MFA açıktır | Login yanıtı refresh alanlarıyla beş alana genişledi; Flutter ayrıştırıcısı/saklama/tek eşzamanlı yenileme ayrıca entegre edilmelidir. Access JWT anlık iptali sağlanmaz |
 | Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
-| Erişim ifadesinin kapsamı | `06` izin paragrafındaki “sağlık verisi erişimi her durumda active ilişkiye bağlıdır” genellemesi, aynı belgedeki danışanın ilişkisiz kendi veri erişimiyle çelişebilir | Active ilişki şartının diyetisyenin danışan verisine erişimi için olduğu ortak onayla açık yazılmalı; danışanın kendi verisi ilişki yok diye kapatılamaz |
+| Erişim ifadesinin kapsamı | U3 uygulama onayıyla 06'daki active şartı diyetisyen paylaşımı olarak düzeltildi; danışan kendi verisi ilişkisizdir | U3 hiçbir sağlık paylaşım yolu/kategorisi açmaz; kendi client JWT'siyle okuma korunur |
 | Program sürümü ve geçiş | N1–N3 ile gün/miktar/alternatif/snapshot/DTO, archive ve ilişki bitişinde active atanmışı arşivleme kapandı. Genel atomik replace, programsız/makro hedef ve uyum hesabı açık | Onaylı backend/web uygulandı; mobil aynı main'e göre entegre olur. Başka aktif program sahibinin açık durdurması gerekir; iki aktif veya sahiplik silme yok |
 | Tarif, görev ve yorum | Görev DTO/durum/geçiş/son tarih/tercih ve bağımsız client_tasks U1 ile kapandı; tarif/moderasyon/bildirim teslimi açık | U1 backend/migration/test teslimidir; M2/U2 ortak main entegrasyonundan sonra başlar. Bildirim teslimi uygulanmış sayılmaz |
-| OCR, lab ve cihaz | OCR taslak/onay kanıtı ve sync gövdeleri, adım/nabız/aktif enerji modelleri, kaynak örtüşmesi; LabInsight method/limitations ve değişen tahlil geçmişi açık | Manuel girişi engellemez; bu entegrasyonlara başlanmadan ilgili veri/HTTP parçası kapatılmalı. Yeni genel job/ölçüm modeli uydurulmaz |
+| OCR, lab ve cihaz | Cihaz U3 DTO/birim/kaynak/tekilleştirme/örtüşme kapandı; OCR taslak/onay kanıtı, LabInsight method/limitations ve tahlil geçmişi açık | M3 bu U3 sözleşmesini kullanır, cihaz doğrulaması ayrıca raporlanır. Lab/OCR kendi açık kararlarına bağlıdır |
 | Eski sözleşme kontrol notları | `04`, `05`teki tek aktif kuralları/nullable dietitianId ve yeni kaynakları hâlâ eksik sayıyor, ConsentRecord endpoint kararı yok diyor; `05`, güncel `06`daki kişisel program, kaynak yolları, PATCH ve makro alanlarını eski halleriyle anlatıyor | `04/05/06` için ayrı, iki tarafça onaylı düzeltme gerekir. Bu inceleme bu üç dosyada değişiklik yapma onayı değildir |
 | Sürüm kapsamı ifadesi | `06`nın sonundaki ilk sürüm bildirimleri ve PDF raporlarını aynı cümlede anması takvimi belirsizleştiriyor | Karar 2/7 ilk sürüm web paneli ve yorum/cevap/bildirim şartıdır; karar 17 PDF kapsamını onaylar, yayın tarihini sabitlemez. `01`deki aşama ayrımı esas alınır; `06` ifadesi ortak onayla netleştirilmeli |
 | Tasarım, kaynak ve yayın | Renk/font/token değerleri, katalog lisans/sağlayıcısı, model verisi/validasyon, hassasiyet/saat dilimi, saklama/silme/dağıtım açık | Tasarımın nihai onayı ilgili ekran kodundan; sağlayıcı/veri kararı ilgili entegrasyondan önce alınır. Gerçek veri/yayın için `11` kapısı ayrıca tamamlanır |

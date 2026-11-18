@@ -109,7 +109,7 @@ Tek aktif diyetisyen/program, kişisel program, uzmanı Admin'in doğrulaması, 
 - Program sürüm/alternatif ve tarif bileşen yapıları, kişisel makro/programsız hedef alanları, güvenli öneri hesabı ve program uyum yöntemi; yorum/cevap moderasyonu, görev durum/son tarih/hatırlatma ve bildirim kanalları.
 - Paylaşım kategorileri, tahlil açık onayının kapsamı/kanıtı, mobil refresh/iptal/saklama ve MFA yöntemi, saklama/silme/audit; gizlilik ve gerçek yayın için `11`deki kontroller. Onaylı 15 dakikalık JWT ve W2 web cookie/CSRF/iptal kararları açık seçim sayılmaz.
 - Hibrit katalog sağlayıcıları/lisansları, hazır model/API ve veri validasyonu; tahlil test kodları, birim dönüşümleri, OCR taslağı/onay kaydı ve opsiyonel ML'nin bilimsel koşulları.
-- Health Connect/HealthKit cihaz/OS desteği ve veri şemaları, aktif/toplam enerji ayrımı, manuel/cihaz örtüşmesi ve tekilleştirme; sayısal hassasiyet, saat dilimi, PDF içeriği ve dosya erişimi.
+- Health Connect/HealthKit fiziksel cihaz/OS desteği ve M3 mobil HTTP entegrasyonu ayrı doğrulanır. U3 beş türün veri şeması, aktif enerji, örtüşme/tekilleştirme, hassasiyet ve gün/UTC kurallarını 04/05/06/20'de kapattı; PDF içeriği/dosya erişimi ve diğer sağlık türleri açıktır.
 - Renk paleti, font, token değerleri, navigasyon ve ekran onayı; dağıtım sağlayıcısı, paket sürümleri ve maliyet.
 
 Karar kaydı `12`de, ayrıntılı şema ve HTTP açıkları `04/05/06`da izlenir. Ürün kapsamının onaylanması bu açıkları kendiliğinden kapatmaz; ortak sözleşme değişiklikleri iki geliştiricinin onayıyla ele alınır.

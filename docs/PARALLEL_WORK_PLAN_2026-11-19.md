@@ -1,10 +1,45 @@
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
 > **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
-> **Sürüm:** 1.2 · **Hazırlanma:** 18.11.2026 · **U2 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
+> **Sürüm:** 1.3 · **Hazırlanma:** 18.11.2026 · **U3 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
 ## 1. Bu dokümanın amacı ve geçerliliği
+
+### 19.11.2026 — U3 uygulama ve doğrulama kaydı
+
+- U1 `20261118204842_AddClientTasks` mevcut, başlangıç model/snapshot kontrolü temizdi.
+  Yeni migration `20261118222117_AddHealthDataSync`; sıra korunur, eski migration
+  silinmedi/yeniden adlandırılmadı. Beş yeni tablo ve sahiplik/unique/check kısıtları;
+  eski tabloların içerik fingerprint'i korundu, veri varken Down reddedilir.
+- ActivityLog/WearableConnection kanonik kaldı; HealthData feature kaynak başlığı,
+  skaler/nabız örnekleri, atomik batch receipt ve conservative_overlap_v1 gerçek
+  günlük özetini uygular. Yalnız kendi client JWT'si; kategori/diyetisyen/Admin
+  erişimi açılmaz. M1 kodu okundu, değiştirilmedi. Somut M3 DTO ve örnekler:
+  [20_HEALTH_DATA_SYNC_CONTRACT.md](20_HEALTH_DATA_SYNC_CONTRACT.md).
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: **0 hata, 0 uyarı**.
+  Ayrı geçici PostgreSQL 17 / `127.0.0.1:55583/nutrition_u3_test` kullanıldı;
+  testler sentetik ve disposable schema'larda, eski Auth testleri için test DB
+  temel şeması ayrıca hazırlandı. Uygulama DB'sine migration uygulanmadı.
+- `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`: **468 geçti,
+  0 başarısız, 2 atlandı, toplam 470**. U3'e ait **20 PostgreSQL/API testi** geçti:
+  sahiplik/rol/profil, kaynak/birim/zaman, DST/gün sınırı, import→retry→update→read,
+  HR kısmi pencere/nokta silme, grup silme, idempotency/sürüm yarışı, iptal yarışı,
+  transaction rollback, HTTP 512 KiB/batch sınırı, örtüşme ve gerçek şema adları.
+  Atlanan iki SMTP testi Mailpit ister; sağlık testi atlanmadı.
+- `dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api --no-build`:
+  değişiklik yok. `git diff --check`: temiz. İlk tam turdaki boş test DB hatası
+  test şeması hazırlanarak giderildi; U1 migration testi kendi migration hedefiyle
+  sınırlandı. Yeni uzun indeks adı gerçek şemayla karşılaştırılarak düzeltildi.
+- Değişen alanlar: backend HealthData (model, DTO, doğrulama, controller, sync,
+  ActivityLog ve özet servisleri); AppDbContext/Program/ApiErrors; yeni migration,
+  Designer ve snapshot; iki U3 test dosyası ve InfrastructureTests/ClientTaskApiTests;
+  backend README ile docs 01/03/04/05/06/11/12/20 ve bu koordinasyon belgesi.
+  mobile/apps/web/AGENTS/kök yapılandırması değişmedi; Git dalı/geçmişi değiştirilmedi,
+  commit/push yapılmadı. Test PostgreSQL'i kapatılır, TRX sonuçları yerel test artifacts'ta tutulur.
+- Fiziksel Android/iOS Health Connect/HealthKit doğrulaması ve M3 mobil HTTP
+  entegrasyonu yapılmadı; bu backend testlerinden cihaz sonucu çıkarılmaz.
+  Sıradaki bağımlılık: U3 ortak main'e alındıktan sonra Mert'in ayrı M3 entegrasyonu.
 
 Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini, birbirinin değişikliklerini ezmesini ve EF Core migration çakışmalarını önlemek** amacıyla oluşturulmuştur. Her iki Codex, **her göreve başlamadan önce** bu belgeyi, `AGENTS.md` dosyasını, ilgili güncel sözleşmeleri ve kendi dalındaki kaynak kodu okumalıdır.
 
@@ -65,12 +100,12 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 |---|---|---|---|
 | **U1** | Görev sistemi API + PostgreSQL | **PR #14 ile ortak main'e alındı (4a1cab4).** ClientTask API, bağımsız izin, durum/geçmiş/eşzamanlılık, veri koruyan migration ve testler hazır; kesin sözleşme `04/05/06`. Uygulama DB'sine migration ayrıca koordineli uygulanır. | `backend/**`, ilgili `docs/**` |
 | **U2** | React görev atama ve takip | **Uygulandı/doğrulandı; ortak main entegrasyonu bekler.** Gerçek danışan çalışma alanında atama, liste/detay, düzenleme/iptal, geçmiş, 409 ve izin/ilişki kaybı. Mevcut API korunur; test sonuçları aşağıda. PR tabanı mobil M2'yi içeren d14576f'tir; Flutter canlı provası ayrıca yapılır. | `apps/web/**`, ilgili backend testleri ve docs |
-| **U3** | Sağlık verisi API + PostgreSQL | **U1 migration'ı birleştirildikten sonra.** Mert ile birim/tarih/kaynak/tekrar kayıt/izin sözleşmesini onayla; yalnız danışanın kendi verileri için güvenli kayıt/okuma/senkronizasyon API'si ve testlerini geliştir. | `backend/**`, ilgili `docs/**` |
+| **U3** | Sağlık verisi API + PostgreSQL | **19.11 kullanıcı uygulama onayıyla kodlandı.** U1 dalda/snapshot tutarlı. Birim/tarih/kaynak/tekrar/izin sözleşmesi 04/05/06/20'de; yalnız danışanın kendi JWT'si, atomik sync, gerçek özet. Test sonuçları aşağıdaki U3 kaydındadır. | `backend/**`, ilgili `docs/**` |
 | **U4** | Diyetisyen su görüntüleme | U3 ile migration çakışmayacak sırada: bağımsız `water_logs` izni varsayılan kapalı, onaylı uzman+aktif ilişki+izin okuma API'si; gerçek su günlük toplam/geçmiş React ekranı. | `backend/**`, `apps/web/**`, `docs/**` |
 | **U5** | React şifre sıfırlama entegrasyonu | Var olan reset backend'ini koruyarak web formlarını gerçek API'ye bağla, Mailpit ile doğrula; Admin MFA'yı koru. | `apps/web/**` |
 | **U6** | Web/backend regresyon testi | Diyetisyen panelinde program, gerçek öğün, yorumlar, karşılaştırma, ölçüm grafikleri, görevler ve su görüntüleme; gerçek oturum/izin iptali/CSRF/rol testi. | Backend/web test ve rapor |
 
-**U1 kuralı:** Görev durumlarını veya yeni endpointleri Codex kendi başına kesinleştirmez; mevcut güncel sözleşme ve **iki geliştiricinin açık mutabakatı** temel alınır. Aynı kural U3 sağlık verisi birimleri ve paylaşımı için geçerlidir.
+**U1/U3 kuralı:** Kullanıcının ilgili uygulama talimatları ortak kararları onayladı; U1 ve U3 uygulanan sözleşmeleri esas alınır. U3 yalnız kendi sağlık verisidir, diyetisyen paylaşımı açmaz. Sonraki kapsam değişiklikleri ayrıca yetkilendirilir.
 
 **U1 uygulama kaydı — 18–19.11.2026:** Kullanıcı U1 için gerekli ürün/teknik
 kararları onaylı kabul ederek kalan ayrıntılarda mevcut mimariye göre ilerlemeyi
