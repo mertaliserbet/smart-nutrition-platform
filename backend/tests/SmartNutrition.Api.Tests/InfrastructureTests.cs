@@ -155,7 +155,7 @@ public sealed class InfrastructureTests
             "/api/v1/dietitians", "/api/v1/dietitians/apply", "/api/v1/dietitians/me", "/api/v1/dietitians/me/application", "/api/v1/dietitians/me/invitation-code",
             "/api/v1/dietitian-relationships", "/api/v1/dietitian-relationships/{relationshipId}/accept", "/api/v1/dietitian-relationships/{relationshipId}/reject", "/api/v1/dietitian-relationships/{relationshipId}/end",
             "/api/v1/data-sharing-permissions", "/api/v1/data-sharing-permissions/{dataSharingPermissionId}", "/api/v1/dietitian/clients", "/api/v1/dietitian/clients/{clientId}/dashboard",
-            "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}",
+            "/api/v1/meal-logs", "/api/v1/meal-logs/{mealLogId}", "/api/v1/dietitian/clients/{clientId}/meal-logs",
             "/api/v1/personal-nutrition-targets",
             "/api/v1/water-logs", "/api/v1/water-logs/{waterLogId}", "/api/v1/water-logs/daily-total",
             "/api/v1/nutrition-plans", "/api/v1/nutrition-plans/active", "/api/v1/nutrition-plans/{nutritionPlanId}", "/api/v1/nutrition-plans/{nutritionPlanId}/activate", "/api/v1/nutrition-plans/{nutritionPlanId}/archive",

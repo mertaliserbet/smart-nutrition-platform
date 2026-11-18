@@ -181,8 +181,31 @@ için uyarlanmadan aynı ortamda true yapılmamalıdır. Yeniden false yapmak
 kalan meal_logs satırlarıyla eski mobil sürümü uyumlu hale getirmez; liste
 sözleşmesi istemciye göre değiştirilmez, satırlar gizlenmez veya silinmez.
 
-G2–G3 sonraki ayrı adımdır. Katalogdaki diyetisyen öğün okuma rotası bu
-G1 ile canlı sayılmaz. Diğer kategori/yorum/görev/cihaz kararları açık kalır.
+G1 tek başına diyetisyen öğün okumasını açmaz. G2'nin sonraki backend
+teslimi aşağıdadır; G3 web entegrasyonu ayrıdır. Diğer kategori/yorum/görev/cihaz
+kararları açık kalır.
+
+## 18.11.2026 — G2 diyetisyenin izinli öğün okuması
+
+Kullanıcının doğrudan backend göreviyle `17` G2 liste davranışı uygulandı.
+`GET /api/v1/dietitian/clients/{clientId}/meal-logs`: gövdesiz; zorunlu
+`page`/`pageSize` (1–100), isteğe bağlı açık UTC/ofsetli `from`/`to`.
+Tekrarlanan/bilinmeyen query, Int32 offset taşması ve geçersiz tarih/aralık
+400'dür. `consumedAt` için `[from,to)`; sıra consumedAt azalan, id artan.
+Yanıt mevcut `{ items, totalCount }` ve tüm `MealLog`/kalem detaylarıdır;
+nullable değerler korunur. Kullanıcı kararıyla ayrı detay rotası eklenmez.
+
+Her istekte güncel doğrulanmış hesap ve onaylı DietitianProfile gerekir;
+JWT veya mevcut W2 HTTPS cookie aynı kurallara tabidir. Temel rolü client
+olan onaylı çift profil kabul edilir; profil başlığı tek başına yetki değildir.
+Oturumsuz 401; uygun olmayan/onaysız uzman ve Admin 403; bulunmayan/yabancı
+danışan veya aktif olmayan ilişki 404; kendi aktif ilişkisinde eksik/false
+`meal_logs` izni 403. `nutrition_plans` izni öğün okumasını açmaz.
+Kimlik, ilişki, izin, sayı ve kayıtlar aynı PostgreSQL snapshot'ında okunur;
+tamamlanan izin iptali/ilişki sonlandırma sonrasında başlayan okumalar kapanır.
+Yanıtlar no-store ve hatalar ortak zarftadır. Diyetisyene yazma yetkisi verilmez.
+`MealLogsEnabled` yalnız izin yazma açılımını yönetir; varsayılan false korunur,
+mevcut açık izni gizlemez veya onun yerine geçmez. G3 web entegrasyonu bekler.
 
 
 ## Development/Mailpit Admin kodu — 03.11.2026 açık kullanıcı onayı
