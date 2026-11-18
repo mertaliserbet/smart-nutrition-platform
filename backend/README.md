@@ -1,5 +1,21 @@
 # Smart Nutrition — Ortak Backend
 
+## 19.11.2026 — U4 diyetisyen su okuması / M4
+
+Kendi WaterLog CRUD/toplam ve kişisel hedef davranışı korunur. Uzman için
+`/api/v1/dietitian/clients/{clientId}/water-logs` GET liste, `/daily-total`
+ve `/daily-history` eklendi; güncel doğrulanmış uzman + kendi active ilişkisi +
+bağımsız açık water_logs izni aynı snapshot'ta denetlenir. Salt okunurdur.
+Tüketim hedef paylaşımı içermez. Tarih, DTO ve M4 izin örnekleri
+[21_WATER_LOG_SHARING_CONTRACT.md](../docs/21_WATER_LOG_SHARING_CONTRACT.md).
+
+`Relationships:Sharing:WaterLogsEnabled=false` varsayılanı korunur. M4 beş kategori
+ayrıştırıcısı/sayfalaması ve geri alma doğrulanmadan ortamda açılmaz. İzin satırı
+varsayılan oluşturulmaz; ayar kapalıyken mevcut izin geri çekilebilir.
+Migration `20261118230136_AddWaterLogSharingCategory` U3 sonrası yalnız check
+genişletir; yeni tablo/index/backfill yok. Su izin satırı varken Down reddedilir.
+Uygulama DB'sine uygulanmadı; ayrı test PostgreSQL'i kullanılır.
+
 ## 19.11.2026 — U3 sağlık aktarımı / M3 entegrasyonu
 
 `Features/HealthData`: kanonik ActivityLog/WearableConnection; native kaynak

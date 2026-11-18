@@ -32,6 +32,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private bool _mealLogSharing;
     private bool _bodyMeasurementSharing;
     private bool _clientTaskSharing;
+    private bool _waterLogSharing;
     private string? _environment;
     private readonly bool _useSmtp;
     private readonly bool _includeAuthProbe;
@@ -73,7 +74,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false,
         bool webSessions = false, bool webCertificate = false, IPasswordResetEmailSender? resetSender = null,
         bool adminEmailCodes = false, IAdminEmailCodeSender? adminCodeSender = null, bool mealLogSharing = false,
-        bool bodyMeasurementSharing = false, string? environment = null, bool clientTaskSharing = false)
+        bool bodyMeasurementSharing = false, string? environment = null, bool clientTaskSharing = false, bool waterLogSharing = false)
     {
         var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe, webSessions, webCertificate);
         factory._resetSender = resetSender;
@@ -82,6 +83,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         factory._mealLogSharing = mealLogSharing;
         factory._bodyMeasurementSharing = bodyMeasurementSharing;
         factory._clientTaskSharing = clientTaskSharing;
+        factory._waterLogSharing = waterLogSharing;
         factory._environment = environment;
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
@@ -122,6 +124,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
             {
                 ["ConnectionStrings:DefaultConnection"] = _testConnection,
                 ["Relationships:Sharing:MealLogsEnabled"] = _mealLogSharing.ToString(),
+                ["Relationships:Sharing:WaterLogsEnabled"] = _waterLogSharing.ToString(),
                 ["Relationships:Sharing:BodyMeasurementsEnabled"] = _bodyMeasurementSharing.ToString(),
                 ["Relationships:Sharing:ClientTasksEnabled"] = _clientTaskSharing.ToString(),
                 ["Auth:AdminEmailCode:Enabled"] = _adminEmailCodes.ToString(),

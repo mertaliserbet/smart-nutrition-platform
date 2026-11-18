@@ -28,10 +28,17 @@ public sealed class WaterLogService(AppDbContext database, TimeProvider clock)
         DateTimeOffset? from, DateTimeOffset? to, CancellationToken token)
     {
         await using var transaction = await database.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, token);
+        var result = await ReadListAsync(clientId, page, pageSize, from, to, token);
+        await transaction.CommitAsync(token);
+        return result;
+    }
+    // An authorized dietitian read supplies its own identity/permission snapshot.
+    internal async Task<PagedResponse<WaterLogResponse>> ReadListAsync(Guid clientId, int page, int pageSize,
+        DateTimeOffset? from, DateTimeOffset? to, CancellationToken token)
+    {
         var query = Filter(clientId, from, to);
         var count = await query.CountAsync(token);
         var rows = await query.OrderByDescending(x => x.ConsumedAt).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(token);
-        await transaction.CommitAsync(token);
         return new(rows.Select(WaterLogResponse.From).ToArray(), count);
     }
     public async Task<WaterLogDailyTotalResponse> DailyTotalAsync(Guid clientId, DateTimeOffset from, DateTimeOffset to, CancellationToken token)

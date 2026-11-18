@@ -1,10 +1,58 @@
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
 > **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
-> **Sürüm:** 1.3 · **Hazırlanma:** 18.11.2026 · **U3 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
+> **Sürüm:** 1.4 · **Hazırlanma:** 18.11.2026 · **U4 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
 ## 1. Bu dokümanın amacı ve geçerliliği
+
+### 19.11.2026 — U4 uygulama ve doğrulama kaydı
+
+- U3 birleştirilmiş `99611a4` main'de başladı; çalışma ağacı temiz, migration
+  sırası/snapshot tutarlıydı. Yeni migration `20261118230136_AddWaterLogSharingCategory`
+  yalnız kategori check'ini genişletir; tablo/index/backfill/otomatik izin eklemez.
+  Su kayıtları ve diğer izinler korunur, false dahil su izin satırında Down reddedilir.
+- Bağımsız water_logs, varsayılan false WaterLogsEnabled açılımı, uzman liste/
+  günlük toplam/31 günlük IANA geçmişi ve gerçek React WaterLogPanel hazırdır.
+  Güncel doğrulanmış uzman + kendi active ilişkisi + açık su izni; veri ve yetki
+  aynı snapshot. Kendi su CRUD/kişisel hedef davranışı korunur, hedef paylaşılmaz.
+  Kaynak/tarih/saat/mL, 10'lu liste, SVG grafik/tablo, izin/hata/boş ayrımı,
+  AbortController ve görünür sekme yenilemesi uygulanır; paket eklenmedi.
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: **0 hata/0 uyarı**.
+  Geçici PostgreSQL 17 `127.0.0.1:55584/nutrition_u4_test`; yalnız sentetik veri,
+  ayrı test DB/schemaları, eski Auth testleri için yalnız test DB temel şeması.
+  Uygulama DB'sine migration uygulanmadı.
+- İlgili API/izin/su/altyapı filtresi: **61/61**. Tam
+  `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`: **479 başarılı,
+  0 başarısız, 2 Mailpit testi atlandı, toplam 481**; yeni U4 PostgreSQL API
+  testleri **11/11**. Danışan su oluştur→izin ver→uzman cookie oku→geri al→403,
+  izin bağımsızlığı/default kapalı, ilişki/uzman/rol/sahiplik, salt okunurluk,
+  mL/silme/sayfa/boş gün/DST, snapshot iptal yarışı, 500≠0 ve migration veri
+  koruma/Down reddi gerçek PostgreSQL üzerinde geçti.
+- Son `node node_modules/vitest/vitest.mjs run --maxWorkers=2`: **319 başarılı,
+  0 başarısız, 3 opt-in canlı test atlandı; 22 dosya**. U4 su testleri **37/37**;
+  gerçek DTO biçimi, liste/toplam/geçmiş, sınır/hata, izin iptali, geç tarih/
+  danışan yanıtı, oturum değişimi, görünürlük/poll ve mikro-saniye/offset sırası.
+  İlk tam web turu 317 başarılıydı; ek iki regresyon sonrası tekrar geçti.
+  `npm run build` ve `npm run lint` başarılı. Yeni testteki string source tipi
+  derleme bulgusu yalnız test tipi daraltılarak düzeltildi; test/build tekrar geçti.
+- `dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api --no-build`:
+  değişiklik yok; `git diff --check` temiz. Geçici test PostgreSQL'i kapatıldı;
+  TRX sonuçları yerel artifacts'ta tutulur. Başlangıçta olmayan EF history tablosu
+  test DB kurulumu sırasında oluşturuldu; uygulama DB'si kullanılmadı.
+- Dosyalar: backend WaterLogService, yeni DietitianWaterLogsController/WaterLogCalendar;
+  RelationshipModels/DataSharingPermissionsController/appsettings; kategori migration,
+  Designer/snapshot; yeni DietitianWaterLogApiTests, RegistrationApiFactory ve
+  InfrastructureTests. Web yeni WaterLogPanel/WaterLogPanel.test/waterLogApi,
+  LiveClientsPage, ClientRecordViews ve clientTracking.css. Backend/web README,
+  docs 04/05/06/08/11/12/21 ve bu koordinasyon belgesi eşitlendi.
+- M4 bağımlılığı: mevcut mobil kategori listesi/katı ayrıştırıcı ve en çok dört
+  satır sınırı beş kategoriye uyarlanmalı; su kontrolü ve bağımsız POST/PATCH
+  doğrulanmadan WaterLogsEnabled ortamda açılmaz. Tam örnekler
+  [21_WATER_LOG_SHARING_CONTRACT.md](21_WATER_LOG_SHARING_CONTRACT.md).
+  Flutter ve fiziksel tarayıcı/cihaz doğrulaması yapılmadı; React DOM/API testi
+  bunların yerine bildirilmez. mobile/AGENTS/kök yapılandırmaları değişmedi.
+  Git fetch/pull/dal/geçmiş/commit/push yapılmadı, U5 başlatılmadı.
 
 ### 19.11.2026 — U3 uygulama ve doğrulama kaydı
 
@@ -101,7 +149,7 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 | **U1** | Görev sistemi API + PostgreSQL | **PR #14 ile ortak main'e alındı (4a1cab4).** ClientTask API, bağımsız izin, durum/geçmiş/eşzamanlılık, veri koruyan migration ve testler hazır; kesin sözleşme `04/05/06`. Uygulama DB'sine migration ayrıca koordineli uygulanır. | `backend/**`, ilgili `docs/**` |
 | **U2** | React görev atama ve takip | **Uygulandı/doğrulandı; ortak main entegrasyonu bekler.** Gerçek danışan çalışma alanında atama, liste/detay, düzenleme/iptal, geçmiş, 409 ve izin/ilişki kaybı. Mevcut API korunur; test sonuçları aşağıda. PR tabanı mobil M2'yi içeren d14576f'tir; Flutter canlı provası ayrıca yapılır. | `apps/web/**`, ilgili backend testleri ve docs |
 | **U3** | Sağlık verisi API + PostgreSQL | **19.11 kullanıcı uygulama onayıyla kodlandı.** U1 dalda/snapshot tutarlı. Birim/tarih/kaynak/tekrar/izin sözleşmesi 04/05/06/20'de; yalnız danışanın kendi JWT'si, atomik sync, gerçek özet. Test sonuçları aşağıdaki U3 kaydındadır. | `backend/**`, ilgili `docs/**` |
-| **U4** | Diyetisyen su görüntüleme | U3 ile migration çakışmayacak sırada: bağımsız `water_logs` izni varsayılan kapalı, onaylı uzman+aktif ilişki+izin okuma API'si; gerçek su günlük toplam/geçmiş React ekranı. | `backend/**`, `apps/web/**`, `docs/**` |
+| **U4** | Diyetisyen su görüntüleme | **19.11 kullanıcı onayıyla uygulandı.** Bağımsız water_logs, salt okunur liste/toplam/31 günlük IANA geçmişi ve gerçek React bölümü. Migration U3 sonrasındadır; varsayılan kapalı açılım, M4 teslim notu 21. Doğrulama kaydı aşağıdadır. | `backend/**`, `apps/web/**`, `docs/**` |
 | **U5** | React şifre sıfırlama entegrasyonu | Var olan reset backend'ini koruyarak web formlarını gerçek API'ye bağla, Mailpit ile doğrula; Admin MFA'yı koru. | `apps/web/**` |
 | **U6** | Web/backend regresyon testi | Diyetisyen panelinde program, gerçek öğün, yorumlar, karşılaştırma, ölçüm grafikleri, görevler ve su görüntüleme; gerçek oturum/izin iptali/CSRF/rol testi. | Backend/web test ve rapor |
 

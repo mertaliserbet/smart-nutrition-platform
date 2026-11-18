@@ -1,5 +1,21 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 19.11.2026 — U4 su paylaşımı API/React ve M4 teslimi
+
+Kullanıcı U4 ürün/teknik/izin kararlarının tamamını uygulama yetkisiyle onayladı.
+U3 `99611a4` ile bu main'de, başlangıç snapshot kontrolü temizdi. Bağımsız
+water_logs kategorisi, aynı WaterLog DTO'suyla uzman liste/günlük toplam/tarih
+geçmişi ve gerçek React su bölümü eklendi. Gün/UTC/IANA/DST/pagination/hata
+kuralları `04/05/06/08/11` ve [21 M4 tesliminde](21_WATER_LOG_SHARING_CONTRACT.md).
+Kişisel hedef paylaşılmadı; uzman/Admin su yazması veya otomatik izin yoktur.
+
+Migration `20261118230136_AddWaterLogSharingCategory` yalnız kategori check'ini
+genişletir; mevcut veri/izin, tablo/index ve su CRUD'u korunur. Uygulama DB'sine
+uygulanmadı. Eski mobil ayrıştırıcı water_logs satırını/beşinci kategoriyi
+reddettiğinden WaterLogsEnabled varsayılan false; M4 ortak main'e gelip kategori/
+sayfalama/geri alma doğrulanınca ortamda açılır. M4'ün Flutter alanına dokunulmadı.
+U4 doğrulama komutları/gerçek sonuçları koordinasyon kaydındadır; U5 başlatılmaz.
+
 ## 19.11.2026 — U3 sağlık API / PostgreSQL ve M3 sözleşmesi
 
 Kullanıcı tüm U3 ortak izin/ürün/teknik kararlarını uygulama yetkisiyle onayladı.

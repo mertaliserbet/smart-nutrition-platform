@@ -1,5 +1,27 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+## 19.11.2026 — U4 gerçek su takibi
+
+Gerçek danışan çalışma alanında Su takibi eklendi; sentetik önizleme değildir.
+Bağımsız water_logs izniyle kendi aktif danışanının seçilen gün toplamı, 10'lu
+kayıt sayfaları (mL/saat/kaynak) ve en çok 31 günlük günlük toplam SVG grafiği +
+erişilebilir tablo gösterilir. Mevcut WaterLogList, tema tokenları ve tarih
+yardımcısı kullanılır; yeni grafik paketi yoktur. Mikro-saniye/offset sıralaması korunur.
+
+Gün ve tarih aralığı tarayıcının görünür IANA saat diliminde seçilir; API'ye ayrı
+başlangıç/bitiş offsetleri, çok günlük sorguya timeZone gönderilir. Aralık UI'da
+iki gün dahil; API to son günün ertesi gece yarısıdır. Kişisel/program hedefi bu
+bölümde istenmez/gösterilmez; program kartı bağımsız nutrition_plans yetkisini korur.
+
+Yüklenme/boş/hata/403/404 ayrıdır, hata sıfır tüketim değildir. 403'te paylaşımın
+danışanın mobil uygulamasından yönetileceği belirtilir; uzman adına izin açma veya
+kayıt değiştirme işlemi sunulmaz. Okumalardan birinin reddinde toplam, liste,
+grafik ve tablo birlikte kaldırılır. Danışan/oturum/tarih değişiminde eski veri
+anında gizlenir, AbortController geç yanıtları eler; kalıcı sağlık cache'i yoktur.
+Görünür sekmede 30 sn, odak/görünürlüğe dönüş ve elle yenileme; gizli sekmede
+okuma/içerik yok. Mevcut kart/44 px kontrol, açık/koyu tema ve dar ekran CSS'si kullanılır.
+U4 API, izin ve M4 mobil açılımı [21](21_WATER_LOG_SHARING_CONTRACT.md) içindedir.
+
 ## 19.11.2026 — U2 gerçek görev atama ve takip
 
 Kullanıcının U2 uygulama onayıyla gerçek danışan detayına **Danışan görevleri**
