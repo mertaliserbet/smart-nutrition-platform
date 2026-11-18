@@ -1,5 +1,22 @@
 # Smart Nutrition — Web
 
+## 18.11.2026 — Seçilen program sürümüyle günlük tüketim karşılaştırması
+
+Gerçek danışan detayında bir programın **Program ve tüketimi karşılaştır**
+düğmesini açın; güncel veya geçmiş sürüm ve takvim günü seçin. Programın bu
+sürümdeki tarih aralığı içinde bir gün gerekir. Planlanan öneriler/alternatifler
+ile tüm kayıtlardan hesaplanan öğün türü özetleri yan yana görünür. Günlük
+kalori farkı backend'den gelir; eksik besin değerleri ve tahmini kalem sayıları
+ayrıca belirtilir. Kayıt yokluğu tüketim yapılmadığı anlamına gelmez.
+
+Gün sınırları tarayıcının saat dilimine göre oluşturulur ve iki offset
+gösterilir. Bu seçim danışanın saat dilimi veya o gün aktif olan program
+sürümü iddiası değildir. Manuel yenileme ve görünür sekmeye/odağa dönüş yeni
+yetkili okuma yapar. Program ve öğün paylaşım izinlerinin **ikisi** gerekir;
+403/404 yalnız karşılaştırmayı kapatır. Mevcut bağımsız program/öğün ekranları
+kendi yetkileriyle çalışır. `04/05/06` ve onaylı `19` K1–K4 aynı sözleşmedir;
+Flutter ekranı bu teslimin dışındadır. Yeni ortam bayrağı veya migration yoktur.
+
 ## 07.11.2026 — Giriş ve gerçek panel deneyimi
 
 Başarılı hesap girişinden sonra `GET /dietitians/me` ile güncel uzman profili

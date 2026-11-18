@@ -1,5 +1,58 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 18.11.2026 — İkinci Uğur adımı, K1–K4 ortak kullanıcı onayı
+
+Fork ve yerel main, ortak main `0678c3c` ile fast-forward eşitlendi; ilk
+ölçüm geliştirmesi #12 PR'da bağımsız korunuyor. Kullanıcı `19` önerisine
+"K1–K4'ü onaylıyorum, backend ve webi uygula" yanıtını verdi. Açık gün/sürüm,
+iki bağımsız izin, eksik değerleri koruyan günlük/öğün agregasyonu ve React
+görünümü `04/05/06`ya işlendi. Uğur backend/React lideridir; Flutter ekranı
+Mert'indir. Yeni tablo/migration/izin kategorisi eklenmedi.
+
+Bu dilim seçilen içerik sürümüyle karşılaştırmadır. Genel uyum yüzdesi,
+geçmiş aktivasyon zaman çizelgesi, su veya kişisel hedef paylaşımı, yorum ve
+görevler için yeni toplu onay sayılmaz. Önceki tarihli açık karar listelerinin
+yalnız K1–K4 alt kapsamı kapanır. Diğer checkout, entegrasyondan önce bu
+sözleşmenin ortak main sürümüyle eşitlenmelidir.
+
+**Teslim:** `feature/program-meal-comparison` dalında yeni salt okunur API ve
+program kartından açılan gerçek React karşılaştırması hazırdır. Kullanıcı
+18.11.2026'da ayrı PR olarak gönderilmesini istedi. PR hazırlığında yalnız
+Flutter dosyalarını değiştiren yeni ortak main `47cd9e3` fast-forward alındı;
+backend/web doğrulanan içerikleri değişmedi. Başka açık PR birleştirilmedi.
+
+**Değişen alanlar:** Backend NutritionPlans altında karşılaştırma DTO,
+controller/service ve Program.cs DI kaydı; yeni
+NutritionPlanMealComparisonApiTests ve OpenAPI rota beklentisi; React
+nutritionPlans altında MealComparisonPanel, mealComparisonApi, testleri,
+program kartındaki açma düğmesi, ortak sürüm ayrıştırıcısı ve CSS. Kanonik
+04/05/06, web 08, karar 12/19 ve backend/web README dosyaları birlikte güncel.
+Flutter, migration, veritabanı modeli ve kişisel hedef API'si değişmedi.
+
+**Doğrulamalar:**
+
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: 0 uyarı/hata.
+- Yeni karşılaştırma testleri gerçek PostgreSQL 17.11 ile **10/10** geçti.
+- `dotnet test SmartNutrition.Backend.slnx --no-restore`: **384 başarılı,
+  2 atlanan, 0 başarısız**; atlananlar opt-in Mailpit SMTP testleridir.
+- `npm test` ilk tam çalıştırmada 186 test geçti. Son ek doğrulamadan sonra
+  varsayılan paralellikte mevcut ekran testlerinin 16'sı zaman aşımı/ona
+  bağlı bekleme hatası verdi. Test beklentileri veya süreleri değiştirilmeden
+  `node node_modules/vitest/vitest.mjs run --maxWorkers=2` ile son sürümde
+  **15 dosya / 187 test** geçti; karşılaştırma testleri **30/30**.
+- Son `npm run build`, `npm run lint` ve EF
+  `migrations has-pending-model-changes --no-build` başarılı; model farkı yok.
+- Tarayıcıda yalnız sentetik bileşen önizlemesiyle 1280 px açık / 390 px
+  koyu tema görsel kontrolü yapıldı, yatay taşma görülmedi. Bu kontrol tam
+  oturumlu mobil–web canlı prova değildir. Geçici önizleme dosyaları kaldırıldı.
+- PostgreSQL testleri uygulama veritabanından ayrı geçici sunucu/şemalarda
+  sentetik verilerle çalıştı; görev sunucusu durdurulup dizini temizlendi.
+  Uygulama veritabanına migration uygulanmadı.
+
+**Sonraki tek adım:** Bu backend/React ve ortak sözleşme diliminin Mert'in
+main'ini hedefleyen ayrı PR'ını incelemek; mobil entegrasyondan önce iki
+checkout'un birleştirilmiş onaylı main sürümüyle eşitlenmesi gerekir.
+
 ## 18.11.2026 — Mobil danışan girişi ve web paneli bağlantısı
 
 Kullanıcı şimdilik mobilde normal danışan girişini; giriş ekranında diyetisyeni

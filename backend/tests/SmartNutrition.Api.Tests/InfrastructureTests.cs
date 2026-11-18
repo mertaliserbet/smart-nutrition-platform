@@ -161,7 +161,8 @@ public sealed class InfrastructureTests
             "/api/v1/personal-nutrition-targets", "/api/v1/body-measurements", "/api/v1/body-measurements/{bodyMeasurementId}",
             "/api/v1/water-logs", "/api/v1/water-logs/{waterLogId}", "/api/v1/water-logs/daily-total",
             "/api/v1/nutrition-plans", "/api/v1/nutrition-plans/active", "/api/v1/nutrition-plans/{nutritionPlanId}", "/api/v1/nutrition-plans/{nutritionPlanId}/activate", "/api/v1/nutrition-plans/{nutritionPlanId}/archive",
-            "/api/v1/nutrition-plans/{nutritionPlanId}/versions", "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}" }.Order(),
+            "/api/v1/nutrition-plans/{nutritionPlanId}/versions", "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}",
+            "/api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison" }.Order(),
             paths.EnumerateObject().Select(path => path.Name).Order());
         Assert.True(paths.GetProperty("/api/v1/auth/csrf").TryGetProperty("get", out _));
         var webSession = paths.GetProperty("/api/v1/auth/web-session");
