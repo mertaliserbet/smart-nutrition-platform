@@ -1,5 +1,17 @@
 # Smart Nutrition — Web
 
+## 18.11.2026 — Gerçek danışan ölçümleri
+
+Gerçek danışan detayındaki Vücut ölçümleri bölümü mevcut diyetisyen ölçüm
+API'sine bağlıdır. Kilo/bel/kalça/göğüs/yağ oranı/not, kaynak ve zaman salt
+okunur; null değerler Bilinmiyor, gerçek sıfır birimiyle gösterilir.
+Sunucudan 10'lu sayfalama, açık UTC tarih filtresi ve elle/fokusa dönüşte
+yenileme vardır. İzin/bağlantı kaybı, boş sonuç ve hata ayrıdır; önceki sağlık
+verisi ve sayılar istek/oturum/danışan değişince gizlenir. Geç yanıtlar gösterilmez.
+Program/öğün izinleri ölçüm açmaz. Sentetik önizleme gerçek panelden ayrı kalır.
+Mobilde ölçüm izni uyarlaması doğrulanana kadar backend BodyMeasurementsEnabled
+varsayılan false kalır; bu web ekranı danışan yerine izin oluşturmaz.
+
 ## 07.11.2026 — Giriş ve gerçek panel deneyimi
 
 Başarılı hesap girişinden sonra `GET /dietitians/me` ile güncel uzman profili

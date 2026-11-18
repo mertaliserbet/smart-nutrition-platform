@@ -166,6 +166,7 @@ describe('real meal panel', () => {
       if (url.endsWith('/dietitians/me')) return Response.json({ id: expertId, displayName: 'Sentetik Uzman', isVerified: true })
       if (url.endsWith('/dashboard')) return Response.json({ clientId, displayName: 'Sentetik Danışan' })
       if (url.includes('/meal-logs?')) return new Response(null, { status: 403 })
+      if (url.includes('/body-measurements?')) return new Response(null, { status: 403 })
       if (url.includes('/nutrition-plans?')) return Response.json({ items: [], totalCount: 0 })
       throw new Error('Unexpected request')
     })

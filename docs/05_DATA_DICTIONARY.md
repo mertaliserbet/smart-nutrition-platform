@@ -1,5 +1,23 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 18.11.2026 — M1–M4 ölçüm paylaşımı ve okuma verisi
+
+Kullanıcının `18` önerisi için uygulama onayıyla `DataSharingPermission.category`
+desteklenen değerleri nutrition_plans/meal_logs/body_measurements olur. Ölçüm izni
+ayrı, varsayılan kapalıdır; ilişki kabulü veya migration izin satırı oluşturmaz.
+Bu üç kategoride consentRecordId null kalır; tahlil açık onayı eklenmez.
+İlişki/kategori unique kuralı ve danışan sahipliği korunur.
+
+`AddBodyMeasurementSharingCategory` yalnız ck_permissions_category kısıtını
+genişletir; ölçüm veya eski izin satırlarına yazmaz. Down, body_measurements
+izin satırı varsa check ihlaliyle geri alınır; veri silerek zorlanmaz.
+
+Diyetisyen okuması Mert'in mevcut BodyMeasurement kaynağını ve aynı yanıtı
+kullanır: id/clientId/measuredAt/weightKg/waistCm/hipCm/chestCm/bodyFatPercent/note/source.
+Nullable değerler açık null; kg/cm pozitif, yağ oranı 0–100, en az bir ölçüm
+dolu ve not en fazla 2000 Unicode karakterdir. Saklama/yuvarlama değişmez.
+Ölçüm satırı kopyası, özet veya yeni entity eklenmez; HTTP/yetki ayrıntısı `06`dadır.
+
 ## 17.11.2026 — PersonalNutritionTarget
 
 Kullanıcının doğrudan backend göreviyle kişisel günlük hedefler ayrı saklanır.

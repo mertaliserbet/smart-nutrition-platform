@@ -50,9 +50,9 @@ export function getPreviewRecords(clientId: string) {
   ]
   const bodyMeasurements: BodyMeasurement[] = [
     { id: id(8), clientId, measuredAt: '2026-10-18T06:00:00Z', weightKg: 72.4,
-      waistCm: 83.1, bodyFatPercent: null, source: 'manual' },
+      waistCm: 83.1, hipCm: null, chestCm: null, bodyFatPercent: null, note: null, source: 'manual' },
     { id: id(9), clientId, measuredAt: '2026-10-25T06:00:00Z', weightKg: 72.1,
-      waistCm: null, bodyFatPercent: null, source: 'manual' },
+      waistCm: null, hipCm: null, chestCm: null, bodyFatPercent: null, note: null, source: 'manual' },
   ]
   const activityLogs: ActivityLog[] = [
     { id: id(10), clientId, activityType: 'Yürüyüş (örnek)', startedAt: '2026-10-25T07:00:00Z',

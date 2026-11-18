@@ -1,7 +1,10 @@
 # 18 — İlk Uğur adımı: gerçek danışan ölçümlerinin web görünümü
 
 **Tarih:** 18.11.2026 · **İnceleme tabanı:** ortak `main`, `8f8a7a4`.
-**Durum:** Ortak onaya sunulan öneri; uygulama veya kesinleşmiş API sözleşmesi değildir.
+**Durum:** Kullanıcının “buradaki her şeyi onayladığını varsayarak yazmaya devam”
+talimatıyla M1–M4 uygulaması onaylandı. Güncel normatif kaynak `04/05/06`dır.
+Mert'in ölçüm saklama/kendi CRUD teslimi ve bu önerinin PR #11'i ortak main'e
+alındı; uygulama tabanı `0678c3c`. Aşağıdaki ilk inceleme bulguları hazırlık anını anlatır.
 
 Kullanıcının son görev dağılımındaki ilk adım ele alınır: Mert kilo, bel,
 kalça ve göğüs ölçümlerinin PostgreSQL/API ve Flutter kayıt akışını;
@@ -31,7 +34,9 @@ Mevcut alanlara yalnız aşağıdakiler eklenir:
 | Göğüs çevresi | `chestCm` | `ChestCm` | Nullable decimal / JSON number; cm |
 
 Yanıtın tüm alanları: `id`, `clientId`, `measuredAt`, `weightKg`, `waistCm`,
-`hipCm`, `chestCm`, `bodyFatPercent`, `source`. Nullable anahtarlar yanıtta açık
+`hipCm`, `chestCm`, `bodyFatPercent`, `note`, `source`. Mert'in ortak main'de
+eklediği nullable `note` korunur (en fazla 2000 Unicode karakter; NUL yok).
+Nullable anahtarlar yanıtta açık
 null bulunur; bilinmeyen değer sıfır veya önceki ölçümle doldurulmaz.
 `createdAt`, özet, hedef veya klinik yorum alanı bu yanıtın parçası yapılmaz.
 
@@ -112,9 +117,8 @@ Uygulama sonrasında doğrulanacaklar (henüz çalıştırılmış test değildi
 
 ## Onay ve uygulama sırası
 
-M1–M4 iki geliştiricinin ortak onayından sonra `04/05/06`ya geçirilir;
+Kullanıcının uygulama onayıyla M1–M4 `04/05/06`ya geçirilir;
 uygulama/güvenlik/istemci etkileri `08/11/12` ile eşgüdümlü ele alınır.
-Bu belge tek başına mevcut kanonik sözleşmeleri değiştirmez.
 
 1. Mert M1'e uygun ölçüm saklama/API ve Flutter kayıt/paylaşım uyarlamasını
    üstlenir; Uğur aynı C# entity/migration dosyalarına paralel yazmaz.
@@ -125,5 +129,6 @@ Bu belge tek başına mevcut kanonik sözleşmeleri değiştirmez.
 4. İlk adım gerçek sentetik kayıtla uçtan uca doğrulandıktan sonra listedeki
    program–gerçekleşen karşılaştırmasına geçilir.
 
-Commit/push/PR bu belgeyle yetkilendirilmez. Bu görevde `04/05/06`, backend,
-Flutter ve React uygulaması değiştirilmemiştir.
+Öneri commit'inde uygulama kodu değişmedi. Sonraki onaylı uygulama `04/05/06`,
+backend ve React'i birlikte kapsar; Flutter entegrasyonu Mert'te kalır.
+İzin yazma bayrağı mobil uyumluluk doğrulanana kadar false'tur.

@@ -33,7 +33,12 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
     RelationshipService relationships, TimeProvider clock, IConfiguration configuration) : ControllerBase
 {
     // Keep new category rows out of legacy mobile lists until the coordinated client rollout.
-    private bool MealLogsEnabled => configuration.GetValue<bool>("Relationships:Sharing:MealLogsEnabled");
+    private bool CategoryEnabled(string? category) => category switch
+    {
+        "meal_logs" => configuration.GetValue<bool>("Relationships:Sharing:MealLogsEnabled"),
+        "body_measurements" => configuration.GetValue<bool>("Relationships:Sharing:BodyMeasurementsEnabled"),
+        _ => true
+    };
     private bool HasBody => HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;
     private async Task<DietitianClientRelationship> OwnRelationship(ProfileIdentity actor, Guid id, CancellationToken token) =>
         await relationships.Own(actor).SingleOrDefaultAsync(x => x.Id == id, token) ?? throw new ResourceOperationException(404);
@@ -65,7 +70,7 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
         if (Request.Query.Count != 0 || request.RelationshipId == Guid.Empty || !await WebSessionAuthentication.ValidMutationAsync(HttpContext))
             return BadRequest(ApiErrors.Create(HttpContext, 400));
         if (!DataSharingPermission.IsSupportedCategory(request.Category) || request.ConsentRecordId is not null ||
-            (request.Category == "meal_logs" && !MealLogsEnabled)) return StatusCode(422, ApiErrors.Create(HttpContext, 422));
+            !CategoryEnabled(request.Category)) return StatusCode(422, ApiErrors.Create(HttpContext, 422));
         var actor = await access.RequireAsync(User, token, Request);
         await using var transaction = await database.Database.BeginTransactionAsync(token);
         await WritableRelationship(actor, request.RelationshipId, token);
@@ -90,8 +95,8 @@ public sealed class DataSharingPermissionsController(AppDbContext database, Rela
         await using var transaction = await database.Database.BeginTransactionAsync(token);
         await WritableRelationship(actor, candidate.RelationshipId, token);
         var row = await database.DataSharingPermissions.SingleAsync(x => x.Id == dataSharingPermissionId, token);
-        // A disabled rollout still permits an existing meal permission to be withdrawn.
-        if (row.Category == "meal_logs" && request.IsGranted && !MealLogsEnabled)
+        // A disabled rollout still permits an existing category permission to be withdrawn.
+        if (request.IsGranted && !CategoryEnabled(row.Category))
             return StatusCode(422, ApiErrors.Create(HttpContext, 422));
         row.SetGranted(request.IsGranted, clock.GetUtcNow()); await database.SaveChangesAsync(token); await transaction.CommitAsync(token);
         return Ok(row);

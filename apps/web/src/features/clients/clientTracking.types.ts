@@ -44,7 +44,10 @@ export type BodyMeasurement = {
   measuredAt: string
   weightKg: number | null
   waistCm: number | null
+  hipCm: number | null
+  chestCm: number | null
   bodyFatPercent: number | null
+  note: string | null
   source: RecordSource
 }
 

@@ -801,7 +801,7 @@ namespace SmartNutrition.Api.Data.Migrations
 
                     b.ToTable("data_sharing_permissions", null, t =>
                         {
-                            t.HasCheckConstraint("ck_permissions_category", "category IN ('nutrition_plans','meal_logs') AND consent_record_id IS NULL");
+                            t.HasCheckConstraint("ck_permissions_category", "category IN ('nutrition_plans','meal_logs','body_measurements') AND consent_record_id IS NULL");
 
                             t.HasCheckConstraint("ck_permissions_times", "updated_at >= created_at");
                         });

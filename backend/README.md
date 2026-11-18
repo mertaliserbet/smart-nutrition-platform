@@ -1,5 +1,20 @@
 # Smart Nutrition — Ortak Backend
 
+## 18.11.2026 — Diyetisyenin gerçek ölçüm okuması
+
+`GET /api/v1/dietitian/clients/{clientId}/body-measurements` mevcut ölçüm
+kaydını cookie/JWT ile, güncel onaylı uzman + aktif ilişki + body_measurements
+izniyle salt okunur döndürür. Zorunlu page/pageSize (1–100), opsiyonel açık
+UTC/ofsetli from/to; measuredAt azalan/id artan, from dahil/to hariçtir.
+Not ve nullable ölçümler kendi CRUD yanıtıyla aynıdır. Normatif ayrıntı docs/06'dadır.
+
+`AddBodyMeasurementSharingCategory` yalnız izin kategori check'ini genişletir;
+ölçüm tablosuna/izin satırlarına veri yazmaz. Yeni kategori satırı varken Down
+veri silmek yerine durur. Mevcut uygulama DB'sine bu görev otomatik migration uygulamaz.
+`Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam değişkeni
+`Relationships__Sharing__BodyMeasurementsEnabled`. Mobil yeni kategori/sayfalama
+uyarlaması doğrulanmadan açılmaz. Mevcut iznin okunması ve geri çekilmesi korunur.
+
 ## 07.11.2026 — G1 öğün paylaşım izin altyapısı
 
 Kullanıcı ortak onayıyla mevcut DataSharingPermission kategorilerine
