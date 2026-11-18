@@ -408,9 +408,7 @@ void main() {
       expect(find.text('synthetic@example.test'), findsNothing);
       await pump(tester, page: const ProgressPage());
       expect(
-        find.text(
-          'Ölçüm geçmişiniz ve gelişim grafikleriniz burada yer alacak.',
-        ),
+        find.text('Ölçümleri görüntülemek için oturumunuz doğrulanmalıdır.'),
         findsOneWidget,
       );
       expect(find.byType(ProgressIndicator), findsNothing);

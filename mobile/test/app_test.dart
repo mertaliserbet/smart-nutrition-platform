@@ -23,8 +23,7 @@ void main() {
     (
       label: 'İlerleme',
       page: ProgressPage,
-      description:
-          'Ölçüm geçmişiniz ve gelişim grafikleriniz burada yer alacak.',
+      description: 'Ölçümleri görüntülemek için oturumunuz doğrulanmalıdır.',
     ),
     (
       label: 'Profil',
@@ -167,6 +166,18 @@ void main() {
           for (final screen in screens) {
             await selectTab(tester, screen.label);
             final description = find.text(screen.description);
+            if (description.evaluate().isEmpty) {
+              await tester.scrollUntilVisible(
+                description,
+                80,
+                scrollable: find
+                    .descendant(
+                      of: find.byType(screen.page),
+                      matching: find.byType(Scrollable),
+                    )
+                    .first,
+              );
+            }
             // A paragraph can be taller than the viewport at large text sizes.
             await Scrollable.ensureVisible(
               tester.element(description),

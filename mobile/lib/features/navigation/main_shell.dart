@@ -104,7 +104,7 @@ class _MainShellState extends State<MainShell> {
                 active: _selectedIndex == 1,
                 refreshRevision: _nutritionRevision,
               ),
-              const ProgressPage(),
+              ProgressPage(active: _selectedIndex == 2),
               const ProfilePage(),
             ],
           ),
