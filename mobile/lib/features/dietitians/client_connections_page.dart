@@ -13,11 +13,17 @@ class ClientConnectionsPage extends StatefulWidget {
   State<ClientConnectionsPage> createState() => _ClientConnectionsPageState();
 }
 
-class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
+class _ClientConnectionsPageState extends State<ClientConnectionsPage>
+    with WidgetsBindingObserver {
   DietitianApi? _api;
+  AuthSession? _session;
+  String? _owner;
+  bool _foreground =
+      WidgetsBinding.instance.lifecycleState == null ||
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
   String _status = 'active';
   List<RelationshipResponse> _rows = [];
-  DataSharingPermission? _permission;
+  Map<String, DataSharingPermission> _permissions = {};
   int _page = 1, _total = 0, _revision = 0;
   bool _loading = false, _busy = false, _ready = false, _confirming = false;
   String? _error, _message;
@@ -27,21 +33,63 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
     'rejected': 'Reddedilen',
     'ended': 'Sonlandırılan',
   };
-  bool get _available => _ready && !_loading && !_busy && !_confirming;
+  bool get _authorized =>
+      _foreground &&
+      _session?.isAuthenticated == true &&
+      _session?.user?.id == _owner;
+  bool get _available =>
+      _authorized && _ready && !_loading && !_busy && !_confirming;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _clear() {
+    ++_revision;
+    _ready = false;
+    _loading = false;
+    _rows = [];
+    _permissions = {};
+    _total = 0;
+    _message = null;
+    _error = null;
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final session = AuthSessionScope.maybeOf(context);
-    if (_api == null && session?.isAuthenticated == true) {
-      _api = widget.api ?? DietitianApi(session!);
+    if (!identical(session, _session) || _owner != session?.user?.id) {
+      _clear();
+      _session = session;
+      _owner = session?.user?.id;
+      _api = session == null
+          ? null
+          : identical(widget.api?.session, session)
+          ? widget.api
+          : DietitianApi(session);
+    }
+    if (!_authorized) {
+      _clear();
+    } else if (!_ready && !_loading && _error == null && !_busy) {
       _load();
     }
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _foreground = state == AppLifecycleState.resumed;
+      _clear();
+    });
+    if (_authorized && !_busy) _load();
+  }
+
+  @override
   void dispose() {
     ++_revision;
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -50,27 +98,30 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
       : 'İşlem tamamlanamadı. Durumu yenileyip kontrol edin.';
 
   Future<void> _load({int page = 1}) async {
-    if (_api == null) return;
+    if (_api == null || !_authorized) return;
     final revision = ++_revision;
     setState(() {
       _loading = true;
       _ready = false;
       _error = null;
       _rows = [];
-      _permission = null;
+      _permissions = {};
     });
     try {
       final result = await _api!.relationships(status: _status, page: page);
-      DataSharingPermission? permission;
+      if (!mounted || !_authorized || revision != _revision) return;
+      List<DataSharingPermission> permissions = [];
       if (_status == 'active' && result.items.isNotEmpty) {
-        permission = await _api!.permission(result.items.single.id);
+        permissions = await _api!.permissions(result.items.single.id);
       }
-      if (!mounted || revision != _revision) return;
+      if (!mounted || !_authorized || revision != _revision) return;
       setState(() {
         _rows = result.items;
         _total = result.totalCount;
         _page = page;
-        _permission = permission;
+        _permissions = {
+          for (final permission in permissions) permission.category: permission,
+        };
         _ready = true;
       });
     } catch (error) {
@@ -84,9 +135,11 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
 
   Future<bool> _confirm(String title, String description, String action) async {
     if (!_available) return false;
+    final revision = _revision, owner = _owner;
     setState(() => _confirming = true);
     try {
-      return await showDialog<bool>(
+      final confirmed =
+          await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
               title: Text(title),
@@ -104,6 +157,11 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
             ),
           ) ==
           true;
+      return confirmed &&
+          mounted &&
+          _authorized &&
+          owner == _owner &&
+          revision == _revision;
     } finally {
       if (mounted) setState(() => _confirming = false);
     }
@@ -114,6 +172,7 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
     String success,
   ) async {
     if (!_available) return;
+    final revision = _revision, owner = _owner;
     setState(() {
       _busy = true;
       _message = null;
@@ -121,20 +180,33 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
     });
     try {
       await operation();
-      if (!mounted) return;
+      if (!mounted ||
+          !_authorized ||
+          owner != _owner ||
+          revision != _revision) {
+        return;
+      }
       setState(() => _message = success);
       await _load();
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted ||
+          !_authorized ||
+          owner != _owner ||
+          revision != _revision) {
+        return;
+      }
       setState(() {
         _ready = false;
         _rows = [];
-        _permission = null;
+        _permissions = {};
         _error =
             '${_explain(error)} Tekrar işlem yapmadan “Durumu yenile” ile kontrol edin.';
       });
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() => _busy = false);
+        if (_authorized && !_ready && _error == null && !_loading) _load();
+      }
     }
   }
 
@@ -160,15 +232,24 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
     );
   }
 
-  Future<void> _share(RelationshipResponse row, bool granted) async {
+  Future<void> _share(
+    RelationshipResponse row,
+    String category,
+    bool granted,
+  ) async {
     if (row.status != 'active') return;
-    final current = _permission;
-    final action = granted ? 'Paylaşıma İzin Ver' : 'İzni Geri Al';
+    final current = _permissions[category];
+    final label = category == 'meal_logs'
+        ? 'Öğün kayıtları'
+        : 'Beslenme programları';
+    final action = category == 'meal_logs'
+        ? (granted ? 'Öğün paylaşımına izin ver' : 'Öğün iznini geri al')
+        : (granted ? 'Paylaşıma İzin Ver' : 'İzni Geri Al');
     final confirmed = await _confirm(
       action,
       granted
-          ? 'Beslenme programlarınızın bu diyetisyenle paylaşılmasına izin veriyor musunuz? Bu işlem yalnız beslenme programlarını kapsar. İzninizi daha sonra geri alabilirsiniz.'
-          : 'Diyetisyenin beslenme programlarınıza yeni erişimi kapatılacak. Aktif bağlantınız ve kendi kayıtlarınız korunur.',
+          ? '$label kategorisinin bu diyetisyenle paylaşılmasına izin veriyor musunuz? Yalnız bu kategori açılır; diğer izinleriniz değişmez. İzninizi daha sonra geri alabilirsiniz.'
+          : 'Diyetisyenin $label kategorisine yeni erişimi kapatılacak. Diğer izinleriniz, aktif bağlantınız ve kendi kayıtlarınız korunur.',
       action,
     );
     if (!mounted || !confirmed) return;
@@ -178,10 +259,11 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
           relationshipId: row.id,
           isGranted: granted,
           current: current,
+          category: category,
         );
       },
       granted
-          ? 'Beslenme programları için paylaşım izni verildi.'
+          ? '$label için paylaşım izni verildi.'
           : 'Paylaşım izniniz geri alındı.',
     );
   }
@@ -211,28 +293,49 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
                 child: const Text('İsteği İptal Et'),
               ),
             if (row.status == 'active') ...[
-              const SizedBox(height: 16),
-              Text(
-                'Beslenme programları',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                _permission?.isGranted == true
-                    ? 'Paylaşım izni açık.'
-                    : 'Paylaşım izni kapalı. Bağlantı onayı tek başına paylaşım izni vermez.',
-              ),
-              const Text('Bu izin yalnız beslenme programlarını kapsar.'),
-              const SizedBox(height: 8),
-              FilledButton(
-                onPressed: _available
-                    ? () => _share(row, _permission?.isGranted != true)
-                    : null,
-                child: Text(
-                  _permission?.isGranted == true
-                      ? 'İzni Geri Al'
-                      : 'Paylaşıma İzin Ver',
+              for (final category in DietitianApi.sharingCategories) ...[
+                const SizedBox(height: 16),
+                Text(
+                  category == 'meal_logs'
+                      ? 'Öğün kayıtları'
+                      : 'Beslenme programları',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
+                Text(
+                  category == 'meal_logs'
+                      ? (_permissions[category]?.isGranted == true
+                            ? 'Öğün paylaşımı açık.'
+                            : 'Öğün paylaşımı kapalı. Bağlantı veya program izni öğün paylaşımını açmaz.')
+                      : (_permissions[category]?.isGranted == true
+                            ? 'Paylaşım izni açık.'
+                            : 'Paylaşım izni kapalı. Bağlantı onayı tek başına paylaşım izni vermez.'),
+                ),
+                Text(
+                  category == 'meal_logs'
+                      ? 'Öğün izni bağımsızdır; program izni öğün paylaşımını açmaz.'
+                      : 'Bu izin yalnız beslenme programlarını kapsar.',
+                ),
+                const SizedBox(height: 8),
+                FilledButton(
+                  key: ValueKey('sharing-$category'),
+                  onPressed: _available
+                      ? () => _share(
+                          row,
+                          category,
+                          _permissions[category]?.isGranted != true,
+                        )
+                      : null,
+                  child: Text(
+                    category == 'meal_logs'
+                        ? (_permissions[category]?.isGranted == true
+                              ? 'Öğün iznini geri al'
+                              : 'Öğün paylaşımına izin ver')
+                        : (_permissions[category]?.isGranted == true
+                              ? 'İzni Geri Al'
+                              : 'Paylaşıma İzin Ver'),
+                  ),
+                ),
+              ],
               OutlinedButton(
                 onPressed: _available ? () => _end(row) : null,
                 child: const Text('Bağlantıyı Sonlandır'),
@@ -260,7 +363,7 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage> {
               padding: const EdgeInsets.all(AppTokens.spacingMedium),
               children: [
                 const Text(
-                  'İsteği siz başlatırsınız; kabul veya ret yanıtını diyetisyen verir. Beslenme programı paylaşımını ayrıca siz yönetirsiniz.',
+                  'İsteği siz başlatırsınız; kabul veya ret yanıtını diyetisyen verir. Program ve öğün paylaşım izinlerini birbirinden bağımsız yönetirsiniz.',
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(

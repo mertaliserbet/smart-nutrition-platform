@@ -118,6 +118,123 @@ void main() {
     relationshipId: '33333333-3333-4333-8333-333333333333',
     isGranted: true,
   );
+  testWidgets(
+    'account change clears grants and ignores a late previous-user permission list',
+    (tester) async {
+      api.active = status('active');
+      api.grant = permission;
+      await manage(tester);
+      expect(find.text('Paylaşım izni açık.'), findsOneWidget);
+      final old = Completer<List<DataSharingPermission>>();
+      api.permissionsResult = old.future;
+      await tester.tap(find.text('Durumu yenile'));
+      await tester.pump();
+      api.permissionsResult = null;
+      api.active = null;
+      api.grant = null;
+      session.changeOwner();
+      await tester.pumpAndSettle();
+      old.complete([permission]);
+      await tester.pumpAndSettle();
+      expect(find.text('Paylaşım izni açık.'), findsNothing);
+      expect(find.text('Aktif diyetisyen bağlantınız yok.'), findsOneWidget);
+      expect(api.permissionWrites, 0);
+    },
+  );
+  testWidgets(
+    'pending permissions are not closed permissions and failed reads require retry',
+    (tester) async {
+      api.active = status('active');
+      final pending = Completer<List<DataSharingPermission>>();
+      api.permissionsResult = pending.future;
+      await open(tester);
+      final manageButton = find.widgetWithText(
+        OutlinedButton,
+        'Bağlantıları ve paylaşımı yönet',
+      );
+      await visible(tester, manageButton);
+      await tester.tap(manageButton);
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump();
+      expect(find.textContaining('Paylaşım izni kapalı'), findsNothing);
+      expect(find.byKey(const ValueKey('sharing-meal_logs')), findsNothing);
+      pending.completeError(const DietitianApiException('İzinler okunamadı.'));
+      await tester.pumpAndSettle();
+      expect(find.text('İzinler okunamadı.'), findsOneWidget);
+      expect(api.permissionWrites, 0);
+      api.permissionsResult = null;
+      await tester.tap(find.text('Durumu yenile'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Öğün paylaşımı kapalı'), findsOneWidget);
+    },
+  );
+  testWidgets(
+    'meal sharing is independent of program grant and each revoke preserves the other',
+    (tester) async {
+      api.active = status('active');
+      api.grant = permission;
+      await manage(tester);
+      expect(find.text('Paylaşım izni açık.'), findsOneWidget);
+      expect(find.textContaining('Öğün paylaşımı kapalı'), findsOneWidget);
+      expect(api.permissionWrites, 0);
+      Future<void> change(String category, String action) async {
+        final button = find.byKey(ValueKey('sharing-$category'));
+        await visible(tester, button);
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+        await tester.tap(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.widgetWithText(FilledButton, action),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await change('meal_logs', 'Öğün paylaşımına izin ver');
+      expect(api.lastCategory, 'meal_logs');
+      expect(api.grant?.isGranted, isTrue);
+      expect(api.mealGrant?.isGranted, isTrue);
+      await change('nutrition_plans', 'İzni Geri Al');
+      expect(api.lastCategory, 'nutrition_plans');
+      expect(api.mealGrant?.isGranted, isTrue);
+      await change('meal_logs', 'Öğün iznini geri al');
+      expect(api.mealGrant?.isGranted, isFalse);
+      expect(api.grant?.isGranted, isFalse);
+      expect(api.permissionWrites, 3);
+    },
+  );
+  testWidgets(
+    'meal permission rejection never shows success or silently opens another category',
+    (tester) async {
+      api.active = status('active');
+      api.permissionFailure = const DietitianApiException(
+        'Öğün paylaşımı sunucuda kullanılamıyor.',
+        statusCode: 422,
+      );
+      await manage(tester);
+      final button = find.byKey(const ValueKey('sharing-meal_logs'));
+      await visible(tester, button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(
+            FilledButton,
+            'Öğün paylaşımına izin ver',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(api.permissionWrites, 1);
+      expect(api.grant, isNull);
+      expect(api.mealGrant, isNull);
+      expect(find.textContaining('Tekrar işlem yapmadan'), findsOneWidget);
+      expect(find.text('Öğün paylaşımı açık.'), findsNothing);
+    },
+  );
+
   for (final brightness in Brightness.values) {
     testWidgets(
       'sharing is closed by default; explicit dialog grants and revokes in ${brightness.name}',
@@ -652,12 +769,18 @@ void main() {
 
 class _Session extends AuthSession {
   bool authenticated = true;
+  String owner = '22222222-2222-4222-8222-222222222222';
+  void changeOwner() {
+    owner = '77777777-7777-4777-8777-777777777777';
+    notifyListeners();
+  }
+
   @override
   bool get isAuthenticated => authenticated;
   @override
   CurrentUserResponse? get user => authenticated
-      ? const CurrentUserResponse(
-          id: '22222222-2222-4222-8222-222222222222',
+      ? CurrentUserResponse(
+          id: owner,
           displayName: 'Sentetik danışan',
           email: 'synthetic@example.test',
           role: 'client',
@@ -704,17 +827,19 @@ class _Api extends DietitianApi {
   List<RelationshipResponse> history = [];
   int historyPage = 0, ends = 0, permissionWrites = 0;
   int? historyTotal;
-  DataSharingPermission? grant, lastPermission;
+  DataSharingPermission? grant, mealGrant, lastPermission;
+  String? lastCategory;
+  Future<List<DataSharingPermission>>? permissionsResult;
   bool? lastGranted;
   bool permissionReadFailure = false;
   DietitianApiException? permissionFailure, endFailure;
   Future<DataSharingPermission>? permissionResult;
   @override
-  Future<DataSharingPermission?> permission(String relationshipId) async {
+  Future<List<DataSharingPermission>> permissions(String relationshipId) async {
     if (permissionReadFailure) {
       throw const DietitianApiException('Paylaşım durumu okunamadı.');
     }
-    return grant;
+    return permissionsResult ?? [?grant, ?mealGrant];
   }
 
   @override
@@ -722,21 +847,31 @@ class _Api extends DietitianApi {
     required String relationshipId,
     required bool isGranted,
     DataSharingPermission? current,
+    String category = 'nutrition_plans',
   }) async {
     permissionWrites++;
+    lastCategory = category;
     lastGranted = isGranted;
     lastPermission = current;
     if (permissionFailure != null) throw permissionFailure!;
-    grant =
+    final result =
         await (permissionResult ??
             Future.value(
               DataSharingPermission(
-                id: '44444444-4444-4444-8444-444444444444',
+                id: category == 'meal_logs'
+                    ? '55555555-5555-4555-8555-555555555555'
+                    : '44444444-4444-4444-8444-444444444444',
+                category: category,
                 relationshipId: relationshipId,
                 isGranted: isGranted,
               ),
             ));
-    return grant!;
+    if (category == 'meal_logs') {
+      mealGrant = result;
+    } else {
+      grant = result;
+    }
+    return result;
   }
 
   @override

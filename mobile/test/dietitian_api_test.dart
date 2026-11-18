@@ -99,10 +99,200 @@ void main() {
     );
     api = DietitianApi(session);
   });
+  test(
+    'permission pagination combines independent categories without writes',
+    () async {
+      final pages = <String?>[];
+      resource = (r) async {
+        expect(r.method, 'GET');
+        expect(r.headers.value('x-profile-context'), 'client');
+        pages.add(r.uri.queryParameters['page']);
+        await reply(r, 200, {
+          'items': [
+            r.uri.queryParameters['page'] == '1'
+                ? permissionBody(true)
+                : {
+                    ...permissionBody(false),
+                    'id': expertId,
+                    'category': 'meal_logs',
+                  },
+          ],
+          'totalCount': 2,
+        });
+      };
+      final rows = await api.permissions(relationId);
+      expect(pages, ['1', '2']);
+      expect(
+        {for (final r in rows) r.category: r.isGranted},
+        {'nutrition_plans': true, 'meal_logs': false},
+      );
+    },
+  );
+  test(
+    'inconsistent, empty, duplicate category or duplicate id pages fail closed',
+    () async {
+      for (final scenario in ['changed', 'empty', 'category', 'id']) {
+        resource = (r) async {
+          final first = r.uri.queryParameters['page'] == '1';
+          await reply(r, 200, {
+            'items': first
+                ? [permissionBody(true)]
+                : scenario == 'empty'
+                ? []
+                : [
+                    {
+                      ...permissionBody(false),
+                      'id': scenario == 'id' ? permissionId : expertId,
+                      'category': scenario == 'category'
+                          ? 'nutrition_plans'
+                          : 'meal_logs',
+                    },
+                  ],
+            'totalCount': !first && scenario == 'changed' ? 1 : 2,
+          });
+        };
+        await expectLater(
+          api.permissions(relationId),
+          throwsA(isA<DietitianApiException>()),
+        );
+      }
+    },
+  );
+  for (final create in [true, false]) {
+    for (final granted in [true, false]) {
+      test(
+        'meal ${create ? 'POST' : 'PATCH'} only changes selected category to $granted',
+        () async {
+          var calls = 0;
+          resource = (r) async {
+            calls++;
+            expect(r.method, create ? 'POST' : 'PATCH');
+            expect(r.headers.value('x-profile-context'), 'client');
+            expect(r.headers.value('cookie'), isNull);
+            expect(
+              jsonDecode(await utf8.decoder.bind(r).join()),
+              create
+                  ? {
+                      'relationshipId': relationId,
+                      'category': 'meal_logs',
+                      'isGranted': granted,
+                    }
+                  : {'isGranted': granted},
+            );
+            await reply(r, create ? 201 : 200, {
+              ...permissionBody(granted),
+              'category': 'meal_logs',
+            });
+          };
+          final result = await api.setPermission(
+            relationshipId: relationId,
+            category: 'meal_logs',
+            isGranted: granted,
+            current: create
+                ? null
+                : const DataSharingPermission(
+                    id: permissionId,
+                    relationshipId: relationId,
+                    category: 'meal_logs',
+                    isGranted: true,
+                  ),
+          );
+          expect(result.category, 'meal_logs');
+          expect(result.isGranted, granted);
+          expect(calls, 1);
+        },
+      );
+    }
+  }
+  test(
+    'category mismatch is rejected before sending and meal rollout 422 is not retried',
+    () async {
+      var calls = 0;
+      resource = (r) async {
+        calls++;
+        await reply(r, 422, {
+          'error': {'code': 'validation_failed'},
+        });
+      };
+      await expectLater(
+        api.setPermission(
+          relationshipId: relationId,
+          category: 'meal_logs',
+          isGranted: true,
+          current: const DataSharingPermission(
+            id: permissionId,
+            relationshipId: relationId,
+            isGranted: true,
+          ),
+        ),
+        throwsA(isA<DietitianApiException>()),
+      );
+      expect(calls, 0);
+      await expectLater(
+        api.setPermission(
+          relationshipId: relationId,
+          category: 'meal_logs',
+          isGranted: true,
+        ),
+        throwsA(
+          isA<DietitianApiException>().having(
+            (e) => e.statusCode,
+            'rollout disabled',
+            422,
+          ),
+        ),
+      );
+      expect(calls, 1);
+    },
+  );
   tearDown(() async {
     session.dispose();
     await server.close(force: true);
   });
+  test(
+    'meal writes are not replayed on 401 and a late read cannot cross logout',
+    () async {
+      var calls = 0;
+      resource = (r) async {
+        calls++;
+        await r.drain<void>();
+        await reply(r, 401, null);
+      };
+      await expectLater(
+        api.setPermission(
+          relationshipId: relationId,
+          category: 'meal_logs',
+          isGranted: true,
+        ),
+        throwsA(isA<DietitianApiException>()),
+      );
+      expect(calls, 1);
+      expect(renewals, 1);
+      final started = Completer<void>(), release = Completer<void>();
+      resource = (r) async {
+        started.complete();
+        await release.future;
+        await reply(r, 200, {
+          'items': [permissionBody(true)],
+          'totalCount': 1,
+        });
+      };
+      final pending = api.permissions(relationId);
+      await started.future;
+      await session.signOut();
+      release.complete();
+      await expectLater(
+        pending,
+        throwsA(
+          isA<DietitianApiException>().having(
+            (e) => e.statusCode,
+            'ended owner',
+            401,
+          ),
+        ),
+      );
+    },
+  );
 
   test(
     'pending cancellation uses a bodyless POST end with client context',

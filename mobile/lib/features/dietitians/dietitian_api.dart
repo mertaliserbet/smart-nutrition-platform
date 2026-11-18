@@ -44,6 +44,7 @@ class DietitianApi {
   DietitianApi(this.session);
   final AuthSession session;
   static const pageSize = 10;
+  static const sharingCategories = ['nutrition_plans', 'meal_logs'];
 
   Future<DietitianStatusResponse?> profile() => _safe(() async {
     final response = await session.authorizedRequest(
@@ -273,48 +274,78 @@ class DietitianApi {
     return result;
   });
 
-  Future<DataSharingPermission?> permission(String relationshipId) =>
+  Future<DataSharingPermission?> permission(String relationshipId) async =>
+      (await permissions(
+        relationshipId,
+      )).where((row) => row.category == 'nutrition_plans').firstOrNull;
+
+  Future<List<DataSharingPermission>> permissions(String relationshipId) =>
       _safe(() async {
         if (!_uuid(relationshipId)) {
           throw const DietitianApiException.invalidResponse();
         }
-        final path = Uri(
-          path: '/api/v1/data-sharing-permissions',
-          queryParameters: {
-            'relationshipId': relationshipId,
-            'page': '1',
-            'pageSize': '$pageSize',
-          },
-        );
-        final response = await session.authorizedRequest(
-          path: path.toString(),
-          profileContext: 'client',
-        );
-        _success(response, 200, connectionAction: true);
-        final result = _page(response.body, _permission, (row) => row.id);
-        if (result.totalCount != result.items.length ||
-            result.items.map((row) => row.category).toSet().length !=
-                result.items.length ||
-            result.items.any((row) => row.relationshipId != relationshipId)) {
-          throw const DietitianApiException.invalidResponse();
+        final owner = session.user?.id;
+        final rows = <DataSharingPermission>[];
+        int? expected;
+        for (var page = 1; ; page++) {
+          final path = Uri(
+            path: '/api/v1/data-sharing-permissions',
+            queryParameters: {
+              'relationshipId': relationshipId,
+              'page': '$page',
+              'pageSize': '$pageSize',
+            },
+          );
+          final response = await session.authorizedRequest(
+            path: path.toString(),
+            profileContext: 'client',
+          );
+          _permissionOwner(owner);
+          _success(response, 200, connectionAction: true);
+          final result = _page(response.body, _permission, (row) => row.id);
+          expected ??= result.totalCount;
+          rows.addAll(result.items);
+          if (result.totalCount != expected ||
+              expected > sharingCategories.length ||
+              (result.items.isEmpty && rows.length < expected) ||
+              rows.length > expected ||
+              rows.map((row) => row.category).toSet().length != rows.length ||
+              rows.map((row) => row.id).toSet().length != rows.length ||
+              rows.any((row) => row.relationshipId != relationshipId)) {
+            throw const DietitianApiException.invalidResponse();
+          }
+          if (rows.length == expected) {
+            return List<DataSharingPermission>.unmodifiable(rows);
+          }
         }
-        return result.items
-            .where((row) => row.category == 'nutrition_plans')
-            .firstOrNull;
       });
+
+  void _permissionOwner(String? owner) {
+    if (owner == null ||
+        !session.isAuthenticated ||
+        session.user?.id != owner) {
+      throw const DietitianApiException(
+        'Oturum değişti. Paylaşım durumunu yeniden yükleyin.',
+        statusCode: 401,
+      );
+    }
+  }
 
   Future<DataSharingPermission> setPermission({
     required String relationshipId,
     required bool isGranted,
     DataSharingPermission? current,
+    String category = 'nutrition_plans',
   }) => _safe(() async {
     if (!_uuid(relationshipId) ||
+        !sharingCategories.contains(category) ||
         (current != null &&
             (!_uuid(current.id) ||
                 current.relationshipId != relationshipId ||
-                current.category != 'nutrition_plans'))) {
+                current.category != category))) {
       throw const DietitianApiException.invalidResponse();
     }
+    final owner = session.user?.id;
     final response = await session.authorizedRequest(
       path: current == null
           ? '/api/v1/data-sharing-permissions'
@@ -324,15 +355,16 @@ class DietitianApi {
       payload: {
         if (current == null) ...{
           'relationshipId': relationshipId,
-          'category': 'nutrition_plans',
+          'category': category,
         },
         'isGranted': isGranted,
       },
     );
+    _permissionOwner(owner);
     _success(response, current == null ? 201 : 200, connectionAction: true);
     final result = _permission(response.body);
     if (result.relationshipId != relationshipId ||
-        result.category != 'nutrition_plans' ||
+        result.category != category ||
         result.isGranted != isGranted ||
         (current != null && current.id != result.id)) {
       throw const DietitianApiException.invalidResponse();
@@ -357,7 +389,7 @@ class DietitianApi {
     final created = time(row['createdAt']), updated = time(row['updatedAt']);
     if (!_uuid(row['id']) ||
         !_uuid(row['relationshipId']) ||
-        !const ['nutrition_plans', 'meal_logs'].contains(row['category']) ||
+        !sharingCategories.contains(row['category']) ||
         row['isGranted'] is! bool ||
         row['consentRecordId'] != null ||
         created == null ||
