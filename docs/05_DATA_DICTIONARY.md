@@ -540,7 +540,7 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 | `NutritionPlanItem` | `id: uuid`, `nutritionPlanId: uuid`, `dayOfWeek: integer?`, `mealType: MealType`, `description: string`, `recommendedQuantity: string?`, `sortOrder: integer`, `recipeId: uuid?`, `alternativeGroupId: uuid?` | Her satır tavsiyedir. ISO gün 1–7/null her gün, miktar serbest öneri metni; recipeId ilk dilimde yalnız null. Aynı gün/öğün bağlamında en az iki alternatif |
 | `NutritionPlanVersion` | `id: uuid`, `nutritionPlanId: uuid`, `versionNumber: integer`, `recordedByUserId: uuid`, `createdAt: instant`, `snapshot: object` | Değişmeyen JSONB içerik; actor kimliği yalnız sunucudadır. Program/number unique; sürüm metadata ve snapshot DTO'ları `06`da |
 | `BodyMeasurement` | `id: uuid`, `clientId: uuid`, `measuredAt: instant`, `weightKg: decimal?`, `waistCm: decimal?`, `hipCm: decimal?`, `chestCm: decimal?`, `bodyFatPercent: decimal?`, `note: string?`, `source: RecordSource` | Kilo kg, bel/kalça/göğüs cm, yağ oranı yüzde. En az bir ölçüm bulunur; istenmeyen ölçüm zorunlu yapılmaz; kaynak ve geçmiş korunur. 18.11.2026 kullanıcı göreviyle hipCm/chestCm/note eklenmiştir; not en çok 2000 Unicode karakter, kg/cm > 0 ve yağ oranı 0–100. PostgreSQL numeric hassasiyeti kısıtlanmaz; otomatik yuvarlama yapılmaz. Dahili deleted_at mantıksal silmedir, normal okumalara dahil değildir |
-| `ActivityLog` | `id: uuid`, `clientId: uuid`, `activityType: string`, `startedAt: instant`, `durationMinutes: decimal?`, `distanceKm: decimal?`, `caloriesKcal: decimal?`, `source: RecordSource`, `externalRecordId: string?`, `wearableConnectionId: uuid?` | Süre dakika, mesafe km, enerji kcal. `wearableConnectionId` → WearableConnection yeni opsiyonel kaynak bağlantısıdır. Aktivite izleme, antrenman programı değildir |
+| `ActivityLog` | `id/clientId: uuid`, `activityType: string`, `startedAt: instant`, `endedAt: instant?`, `durationMinutes/rawDurationMinutes/distanceKm/caloriesKcal: decimal?`, `source: RecordSource`, `externalRecordId: string?`, `wearableConnectionId/wearableRecordId: uuid?`, `versionNumber: integer`, `createdAt/updatedAt: instant`, dahili `isDeleted: boolean` | U3 kaynak manual/wearable; süre dakika, mesafe km, yalnız aktif enerji kcal. Cihaz raw süre korunur; source alanları immutable. Aktivite izleme, antrenman programı değildir |
 
 ### Kişisel program, hedefler ve sürüm ilişkileri
 
@@ -576,7 +576,10 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 | `LabReport` | `id: uuid`, `clientId: uuid`, `collectedAt: instant`, `labName: string?`, `note: string?`, `createdAt: instant` | Kullanıcının tek analiz/rapor oturumu; manuel/OCR giriş aynı kavramı kullanır |
 | `LabResult` | `id: uuid`, `labReportId: uuid`, `testCode: string?`, `testName: string`, `value: decimal`, `unit: string`, `referenceLow: decimal?`, `referenceHigh: decimal?`, `flag: LabFlag` | Rapordaki birim/aralık esastır; sunucu hesaplar, `unknown` olabilir |
 | `LabInsight` | `id: uuid`, `labReportId: uuid`, `createdAt: instant`, `summary: string`, `method: string`, `modelVersion: string?`, `limitations: AÇIK` | Sınırlılık açıklaması zorunludur; metin/liste biçimi ve method değerleri **AÇIK**tır. Kaynak/açıklanabilirlik korunur; klinik tanı içermez |
-| `WearableConnection` | `id: uuid`, `clientId: uuid`, `provider: string`, `status: string`, `lastSyncedAt: instant?` | Provider/durum değerleri **AÇIK**tır; token/secrets API yanıtına çıkmaz, ayrı platform izni gerekir |
+| `WearableConnection` | `id: uuid`, `clientId: uuid`, `provider: string`, `status: string`, `versionNumber: integer`, `lastSyncedAt: instant?`, `lastAttemptAt: instant?`, `lastSyncStatus: string`, `lastErrorCode: string?` | U3: provider `health_connect/health_kit`, status `active/revoked`, sync `never/succeeded/failed`; danışan+provider unique, yeniden POST aynı ID ve mevcut durumu korur. OS izni değildir |
+| `WearableRecord` | `id`, `clientId`, `wearableConnectionId`: uuid; `metric`, `sourceId`, `externalRecordId`, `rawType`, `rawUnit`: string; `sourceName`, `recordingMethod`, `exerciseType`: string?; `versionNumber`: integer; `isDeleted`: boolean; `updatedAt`: instant | Native kayıt başlığı/tombstone. `(connectionId,sourceId,rawType,externalRecordId)` unique; provider bağlantıdan, sahip oturumdan. Bir native nabız kaydı çok örnek taşıyabilir |
+| `HealthMetricSample` | `id`, `clientId`, `wearableRecordId`: uuid; `sampleKey`: string (dahili); `startedAt`, `endedAt`: instant; `rawValue`, `value`: decimal; `unit`: string; `isDeleted`: boolean | Metric/rawUnit kaynak başlığında; yalnız steps/count, distance/km, active_energy/kcal, heart_rate/bpm. Adım integer değerli decimal; ham metre /1000 km. `(recordId,sampleKey)` unique; HR key UTC mikro-saniye başlangıcı, diğerleri single |
+| `WearableSyncBatch` | `id`, `clientId`, `wearableConnectionId`, `batchId`: uuid; `requestHash`: SHA256 hex; `responseJson`: jsonb; `committedAt`: instant | `(connectionId,batchId)` unique, normalize istek+ilk yanıt kalıcı; aynı anahtarla farklı içerik 409, receipt ve sağlık yazımı aynı transaction |
 | `ConsentRecord` | `id: uuid`, `userId: uuid`, `consentType: string`, `granted: boolean`, `policyVersion: string`, `recordedAt: instant`, `withdrawnAt: instant?` | `userId` → User; izin/rıza geçmişi ve geri çekilme. Mevcut `granted` adı korunur; onay türü kodları henüz belirlenmemiştir |
 | `AuditEvent` | `id: uuid`, `actorUserId: uuid`, `action: string`, `resourceType: string`, `resourceId: uuid`, `createdAt: instant`, `metadata: object?` | `actorUserId` → User; sağlık değeri/password/token loglanmaz. Kaynak türü/id çifti ilgili kaydı işaret eder; metadata ayrıntıları **AÇIK**tır |
 
@@ -591,18 +594,22 @@ mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
 
 ### Aktivite, platform kaynağı ve tekilleştirme
 
+**U3 / 19.11.2026 uygulama onayı:** Aşağıdaki kurallar önceki açık kaynak/birim
+kararlarını kapatır. Ayrıntılı DTO ve sentetik örnekler [M3 teslim notunda](20_HEALTH_DATA_SYNC_CONTRACT.md).
+
 - `ActivityLog.wearableConnectionId` doluysa bağlantının `clientId`si aktivite sahibine eşit olmalıdır. `source = wearable` olan içe aktarımda bu bağlantı zorunludur; sağlayıcı buradan belirlenir. Manuel girişte platform bağlantısı ve dış kimlik zorunlu değildir; `source` gerçeği yansıtır.
-- İçe aktarılan kaydın kararlı dış kimliği varsa `externalRecordId` korunur; aynı danışan + sağlayıcı + dış aktivite kimliği tekrar aktarımda ikinci kayıt oluşturmaz. Bağlantının yeniden kurulması bu kuralı bozmaz. Sağlayıcı kararlı kimlik vermiyorsa kaynak anahtarı üretme politikası **AÇIK**tır; sahte UUID ile tekilleştirme tamamlandı sayılmaz.
-- Manuel/cihaz örtüşmesini belirleme yöntemi **AÇIK**tır; yalnız dış ID kontrolü manuel kaydın aynı aktivite olduğunu kanıtlamaz. Örtüşen veriler günlük toplamlarda çift sayılmaz; otomatik birleştirme/silme eşiği uydurulmaz. İzin geri alındığında yeni senkronizasyon durur; silme/saklama ayrı politikadır.
-- Health Connect/HealthKit kapsamındaki mesafe km, süre dakika, enerji kcal olarak açık birimle normalleştirilir; orijinal kaynak korunur. `ActivityLog.caloriesKcal` alanının aktif/toplam enerji anlamı mevcut sözleşmede kesinleşmemiştir; aktif kaloriyle sessizce eşitlenmez.
+- Kararlı native externalRecordId, sourceId ve rawType zorunlu; eksik kimlik reddedilir. Kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId; bağlantı danışan+provider için unique ve yeniden kurulumda aynı ID'dir. Başlık sürümü 0 beklentisi yeni kayıt, mevcut değişiklik güncel sürüm ister. Exact desired-state retry sürüm artırmaz; eski değişiklik 409. Açık silme tombstone yapar, eksik/boş batch veri silmez. Nabız upsert delta'dır; gönderilmeyen nokta korunur, silme açık UTC nokta listesiyle yapılır.
+- `conservative_overlap_v1` her metric'te manuel → health_connect → health_kit → sourceId ordinal; aynı kaynakta uzun aralık → erken başlangıç → kararlı anahtar önceliği uygular. Her yüksek öncelikli aralık doğrudan örtüştüğü düşük aralığı bütünüyle dışlar; ham satırlar silinmez. Adım/mesafe/enerji gün dışına taşıyorsa tahmini oranlama yapılmaz, unallocatedCount ile işaretlenir; egzersiz süresi gün kesişiminden hesaplanır. Süresiz manuel ölçüm toplam dışıdır. Bilinmeyen toplam null, gerçek sıfır 0; HR aritmetik örnek ortalaması, klinik değerlendirme değildir.
+- UTC instants PostgreSQL mikro-saniye hassasiyetindedir; summary ardışık açık offsetli yerel gece yarıları (22–26 saat) alır. Aralık en çok 7 gün, end>start (HR noktada eşit), bitiş en çok sunucu+5 dk. RawValue/rawUnit korunur: COUNT→count, METER→km, KILOCALORIE→kcal, BEATS_PER_MINUTE→bpm; WORKOUT MINUTE aralıkla 1 ms içinde uyuşur. sourceName/recordingMethod/exerciseType ham metadata korunur; tür/birim/kimlik uydurulmaz.
+- `ActivityLog` ek alanları: `endedAt: instant?`, `rawDurationMinutes: decimal?` (cihaz ham süresi), `wearableRecordId: uuid?`, `versionNumber: integer`, `createdAt/updatedAt: instant`, dahili `isDeleted`. caloriesKcal **aktif enerji**dir. Manuel kaynakta platform/dış ID ve rawDurationMinutes null; süre >0 ve en çok 10080 dakika, km/kcal ≥0, en az bir ölçüm. Cihaz exercise tek ActivityLog'dur; ayrı enerji/mesafe kayıtları buraya kopyalanıp tekrar toplanmaz. Bağlantı-kaynak-aktivite sahipliği composite FK ile korunur.
 
 | Ek sağlık verisi | Gerekli mantıksal ilişki / tip | Açık ayrıntı |
 |---|---|---|
-| Adım sayısı | ClientProfile'a ait 1:N kaynak kayıt; `integer`, birim adım; kayıt zaman/aralığı ve varsa WearableConnection bağlantısı | Kanonik model/alan adı, zaman aralığı ve gün bazlı agregasyon |
-| Nabız | ClientProfile'a ait 1:N kaynak ölçüm; `decimal`, birim atım/dakika; ölçüm zamanı ve varsa WearableConnection bağlantısı | Kanonik model/alan adı; tek ölçüm/seri ve aktiviteyle opsiyonel eşleme |
-| Aktif kalori | ClientProfile'a ait kaynak kayıt; `decimal`, birim kcal; aktivite veya zaman aralığı bağlamı | Alan/model adı; aktivite kaydı ile günlük toplamın ayrımı |
+| Adım sayısı | WearableRecord → HealthMetricSample; integer değer, count | U3 ile kapandı; doğrudan tüm kaynakları toplamaz |
+| Nabız | WearableRecord → çok HealthMetricSample; decimal bpm, UTC nokta | U3 ile kapandı; kısmi okuma diğer noktaları silmez |
+| Aktif kalori | WearableRecord → HealthMetricSample; decimal kcal | U3 ile kapandı; exercise enerjisine kopyalanmaz |
 
-Bu verilerin tamamı zorla `ActivityLog` veya `BodyMeasurement` içine yerleştirilmez. Manuel giriş imkânı korunur; eksik ölçüm sıfır olmaz. Bağımsız kayıt mı mevcut modele bağlantı mı gerekeceği onaylanmadan genel amaçlı karmaşık bir ölçüm tablosu tasarlanmaz.
+Bu verilerin tamamı ActivityLog/BodyMeasurement içine yerleştirilmez. U3 yalnız kontrollü dört metric örneğini HealthMetricSample'da, egzersizi ActivityLog'da tutar. Manuel aktivite korunur; manuel adım/nabız endpointi eklenmez. U3 yeni diyetisyen paylaşım kategorisi açmaz; OS izni/aktarım tercihi paylaşım izni yerine geçmez, geçmişi otomatik silmez.
 
 ## İlişki ve bütünlük kuralları
 
@@ -630,7 +637,7 @@ Günlük kalori, makro ve su toplamları `MealLogItem`/`WaterLog` kayıtlarında
 - Plan oluşturma/düzenleme/aktif etme işlemleri yalnız diyetisyen için anlatılır; kişisel NutritionPlan sahipliği, nullable `dietitianId` ve danışanın kendi programını düzenlemesi API'ye yansıtılmalıdır. Mevcut endpointler bu dosyada değiştirilmez veya yeni alternatif rota üretilmez.
 - ClientTask/ClientTaskVersion U1 ve DataSharingPermission onaylı kategorileri tarihli bölümlerle `06`ya eşittir. Recipe, wearableConnectionId ve kalan tahlil açık onayı ayrıntıları ayrıca tamamlanır.
 - Mevcut enumlar korunur; görev durumları ve PATCH/null kuralları U1 ile tanımlıdır. Onaylanmamış paylaşım kategorileri/provider değerleri istemcilerde serbest string olarak uydurulamaz.
-- Aktivite sağlayıcı kimliği, tekilleştirme, adım/nabız ve aktif enerji ayrımı mevcut API örneklerinde tanımlı değildir. Lab OCR taslağı/kullanıcı onayı, güvenli birim dönüşümü ve LabInsight yanıt ayrıntıları da eksiktir.
+- Aktivite/adım/nabız/aktif enerji kaynak, birim, tekrar aktarım ve özet U3 ile kapandı (05/06/20). Lab OCR taslağı/kullanıcı onayı, laboratuvar birim dönüşümü ve LabInsight ayrıntıları açıktır.
 - Fotoğraf analizi önerilerinde makrolar eksiktir; `limitations` biçim/konumu belgeler arasında netleştirilmelidir. E-posta doğrulama, şifre sıfırlama ve Admin MFA'nın HTTP ayrıntıları bu veri sözlüğüyle belirlenmez.
 
 ## Onay bekleyen şema kararları
@@ -641,7 +648,7 @@ Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve ö�
 - Tarif bileşenleri, toplam/porsiyon temeli, görünürlük ve değişiklik geçmişi; kişisel makro hedef alanları, programsız hedeflerin yeri ve öneri hesaplama yöntemi.
 - Görev alan/durum/son tarih/tercih U1 ile kapandı; yorum/cevap moderasyonu ve bildirim teslim modeli açık kalır.
 - Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
-- Nabız/adım/aktif enerji veri yapıları, platform/cihaz desteği ve manuel/cihaz örtüşme politikası; günlük zaman dilimi ve yeniden senkronizasyon anahtarları.
+- U3 dışındaki veri türleri ve fiziksel Android/iOS cihaz uyumluluk/yayın doğrulaması; U3 şema, örtüşme ve gün/tekrar anahtarları açıktan çıkarılmıştır.
 - Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.
 - Mobil güvenli saklama/istemci refresh entegrasyonu ve mobil MFA, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Backend refresh hash/iptal modeli 31.10.2026 bölümündedir; gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
 

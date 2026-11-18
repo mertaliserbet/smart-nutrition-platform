@@ -23,6 +23,8 @@ internal static class ApiErrors
             (code, message) = (codeOverride, "An active nutrition plan already exists.");
         if (statusCode == 409 && codeOverride == "active_relationship_conflict")
             (code, message) = (codeOverride, "The client already has an active dietitian relationship.");
+        if (codeOverride is not null && SmartNutrition.Api.Features.HealthData.HealthDataErrors.Messages.TryGetValue(codeOverride, out var healthMessage))
+            (code, message) = (codeOverride, healthMessage);
         return new { error = new { code, message }, requestId = context.TraceIdentifier };
     }
 

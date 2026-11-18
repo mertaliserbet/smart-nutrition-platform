@@ -573,6 +573,360 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.ActivityLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActivityType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("activity_type");
+
+                    b.Property<decimal?>("CaloriesKcal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("calories_kcal");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<decimal?>("DistanceKm")
+                        .HasColumnType("numeric")
+                        .HasColumnName("distance_km");
+
+                    b.Property<decimal?>("DurationMinutes")
+                        .HasColumnType("numeric")
+                        .HasColumnName("duration_minutes");
+
+                    b.Property<decimal?>("RawDurationMinutes")
+                        .HasColumnType("numeric")
+                        .HasColumnName("raw_duration_minutes");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<string>("ExternalRecordId")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_record_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("source");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.Property<Guid?>("WearableConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wearable_connection_id");
+
+                    b.Property<Guid?>("WearableRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wearable_record_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WearableRecordId")
+                        .IsUnique();
+
+                    b.HasIndex("WearableConnectionId", "ClientId");
+
+                    b.HasIndex("WearableRecordId", "WearableConnectionId", "ClientId");
+
+                    b.HasIndex("ClientId", "StartedAt", "Id");
+
+                    b.ToTable("activity_logs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_activity_interval", "(duration_minutes IS NULL AND ended_at IS NULL) OR (duration_minutes IS NOT NULL AND ended_at > started_at AND ended_at - started_at <= interval '7 days')");
+
+                            t.HasCheckConstraint("ck_activity_source", "(source = 'manual' AND wearable_connection_id IS NULL AND wearable_record_id IS NULL AND external_record_id IS NULL AND raw_duration_minutes IS NULL) OR (source = 'wearable' AND wearable_connection_id IS NOT NULL AND wearable_record_id IS NOT NULL AND external_record_id IS NOT NULL AND raw_duration_minutes IS NOT NULL AND raw_duration_minutes > 0 AND raw_duration_minutes <= 10081)");
+
+                            t.HasCheckConstraint("ck_activity_values", "version_number > 0 AND length(btrim(activity_type)) > 0 AND (duration_minutes IS NOT NULL OR distance_km IS NOT NULL OR calories_kcal IS NOT NULL) AND (duration_minutes IS NULL OR (duration_minutes > 0 AND duration_minutes <= 10080)) AND (distance_km IS NULL OR (distance_km >= 0 AND distance_km <= 1000000000000)) AND (calories_kcal IS NULL OR (calories_kcal >= 0 AND calories_kcal <= 1000000000000))");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.HealthMetricSample", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("EndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ended_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<decimal>("RawValue")
+                        .HasColumnType("numeric")
+                        .HasColumnName("raw_value");
+
+                    b.Property<string>("SampleKey")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("sample_key");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("started_at");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("Value")
+                        .HasColumnType("numeric")
+                        .HasColumnName("value");
+
+                    b.Property<Guid>("WearableRecordId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wearable_record_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WearableRecordId", "ClientId");
+
+                    b.HasIndex("WearableRecordId", "SampleKey")
+                        .IsUnique();
+
+                    b.HasIndex("ClientId", "StartedAt", "Id");
+
+                    b.ToTable("health_metric_samples", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_health_sample_interval", "ended_at >= started_at AND ended_at - started_at <= interval '7 days'");
+
+                            t.HasCheckConstraint("ck_health_sample_value", "raw_value >= 0 AND raw_value <= 1000000000000 AND value >= 0 AND value <= 1000000000000 AND unit IN ('count','km','kcal','bpm') AND (unit <> 'count' OR value = trunc(value)) AND (unit <> 'bpm' OR value > 0)");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableConnection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_attempt_at");
+
+                    b.Property<string>("LastErrorCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("last_error_code");
+
+                    b.Property<string>("LastSyncStatus")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("last_sync_status");
+
+                    b.Property<DateTimeOffset?>("LastSyncedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_synced_at");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId", "Provider")
+                        .IsUnique();
+
+                    b.ToTable("wearable_connections", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_wearable_provider", "provider IN ('health_connect','health_kit')");
+
+                            t.HasCheckConstraint("ck_wearable_status", "status IN ('active','revoked') AND version_number > 0");
+
+                            t.HasCheckConstraint("ck_wearable_sync_status", "last_sync_status IN ('never','succeeded','failed') AND (last_sync_status <> 'succeeded' OR last_synced_at IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<string>("ExerciseType")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("exercise_type");
+
+                    b.Property<string>("ExternalRecordId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("external_record_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Metric")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("metric");
+
+                    b.Property<string>("RawType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("raw_type");
+
+                    b.Property<string>("RawUnit")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("raw_unit");
+
+                    b.Property<string>("RecordingMethod")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("recording_method");
+
+                    b.Property<string>("SourceId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_id");
+
+                    b.Property<string>("SourceName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("source_name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.Property<Guid>("WearableConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wearable_connection_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("WearableConnectionId", "ClientId");
+
+                    b.HasIndex("WearableConnectionId", "SourceId", "RawType", "ExternalRecordId")
+                        .IsUnique();
+
+                    b.ToTable("wearable_records", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_wearable_record_identity", "length(btrim(source_id)) > 0 AND length(btrim(external_record_id)) > 0 AND version_number > 0");
+
+                            t.HasCheckConstraint("ck_wearable_record_metric", "metric IN ('steps','distance','exercise','active_energy','heart_rate')");
+
+                            t.HasCheckConstraint("ck_wearable_record_unit", "(metric = 'steps' AND raw_unit = 'COUNT' AND raw_type = 'STEPS') OR (metric = 'distance' AND raw_unit = 'METER' AND raw_type IN ('DISTANCE_DELTA','DISTANCE_WALKING_RUNNING','DISTANCE_CYCLING','DISTANCE_SWIMMING')) OR (metric = 'exercise' AND raw_unit = 'MINUTE' AND raw_type = 'WORKOUT') OR (metric = 'active_energy' AND raw_unit = 'KILOCALORIE' AND raw_type = 'ACTIVE_ENERGY_BURNED') OR (metric = 'heart_rate' AND raw_unit = 'BEATS_PER_MINUTE' AND raw_type = 'HEART_RATE')");
+                        });
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableSyncBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("batch_id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTimeOffset>("CommittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("committed_at");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("request_hash");
+
+                    b.Property<string>("ResponseJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("response_json");
+
+                    b.Property<Guid>("WearableConnectionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("wearable_connection_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("WearableConnectionId", "BatchId")
+                        .IsUnique();
+
+                    b.HasIndex("WearableConnectionId", "ClientId");
+
+                    b.ToTable("wearable_sync_batches", (string)null);
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1161,6 +1515,84 @@ namespace SmartNutrition.Api.Data.Migrations
                         .HasConstraintName("fk_dietitian_profiles_users_user_id");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.ActivityLog", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartNutrition.Api.Features.HealthData.WearableConnection", null)
+                        .WithMany()
+                        .HasForeignKey("WearableConnectionId", "ClientId")
+                        .HasPrincipalKey("Id", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SmartNutrition.Api.Features.HealthData.WearableRecord", null)
+                        .WithMany()
+                        .HasForeignKey("WearableRecordId", "WearableConnectionId", "ClientId")
+                        .HasPrincipalKey("Id", "WearableConnectionId", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.HealthMetricSample", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartNutrition.Api.Features.HealthData.WearableRecord", null)
+                        .WithMany()
+                        .HasForeignKey("WearableRecordId", "ClientId")
+                        .HasPrincipalKey("Id", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableConnection", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableRecord", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartNutrition.Api.Features.HealthData.WearableConnection", null)
+                        .WithMany()
+                        .HasForeignKey("WearableConnectionId", "ClientId")
+                        .HasPrincipalKey("Id", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.HealthData.WearableSyncBatch", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartNutrition.Api.Features.HealthData.WearableConnection", null)
+                        .WithMany()
+                        .HasForeignKey("WearableConnectionId", "ClientId")
+                        .HasPrincipalKey("Id", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.MealLogs.MealLog", b =>

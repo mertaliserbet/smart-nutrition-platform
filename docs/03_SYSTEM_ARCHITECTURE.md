@@ -40,7 +40,7 @@ Wearable OS APIs → Mobile → Main Backend (izinli, kaynak etiketli)
 8. `FoodAnalysis` mevcut `pending/processing/completed/failed` durumlarıyla asenkron çalışır; sonuç güncellemesi tekrar güvenli olmalıdır. Bu enum OCR veya LabInsight için otomatik yeniden kullanılmaz; onların iş/durum şeması açıktır.
 9. Aktif diyetisyen ilişkisi tek başına tüm kaydı açmaz; doğrulanmış uzman + aktif ilişki + ilgili kategori izni, tahlilde ayrıca açık onay kontrol edilir. İzin geri çekilince cache, analiz veya rapor bağlantısı eski erişimi sürdüremez.
 10. Tek aktif ilişki/program yalnız UI kontrolüyle sağlanmaz; backend ve PostgreSQL eşzamanlı işlemlerde de bütünlüğü korur. Kişisel/atanmış program aynı NutritionPlan'dır; kişisel program için diyetisyen gerekmez. Sürüm geçmişi fiziksel yapısı onaylanmadan yerinde güncelleme ile geçiştirilmez.
-11. Cihaz kaynağı/dış kimlik, manuel giriş ve tekrar/örtüşme kuralları `05/06`ya uyar. Adım/nabız/aktif kalori için yeni genel ölçüm modeli veya provider enumu uydurulmaz; ortak onay beklenir.
+11. U3 kullanıcı onayıyla cihaz kaynağı/dış kimlik, manuel giriş, birim, tekrar/örtüşme kuralları `05/06/20`de kapandı. HealthData feature'ı WearableConnection/WearableRecord/HealthMetricSample ve kanonik ActivityLog'u kullanır. Yalnız kendi client JWT'si; User→ClientProfile kilidi + sürüm + unique kaynak/batch anahtarları, atomik receipt; okumada RepeatableRead. OS aktarım tercihi paylaşım izninden bağımsızdır. Yeni türler bu kontrollü metric kapsamından çıkarılmaz.
 
 ## Repo organizasyonu önerisi
 ```text

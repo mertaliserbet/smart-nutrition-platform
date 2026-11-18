@@ -1,5 +1,21 @@
 # Smart Nutrition — Ortak Backend
 
+## 19.11.2026 — U3 sağlık aktarımı / M3 entegrasyonu
+
+`Features/HealthData`: kanonik ActivityLog/WearableConnection; native kaynak
+başlığı, skaler/nabız örnekleri ve atomik batch receipt. Yalnız kendi client JWT'si,
+uzman/Admin/cookie erişimi yok. Endpoint/DTO/örnek, birim, gün/UTC, kaynak kimliği,
+tekrar/güncelleme/silme, izin ve hata kodları [M3 teslim notunda](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md).
+
+Migration `20261118222117_AddHealthDataSync` U1 sonrasındadır; beş yeni tablo,
+unique kaynak/batch indeksleri, composite sahiplik FK'leri ve değer/aralık check'leri.
+Mevcut veri değiştirilmez, veri varken Down reddedilir. Uygulama DB'sine uygulanmadı.
+Test bağlantısı yalnız `SMART_NUTRITION_TEST_CONNECTION_STRING` ile ayrı sentetik
+PostgreSQL ortamına verilmelidir. Eski AuthPostgres testleri temel şema bekler;
+yalnız test DB'sini migration ile hazırlayıp tüm solution testleri çalıştırılır.
+Fiziksel Health Connect/HealthKit ve M3 mobil HTTP senkronizasyonu bu backend
+doğrulamasından çıkarılmaz; mobil dosya değişmedi.
+
 ## 18–19.11.2026 — U1 görev sistemi / M2 entegrasyonu
 
 Kullanıcının U1 uygulama onayıyla ClientTask API/PostgreSQL/geçmiş hazırdır.

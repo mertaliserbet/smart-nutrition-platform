@@ -1,5 +1,34 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 19.11.2026 — U3 kendi sağlık verisi ve aktarım iptali
+
+Kullanıcı U3 birim/tarih/kaynak/izin kararlarını uygulama yetkisiyle onayladı.
+HealthData yolları yalnız doğrulanmış client JWT ve kendi ClientProfile bağlamını
+kullanır. Başka danışan 404, diyetisyen/Admin veya web cookie erişimi kapalıdır.
+userId/clientId kabul edilmez; kaynak/bağlantı sahipliği composite FK ile korunur.
+Hiçbir yeni DataSharingPermission kategorisi veya diyetisyen sağlık yolu açılmaz.
+
+OS iznini mobil okumadan önce/sonra denetler; reddedilmiş okuma/bekleyen aktarım
+gönderilmez. Sunucu OS iznini doğrulayamaz; active/revoked yalnız uygulamaya
+aktarım tercihidir. İptal User→ClientProfile kilit sırasıyla sync ile serileşir;
+iptalden sonra yeni sync 403 sync_disabled, eski geçmiş okunabilir. Yeniden POST
+iptali kaldırmaz; güncel sürümlü açık active PATCH gerekir. iOS belirsiz/boş
+okuma izin kanıtı veya silme değildir. Kaynak beyanı cihaz attestation'ı değildir.
+
+100 kaynak/1000 örnek/512 KiB sınırı, stable kaynak ID'si, ham birim/metadatanın
+korunması, sürüm kontrolü ve kalıcı batch hash/receipt tekrar ve yarışları korur.
+Tümü tek transaction; kısmi sağlık yazımı yok. Boş/eksik batch silmez; açık kayıt/
+nabız nokta silmesi tombstone'dur. Başarısız istek lastSyncedAt ilerletmez;
+altyapı/JSON/auth hatasında attempt metadata'sı yazılamayabilir. Başarı HTTP/receipt
+ile doğrulanır. Sağlık değerleri/sırları hata/loga taşınmaz, yanıtlar no-store.
+
+Deterministik conservative_overlap_v1 ham veriyi birleştirmez/silmez; örtüşme ve
+dağıtılamayan aralıkları işaretler, bilinmeyeni sıfıra çevirmez. Sonuç tıbbi tanı,
+tedavi veya otomatik beslenme hedefi girdisi değildir. Genel saklama/silme, hesap
+silme ve yedek/retention/yayın kapıları geçerlidir; tombstone süresiz saklama kararı
+değildir. API testleri yalnız sentetik, ayrı PostgreSQL ortamındadır; fiziksel
+Android/iOS Health Connect/HealthKit doğrulaması değildir. M3 sözleşmesi [20](20_HEALTH_DATA_SYNC_CONTRACT.md).
+
 ## 18–19.11.2026 — U1 görev erişimi, geçmiş ve izin iptali
 
 Kullanıcının U1 uygulama onayıyla client_tasks bağımsız paylaşım kategorisidir;
