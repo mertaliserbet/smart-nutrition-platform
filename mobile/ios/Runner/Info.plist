@@ -26,6 +26,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Adım, mesafe, egzersiz, aktif kalori ve varsa nabız kayıtlarınızı yalnız izninizle cihazınızda göstermek için okuma erişimi kullanılır. Veriler sunucuya gönderilmez.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

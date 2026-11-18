@@ -34,6 +34,12 @@ class ProfilePage extends StatelessWidget {
                 Navigator.of(context).pushNamed('/personal-nutrition-targets'),
             child: const Text('Günlük hedeflerim'),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed('/device-health'),
+            icon: const Icon(Icons.monitor_heart_outlined),
+            label: const Text('Cihaz sağlık verileri'),
+          ),
         ],
       ),
     );

@@ -19,7 +19,7 @@ android {
         applicationId = "com.example.smart_nutrition_mobile"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 26 // Health Connect SDK; availability is checked on Android 8.
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -42,4 +42,11 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Same SDK already used by health 13.3.2. Direct access is needed to surface
+    // read errors and read ExerciseSession independently of unrelated permissions.
+    implementation("androidx.health.connect:connect-client:1.2.0-alpha02")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 }
