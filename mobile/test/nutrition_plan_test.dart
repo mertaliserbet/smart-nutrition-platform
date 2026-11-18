@@ -314,7 +314,18 @@ void main() {
     (tester) async {
       await tester.pumpWidget(SmartNutritionApp(session: session));
       await tester.pumpAndSettle();
-      expect(session.requests, isEmpty);
+      expect(
+        session.requests.where(
+          (path) => path.startsWith('/api/v1/water-logs/daily-total'),
+        ),
+        hasLength(1),
+      );
+      expect(
+        session.requests.where(
+          (path) => path == '/api/v1/nutrition-plans/active',
+        ),
+        hasLength(1),
+      );
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
@@ -322,7 +333,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(session.requests.length, 1);
+      expect(
+        session.requests.where(
+          (path) => path == '/api/v1/nutrition-plans/active',
+        ),
+        hasLength(2),
+      );
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
@@ -330,7 +346,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(session.requests.length, 2);
+      expect(
+        session.requests.where(
+          (path) => path == '/api/v1/nutrition-plans/active',
+        ),
+        hasLength(3),
+      );
       await tester.tap(find.text('Profil'));
       await tester.pumpAndSettle();
       await tester.tap(
@@ -340,7 +361,12 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(session.requests.length, 3);
+      expect(
+        session.requests.where(
+          (path) => path == '/api/v1/nutrition-plans/active',
+        ),
+        hasLength(4),
+      );
       await tester.tap(find.byTooltip('Diyetisyen Bul'));
       await tester.pumpAndSettle();
       await tester.pageBack();
@@ -349,7 +375,7 @@ void main() {
         session.requests
             .where((path) => path == '/api/v1/nutrition-plans/active')
             .length,
-        4,
+        5,
       );
       await session.signOut();
       await tester.pumpAndSettle();

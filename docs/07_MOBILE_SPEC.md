@@ -1,5 +1,15 @@
 # 07 — Danışan mobil uygulaması
 
+**18.11.2026 kullanıcı kararı (güncel mobil giriş):** Mobil uygulamada normal
+danışan hesabı kullanılır. Giriş ekranında `WEB_BASE_URL` tabanındaki `/giris`
+adresi görünür ve dış tarayıcıda açılır; mobil parola/JWT/refresh aktarılmaz.
+Web yalnız diyetisyen profili olan hesaplar ve Admin MFA içindir; sunucudaki
+mevcut kural korunur. Mobil uzman paneli/başvuru kısayolları şimdilik kapalıdır;
+önceki ekranların kaynakları silinmez. Rolü dietitian olan mevcut mobil oturum
+danışan veya uzman paneli yerine web yönlendirmesi ve çıkış seçeneği görür.
+Temel rolü client olan çift profilli hesap mobilde danışan olarak devam eder.
+Aşağıdaki 17.11 mobil uzman ekranı notu bu kullanıcı kararıyla ertelenmiştir.
+
 **17.11.2026:** Danışan işlemleri mobil uygulamadadır. Danışan, Profil üzerinden
 mevcut hesabıyla diyetisyen başvurusu yapabilir. Onaylı diyetisyen mobilde
 aktif danışanlarını ve bağlantı taleplerini görebilir, talepleri yönetebilir

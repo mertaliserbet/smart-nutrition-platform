@@ -8,7 +8,7 @@ import 'auth_session.dart';
 import '../navigation/main_shell.dart';
 import '../dietitians/dietitian_finder_page.dart';
 import '../dietitians/client_connections_page.dart';
-import '../dietitians/dietitian_account_page.dart';
+import 'web_panel_link.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
@@ -26,7 +26,7 @@ class AuthGate extends StatelessWidget {
       '/profile' => const AuthGate(initialIndex: 3),
       '/dietitians' => const AuthGate(child: DietitianFinderPage()),
       '/client-connections' => const AuthGate(child: ClientConnectionsPage()),
-      '/dietitian-account' => const AuthGate(child: DietitianAccountPage()),
+      '/dietitian-account' => const AuthGate(child: WebPanelPage()),
       _ => const AuthGate(),
     };
 
@@ -41,8 +41,8 @@ class AuthGate extends StatelessWidget {
     final session = AuthSessionScope.maybeOf(context);
     final account = session?.user;
     if (account == null) return const LoginPage();
-    if (account.role == 'dietitian') {
-      return DietitianAccountPage(key: ValueKey(account.id), showSignOut: true);
+    if (account.role != 'client') {
+      return WebPanelPage(key: ValueKey(account.id), showSignOut: true);
     }
     return child ??
         MainShell(

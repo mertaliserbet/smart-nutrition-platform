@@ -6,7 +6,15 @@ abstract final class WebConfig {
   static Uri dietitianApplicationUri({
     String? baseUrl,
     bool isDebug = kDebugMode,
-  }) {
+  }) => _origin(
+    baseUrl: baseUrl,
+    isDebug: isDebug,
+  ).replace(path: '/uzman-basvurusu');
+
+  static Uri loginUri({String? baseUrl, bool isDebug = kDebugMode}) =>
+      _origin(baseUrl: baseUrl, isDebug: isDebug).replace(path: '/giris');
+
+  static Uri _origin({String? baseUrl, required bool isDebug}) {
     final configured = baseUrl ?? _configuredUrl;
     final value = configured.isEmpty && isDebug
         ? 'https://localhost:5173'
@@ -24,8 +32,7 @@ abstract final class WebConfig {
         uri.port > 65535) {
       throw const FormatException('Invalid website origin configuration.');
     }
-    // An origin is the only configurable input. Never attach session data,
-    // return URLs or route arguments to the public application page.
-    return uri.replace(path: '/uzman-basvurusu');
+    // Public web links never include mobile session data or return URLs.
+    return uri;
   }
 }

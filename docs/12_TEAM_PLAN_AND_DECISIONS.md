@@ -1,5 +1,17 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 18.11.2026 — Mobil danışan girişi ve web paneli bağlantısı
+
+Kullanıcı şimdilik mobilde normal danışan girişini; giriş ekranında diyetisyeni
+web paneline götüren açık adres bağlantısını istedi. Web diyetisyen/Admin
+kullanımında kalır. 17.11'de eklenen mobil uzman ekranları silinmeden girişleri
+ertelenir; Profil danışan bilgilerini ve Diyetisyen Bul eylemini korur.
+Çift profilli client hesap mobilde danışandır; dietitian rolü web yönlendirmesi
+görür. JWT/refresh, web cookie/CSRF ve Admin MFA backend davranışı değişmez.
+Bu, mobil görünürlük/navigasyon kararıdır; `04/05/06`ya yeni endpoint, alan
+veya rol eklenmez. Güncel mobil deneyim `07`dedir; aşağıdaki 17.11 mobil uzman
+paneli ifadesinin yerini bu geçici kapsam kararı alır.
+
 ## 17.11.2026 — Web ve mobil rol ayrımı
 
 Kullanıcı danışan işlemlerini mobil uygulamaya ayırdı. Web oturumu diyetisyen

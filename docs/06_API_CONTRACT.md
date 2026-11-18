@@ -1,5 +1,55 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 17.11.2026 — Danışanın kişisel günlük beslenme hedefleri
+
+Kullanıcının doğrudan backend göreviyle kişisel hedefler NutritionPlan'dan
+bağımsız yönetilir. Yalnız JWT bearer; kimlik sub → User → ClientProfile
+ile belirlenir. X-Profile-Context: client desteklenir; başlıksız mevcut hesap
+bağlamı korunur. Çift profilli hesap client bağlamıyla kendi hedeflerine erişir.
+Diyetisyen bağlamı/ClientProfile'sız hesap 403, bozuk/çoklu bağlam başlığı 400,
+oturumsuz/bozuk/iptal edilmiş kimlik 401'dir. Cookie tek başına yetki vermez.
+Mevcut Auth/refresh/web oturumu, ilişki ve paylaşım kuralları değiştirilmez.
+
+| Endpoint | İstek / sonuç |
+|---|---|
+| `GET /api/v1/personal-nutrition-targets` | Gövdesiz/query'siz; 200 PersonalNutritionTargetResponse. Henüz kayıt yoksa beş hedef null; GET DB'ye yazmaz |
+| `PATCH /api/v1/personal-nutrition-targets` | Kendi tek kaynağı için kısmi upsert; ilk geçerli istek oluşturur, sonraki günceller. Her ikisinde 200 güncel PersonalNutritionTargetResponse |
+
+PATCH yalnız bağımsız, isteğe bağlı `dailyCaloriesTargetKcal`,
+`dailyProteinTargetGrams`, `dailyCarbsTargetGrams`, `dailyFatTargetGrams`,
+`dailyWaterTargetMl` alanlarını kabul eder. Atlanan korunur (ilk kayıtta null),
+açık null temizler. Bir/beş alanı null göndermek geçerlidir; `{}` 400'dür.
+Yanıt daima bu beş anahtarı ve `source: "personal"` içerir; id/clientId veya
+program hedefi/etkin hedef/gerçek tüketim alanı eklenmez. Bilinmeyen alan,
+source/clientId (null dahil), query, yanlış tür/string sayı, decimal dışı sayı,
+bozuk/eksik gövde 400; JSON dışı içerik 415. Gövde en fazla 4096 byte.
+Bilinen hedef pozitif JSON number/decimal olmalıdır; kalori üst sınırı 10000,
+her makro 1000 g, su 15000 mL. Sıfır/negatif/üst sınır aşımı 422'dir.
+Bu sınırlar beslenme önerisi değildir; otomatik hedef/kalori hesabı yapılmaz.
+Ortak error/requestId ve no-store korunur, hedef değerleri loglanmaz.
+
+**Kaynak ve gelecekte Dashboard gösterim önceliği (alan bazında):**
+
+1. `GET /nutrition-plans/active` yanıtındaki aktif **atanmış** programda
+   (`dietitianId != null`) ilgili kalori/su hedefi tanımlıysa önceliklidir;
+   kaynak etiketi “Diyetisyen programı” olur ve hedef salt okunurdur.
+2. Atanmış program veya ilgili değer yoksa bu API'nin ilgili kişisel değeri
+   kullanılır; etiket “Kişisel hedef”. Mevcut NutritionPlan makro hedefi
+   taşımadığından protein/karbonhidrat/yağ yalnız kişisel kaynaktan gelir.
+3. İki kaynakta da değer yoksa null korunur ve “Henüz hedef belirlenmedi”
+   gösterilir. Yükleniyor/hata, hedef yok olarak yorumlanmaz; kaynak önceliği
+   gerekli okumalar tamamlanmadan kesinleştirilmez.
+
+Bu, alan başına açık kaynak etiketli gösterim kuralıdır; veriler birleştirilip
+tek bir saklanan hedefe çevrilmez. Kişisel hedef PATCH'i atanmış hedefi
+değiştirmez; öncelikli hedefin farklı olması kişisel değeri silmez. Aktif
+**kişisel NutritionPlan** (`dietitianId == null`) hedefleri program ekranında
+ayrıca gösterilir; bu genel kişisel hedeflere sessizce kopyalanmaz/öncelik verilmez.
+Bu uç yalnız kişisel kaynağı döndürür; Dashboard çözümleyicisi ve mobil/web
+entegrasyonu bu backend görevinin dışındadır. Diyetisyen okuma/paylaşım
+kategorisi eklenmez. Önceki programsız/makro hedef saklama AÇIK notları bu
+dilim için tarihsel kalır; öneri hesabı ve program uyum hesabı açık kalır.
+
 ## 16.11.2026 — Danışanın manuel su kayıt API'si
 
 Kullanıcının doğrudan backend göreviyle mevcut WaterLog CRUD rotaları ve

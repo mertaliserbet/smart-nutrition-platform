@@ -1,5 +1,21 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 17.11.2026 — Kişisel günlük beslenme hedefleri
+
+Kullanıcının doğrudan backend göreviyle programsız kişisel hedef saklama ve
+makro alan adları bu dilimde tanımlandı. Yeni model `PersonalNutritionTarget`,
+tablo `personal_nutrition_targets`; bir danışanın günler boyunca geçerli tek
+güncel kişisel hedef kümesidir. Günlük tüketim veya NutritionPlan değildir.
+`PersonalNutritionTargetResponse` ve `PatchPersonalNutritionTargetRequest`
+alanları: `dailyCaloriesTargetKcal`, `dailyProteinTargetGrams`,
+`dailyCarbsTargetGrams`, `dailyFatTargetGrams`, `dailyWaterTargetMl`.
+Yanıtta ayrıca salt okunur `source: "personal"` bulunur. Tek kendi kaynak
+yolu `GET/PATCH /api/v1/personal-nutrition-targets` olur; alias veya
+diyetisyen okuma yolu eklenmez. Mevcut NutritionPlan/ClientProfile/MealLog/
+WaterLog adları ve alanları değişmez. Ayrıntılar ve gösterim önceliği `05/06`dadır.
+Aşağıdaki programsız/makro hedeflere ilişkin tarihsel AÇIK notları bu saklama
+ve adlandırma dilimi için geçersizdir; otomatik öneri hesabı hâlâ kapsam dışıdır.
+
 ## 16.11.2026 — Su kayıt backend dilimi
 
 Kullanıcının doğrudan su kayıt API'si görevi mevcut `WaterLog`, `amountMl`,

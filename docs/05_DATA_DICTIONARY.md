@@ -1,5 +1,43 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 17.11.2026 — PersonalNutritionTarget
+
+Kullanıcının doğrudan backend göreviyle kişisel günlük hedefler ayrı saklanır.
+`personal_nutrition_targets.client_id`, ClientProfile.id'ye RESTRICT FK ve
+aynı zamanda PK'dir: danışan başına en fazla bir satır, ek bir User/FK veya
+gereksiz ikinci unique indeks yoktur. GET henüz satır yoksa beş null hedef
+döndürür; satır/seed/otomatik öneri oluşturmaz. İlk geçerli PATCH satırı oluşturur.
+
+| Alan | Tip ve kural |
+|---|---|
+| `clientId` | uuid, yalnız sunucuda JWT sub → User → ClientProfile; istek/yanıtta gönderilmez |
+| `dailyCaloriesTargetKcal` | nullable decimal/numeric, `0 < değer <= 10000`, kcal/gün |
+| `dailyProteinTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyCarbsTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyFatTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyWaterTargetMl` | nullable decimal/numeric, `0 < değer <= 15000`, mL/gün |
+
+Alanlar bağımsızdır; null hedef tanımlanmadığını gösterir. Sıfır hedef yerine
+null kullanılır. Ölçek zorlayan yuvarlama yapılmaz; negatif/sonsuz/NaN ve
+üst sınır dışı değerler DB check kısıtlarıyla da engellenir. Bu üst sınırlar
+girdi/depolama sınırlarıdır, önerilen/güvenli tüketim veya klinik eşik değildir.
+Makrodan kalori türetilmez; hedefler arası oran/eşitlik zorunlu değildir.
+
+Hedefler günlük tekrar eden güncel ayarlardır; tarih aralığı, saat dilimi,
+geçmiş günlere yeniden uygulama veya hedef sürüm geçmişi bu dilimde yoktur.
+Kişisel yazma NutritionPlan/versiyonlarını veya MealLog/WaterLog kayıtlarını
+değiştirmez; programdan kişisel tabloya veri kopyalanmaz. `source: personal`
+HTTP metadata'sıdır, ayrı bir DB source enumu değildir. Gösterim önceliği `06`dadır.
+Yazmalar mevcut User → ClientProfile kilit sırasıyla atomiktir; aynı anda ilk
+kayıt/kısmi güncellemeler birbirinin atlanmış alanlarını kaybetmez.
+
+`AddPersonalNutritionTargets` yalnız yeni tablo, PK/FK ve check kısıtları ekler.
+Önceki tablolara veri yazmaz. Down, tabloda satır varsa (beş hedef de null
+olsa bile) veri silmek yerine durur; boş tablo geri alınabilir. Uygulama
+DB'sine otomatik uygulanmaz; geçici PostgreSQL'de doğrulanır.
+Aşağıdaki programsız/makro kişisel hedef saklamasına ilişkin eski AÇIK
+notlarının yerini bu bölüm alır; otomatik öneri hesabı açık kalır.
+
 ## 16.11.2026 — WaterLog manuel kayıt ve günlük toplam dilimi
 
 Kullanıcının doğrudan backend göreviyle mevcut WaterLog alanları değiştirilmeden

@@ -13,6 +13,7 @@ using SmartNutrition.Api.Features.Relationships;
 using SmartNutrition.Api.Features.NutritionPlans;
 using SmartNutrition.Api.Features.MealLogs;
 using SmartNutrition.Api.Features.WaterLogs;
+using SmartNutrition.Api.Features.PersonalNutritionTargets;
 using SmartNutrition.Api.Health;
 using SmartNutrition.Api.Infrastructure;
 
@@ -46,6 +47,7 @@ builder.Services.AddScoped<RelationshipService>();
 builder.Services.AddScoped<NutritionPlanService>();
 builder.Services.AddScoped<MealLogService>();
 builder.Services.AddScoped<WaterLogService>();
+builder.Services.AddScoped<PersonalNutritionTargetService>();
 builder.Services.AddSingleton<RelationshipMutationLimits>();
 builder.Services.AddOptions<RelationshipLimitOptions>().Bind(builder.Configuration.GetSection("Relationships:Limits"))
     .Validate(options => options.RequestsPerMinute > 0 && options.InvitationCodesPerMinute > 0).ValidateOnStart();

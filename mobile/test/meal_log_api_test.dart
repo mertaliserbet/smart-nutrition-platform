@@ -146,6 +146,76 @@ void main() {
     expect(calls, 2);
     expect(refreshes, 1);
   });
+  test(
+    'daily interval reads every page with UTC filters before returning totals',
+    () async {
+      final from = DateTime.utc(2026, 11, 17), to = DateTime.utc(2026, 11, 18);
+      Map<String, Object?> record(int index) {
+        final row = mealJson();
+        final id =
+            '11111111-1111-4111-8111-${index.toString().padLeft(12, '0')}';
+        row['id'] = id;
+        row['consumedAt'] = '2026-11-17T12:00:00Z';
+        ((row['items'] as List).single as Map)['mealLogId'] = id;
+        return row;
+      }
+
+      final pages = <int>[];
+      resource = (request) async {
+        expect(request.uri.queryParameters['from'], from.toIso8601String());
+        expect(request.uri.queryParameters['to'], to.toIso8601String());
+        final page = int.parse(request.uri.queryParameters['page']!);
+        pages.add(page);
+        await reply(request, 200, {
+          'items': page == 1 ? List.generate(10, record) : [record(10)],
+          'totalCount': 11,
+        });
+      };
+      final rows = await api.forRange(from: from, to: to);
+      expect(rows, hasLength(11));
+      expect(pages, [1, 2]);
+      resource = (request) =>
+          reply(request, 200, {'items': [], 'totalCount': 0});
+      expect(await api.forRange(from: from, to: to), isEmpty);
+    },
+  );
+  test(
+    'changing pagination, duplicate IDs and out-of-day rows never become partial totals',
+    () async {
+      final from = DateTime.utc(2026, 11, 16), to = DateTime.utc(2026, 11, 17);
+      resource = (request) =>
+          reply(request, 200, {'items': [], 'totalCount': 1});
+      await expectLater(
+        api.forRange(from: from, to: to),
+        throwsA(isA<MealLogApiException>()),
+      );
+      resource = (request) => reply(request, 200, {
+        'items': [mealJson()],
+        'totalCount': request.uri.queryParameters['page'] == '1' ? 2 : 3,
+      });
+      await expectLater(
+        api.forRange(from: from, to: to),
+        throwsA(isA<MealLogApiException>()),
+      );
+      resource = (request) => reply(request, 200, {
+        'items': [mealJson()],
+        'totalCount': 2,
+      });
+      await expectLater(
+        api.forRange(from: from, to: to),
+        throwsA(isA<MealLogApiException>()),
+      );
+      final outside = mealJson()..['consumedAt'] = '2026-11-17T00:00:00Z';
+      resource = (request) => reply(request, 200, {
+        'items': [outside],
+        'totalCount': 1,
+      });
+      await expectLater(
+        api.forRange(from: from, to: to),
+        throwsA(isA<MealLogApiException>()),
+      );
+    },
+  );
   for (final method in ['POST', 'PATCH', 'DELETE']) {
     test(
       '$method is never replayed after a 401 even when refresh succeeds',

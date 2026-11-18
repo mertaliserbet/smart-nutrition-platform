@@ -72,8 +72,17 @@ class MealLogApi {
   static const pageSize = 10;
   static const _root = '/api/v1/meal-logs';
 
-  Future<MealLogPage> list({int page = 1}) async {
-    final response = await _send('$_root?page=$page&pageSize=$pageSize');
+  Future<MealLogPage> list({int page = 1, DateTime? from, DateTime? to}) async {
+    final path = Uri(
+      path: _root,
+      queryParameters: {
+        'page': '$page',
+        'pageSize': '$pageSize',
+        if (from != null) 'from': from.toUtc().toIso8601String(),
+        if (to != null) 'to': to.toUtc().toIso8601String(),
+      },
+    ).toString();
+    final response = await _send(path);
     final body = _object(response.body, ['items', 'totalCount']);
     if (body['items'] is! List ||
         body['totalCount'] is! int ||
@@ -93,6 +102,39 @@ class MealLogApi {
       items: List<MealLog>.unmodifiable(rows),
       totalCount: body['totalCount'] as int,
     );
+  }
+
+  /// Fetch the complete authorized interval; partial pages never become daily totals.
+  Future<List<MealLog>> forRange({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    if (!from.isBefore(to)) throw const MealLogApiException.invalid();
+    final rows = <MealLog>[], ids = <String>{};
+    int? expected;
+    for (var page = 1; ; page++) {
+      final result = await list(page: page, from: from, to: to);
+      expected ??= result.totalCount;
+      if (result.totalCount != expected ||
+          result.items.isEmpty && rows.length < expected) {
+        throw const MealLogApiException.invalid();
+      }
+      for (final row in result.items) {
+        if (!ids.add(row.id) ||
+            row.consumedAt.isBefore(from) ||
+            !row.consumedAt.isBefore(to)) {
+          throw const MealLogApiException.invalid();
+        }
+        rows.add(row);
+      }
+      if (rows.length >= expected) {
+        if (rows.length != expected ||
+            rows.map((row) => row.clientId).toSet().length > 1) {
+          throw const MealLogApiException.invalid();
+        }
+        return List<MealLog>.unmodifiable(rows);
+      }
+    }
   }
 
   Future<MealLog> get(String id) async {

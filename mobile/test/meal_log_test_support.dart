@@ -87,7 +87,7 @@ class MealTestApi extends MealLogApi {
   Future<MealLog>? pendingCreate;
   Future<MealLogPage>? pendingList;
   @override
-  Future<MealLogPage> list({int page = 1}) async {
+  Future<MealLogPage> list({int page = 1, DateTime? from, DateTime? to}) async {
     pages.add(page);
     if (failure != null) throw failure!;
     return pendingList ?? (items: rows, totalCount: rows.length);

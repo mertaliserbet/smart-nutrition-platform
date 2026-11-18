@@ -5,6 +5,7 @@ import 'package:smart_nutrition_mobile/app.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_api.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
+import 'package:smart_nutrition_mobile/features/auth/web_panel_link.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_account_page.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
@@ -90,24 +91,26 @@ void main() {
     });
   }
 
-  testWidgets('verified dietitian can sign in without gaining Admin access', (
-    tester,
-  ) async {
-    final (session, api) = await setup(tester);
-    await fillAndSubmit(tester);
-    api.logins.single.result.complete(
-      testPair(token, session.now().add(const Duration(minutes: 15))),
-    );
-    await tester.pump();
-    api.me.single.result.complete(user(role: 'dietitian'));
-    await tester.pumpAndSettle();
-    expect(session.isAuthenticated, isTrue);
-    expect(session.user!.role, 'dietitian');
-    expect(find.byType(DietitianAccountPage), findsOneWidget);
-    expect(find.byType(MainShell), findsNothing);
-    await tester.pumpWidget(const SizedBox.shrink());
-    session.dispose();
-  });
+  testWidgets(
+    'dietitian mobile session offers web handoff without mobile panels',
+    (tester) async {
+      final (session, api) = await setup(tester);
+      await fillAndSubmit(tester);
+      api.logins.single.result.complete(
+        testPair(token, session.now().add(const Duration(minutes: 15))),
+      );
+      await tester.pump();
+      api.me.single.result.complete(user(role: 'dietitian'));
+      await tester.pumpAndSettle();
+      expect(session.isAuthenticated, isTrue);
+      expect(session.user!.role, 'dietitian');
+      expect(find.byType(WebPanelPage), findsOneWidget);
+      expect(find.byType(DietitianAccountPage), findsNothing);
+      expect(find.byType(MainShell), findsNothing);
+      await tester.pumpWidget(const SizedBox.shrink());
+      session.dispose();
+    },
+  );
 
   testWidgets('invalid form sends no request, including keyboard submission', (
     tester,

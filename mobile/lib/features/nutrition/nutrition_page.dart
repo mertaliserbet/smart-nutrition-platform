@@ -165,11 +165,15 @@ class _NutritionPageState extends State<NutritionPage>
       if (plan.dailyCaloriesTargetKcal != null)
         Text(
           'Programdaki günlük enerji hedefi: ${plan.dailyCaloriesTargetKcal.toString().replaceAll('.', ',')} kcal',
-        ),
+        )
+      else
+        const Text('Kalori: Henüz hedef belirlenmedi'),
       if (plan.dailyWaterTargetMl != null)
         Text(
           'Programdaki günlük su hedefi: ${plan.dailyWaterTargetMl.toString().replaceAll('.', ',')} mL',
-        ),
+        )
+      else
+        const Text('Su: Henüz hedef belirlenmedi'),
       for (final day in <int?>[null, 1, 2, 3, 4, 5, 6, 7])
         if (plan.items.any((item) => item.dayOfWeek == day)) ...[
           const SizedBox(height: 16),

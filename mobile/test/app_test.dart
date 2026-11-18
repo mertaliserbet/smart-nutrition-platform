@@ -12,8 +12,7 @@ void main() {
     (
       label: 'Ana Sayfa',
       page: HomePage,
-      description:
-          'Tüm değerler örnektir; size ait veri veya kişisel hedef önerisi değildir.',
+      description: 'Bugün kaydettiğiniz öğünler',
     ),
     (
       label: 'Beslenme',

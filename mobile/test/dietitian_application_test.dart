@@ -9,6 +9,7 @@ import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_api.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
+import 'package:smart_nutrition_mobile/features/auth/web_panel_link.dart';
 import 'package:smart_nutrition_mobile/features/auth/refresh_token_store.dart';
 import 'package:smart_nutrition_mobile/features/profile/dietitian_application_info_page.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_account_page.dart';
@@ -73,6 +74,7 @@ void main() {
         () => WebConfig.dietitianApplicationUri(baseUrl: invalid),
         throwsFormatException,
       );
+      expect(() => WebConfig.loginUri(baseUrl: invalid), throwsFormatException);
     });
   }
 
@@ -93,44 +95,40 @@ void main() {
   });
 
   for (final brightness in Brightness.values) {
-    testWidgets(
-      'login opens new expert application information in ${brightness.name}',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: brightness == Brightness.light
-                ? AppTheme.light
-                : AppTheme.dark,
-            home: const LoginPage(),
-          ),
-        );
-        await tester.pumpAndSettle();
-        expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
-        expect(calls, isEmpty);
-        final apply = find.widgetWithText(
-          TextButton,
-          'Diyetisyen hesabı için başvur',
-        );
-        await tester.ensureVisible(apply);
-        await tester.tap(apply);
-        await tester.pumpAndSettle();
-        expect(find.byType(DietitianApplicationInfoPage), findsOneWidget);
-        expect(find.text('Smart Nutrition Platform'), findsOneWidget);
-        expect(find.byType(TextFormField), findsNothing);
-        expect(find.textContaining('Admin incelemesi'), findsOneWidget);
-        expect(
-          Theme.of(
-            tester.element(find.byType(DietitianApplicationInfoPage)),
-          ).brightness,
-          brightness,
-        );
-        expect(calls, isEmpty);
-        await tester.pageBack();
-        await tester.pumpAndSettle();
-        expect(find.byType(DietitianApplicationInfoPage), findsNothing);
-        expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
-      },
-    );
+    testWidgets('login opens the web login directly in ${brightness.name}', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: brightness == Brightness.light
+              ? AppTheme.light
+              : AppTheme.dark,
+          home: const LoginPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
+      expect(calls, isEmpty);
+      final apply = find.textContaining(
+        'Diyetisyen misiniz? Web paneline gidin',
+      );
+      await tester.ensureVisible(apply);
+      await tester.tap(apply);
+      await tester.pumpAndSettle();
+      expect(find.byType(DietitianApplicationInfoPage), findsNothing);
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(TextFormField), findsNWidgets(2));
+      expect(calls.single.method, 'launch');
+      expect(
+        (calls.single.arguments as Map)['url'],
+        'https://localhost:5173/giris',
+      );
+      expect(
+        Theme.of(tester.element(find.byType(LoginPage))).brightness,
+        brightness,
+      );
+      expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
+    });
 
     testWidgets(
       'small screen with large text scrolls to both actions in ${brightness.name}',
@@ -297,40 +295,40 @@ void main() {
     expect(calls, isEmpty);
   });
 
-  testWidgets('signed-in expert profile route is discarded on logout', (
-    tester,
-  ) async {
-    final session = AuthSession(api: _LoginApi(), store: _MemoryStore());
-    addTearDown(session.dispose);
-    await session.initialize();
-    expect(
-      await session.signIn(
-        email: 'synthetic@example.test',
-        password: 'Synthetic password',
-      ),
-      isTrue,
-    );
-    await tester.pumpWidget(SmartNutritionApp(session: session));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Profil'));
-    await tester.pumpAndSettle();
-    final apply = find.widgetWithText(
-      FilledButton,
-      'Diyetisyen Profili ve Başvuru',
-    );
-    await tester.ensureVisible(apply);
-    await tester.tap(apply);
-    await tester.pumpAndSettle();
-    expect(find.byType(DietitianAccountPage), findsOneWidget);
-    await session.signOut();
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
-    expect(find.byType(DietitianAccountPage), findsNothing);
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
-    expect(calls, isEmpty);
-  });
+  testWidgets(
+    'client profile has no expert entry and legacy route only offers web handoff',
+    (tester) async {
+      final session = AuthSession(api: _LoginApi(), store: _MemoryStore());
+      addTearDown(session.dispose);
+      await session.initialize();
+      expect(
+        await session.signIn(
+          email: 'synthetic@example.test',
+          password: 'Synthetic password',
+        ),
+        isTrue,
+      );
+      await tester.pumpWidget(SmartNutritionApp(session: session));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Profil'));
+      await tester.pumpAndSettle();
+      expect(find.text('Diyetisyen Profili ve Başvuru'), findsNothing);
+      Navigator.of(
+        tester.element(find.text('Kişisel alanınız')),
+      ).pushNamed('/dietitian-account');
+      await tester.pumpAndSettle();
+      expect(find.byType(WebPanelPage), findsOneWidget);
+      expect(find.byType(DietitianAccountPage), findsNothing);
+      await session.signOut();
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(DietitianAccountPage), findsNothing);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(LoginPage), findsOneWidget);
+      expect(calls, isEmpty);
+    },
+  );
 }
 
 Future<void> pumpInfo(WidgetTester tester) async {

@@ -44,7 +44,7 @@ class _MainShellState extends State<MainShell> {
 
   void _selectTab(int index) {
     if (index == _selectedIndex) {
-      if (index == 1) setState(() => ++_nutritionRevision);
+      if (index == 0 || index == 1) setState(() => ++_nutritionRevision);
       return;
     }
     setState(() => _selectedIndex = index);
@@ -95,7 +95,11 @@ class _MainShellState extends State<MainShell> {
           child: IndexedStack(
             index: _selectedIndex,
             children: [
-              HomePage(onViewNutrition: () => _selectTab(1)),
+              HomePage(
+                active: _selectedIndex == 0,
+                refreshRevision: _nutritionRevision,
+                onViewNutrition: () => _selectTab(1),
+              ),
               NutritionPage(
                 active: _selectedIndex == 1,
                 refreshRevision: _nutritionRevision,

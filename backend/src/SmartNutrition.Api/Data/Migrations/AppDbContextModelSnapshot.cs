@@ -652,6 +652,49 @@ namespace SmartNutrition.Api.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartNutrition.Api.Features.PersonalNutritionTargets.PersonalNutritionTarget", b =>
+                {
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<decimal?>("DailyCaloriesTargetKcal")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_calories_target_kcal");
+
+                    b.Property<decimal?>("DailyCarbsTargetGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_carbs_target_grams");
+
+                    b.Property<decimal?>("DailyFatTargetGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_fat_target_grams");
+
+                    b.Property<decimal?>("DailyProteinTargetGrams")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_protein_target_grams");
+
+                    b.Property<decimal?>("DailyWaterTargetMl")
+                        .HasColumnType("numeric")
+                        .HasColumnName("daily_water_target_ml");
+
+                    b.HasKey("ClientId")
+                        .HasName("pk_personal_nutrition_targets");
+
+                    b.ToTable("personal_nutrition_targets", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_personal_nutrition_targets_calories", "daily_calories_target_kcal IS NULL OR (daily_calories_target_kcal > 0 AND daily_calories_target_kcal <= 10000)");
+
+                            t.HasCheckConstraint("ck_personal_nutrition_targets_carbs", "daily_carbs_target_grams IS NULL OR (daily_carbs_target_grams > 0 AND daily_carbs_target_grams <= 1000)");
+
+                            t.HasCheckConstraint("ck_personal_nutrition_targets_fat", "daily_fat_target_grams IS NULL OR (daily_fat_target_grams > 0 AND daily_fat_target_grams <= 1000)");
+
+                            t.HasCheckConstraint("ck_personal_nutrition_targets_protein", "daily_protein_target_grams IS NULL OR (daily_protein_target_grams > 0 AND daily_protein_target_grams <= 1000)");
+
+                            t.HasCheckConstraint("ck_personal_nutrition_targets_water", "daily_water_target_ml IS NULL OR (daily_water_target_ml > 0 AND daily_water_target_ml <= 15000)");
+                        });
+                });
+
             modelBuilder.Entity("SmartNutrition.Api.Features.Relationships.DataSharingPermission", b =>
                 {
                     b.Property<Guid>("Id")
@@ -901,6 +944,16 @@ namespace SmartNutrition.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_plan_versions_actor_id");
+                });
+
+            modelBuilder.Entity("SmartNutrition.Api.Features.PersonalNutritionTargets.PersonalNutritionTarget", b =>
+                {
+                    b.HasOne("SmartNutrition.Api.Features.Auth.ClientProfile", null)
+                        .WithOne()
+                        .HasForeignKey("SmartNutrition.Api.Features.PersonalNutritionTargets.PersonalNutritionTarget", "ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_personal_nutrition_targets_client_id");
                 });
 
             modelBuilder.Entity("SmartNutrition.Api.Features.Relationships.DataSharingPermission", b =>
