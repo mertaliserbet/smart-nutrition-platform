@@ -1,5 +1,14 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 18.11.2026 — Ortak ölçüm paylaşımı migration'ı
+
+Kullanıcının birleştirme kararıyla yalnız ortak main'deki
+`20261118122704_AddBodyMeasurementSharingCategory` korunur. Kategori check'i
+üç bağımsız koda genişler; mevcut ölçüm/izin satırları değişmez, backfill yoktur.
+Yeni kategori satırı (false dahil) varken eski check yeniden kurulamaz;
+Down transaction'ı başarısız olur ve veriler korunur. Satır silerek geri alma
+zorlanmaz. BodyMeasurement DTO'su ve nullable note alanı aynen korunur.
+
 ## 18.11.2026 — M1–M4 ölçüm paylaşımı ve okuma verisi
 
 Kullanıcının `18` önerisi için uygulama onayıyla `DataSharingPermission.category`

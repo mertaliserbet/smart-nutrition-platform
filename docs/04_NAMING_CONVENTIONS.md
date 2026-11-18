@@ -1,5 +1,14 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — Ortak ölçüm geliştirmelerinin birleştirilmesi
+
+Kullanıcı kararıyla Uğur'un web ölçüm ekranı/ortak migration'ı ve Mert'in
+kronolojik okuma/Development sınırı birlikte korunur. Mevcut GET yolunda
+sortOrder=asc/desc desteklenir; kategori/DTO alan adları değişmez. Tek
+paylaşım migration'ı `20261118122704_AddBodyMeasurementSharingCategory`dir;
+aynı işi yapan ikinci migration kullanılmaz. BodyMeasurementsEnabled yalnız
+Development'ta açılabilir; mobil kategori uyarlamasına kadar varsayılan kapalıdır.
+
 ## 18.11.2026 — M1–M4 diyetisyen ölçüm görünümü onayı
 
 Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini

@@ -66,7 +66,7 @@ public sealed class DietitianBodyMeasurementApiTests
     [PostgresFact]
     public async Task ProgramAndMealGrantsDoNotOpenMeasurementsAndWithdrawalClosesNextRead()
     {
-        await using var factory = await RegistrationApiFactory.CreateAsync(bodyMeasurementSharing: true); var pair = await Seed(factory);
+        await using var factory = await RegistrationApiFactory.CreateAsync(bodyMeasurementSharing: true, environment: "Development"); var pair = await Seed(factory);
         using var owner = Bearer(factory, pair.Owner, "client"); using var expert = Bearer(factory, pair.Expert); await Measurement(owner);
         using var revoked = await owner.PatchAsJsonAsync($"/api/v1/data-sharing-permissions/{pair.Permission.Id}", new { isGranted = false }); Assert.Equal(HttpStatusCode.OK, revoked.StatusCode);
         using var denied = await expert.GetAsync(Route(pair.Client.Id)); await Error(denied, HttpStatusCode.Forbidden);
@@ -129,7 +129,7 @@ public sealed class DietitianBodyMeasurementApiTests
     {
         await using var factory = await RegistrationApiFactory.CreateAsync(); var pair = await Seed(factory); using var expert = Bearer(factory, pair.Expert);
         foreach (var query in new[] { "", "page=1", "pageSize=10", "page=0&pageSize=10", "page=1&pageSize=101", "page=2147483647&pageSize=100", "page=1&pageSize=10&page=2",
-            "page=1&pageSize=10&sortOrder=asc", "page=1&pageSize=10&from=", "page=1&pageSize=10&from=2026-11-18T00:00:00", "page=1&pageSize=10&to=bad",
+            "page=1&pageSize=10&sortOrder=invalid", "page=1&pageSize=10&from=", "page=1&pageSize=10&from=2026-11-18T00:00:00", "page=1&pageSize=10&to=bad",
             "page=1&pageSize=10&from=2026-11-19T00:00:00Z&to=2026-11-18T00:00:00Z", "page=1&pageSize=10&from=2026-11-18T00:00:00Z&to=2026-11-18T00:00:00Z" })
         { using var response = await expert.GetAsync(Route(pair.Client.Id, query)); await Error(response, HttpStatusCode.BadRequest); }
         using var body = new HttpRequestMessage(HttpMethod.Get, Route(pair.Client.Id)) { Content = JsonContent.Create(new { }) };

@@ -30,13 +30,13 @@ public sealed class UpdateDataSharingPermissionRequest
 [Authorize(AuthenticationSchemes = WebSessionAuthentication.AccountScheme, Roles = "client,dietitian")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class DataSharingPermissionsController(AppDbContext database, RelationshipAccessService access,
-    RelationshipService relationships, TimeProvider clock, IConfiguration configuration) : ControllerBase
+    RelationshipService relationships, TimeProvider clock, IConfiguration configuration, IWebHostEnvironment environment) : ControllerBase
 {
     // Keep new category rows out of legacy mobile lists until the coordinated client rollout.
     private bool CategoryEnabled(string? category) => category switch
     {
         "meal_logs" => configuration.GetValue<bool>("Relationships:Sharing:MealLogsEnabled"),
-        "body_measurements" => configuration.GetValue<bool>("Relationships:Sharing:BodyMeasurementsEnabled"),
+        "body_measurements" => environment.IsDevelopment() && configuration.GetValue<bool>("Relationships:Sharing:BodyMeasurementsEnabled"),
         _ => true
     };
     private bool HasBody => HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true;

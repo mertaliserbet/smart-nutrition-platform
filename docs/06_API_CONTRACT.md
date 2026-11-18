@@ -7,10 +7,11 @@ istedi. Aşağıdaki alt kapsam, önceki yalnız kendi ölçümü/notları ve a�
 ifadelerinin diyetisyen okumasına ilişkin kısmını tamamlar; kendi CRUD korunur.
 
 `GET /api/v1/dietitian/clients/{clientId}/body-measurements`: gövdesiz; zorunlu
-page ≥ 1/pageSize 1–100, isteğe bağlı from/to. Başka/tekrarlı query, Int32 offset
+page ≥ 1/pageSize 1–100, isteğe bağlı from/to ve sortOrder=asc/desc. Başka/tekrarlı query, Int32 offset
 taşması ve bozuk/ofsetsiz/boş tarih 400. Web açıkça pageSize=10 gönderir.
-measuredAt için `[from,to)`; iki sınır varsa from < to. Sıra measuredAt azalan,
-eşitlikte id artan. Kendi ölçüm listesinin sortOrder parametresi bu uçta yoktur.
+measuredAt için `[from,to)`; iki sınır varsa from < to. Varsayılan measuredAt azalan,
+eşitlikte id artan. Kullanıcının birleştirme kararıyla sortOrder=asc, grafikler
+için measuredAt/id artan kronolojik okumayı destekler; ayrı grafik endpointi yoktur.
 
 Başarı `200 { items, totalCount }`; her item kendi ölçüm CRUD yanıtındaki tam
 id/clientId/measuredAt/weightKg/waistCm/hipCm/chestCm/bodyFatPercent/note/source
@@ -33,7 +34,9 @@ Mevcut `/data-sharing-permissions` POST/PATCH/GET yolları bu kategoriye de
 uygulanır; alan ve sahiplik kuralları aynı, consentRecordId yalnız null/atlanmış.
 nutrition_plans/meal_logs/body_measurements birbirini açmaz. Yeni dahili
 `Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam adı
-`Relationships__Sharing__BodyMeasurementsEnabled`. Kapalıyken yeni ölçüm izin
+`Relationships__Sharing__BodyMeasurementsEnabled`. Kullanıcının birleştirme
+kararıyla yalnız Development'ta true etkili olur; Production/Staging'de
+true verilse de yeni satır/PATCH true 422 kalır. Kapalıyken yeni ölçüm izin
 POST'u (true/false) ve PATCH true 422; mevcut satıra PATCH false 200'dür.
 GET mevcut satırları gizlemez/silmez. Bayrak yalnız izin yazma açılımıdır;
 mevcut açık iznin okunmasını engellemez ve danışan onayı yerine geçmez.

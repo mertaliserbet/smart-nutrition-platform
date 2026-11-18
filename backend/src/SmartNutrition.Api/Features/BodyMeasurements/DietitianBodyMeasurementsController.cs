@@ -21,12 +21,15 @@ public sealed class DietitianBodyMeasurementsController(AppDbContext database, R
 {
     [HttpGet, ProducesResponseType<PagedResponse<BodyMeasurementResponse>>(200)]
     public async Task<IActionResult> List(Guid clientId, [FromQuery, BindRequired] int page,
-        [FromQuery, BindRequired] int pageSize, [FromQuery] string? from, [FromQuery] string? to, CancellationToken token)
+        [FromQuery, BindRequired] int pageSize, [FromQuery] string? from, [FromQuery] string? to, [FromQuery] string? sortOrder,
+        CancellationToken token)
     {
         if (HttpContext.Features.Get<IHttpRequestBodyDetectionFeature>()?.CanHaveBody == true ||
             page < 1 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > int.MaxValue ||
-            Request.Query.Keys.Any(x => x is not ("page" or "pageSize" or "from" or "to")) ||
-            Request.Query.Any(x => x.Value.Count != 1)) return BadRequest(ApiErrors.Create(HttpContext, 400));
+            Request.Query.Keys.Any(x => x is not ("page" or "pageSize" or "from" or "to" or "sortOrder")) ||
+            Request.Query.Any(x => x.Value.Count != 1) || sortOrder is not (null or "asc" or "desc") ||
+            (Request.Query.ContainsKey("sortOrder") && string.IsNullOrEmpty(sortOrder)))
+            return BadRequest(ApiErrors.Create(HttpContext, 400));
         DateTimeOffset? start = null, end = null;
         if (Request.Query.ContainsKey("from"))
         {
@@ -40,7 +43,8 @@ public sealed class DietitianBodyMeasurementsController(AppDbContext database, R
         }
         if (start is not null && end is not null && start >= end) return BadRequest(ApiErrors.Create(HttpContext, 400));
 
-        // Authorization, count and rows use the same snapshot; grants are never cached.
+        // Current identity, relationship, consent, count and rows share one snapshot.
+        // No cached authorization: a read starting after a committed withdrawal is denied.
         await using var transaction = await database.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, token);
         var actor = await access.RequireAsync(User, token, Request, asDietitian: true);
         var relationship = await database.DietitianClientRelationships.AsNoTracking()
@@ -56,8 +60,8 @@ public sealed class DietitianBodyMeasurementsController(AppDbContext database, R
         if (start is not null) query = query.Where(x => x.MeasuredAt >= start.Value.ToUniversalTime());
         if (end is not null) query = query.Where(x => x.MeasuredAt < end.Value.ToUniversalTime());
         var total = await query.CountAsync(token);
-        var rows = await query.OrderByDescending(x => x.MeasuredAt).ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(token);
+        var ordered = sortOrder == "asc" ? query.OrderBy(x => x.MeasuredAt).ThenBy(x => x.Id) : query.OrderByDescending(x => x.MeasuredAt).ThenBy(x => x.Id);
+        var rows = await ordered.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(token);
         await transaction.CommitAsync(token);
         return Ok(new PagedResponse<BodyMeasurementResponse>(rows.Select(BodyMeasurementResponse.From).ToArray(), total));
     }

@@ -1,5 +1,15 @@
 # 18 — İlk Uğur adımı: gerçek danışan ölçümlerinin web görünümü
 
+## 18.11.2026 — Birleştirme kararı
+
+Kullanıcı, Uğur'un web ölçüm görünümü ve ortak migration'ı korunarak Mert'in
+backend eklerinin birleştirilmesini istedi. M1–M4 uygulaması korunur; buna
+sortOrder=asc/desc kronolojik okuma ve yalnız Development'ta izin yazma açılımı
+eklenir. Ortak migration `20261118122704_AddBodyMeasurementSharingCategory`
+olur; ikinci eşdeğer migration kaldırılır. Her iki tarafın yetki/izin testleri
+korunur. Mobil ölçüm/grafik kodları değişmez; mobil paylaşımda üçüncü kategori
+uyarlaması yapılmadan açılım kapalı kalır. Güncel ayrıntılar `06`dadır.
+
 **Tarih:** 18.11.2026 · **İnceleme tabanı:** ortak `main`, `8f8a7a4`.
 **Durum:** Kullanıcının “buradaki her şeyi onayladığını varsayarak yazmaya devam”
 talimatıyla M1–M4 uygulaması onaylandı. Güncel normatif kaynak `04/05/06`dır.
@@ -73,10 +83,10 @@ bu okuma önerisi saklama ölçeği/yuvarlama veya silme süresi seçmez.
 
 | Parça | Öneri |
 |---|---|
-| İstek | Gövdesiz; zorunlu `page`, `pageSize`; isteğe bağlı `from`, `to`; başka query yok |
+| İstek | Gövdesiz; zorunlu `page`, `pageSize`; isteğe bağlı `from`, `to`, `sortOrder=asc/desc`; başka query yok |
 | Sayfalama | `page >= 1`, `pageSize` 1–100; varsayılan yok; web açıkça 10 gönderir. Int32 offset taşması ve tekrarlı/bozuk query 400 |
 | Zaman | `measuredAt` için from dahil, to hariç; açık UTC/ofsetli instant; iki sınır varsa from < to. Ofsetsiz/boş/geçersiz sınır 400 |
-| Sıra | measuredAt azalan, eşitlikte id artan; filtre/sıra sayfalama öncesinde |
+| Sıra | Varsayılan measuredAt azalan; sortOrder=asc ile artan. Eşitlikte id artan; filtre/sıra sayfalama öncesinde |
 | Başarı | `200 { items, totalCount }`; satırlar M1'deki alanları taşır. Sayı yalnız izinli/filtrelenmiş kayıtlardır; yetkili boş küme gerçekten boş döner |
 | Kimlik | Mevcut W2 HTTPS cookie veya JWT; güncel doğrulanmış hesap, onaylı DietitianProfile, aktif ilişki ve M2 izni her okumada sunucuda kontrol edilir |
 | Profil | `X-Profile-Context: dietitian`; temel rolü client olan onaylı çift profil kabul edilir. Başlık tek başına yetki vermez |

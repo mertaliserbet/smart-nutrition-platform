@@ -1,5 +1,15 @@
 # 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
 
+## 18.11.2026 — Birleştirilen ölçüm paylaşımı kuralları
+
+Kullanıcı kararıyla BodyMeasurementsEnabled yalnız Development'ta true
+etkili olacak şekilde sınırlandırıldı; varsayılan false korunur. Production/
+Staging override'ı yeni izin satırı veya PATCH true açmaz. Aktif ilişkide mevcut
+izni geri çeken PATCH false mümkündür; ayar satır gizlemez/silmez ve verilmiş
+iznin yerine geçmez. Eski mobil kategori/sayfalama uyarlanmadan ortak ortamda
+açılmaz. Uğur'un web görünümü ve ortak migration'ı korunur; tek migration
+kullanılır. Yetki snapshot'ı ve kronolojik okuma için ek regresyonlar korunur.
+
 ## 18.11.2026 — Bağımsız ölçüm paylaşımı, M1–M4
 
 Kullanıcının `18` uygulama onayıyla body_measurements ayrı izin kategorisidir.

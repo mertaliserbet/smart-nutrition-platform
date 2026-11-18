@@ -31,6 +31,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
     private bool _adminEmailCodes;
     private bool _mealLogSharing;
     private bool _bodyMeasurementSharing;
+    private string? _environment;
     private readonly bool _useSmtp;
     private readonly bool _includeAuthProbe;
     private readonly bool _webSessions;
@@ -71,7 +72,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         TimeProvider? clock = null, IVerificationEmailSender? sender = null, bool useSmtp = false, bool includeAuthProbe = false,
         bool webSessions = false, bool webCertificate = false, IPasswordResetEmailSender? resetSender = null,
         bool adminEmailCodes = false, IAdminEmailCodeSender? adminCodeSender = null, bool mealLogSharing = false,
-        bool bodyMeasurementSharing = false)
+        bool bodyMeasurementSharing = false, string? environment = null)
     {
         var factory = new RegistrationApiFactory(interceptor, clock, sender, useSmtp, includeAuthProbe, webSessions, webCertificate);
         factory._resetSender = resetSender;
@@ -79,6 +80,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
         factory._adminCodeSender = adminCodeSender;
         factory._mealLogSharing = mealLogSharing;
         factory._bodyMeasurementSharing = bodyMeasurementSharing;
+        factory._environment = environment;
         await using var connection = new NpgsqlConnection(factory._adminConnection);
         await connection.OpenAsync();
         await using var command = connection.CreateCommand();
@@ -112,7 +114,7 @@ internal sealed class RegistrationApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment(_useSmtp || _adminEmailCodes ? "Development" : "Production");
+        builder.UseEnvironment(_environment ?? (_useSmtp || _adminEmailCodes ? "Development" : "Production"));
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(
             new Dictionary<string, string?>
             {

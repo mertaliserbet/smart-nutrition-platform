@@ -73,7 +73,7 @@ public sealed class DataSharingPermissionTests
     [PostgresFact]
     public async Task MeasurementRolloutIsIndependentAndOnlyOwnerCanGrantOrWithdraw()
     {
-        await using var factory = await RegistrationApiFactory.CreateAsync(bodyMeasurementSharing: true);
+        await using var factory = await RegistrationApiFactory.CreateAsync(bodyMeasurementSharing: true, environment: "Development");
         var pair = await Seed(factory); var other = await Seed(factory);
         using var owner = Bearer(factory, pair.Client); using var expert = Bearer(factory, pair.Expert); using var stranger = Bearer(factory, other.Client);
         using var created = await Grant(owner, pair.Relationship.Id, "body_measurements"); Assert.Equal(HttpStatusCode.Created, created.StatusCode);
