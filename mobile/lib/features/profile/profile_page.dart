@@ -36,6 +36,12 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).pushNamed('/client-tasks'),
+            icon: const Icon(Icons.task_alt),
+            label: const Text('Görevlerim'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
             onPressed: () => Navigator.of(context).pushNamed('/device-health'),
             icon: const Icon(Icons.monitor_heart_outlined),
             label: const Text('Cihaz sağlık verileri'),

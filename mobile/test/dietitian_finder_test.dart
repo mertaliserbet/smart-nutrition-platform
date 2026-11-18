@@ -169,7 +169,7 @@ void main() {
     },
   );
   testWidgets(
-    'three sharing categories are independent and each revoke preserves the others',
+    'four sharing categories are independent and each revoke preserves the others',
     (tester) async {
       api.active = status('active');
       api.grant = permission;
@@ -222,6 +222,15 @@ void main() {
       expect(api.grant?.isGranted, isFalse);
       expect(api.bodyGrant?.isGranted, isTrue);
       expect(api.permissionWrites, 6);
+      expect(api.taskGrant, isNull);
+      await change('client_tasks', 'Görev paylaşımına izin ver');
+      expect(api.taskGrant?.isGranted, isTrue);
+      expect(api.grant?.isGranted, isFalse);
+      expect(api.mealGrant?.isGranted, isFalse);
+      expect(api.bodyGrant?.isGranted, isTrue);
+      await change('client_tasks', 'Görev iznini geri al');
+      expect(api.taskGrant?.isGranted, isFalse);
+      expect(api.bodyGrant?.isGranted, isTrue);
     },
   );
   testWidgets(
@@ -379,6 +388,7 @@ void main() {
       api.grant = permission;
       await manage(tester);
       final end = find.widgetWithText(OutlinedButton, 'Bağlantıyı Sonlandır');
+      await visible(tester, end);
       await tester.tap(end);
       await tester.pumpAndSettle();
       expect(
@@ -883,7 +893,7 @@ class _Api extends DietitianApi {
   List<RelationshipResponse> history = [];
   int historyPage = 0, ends = 0, permissionWrites = 0;
   int? historyTotal;
-  DataSharingPermission? grant, mealGrant, bodyGrant, lastPermission;
+  DataSharingPermission? grant, mealGrant, bodyGrant, taskGrant, lastPermission;
   String? lastCategory;
   Future<List<DataSharingPermission>>? permissionsResult;
   bool? lastGranted;
@@ -895,7 +905,7 @@ class _Api extends DietitianApi {
     if (permissionReadFailure) {
       throw const DietitianApiException('Paylaşım durumu okunamadı.');
     }
-    return permissionsResult ?? [?grant, ?mealGrant, ?bodyGrant];
+    return permissionsResult ?? [?grant, ?mealGrant, ?bodyGrant, ?taskGrant];
   }
 
   @override
@@ -914,7 +924,9 @@ class _Api extends DietitianApi {
         await (permissionResult ??
             Future.value(
               DataSharingPermission(
-                id: category == 'body_measurements'
+                id: category == 'client_tasks'
+                    ? '77777777-7777-4777-8777-777777777777'
+                    : category == 'body_measurements'
                     ? '66666666-6666-4666-8666-666666666666'
                     : category == 'meal_logs'
                     ? '55555555-5555-4555-8555-555555555555'
@@ -924,7 +936,9 @@ class _Api extends DietitianApi {
                 isGranted: isGranted,
               ),
             ));
-    if (category == 'body_measurements') {
+    if (category == 'client_tasks') {
+      taskGrant = result;
+    } else if (category == 'body_measurements') {
       bodyGrant = result;
     } else if (category == 'meal_logs') {
       mealGrant = result;

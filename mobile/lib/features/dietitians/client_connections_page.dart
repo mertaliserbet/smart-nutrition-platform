@@ -267,6 +267,7 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
   String _sharingLabel(String category) => switch (category) {
     'meal_logs' => 'Öğün kayıtları',
     'body_measurements' => 'Vücut ölçümleri',
+    'client_tasks' => 'Danışan görevleri',
     _ => 'Beslenme programları',
   };
 
@@ -275,6 +276,8 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
       granted ? 'Öğün paylaşımına izin ver' : 'Öğün iznini geri al',
     'body_measurements' =>
       granted ? 'Ölçüm paylaşımına izin ver' : 'Ölçüm iznini geri al',
+    'client_tasks' =>
+      granted ? 'Görev paylaşımına izin ver' : 'Görev iznini geri al',
     _ => granted ? 'Paylaşıma İzin Ver' : 'İzni Geri Al',
   };
 
@@ -310,7 +313,11 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  category == 'body_measurements'
+                  category == 'client_tasks'
+                      ? (_permissions[category]?.isGranted == true
+                            ? 'Görev paylaşımı açık.'
+                            : 'Görev paylaşımı kapalı. Diğer izinler görev erişimini açmaz.')
+                      : category == 'body_measurements'
                       ? (_permissions[category]?.isGranted == true
                             ? 'Ölçüm paylaşımı açık.'
                             : 'Ölçüm paylaşımı kapalı. Bağlantı, program veya öğün izni ölçüm paylaşımını açmaz.')
@@ -323,7 +330,9 @@ class _ClientConnectionsPageState extends State<ClientConnectionsPage>
                             : 'Paylaşım izni kapalı. Bağlantı onayı tek başına paylaşım izni vermez.'),
                 ),
                 Text(
-                  category == 'body_measurements'
+                  category == 'client_tasks'
+                      ? 'Diyetisyen görev atamak ve okumak için bu bağımsız izne ihtiyaç duyar. Kendi görevlerinize erişiminiz bu izne bağlı değildir.'
+                      : category == 'body_measurements'
                       ? 'Bu izin yalnız vücut ölçümlerinizi kapsar; diğer paylaşım izinleriniz bağımsızdır.'
                       : category == 'meal_logs'
                       ? 'Öğün izni bağımsızdır; program izni öğün paylaşımını açmaz.'

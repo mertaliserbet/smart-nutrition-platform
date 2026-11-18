@@ -11,6 +11,7 @@ import '../dietitians/client_connections_page.dart';
 import 'web_panel_link.dart';
 import '../personal_nutrition_targets/personal_nutrition_target_page.dart';
 import '../health/device_health_page.dart';
+import '../client_tasks/client_task_page.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
@@ -33,6 +34,7 @@ class AuthGate extends StatelessWidget {
       '/client-connections' => const AuthGate(child: ClientConnectionsPage()),
       '/dietitian-account' => const AuthGate(child: WebPanelPage()),
       '/device-health' => const AuthGate(child: DeviceHealthPage()),
+      '/client-tasks' => const AuthGate(child: ClientTaskPage()),
       _ => const AuthGate(),
     };
 

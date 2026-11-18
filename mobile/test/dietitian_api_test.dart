@@ -116,24 +116,30 @@ void main() {
                 'id': expertId,
                 'category': 'meal_logs',
               },
-              _ => {
+              '3' => {
                 ...permissionBody(false),
                 'id': clientId,
                 'category': 'body_measurements',
               },
+              _ => {
+                ...permissionBody(false),
+                'id': '66666666-6666-4666-8666-666666666666',
+                'category': 'client_tasks',
+              },
             },
           ],
-          'totalCount': 3,
+          'totalCount': 4,
         });
       };
       final rows = await api.permissions(relationId);
-      expect(pages, ['1', '2', '3']);
+      expect(pages, ['1', '2', '3', '4']);
       expect(
         {for (final r in rows) r.category: r.isGranted},
         {
           'nutrition_plans': true,
           'meal_logs': false,
           'body_measurements': false,
+          'client_tasks': false,
         },
       );
     },
@@ -168,7 +174,7 @@ void main() {
       }
     },
   );
-  for (final category in ['meal_logs', 'body_measurements']) {
+  for (final category in ['meal_logs', 'body_measurements', 'client_tasks']) {
     for (final create in [true, false]) {
       for (final granted in [true, false]) {
         test(
