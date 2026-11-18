@@ -62,7 +62,13 @@ public sealed class RelationshipApiTests
         using var applicant = await Client(factory, client); using var a = await Client(factory, first); using var b = await Client(factory, second);
         var id1 = await Request(applicant, first.ProfileId); var id2 = await Request(applicant, second.ProfileId);
         var responses = await Task.WhenAll(a.PostAsync($"{Root}/{id1}/accept", null), b.PostAsync($"{Root}/{id2}/accept", null));
-        try { Assert.Single(responses, x => x.StatusCode == HttpStatusCode.OK); Assert.Single(responses, x => x.StatusCode == HttpStatusCode.Conflict); }
+        try
+        {
+            Assert.Single(responses, x => x.StatusCode == HttpStatusCode.OK);
+            var conflict = Assert.Single(responses, x => x.StatusCode == HttpStatusCode.Conflict);
+            var error = await conflict.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("active_relationship_conflict", error.GetProperty("error").GetProperty("code").GetString());
+        }
         finally { foreach (var response in responses) response.Dispose(); }
         await using var db = factory.Database(); var active = await db.DietitianClientRelationships.SingleAsync(x => x.Status == RelationshipStatus.Active);
         using var repeat = await (active.DietitianId == first.ProfileId ? a : b).PostAsync($"{Root}/{active.Id}/accept", null);

@@ -21,7 +21,8 @@ Varsayılan kapalı kullanım ve mobil geçiş koşulları `06/17`dedir.
 ## Yerel Admin e-posta kodu — 03.11.2026 kullanıcı onayı
 
 Yalnız Development/Mailpit için `POST /api/v1/auth/admin-email-code` eklenir.
-İstek mevcut `LoginUserRequest { email, password }`, yanıt boş `202`dir.
+İstek mevcut `LoginUserRequest { email, password }` kullanır. Kabul edilen isteğe boş
+`202`, geçersiz giriş bilgilerine ortak hata zarfıyla `401` yanıtı verilir.
 Mevcut `AdminLoginRequest.mfaCode` yerel e-posta kodunu da kabul eder; JSON
 alanları ve üretim TOTP/kurtarma sözleşmesi değişmez. İmzalı web cookie'sindeki
 yalnız sunucuya ait `developmentAdminEmailCode` claim'i bu yerel oturumu ayırır;
@@ -32,8 +33,8 @@ hesap yanıtına, JWT'ye veya kullanıcı girdisine eklenmez. Ayrıntılar `05/0
 `UserRole` ve tek `User.role` korunur; rol dizisi veya yeni rol değeri eklenmez.
 Mevcut danışanın başvuru ve Admin onayında `role=client` değişmez. Uzman yetkisi
 güncel `DietitianProfile.isVerified` üzerinden ayrıca doğrulanır.
-`ExistingDietitianApplicationRequest` yalnız `displayName` ve `licenseInfo` taşır;
-`POST /api/v1/dietitians/me/application` mevcut web oturumunun hesabını kullanır.
+`ExistingDietitianApplicationRequest` yalnız `displayName` ve `licenseInfo` taşır.
+`POST /api/v1/dietitians/me/application` hesabı mobil JWT oturumundan alır (17.11.2026).
 Ortak ilişki/paylaşım/program uçlarında `X-Profile-Context: client|dietitian`
 isteğin profil bağlamını seçer; kimlik veya yetki vermez. Ayrıntılar `05/06`dadır.
 

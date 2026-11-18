@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../core/widgets/empty_state.dart';
-import 'dietitian_application_info_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -23,14 +22,10 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           FilledButton(
-            onPressed: () => Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                settings: const RouteSettings(name: '/dietitian-application'),
-                builder: (context) => const DietitianApplicationInfoPage(),
-              ),
-            ),
+            onPressed: () =>
+                Navigator.of(context).pushNamed('/dietitian-account'),
             child: const Text(
-              'Diyetisyen Olarak Başvur',
+              'Diyetisyen Profili ve Başvuru',
               textAlign: TextAlign.center,
             ),
           ),

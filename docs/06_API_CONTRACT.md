@@ -144,7 +144,7 @@ açamaz. Mailpit gerçek kullanıcıya ait ikinci faktör/üretim e-posta servis
 
 | İşlem | İstek | Sonuç |
 |---|---|---|
-| `POST /api/v1/auth/admin-email-code` | Mevcut `LoginUserRequest { email, password }`; HTTPS, tam Origin ve CSRF; query/Authorization yok, JSON 4096 byte | Uygun hesap, yanlış parola, bilinmeyen/uygun olmayan hesap, 60 saniyelik aralık veya SMTP hatası için aynı boş `202`. Kod/token/cookie dönmez. Kapalı ortamda `404`; açık web oturumunda `409`; biçim/CSRF `400`, Origin/HTTPS `403`, medya/boyut `415/413`, IP başına 5/dakika aşımında `429` |
+| `POST /api/v1/auth/admin-email-code` | Mevcut `LoginUserRequest { email, password }`; HTTPS, tam Origin ve CSRF; query/Authorization yok, JSON 4096 byte | Geçerli giriş bilgileri olan uygun hesapta boş `202`; 60 saniyelik aralık ve SMTP hatasında da aynı yanıt. Yanlış parola, bilinmeyen veya uygun olmayan hesap için ortak `401 unauthenticated`. Kod/token/cookie dönmez. Kapalı ortamda `404`; açık web oturumunda `409`; biçim/CSRF `400`, Origin/HTTPS `403`, medya/boyut `415/413`, IP başına 5/dakika aşımında `429` |
 | `POST /api/v1/auth/admin-web-session` | Mevcut `{ email, password, mfaCode }`; yalnız yukarıdaki yerel ortamda mfaCode e-postadaki 6 haneli kod da olabilir | Başarı mevcut `200 CurrentUserResponse` ve korumalı cookie. Yanlış/süresi dolmuş/kullanılmış/5 başarısız denemeyle kilitlenmiş kod aynı `401`. Mevcut login IP limiti/CSRF/Origin/oturum çakışması korunur |
 
 Kod 5 dakika ve tek kullanımlıktır; hesap başına yeniden gönderim 60 saniyedir.
@@ -172,22 +172,23 @@ uzman yetkisi her işlemde güncel onaylı DietitianProfile üzerinden denetleni
 
 | İşlem | İstek / sonuç |
 |---|---|
-| `POST /api/v1/dietitians/me/application` | Yalnız doğrulanmış danışanın W2 web cookie oturumu, HTTPS/Origin/CSRF; query yok, JSON 16 KiB. Zorunlu `displayName`, `licenseInfo` (B1 sınırları); başka alan kabul edilmez. `201 DietitianStatusResponse { id, displayName, isVerified: false }`, id uzman profil UUID'si; Location `/api/v1/dietitians/me`. Yeni User, e-posta doğrulaması veya oturum oluşturulmaz |
+| `POST /api/v1/dietitians/me/application` | E-postası doğrulanmış danışanın mobil JWT oturumu gerekir (17.11.2026). Query yok, JSON 16 KiB. Zorunlu `displayName`, `licenseInfo` (B1 sınırları). `201 DietitianStatusResponse { id, displayName, isVerified: false }`, id uzman profil UUID'si. Location `/api/v1/dietitians/me`. Yeni User, e-posta doğrulaması veya oturum oluşturulmaz |
 | `GET /api/v1/dietitians/me` | Mevcut client/dietitian JWT veya W2 cookie; yalnız kendi uzman profili (pending dahil), yoksa 404. Mevcut yanıt korunur |
 
-Kimlik cookie'den çözülür; email/password/userId/role/isVerified girdileri 400.
-Eksik/yanlış tip/null alan 400; boş veya uzun metin 422. Eksik/geçersiz cookie
-401 (önce Origin ihlali varsa 403), Admin/uygun olmayan profil 403; Authorization
-veya eksik CSRF 400. Pending veya onaylı mevcut profil ve yarışan ikinci başvuru
+Kimlik JWT'den çözülür. email/password/userId/role/isVerified girdileri 400.
+Eksik, yanlış tipli veya null alan 400, boş veya uzun metin 422 döner. Eksik veya
+geçersiz JWT 401, uygun olmayan rol veya profil 403, cookie ile birlikte JWT 400 döner.
+Pending veya onaylı mevcut profil ve yarışan ikinci başvuru
 409; public başvuru ile ortak IP başına 5/dakika limiti aşılırsa 429. Diğer hatalar
 ortak zarfı kullanır. Public `/dietitians/apply` yeni kullanıcı akışı değişmez;
-kayıtlı e-postanın 409 sonucu mevcut hesapla web girişine yönlendirilir.
+kayıtlı e-postanın 409 sonucu mevcut danışan hesabıyla mobil başvuruya yönlendirilir.
 
 **İstek profil bağlamı:** `/dietitian-relationships`, `/data-sharing-permissions`
 ve `/nutrition-plans` kaynaklarının mevcut işlemlerinde isteğe bağlı tek
 `X-Profile-Context` başlığı yalnız `client` veya `dietitian` kabul eder.
-Başlık yoksa imzalı temel rolün mevcut davranışı sürer; böylece Flutter'ın
-mevcut danışan çağrıları değişmez. `client` kendi ClientProfile'ını, `dietitian`
+JWT isteklerinde başlık yoksa imzalı temel rol uygulanır. Web cookie istekleri
+`dietitian` bağlamını kullanır ve açık `client` isteği 403 döner. JWT ile `client`
+kendi ClientProfile'ını, `dietitian`
 güncel Admin onaylı DietitianProfile'ını gerektirir; eksik/onaysız profil 403,
 yanlış/çoklu başlık 400. Başlık hesap kimliğini/rolünü değiştirmez ve yetki vermez.
 Web uzman alanı bu ortak uçlarda açıkça `dietitian` bağlamı gönderir.
@@ -235,8 +236,9 @@ kod aynı 422; kod kırpılıp büyük harfe normalize edilir. Kod ile birlikte 
 veya clientId/rol gibi ek girdi 400. İlişki talebi ve izin JSON gövdeleri 4096 byte.
 
 Farklı uzmanlara pending talepler olabilir; aynı çiftte ikinci pending veya
-aktif ilişkisi olan danışanın yeni talebi 409. Kabul ikinci aktif ilişki
-yaratamaz; diğer pending kayıtlar sessizce değiştirilmez. Geçersiz durum
+aktif ilişkisi olan danışanın yeni talebi `409 active_relationship_conflict`. İkinci
+aktif ilişki kurulmaya çalışıldığında kabul işlemi aynı hata kodunu döner.
+Diğer pending kayıtlar beklemeye devam eder. Geçersiz durum
 geçişi 409; yabancı ilişki/kayıt 404; kendi kaydında yanlış işlem rolü 403.
 İzin yazması pending/ended ilişkide 409; başka kategori veya dolu consentRecordId
 422. Eksik/gönderilemeyen query/gövde/ID biçimi 400; 413/415 ortak kurallardır.
@@ -721,7 +723,10 @@ Web akışı ayrı kaynak kullanır; JWT login'i çağırmaz, refresh token üre
   Authorization ve auth cookie birlikteyse `400`; başarısız kimlikten diğerine
   düşülmez. Geçerli web oturumuyla yeniden login `409 conflict`tir. Bozuk cookie
   kimlik sayılmaz; anonim CSRF ile yeniden giriş yapılabilir. Olmayan hesap,
-  yanlış parola, doğrulanmamış e-posta ve Admin aynı genel `401`i alır.
+  yanlış parola, doğrulanmamış e-posta, Admin ve diyetisyen profili bulunmayan
+  danışan aynı genel `401`i alır. Bekleyen başvurusu olan hesap başvuru takibine
+  erişebilir. Web çalışma alanı işlemleri onaylı uzman profili gerektirir. Çift
+  profilli hesabın web hesap özetindeki `displayName` diyetisyen profilinden gelir.
 - Web/API aynı HTTPS origin'dedir. Cookie'ler Secure/HttpOnly/SameSite=Strict,
   Path=/, Domain'sizdir: `__Host-smart-nutrition-session` ve
   `__Host-smart-nutrition-csrf`. Auth cookie tarayıcı oturum cookie'sidir;

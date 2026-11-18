@@ -77,7 +77,7 @@ ikisi de verilmemişse `$env:LOCALAPPDATA/SmartNutrition/dev-cert.pem` ve
 Web alt sürecinde `NODE_EXTRA_CA_CERTS` verilmemişse bu PEM kullanılır;
 mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır.
 
-- Web: [Giriş](https://localhost:5173/giris), [Kayıt](https://localhost:5173/kayit),
+- Web: [Diyetisyen girişi](https://localhost:5173/giris), [Diyetisyen başvurusu](https://localhost:5173/uzman-basvurusu),
   [E-posta doğrulama](https://localhost:5173/eposta-dogrulama).
 - Backend: [Swagger](https://localhost:7099/swagger),
   [liveness](https://localhost:7099/health/live),
@@ -184,7 +184,8 @@ API tüneli `tcp:7099 -> tcp:7099` olarak korunur. CA dosyaları yoksa başlatı
 ayrıca gerekir. Farklı hedefe bağlı mevcut tünel otomatik değiştirilmez;
 `adb -s emulator-5580 reverse --list` ile sahibini/hedefini kontrol edin.
 
-Doğrulama: Flutter Profil → Diyetisyen Olarak Başvur → Web Sitesine Git.
+Doğrulama için Flutter giriş ekranında **Diyetisyen hesabı için başvur**, ardından
+**Web Sitesine Git** seçilir.
 Android Chrome başvuru formunu uyarısız göstermeli; `chrome-error://` veya
 `NET::ERR_CERT_AUTHORITY_INVALID` başarı sayılmaz. AVD sıfırlanırsa kullanıcı
 CA'sı da silinir; açık sertifikayı tekrar yükleyin. Windows'a CA eklemeyin,

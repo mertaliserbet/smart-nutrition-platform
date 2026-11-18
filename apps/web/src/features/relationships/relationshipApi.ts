@@ -17,10 +17,15 @@ async function send(path: string, signal: AbortSignal, token?: string): Promise<
       headers: { 'X-Profile-Context': 'dietitian', ...(token ? { 'X-CSRF-TOKEN': token } : {}) } })
   } catch { throw new WebSessionError(0, 'Sunucuya ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.') }
   if (response.status !== 200) {
+    if (response.status === 409) {
+      const body = await response.json().catch(() => null) as { error?: { code?: unknown } } | null
+      if (body?.error?.code === 'active_relationship_conflict')
+        throw new WebSessionError(409, 'Danışanın zaten aktif bir diyetisyeni var. Mevcut bağlantı sonlanınca bu talebi kabul edebilirsiniz.')
+    }
     const message = response.status === 401 ? 'Oturumunuz sona ermiş olabilir. Yeniden giriş yapın.'
       : response.status === 403 ? 'Bu işlem için güncel erişim yetkiniz bulunmuyor.'
       : response.status === 404 ? 'Kayıt bulunamadı veya erişiminiz sona erdi.'
-      : response.status === 409 ? 'Bağlantının durumu değişmiş veya başka aktif bağlantı bulunuyor. Yeniden kontrol edin.'
+      : response.status === 409 ? 'Bağlantının durumu değişmiş. Bağlantıları yenileyin.'
       : response.status === 429 ? 'Çok fazla istek yapıldı. Bir süre bekleyip tekrar deneyin.'
       : response.status === 400 ? 'Oturum bağlamı değişmiş veya istek doğrulanamamış olabilir. Yeniden kontrol edin.'
       : 'İşlem tamamlanamadı. Yeniden kontrol edin.'

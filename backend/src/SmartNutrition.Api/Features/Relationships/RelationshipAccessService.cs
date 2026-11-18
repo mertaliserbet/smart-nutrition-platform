@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SmartNutrition.Api.Data;
+using SmartNutrition.Api.Features.Auth;
 using SmartNutrition.Api.Models;
 
 namespace SmartNutrition.Api.Features.Relationships;
@@ -28,7 +29,9 @@ public sealed class RelationshipAccessService(AppDbContext database)
             if (values.Count != 1 || values[0] is not ("client" or "dietitian")) throw new ResourceOperationException(400);
             context = values[0];
         }
-        if (asDietitian || context == "dietitian")
+        var web = principal.Identity?.AuthenticationType == WebSessionAuthentication.Scheme;
+        if (web && context == "client") throw new ResourceOperationException(403);
+        if (web || asDietitian || context == "dietitian" || (context is null && role == UserRole.Dietitian))
         {
             if (actor.DietitianId is null || !actor.IsDietitianVerified) throw new ResourceOperationException(403);
             return actor with { Role = UserRole.Dietitian };

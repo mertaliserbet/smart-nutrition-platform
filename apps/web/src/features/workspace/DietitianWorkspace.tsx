@@ -10,14 +10,14 @@ import { WorkspaceLayout } from './WorkspaceLayout'
 import { LiveDashboardPage } from './LiveDashboardPage'
 export function DietitianWorkspace() {
   const [session, setSession] = useState<WorkspaceSession>()
-  const [displayName, setDisplayName] = useState<string>()
+  const [profile, setProfile] = useState<{ displayName: string; email: string; token: string }>()
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const operation = useRef<AbortController | null>(null)
   const navigate = useNavigate()
   const onFailure = useCallback((error: unknown) => {
     if (error instanceof WebSessionError && [400, 401, 403].includes(error.status)) {
-      setSession(undefined); setDisplayName(undefined); setMessage(error.message)
+      setSession(undefined); setProfile(undefined); setMessage(error.message)
       if (error.status === 401) navigate('/giris', { replace: true })
       return true
     }
@@ -26,7 +26,7 @@ export function DietitianWorkspace() {
   async function load() {
     if (operation.current) return
     const controller = new AbortController(); operation.current = controller
-    setSession(undefined); setDisplayName(undefined); setMessage(''); setPending(true)
+    setSession(undefined); setProfile(undefined); setMessage(''); setPending(true)
     try {
       const token = await getCsrf(controller.signal)
       const user = await getAccount(controller.signal)
@@ -34,7 +34,7 @@ export function DietitianWorkspace() {
       const profile = await getDietitianStatus(controller.signal)
       if (!controller.signal.aborted) {
         if (!profile.isVerified) navigate('/uzman/basvuru-durumu', { replace: true })
-        else { setSession({ token, dietitianId: profile.id, onFailure }); setDisplayName(profile.displayName) }
+        else { setSession({ token, dietitianId: profile.id, onFailure }); setProfile({ token, displayName: profile.displayName, email: user.email }) }
       }
     } catch (error) {
       if (!controller.signal.aborted && !onFailure(error)) setMessage(error instanceof WebSessionError ? error.message : 'Çalışma alanı açılamadı.')
@@ -46,7 +46,7 @@ export function DietitianWorkspace() {
     // Restore once on entry; never poll to keep a session alive.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  return <WorkspaceLayout audience="dietitian" displayName={displayName}>
+  return <WorkspaceLayout audience="dietitian" profile={profile}>
         {pending && <><h1 tabIndex={-1}>Çalışma alanı</h1><p role="status">Hesap ve uzman doğrulaması kontrol ediliyor…</p></>}
         {message && <><h1 tabIndex={-1}>Çalışma alanı</h1><p className="form-message error-message" role="alert">{message}</p>
           <Link className="text-link" to="/uzman-basvurusu">Diyetisyen başvuru seçeneklerini aç</Link></>}

@@ -21,6 +21,20 @@ function enterCredentials() {
 }
 
 describe('web cookie session', () => {
+  it('returns to the requested dietitian login after clearing an administrator session conflict', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf())
+      .mockResolvedValueOnce(new Response(null, { status: 409 }))
+      .mockResolvedValueOnce(csrf()).mockResolvedValueOnce(Response.json({ ...userAccount, role: 'admin' }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const { user } = page()
+    enterCredentials()
+    await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
+    await user.click(await screen.findByRole('link', { name: 'Açık hesabı görüntüle ve çıkış yap' }))
+    await user.click(await screen.findByRole('button', { name: 'Çıkış yap' }))
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+    expect(request.mock.calls[4]?.[1]?.method).toBe('DELETE')
+  })
+
   it('logs in using CSRF and restores the account without tokens in JS storage or navigation', async () => {
     const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(account())
       .mockResolvedValueOnce(new Response(null, { status: 404 }))

@@ -5,6 +5,7 @@ import 'package:smart_nutrition_mobile/app.dart';
 import 'package:smart_nutrition_mobile/core/network/json_api.dart';
 import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
+import 'package:smart_nutrition_mobile/features/auth/login_api.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_api.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_finder_page.dart';
@@ -653,6 +654,16 @@ class _Session extends AuthSession {
   bool authenticated = true;
   @override
   bool get isAuthenticated => authenticated;
+  @override
+  CurrentUserResponse? get user => authenticated
+      ? const CurrentUserResponse(
+          id: '22222222-2222-4222-8222-222222222222',
+          displayName: 'Sentetik danışan',
+          email: 'synthetic@example.test',
+          role: 'client',
+          isEmailVerified: true,
+        )
+      : null;
   @override
   bool get isBlocking => false;
   @override

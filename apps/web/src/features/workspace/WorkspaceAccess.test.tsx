@@ -134,6 +134,26 @@ describe('workspace entry and session recovery', () => {
 })
 
 describe('administrator workspace', () => {
+  it('opens the profile from the avatar and logs out directly with the session CSRF token', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({ requestToken: 'workspace-csrf' }))
+      .mockResolvedValueOnce(Response.json(userAccount('admin'))).mockResolvedValueOnce(empty())
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const { user } = page('/yonetim/uzmanlar')
+    const avatar = await screen.findByRole('button', { name: 'Profil menüsü' })
+    expect(avatar).toHaveAttribute('aria-expanded', 'false')
+    await user.click(avatar)
+    expect(screen.getByText('synthetic@example.test')).toBeVisible()
+    await user.tab()
+    expect(screen.getByRole('link', { name: 'Hesabım' })).toHaveFocus()
+    await user.keyboard('{Escape}')
+    expect(avatar).toHaveFocus()
+    expect(screen.queryByRole('button', { name: 'Çıkış yap' })).not.toBeInTheDocument()
+    await user.click(avatar)
+    await user.click(screen.getByRole('button', { name: 'Çıkış yap' }))
+    expect(await screen.findByRole('heading', { name: 'Yönetici girişi' })).toBeVisible()
+    expect(request.mock.calls[3]?.[1]).toMatchObject({ method: 'DELETE', headers: { 'X-CSRF-TOKEN': 'workspace-csrf' } })
+  })
+
   it('reads approved applications with the existing filter and provides no approval mutation for them', async () => {
     const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({ requestToken: 'csrf' }))
       .mockResolvedValueOnce(Response.json(userAccount('admin'))).mockResolvedValueOnce(empty())

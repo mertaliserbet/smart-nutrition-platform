@@ -6,6 +6,7 @@ import { ThemeControl } from '../../core/theme/ThemeProvider'
 import { DashboardPage } from './DashboardPage'
 import { ClientsPage } from '../clients/ClientsPage'
 import { ClientDetailsPage } from '../clients/ClientDetailsPage'
+import { WorkspaceProfileMenu } from './WorkspaceProfileMenu'
 
 function RequestsPage() {
   return (
@@ -50,7 +51,15 @@ export function WorkspacePreview() {
         </div>
       </aside>
       <div className="workspace-body">
-        <header className="workspace-header"><div className="workspace-context"><span>Diyetisyen paneli</span><span className="header-divider">/</span><strong>Çalışma alanı</strong></div><div className="header-actions"><ThemeControl /><Link to="/giris" className="header-login">Giriş ekranı<Icon name="arrow" /></Link></div></header>
+        <header className="workspace-header">
+          <div className="workspace-context"><span>Diyetisyen paneli</span><span className="header-divider">/</span><strong>Çalışma alanı</strong></div>
+          <div className="header-actions">
+            <ThemeControl />
+            <WorkspaceProfileMenu displayName="Panel önizlemesi">
+              <Link to="/giris">Giriş yap<Icon name="arrow" /></Link>
+            </WorkspaceProfileMenu>
+          </div>
+        </header>
         <div className="workspace-notice"><span className="preview-badge">Önizleme</span><p>Hesap ve danışan verisi bağlı değil. Gösterilen alanlar yalnızca tasarımı incelemek içindir.</p></div>
         <main id="main-content" className="workspace-main">
           <Routes>

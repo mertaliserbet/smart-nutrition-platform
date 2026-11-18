@@ -100,7 +100,7 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
       </div>}
       {errorMessage && <p className="form-message error-message" role="alert">{errorMessage}</p>}
       {notice && <p className="form-message" role="status">{notice}</p>}
-      {sessionConflict && <Link className="button button-secondary form-submit" to="/hesabim">Açık hesabı görüntüle ve çıkış yap</Link>}
+      {sessionConflict && <Link className="button button-secondary form-submit" to="/hesabim" state={{ returnTo: '/giris' }}>Açık hesabı görüntüle ve çıkış yap</Link>}
       <button className="button button-primary form-submit" type="submit" disabled={busy}>
         {busy ? 'İşlem sürüyor…' : isLogin ? 'Giriş yap' : 'Sıfırlama bağlantısı iste'}{!busy && <Icon name="arrow" />}
       </button>
@@ -109,41 +109,19 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
 }
 
 const loginOptions = [
-  {
-    label: 'Kayıt ve başvuru', icon: 'users',
-    links: [
-      { to: '/kayit', label: 'Danışan hesabı oluştur' },
-      { to: '/uzman-basvurusu', label: 'Diyetisyen başvurusu yap' },
-    ],
-  },
-  {
-    label: 'Hesap ve yönetim', icon: 'shield',
-    links: [
-      { to: '/eposta-dogrulama', label: 'E-postamı doğrula' },
-      { to: '/hesabim', label: 'Hesabımı aç' },
-      { to: '/yonetici-giris', label: 'Yönetici girişi' },
-    ],
-  },
+  { to: '/uzman-basvurusu', label: 'Diyetisyen başvurusu yap', icon: 'users' },
+  { to: '/yonetici-giris', label: 'Yönetici girişi', icon: 'shield' },
 ] as const
 
 function LoginOptions() {
   return (
-    <nav className="login-options" aria-label="Diğer giriş ve hesap işlemleri">
-      {loginOptions.map(({ label, icon, links }) => (
-        <details className="login-option" name="login-options" key={label}>
-          <summary>
-            <span className="login-option-icon"><Icon name={icon} /></span>
-            <span>{label}</span>
-            <span className="login-option-chevron" aria-hidden="true" />
-          </summary>
-          <ul>
-            {links.map(link => (
-              <li key={link.to}>
-                <Link to={link.to}>{link.label}<Icon name="arrow" /></Link>
-              </li>
-            ))}
-          </ul>
-        </details>
+    <nav className="login-options" aria-label="Başvuru ve yönetici girişi">
+      {loginOptions.map(({ to, label, icon }) => (
+        <Link className="login-option" key={to} to={to}>
+          <span className="login-option-icon"><Icon name={icon} /></span>
+          <span>{label}</span>
+          <Icon name="arrow" />
+        </Link>
       ))}
       {import.meta.env.DEV && (
         <Link className="text-link login-preview-link" to="/onizleme"><Icon name="grid" />Panel tasarımını incele</Link>
@@ -161,6 +139,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
       description={isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
       {!isLogin && <div className="preview-note"><Icon name="info" /><p>Bu ekran bir arayüz önizlemesidir. Bu aşamada sıfırlama e-postası gönderilmez.</p></div>}
       <AuthForm key={mode} mode={mode} />
+      {isLogin && <p className="auth-description">Danışan kaydı ve danışan işlemleri mobil uygulamada yapılır.</p>}
       {isLogin && <LoginOptions />}
     </AuthLayout>
   )

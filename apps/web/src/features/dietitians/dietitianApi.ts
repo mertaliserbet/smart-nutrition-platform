@@ -3,10 +3,9 @@ import { WebSessionError } from '../auth/webSessionApi'
 export type DietitianStatusResponse = { id: string; displayName: string; isVerified: boolean }
 export type DietitianReviewItem = DietitianStatusResponse & { licenseInfo: string }
 export type DietitianApplicationRequest = { email: string; password: string; displayName: string; licenseInfo: string }
-export type ExistingDietitianApplicationRequest = Pick<DietitianApplicationRequest, 'displayName' | 'licenseInfo'>
 const uuid = /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i
 
-async function send(path: string, signal: AbortSignal, method = 'GET', token?: string, body?: DietitianApplicationRequest | ExistingDietitianApplicationRequest): Promise<unknown> {
+async function send(path: string, signal: AbortSignal, method = 'GET', token?: string, body?: DietitianApplicationRequest): Promise<unknown> {
   let response: Response
   try {
     response = await fetch(`/api/v1/${path}`, {
@@ -19,7 +18,7 @@ async function send(path: string, signal: AbortSignal, method = 'GET', token?: s
     const message = response.status === 401 ? 'Oturumunuz doğrulanamadı. Yeniden giriş yapın.'
       : response.status === 403 ? 'Bu işlem için yetkiniz bulunmuyor.'
       : response.status === 404 ? 'Bu hesaba bağlı bir diyetisyen başvurusu bulunmuyor.'
-      : response.status === 409 ? (path === 'dietitians/me/application' ? 'Bu hesabın zaten bir başvurusu var. Başvuru durumunu yeniden kontrol edin.' : body ? 'Bu e-posta kayıtlı olabilir. Mevcut hesabınızla giriş yapıp başvurabilirsiniz.' : 'Uzmanın e-posta doğrulaması tamamlanmadan onay verilemez.')
+      : response.status === 409 ? (body ? 'Bu e-posta kayıtlı olabilir. Danışan hesabınızla mobil uygulamadan başvurabilirsiniz.' : 'Uzmanın e-posta doğrulaması tamamlanmadan onay verilemez.')
       : response.status === 429 ? 'Çok fazla istek yapıldı. Bir süre bekleyip tekrar deneyin.'
       : response.status === 400 || response.status === 422 ? 'Bilgiler veya oturum bağlamı doğrulanamadı. Kontrol edip tekrar deneyin.'
       : 'İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin.'
@@ -49,12 +48,6 @@ export async function applyDietitian(body: DietitianApplicationRequest, signal: 
 
 export async function getDietitianStatus(signal: AbortSignal) {
   return status(await send('dietitians/me', signal)) as DietitianStatusResponse
-}
-
-export async function applyExistingDietitian(body: ExistingDietitianApplicationRequest, token: string, signal: AbortSignal) {
-  const result = status(await send('dietitians/me/application', signal, 'POST', token, body)) as DietitianStatusResponse
-  if (result.isVerified) throw new WebSessionError(500, 'Başvuru sonucu doğrulanamadı.')
-  return result
 }
 
 export async function listApplications(page: number, signal: AbortSignal, isVerified = false) {

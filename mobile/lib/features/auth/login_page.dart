@@ -8,6 +8,7 @@ import 'forgot_password_page.dart';
 import 'register_page.dart';
 import 'auth_session.dart';
 import 'login_api.dart';
+import '../profile/dietitian_application_info_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({this.isLoading = false, this.errorMessage, super.key});
@@ -70,9 +71,8 @@ class _LoginPageState extends State<LoginPage> {
     FocusScope.of(context).unfocus();
     _password.clear();
     setState(() => _feedback = null);
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (context) => page));
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (context) => page));
   }
 
   @override
@@ -107,6 +107,12 @@ class _LoginPageState extends State<LoginPage> {
                 'E-posta doğrulama hakkında',
                 textAlign: TextAlign.center,
               ),
+            ),
+            TextButton(
+              onPressed: _busy
+                  ? null
+                  : () => _openPage(const DietitianApplicationInfoPage()),
+              child: const Text('Diyetisyen hesabı için başvur'),
             ),
           ],
         ),

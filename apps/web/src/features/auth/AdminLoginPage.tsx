@@ -36,15 +36,19 @@ export function AdminLoginPage() {
     try {
       await requestAdminEmailCode({ email: email.trim(), password }, controller.signal)
       if (!controller.signal.aborted) {
-        setNotice('Bilgileriniz uygunsa giriş kodu e-postanıza gönderildi. Mailpit’teki 6 haneli kodu girin; kod 5 dakika geçerlidir.')
+        setNotice('Giriş kodu isteği alındı. Mailpit’teki 6 haneli kodu girin. Kod 5 dakika geçerlidir.')
         setSecondsLeft(60); setRetryAt(Date.now() + 60_000)
       }
     } catch (error) {
       if (!controller.signal.aborted) {
         if (error instanceof WebSessionError && error.status === 409) setSessionConflict(true)
-        setMessage(error instanceof WebSessionError && error.status === 404
-          ? 'Bu ortamda e-posta kodu kullanılamıyor. Kimlik doğrulayıcı veya kurtarma koduyla giriş yapın.'
-          : error instanceof WebSessionError ? error.message : 'Kod isteği tamamlanamadı.')
+        if (error instanceof WebSessionError && error.status === 401) {
+          setMessage('E-posta adresi veya şifre hatalı.')
+        } else if (error instanceof WebSessionError && error.status === 404) {
+          setMessage('Bu ortamda e-posta kodu kullanılamıyor. Kimlik doğrulayıcı veya kurtarma koduyla giriş yapın.')
+        } else {
+          setMessage(error instanceof WebSessionError ? error.message : 'Kod isteği tamamlanamadı.')
+        }
       }
     } finally { if (!controller.signal.aborted) { operation.current = null; setPending(false) } }
   }
@@ -90,6 +94,6 @@ export function AdminLoginPage() {
       <button className="button button-primary form-submit" disabled={pending} type="submit">{pending ? 'Giriş doğrulanıyor…' : 'Güvenli giriş yap'}</button>
     </form>
     <Link className="preview-link" to="/hesabim" state={{ returnTo: '/yonetici-giris' }}>Açık yönetici hesabımı kontrol et</Link>
-    <Link className="preview-link" to="/giris">Diyetisyen / danışan girişine dön</Link>
+    <Link className="preview-link" to="/giris">Diyetisyen girişine dön</Link>
   </AuthLayout>
 }

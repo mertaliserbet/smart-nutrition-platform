@@ -1,5 +1,11 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+**17.11.2026:** Web girişi, başvurusu bulunan diyetisyen profilleri ve MFA ile
+giriş yapan yöneticiler içindir. Danışan işlemleri mobil uygulamada yapılır.
+Panelin sağ üstündeki avatar hesap ve çıkış menüsünü açar. Çıkış onaylandığında
+ilgili giriş ekranına dönülür. Web uzman işlemleri aktif ilişki ve ilgili
+kategori izinlerini sunucuda denetler (`06/12`).
+
 **N1–N3 durumu (29.10.2026):** Gerçek danışan detayında izinli program
 listesi, taslak formu, gün/miktar/alternatif grupları, kendi atadığı programı
 düzenleme, açık etkinleştirme/arşivleme ve salt okunur sürüm geçmişi API'ye

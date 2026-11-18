@@ -152,16 +152,21 @@ class _DietitianFinderPageState extends State<DietitianFinderPage> {
       await _loadConnections();
     } catch (error) {
       if (!mounted) return;
+      final activeConflict =
+          error is DietitianApiException &&
+          error.code == 'active_relationship_conflict';
       setState(() {
         _connectionsReady = false;
-        _message =
-            '${_error(error)} Tekrar göndermeden “Bağlantıları yenile” ile durumu kontrol edin.';
+        _message = activeConflict
+            ? _error(error)
+            : '${_error(error)} Tekrar göndermeden “Bağlantıları yenile” ile durumu kontrol edin.';
         if (error is DietitianApiException && error.statusCode == 429) {
           _retryAt = DateTime.now().add(
             error.retryAfter ?? const Duration(minutes: 1),
           );
         }
       });
+      if (activeConflict) await _loadConnections();
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -324,8 +329,7 @@ class _DietitianFinderPageState extends State<DietitianFinderPage> {
                     ),
                     if (_active != null)
                       Text(
-                        _names[_active!.dietitianId] ??
-                            'Bağlantınız aktif. Yeni bağlantı isteği gönderemezsiniz.',
+                        _names[_active!.dietitianId] ?? 'Bağlantınız aktif. Yeni bağlantı isteği gönderemezsiniz.',
                       ),
                     const SizedBox(height: 12),
                     Text('Bekleyen istekler ($_pendingTotal)'),

@@ -30,10 +30,11 @@ public sealed class CurrentUserService(AppDbContext database, TimeProvider? cloc
 
         // Project only the approved fields; optional profile navigation becomes a LEFT JOIN.
         // Recheck the current account, so deleted/restricted accounts and stale roles do not expose profile data.
+        var web = principal.Identity.AuthenticationType == WebSessionAuthentication.Scheme;
         return await database.Users.AsNoTracking()
             .Where(user => user.Id == userId && user.IsEmailVerified && user.Role == role)
             .Select(user => new CurrentUserResponse(user.Id,
-                user.Role == UserRole.Dietitian
+                user.Role == UserRole.Dietitian || (web && user.Role == UserRole.Client)
                     ? (user.DietitianProfile == null ? null : user.DietitianProfile.DisplayName)
                     : (user.ClientProfile == null ? null : user.ClientProfile.DisplayName),
                 user.Email, user.Role, user.IsEmailVerified))

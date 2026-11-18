@@ -27,18 +27,22 @@ kurtarma kodu kurulumu/adımı değişmez; Admin bearer yasağı sürer.
 
 6 hane/5 dakika/tek kullanım; 60 saniye aralık, IP başına 5 talep/dakika,
 kod başına 5 başarısız deneme. Yalnız salt+hash süreç belleğinde tutulur; kodlar,
-parolalar, MFA sırları ve SMTP hata içerikleri loglanmaz. Genel boş `202` hesap
-varlığını/teslimi açıklamaz. HTTPS/Origin/CSRF ve açık oturum çakışması korunur.
+parolalar, MFA sırları ve SMTP hata içerikleri loglanmaz. Bilinmeyen hesap,
+yanlış parola ve uygun olmayan hesap aynı genel `401` yanıtını alır. Kabul edilen
+isteğin boş `202` yanıtı teslim durumunu açıklamaz. HTTPS/Origin/CSRF ve açık
+oturum çakışması korunur.
 Üretim e-posta MFA/kurtarma sistemi bu değişiklikten türetilmez.
 
 ## 02.11.2026 — Çift profil yetki ayrımı
 
-Mevcut doğrulanmış danışanın uzman başvurusu cookie/HTTPS/Origin/CSRF ile kendi
-User'ına bağlanır; rol, hesap kimliği ve onay bayrağı istemciden alınmaz. Pending
+17.11.2026 itibarıyla mevcut doğrulanmış danışanın uzman başvurusu mobil JWT
+üzerinden kendi User'ına bağlanır. Sunucu kimliği ve kimlik bilgisi sürümünü
+işlem sırasında tekrar denetler. Pending
 profil yetki vermez. Admin MFA onayı sonrası temel rol/token/cookie değişmez;
 uzman kaynakları güncel onaylı profili, aktif ilişkiyi ve gerekli kategori iznini
 sunucuda denetler. Ortak uçların X-Profile-Context başlığı yalnız işlem bağlamını
-seçer; kendi danışan verisiyle diğer danışanların uzman verileri karıştırılmaz.
+seçer. Web oturumu yalnız uzman bağlamına izin verir. Mobil JWT ile açık profil
+bağlamı ve işlem yetkisi birlikte denetlenir.
 Kendi iki profili arasında ilişki kurulamaz. Admin'in sağlık erişimi açılmaz;
 mevcut danışan verileri, ilişkileri, JWT sürüm kontrolü ve oturum iptali korunur.
 

@@ -5,7 +5,7 @@
 Başarılı hesap girişinden sonra `GET /dietitians/me` ile güncel uzman profili
 kontrol edilir. `role=client` kalan çift profilli hesaplar dahil, onaylı uzmanlar
 `/calisma-alani` genel bakışına; bekleyen başvurular başvuru durumuna yönlenir.
-Uzman profili olmayan danışan hesabı `/hesabim` ekranında kalır. Profil kontrolü
+Uzman profili olmayan danışan için giriş ve kayıt mobil uygulamadadır. Profil kontrolü
 başarısız olduğunda oluşturulmuş oturum korunur ve hesap ekranından yeniden
 kontrol/çıkış yapılabilir. Çalışma alanı girişte onayı tekrar sunucudan doğrular.
 
@@ -24,14 +24,12 @@ Bu web düzeltmeleri API/DTO, backend, mobil veya migration değiştirmez.
 Veritabanı migration uygulaması ve yerel Admin kurulumu `backend/README.md`
 adımlarına göre ayrıca yapılır; web tarayıcısından bu işlemler çalıştırılmaz.
 
-## 02.11.2026 — Aynı hesapla diyetisyen başvurusu
+## 17.11.2026 — Web oturumu ve diyetisyen başvurusu
 
-`/uzman-basvurusu` yeni hesap veya mevcut doğrulanmış web hesabı seçimini sunar.
-Mevcut hesapta parola/e-posta yeniden alınmaz; yalnız ad ve mesleki açıklama
-cookie/CSRF ile gönderilir. Pending/onaylı başvuru tekrar oluşturulmaz. Hesap
-sayfasından başvuruya ulaşılır; Admin onayı sonrası role=client hesabı da uzman
-alanını kullanır. Uzman API çağrıları ortak uçlarda X-Profile-Context: dietitian
-gönderir; sunucu yetkilendirmesi, MFA ve danışan verileri korunur. Yeni paket yoktur.
+`/uzman-basvurusu` yeni diyetisyen hesabı açar. Mevcut danışan hesabıyla başvuru,
+mobil uygulamanın Profil ekranından yapılır. Onaylı çift profilli hesap webde
+diyetisyen çalışma alanına erişebilir. Panelin sağ üstündeki avatardan **Hesabım**
+ve **Çıkış yap** açılır. Sunucu çıkışı doğruladığında ilgili giriş ekranına dönülür.
 
 ## Gerçek program oluşturma ve atama — N1–N3
 
@@ -163,7 +161,10 @@ backend'in yalnız `http` profiliyle görsel/kayıt/e-posta yollarını destekle
 cookie oturumu HTTP'de açılmaz. Üretimde aynı HTTPS origin altında
 API proxy'si gerekir; Vite preview API proxy'si sağlamaz.
 
-## Danışan kaydı
+## Danışan web kaydı — 28.10.2026 arşivi
+
+17.11.2026 itibarıyla danışan kaydı mobil uygulamada yapılır. Eski `/kayit`
+adresi web girişine yönlendirir. Aşağıdaki açıklamalar önceki uygulamaya aittir.
 
 Girişteki **Danışan hesabı oluştur** bağlantısı `/kayit` ekranını açar. Form,
 `POST /api/v1/auth/register` yoluna yalnız `displayName`, `email`, `password`
@@ -228,9 +229,9 @@ Doğrulama otomatik giriş, uzman doğrulaması veya panel erişimi sağlamaz.
 Yerel geliştirmede backend'i `backend/README.md` adımlarıyla PostgreSQL,
 Mailpit ve JWT yapılandırmasıyla HTTP kullanımında `http://127.0.0.1:5052`
 üzerinde (`http` profili) çalıştırın. HTTPS kullanımında yukarıdaki W2
-kurulumuyla `https://localhost:7099` hedeflenir. Vite geliştirme sunucusu kayıt
-ve bu iki doğrulama API yolunu ilgili hedefe proxy eder. Sentetik bir
-hesabı `/kayit` ekranıyla oluşturup Mailpit'teki kodla doğrulayabilirsiniz.
+kurulumuyla `https://localhost:7099` hedeflenir. Vite geliştirme sunucusu bu iki
+doğrulama API yolunu ilgili hedefe proxy eder. Sentetik bir diyetisyen hesabı
+için `/uzman-basvurusu` formunu ve Mailpit'teki doğrulama kodunu kullanın.
 Backend kapalıysa ekran bağlantı/işlem
 hatası gösterir. `npm run preview` API proxy'si sağlamaz; dağıtımda aynı origin
 altındaki bu API yolları backend'e yönlendirilmelidir. Üretime yayın `docs/11`

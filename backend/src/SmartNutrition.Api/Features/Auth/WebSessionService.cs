@@ -56,7 +56,8 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         // Security mutations acquire this same lock before changing User and revoking sessions.
         var locked = await database.Users.FromSqlInterpolated($"SELECT * FROM users WHERE id = {candidate.Id} FOR UPDATE")
             .AsNoTracking().SingleOrDefaultAsync(cancellationToken);
-        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.CredentialsVersion != candidate.CredentialsVersion || !locked.IsEmailVerified || locked.Role != candidate.Role)
+        if (locked is null || locked.PasswordHash != candidate.PasswordHash || locked.CredentialsVersion != candidate.CredentialsVersion || !locked.IsEmailVerified || locked.Role != candidate.Role ||
+            !await database.DietitianProfiles.AnyAsync(profile => profile.UserId == locked.Id, cancellationToken))
             return null;
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
@@ -101,7 +102,8 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         return await database.AuthSessions.AsNoTracking().AnyAsync(session => session.Id == sessionId && session.UserId == userId &&
             session.RevokedAt == null && session.IdleExpiresAt > now && session.AbsoluteExpiresAt > now &&
             (role != UserRole.Admin || session.IsMfaVerified) &&
-            database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role), cancellationToken);
+            database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role &&
+                (role == UserRole.Admin || user.DietitianProfile != null)), cancellationToken);
     }
 
     // Called only after an authorized account read succeeds; authentication/CSRF/probes never extend idle time.
@@ -114,7 +116,8 @@ public sealed class WebSessionService(AppDbContext database, ILookupNormalizer n
         return await database.AuthSessions.Where(session => session.Id == sessionId && session.UserId == userId && session.RevokedAt == null &&
             session.IdleExpiresAt > now && session.AbsoluteExpiresAt > now &&
             (role != UserRole.Admin || session.IsMfaVerified) &&
-            database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role))
+            database.Users.Any(user => user.Id == userId && user.IsEmailVerified && user.Role == role &&
+                (role == UserRole.Admin || user.DietitianProfile != null)))
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(session => session.LastSeenAt, session => session.LastSeenAt > now ? session.LastSeenAt : now)
                 .SetProperty(session => session.IdleExpiresAt, session => session.IdleExpiresAt > idle ? session.IdleExpiresAt :

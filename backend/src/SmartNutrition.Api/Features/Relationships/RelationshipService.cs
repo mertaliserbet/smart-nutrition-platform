@@ -37,7 +37,7 @@ public sealed class RelationshipService(AppDbContext database, RelationshipAcces
         await using var transaction = await database.Database.BeginTransactionAsync(token);
         await access.LockActorAsync(actor, token); await access.LockClientAsync(actor.ClientId.Value, token);
         if (await database.DietitianClientRelationships.AnyAsync(x => x.ClientId == actor.ClientId && x.Status == RelationshipStatus.Active, token))
-            throw new ResourceOperationException(409);
+            throw new ResourceOperationException(409, "active_relationship_conflict");
         var code = request.InvitationCode?.Trim().ToUpperInvariant();
         Guid? targetId = request.DietitianId;
         if (code is not null)
@@ -90,7 +90,7 @@ public sealed class RelationshipService(AppDbContext database, RelationshipAcces
             {
                 if (row.Status != RelationshipStatus.Pending) throw new ResourceOperationException(409);
                 if (action == "accept" && await database.DietitianClientRelationships.AnyAsync(x => x.ClientId == row.ClientId && x.Status == RelationshipStatus.Active, token))
-                    throw new ResourceOperationException(409);
+                    throw new ResourceOperationException(409, "active_relationship_conflict");
                 // Recheck expert verification inside the write transaction as well.
                 if (!await database.DietitianProfiles.AnyAsync(x => x.Id == actor.DietitianId && x.IsVerified, token)) throw new ResourceOperationException(403);
                 row.Respond(target, clock.GetUtcNow());

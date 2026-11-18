@@ -110,6 +110,17 @@ describe('authenticated dietitian workspace', () => {
     expect(request).toHaveBeenCalledTimes(5)
   })
 
+  it('keeps the pending request when the client already has an active dietitian', async () => {
+    const request = gated().mockResolvedValueOnce(Response.json({ items: [relation()], totalCount: 1 }))
+      .mockResolvedValueOnce(Response.json({ error: { code: 'active_relationship_conflict' }, requestId: 'synthetic' }, { status: 409 }))
+    const { user } = setup('/calisma-alani/baglantilar')
+    await user.click(await screen.findByRole('button', { name: 'Kabul et' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Danışanın zaten aktif bir diyetisyeni var.')
+    expect(screen.queryByText('Bağlantı kabul edildi.')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reddet' })).toBeEnabled()
+    expect(request).toHaveBeenCalledTimes(5)
+  })
+
   it('rejects a foreign dietitian response before showing relationship data', async () => {
     gated().mockResolvedValueOnce(Response.json({ items: [{ ...relation(), dietitianId: client }], totalCount: 1 }))
     setup('/calisma-alani/baglantilar')

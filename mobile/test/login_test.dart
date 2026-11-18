@@ -5,6 +5,7 @@ import 'package:smart_nutrition_mobile/app.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_api.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
+import 'package:smart_nutrition_mobile/features/dietitians/dietitian_account_page.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 
@@ -102,7 +103,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(session.isAuthenticated, isTrue);
     expect(session.user!.role, 'dietitian');
-    expect(find.byType(MainShell), findsOneWidget);
+    expect(find.byType(DietitianAccountPage), findsOneWidget);
+    expect(find.byType(MainShell), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     session.dispose();
   });

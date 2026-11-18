@@ -9,11 +9,15 @@ export function AccountPage() {
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
   const [logoutFailed, setLogoutFailed] = useState(false)
+  const [accountReturn, setAccountReturn] = useState('/giris')
   const context = useRef<{ token: string; userId: string; returnTo: string } | null>(null)
   const operation = useRef<AbortController | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
-  const returnTo = location.state?.returnTo === '/yonetici-giris' ? '/yonetici-giris' : '/giris'
+  const [recovering, setRecovering] = useState(location.state?.logoutRecovery === true)
+  const requestedReturn = location.state?.returnTo === '/yonetici-giris' || location.state?.returnTo === '/giris'
+    ? location.state.returnTo as '/yonetici-giris' | '/giris' : undefined
+  const returnTo = requestedReturn ?? accountReturn
 
   async function load() {
     if (operation.current) return
@@ -29,7 +33,9 @@ export function AccountPage() {
       const token = await getCsrf(controller.signal)
       const user = await getAccount(controller.signal)
       if (!controller.signal.aborted) {
-        context.current = { token, userId: user.id, returnTo: user.role === 'admin' ? '/yonetici-giris' : returnTo }
+        const destination = user.role === 'admin' ? '/yonetici-giris' : '/giris'
+        context.current = { token, userId: user.id, returnTo: requestedReturn ?? destination }
+        setAccountReturn(destination)
         setAccount(user)
       }
     } catch (error) {
@@ -57,6 +63,7 @@ export function AccountPage() {
     operation.current = controller
     setAccount(undefined)
     setMessage('')
+    setRecovering(false)
     setPending(true)
     try {
       let token = captured.token
@@ -85,25 +92,25 @@ export function AccountPage() {
     }
   }
 
-  return <AuthLayout title="Hesabım" badge="Hesap" description="Hesap bilgilerinizi görüntüleyebilir ve oturumunuzu kapatabilirsiniz.">
+  return <AuthLayout title="Hesabım" badge="Hesap" backTo={returnTo} description="Hesap bilgilerinizi görüntüleyebilir ve oturumunuzu kapatabilirsiniz.">
     {pending && <p role="status">İşlem sürüyor…</p>}
     {message && <p className="form-message error-message" role="alert">{message}</p>}
+    {account && recovering && <p className="form-message error-message" role="alert">Çıkış doğrulanamadı. Devam etmeden önce açık hesabı kontrol edin.</p>}
     {account && typeof location.state?.accessNotice === 'string' && <p className="form-message" role="status">{location.state.accessNotice}</p>}
     {account && <section aria-label="Hesap bilgileri">
       <dl className="account-details">
         <dt>Ad</dt><dd>{account.displayName ?? 'Belirtilmemiş'}</dd>
         <dt>E-posta</dt><dd>{account.email}</dd>
-        <dt>Hesap türü</dt><dd>{account.role === 'client' ? 'Danışan' : account.role === 'admin' ? 'Yönetici' : 'Diyetisyen'}</dd>
+        <dt>Web profili</dt><dd>{account.role === 'admin' ? 'Yönetici' : 'Diyetisyen'}</dd>
         <dt>E-posta doğrulaması</dt><dd>Doğrulandı</dd>
       </dl>
       {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
-      {account.role === 'client' && <Link className="preview-link" to="/uzman-basvurusu">Mevcut hesabımla diyetisyen başvurusu</Link>}
       {account.role !== 'admin' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
       {account.role !== 'admin' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
       <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>
     </section>}
     {logoutFailed && <button className="button button-primary form-submit" disabled={pending} onClick={() => { void signOut() }}>Çıkışı tekrar dene</button>}
     {!account && !pending && <button className="button button-secondary form-submit" onClick={() => { void load() }}>Hesabı yeniden kontrol et</button>}
-    <Link className="preview-link" to="/giris">Giriş ekranına git</Link>
+    <Link className="preview-link" to={returnTo}>Giriş ekranına git</Link>
   </AuthLayout>
 }

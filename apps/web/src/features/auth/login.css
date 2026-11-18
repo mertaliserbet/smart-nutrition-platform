@@ -14,33 +14,21 @@
 }
 
 .login-option {
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-page);
-  transition: border-color 180ms ease, background-color 180ms ease;
-}
-
-.login-option[open] {
-  border-color: var(--brand-primary);
-  background: var(--surface);
-}
-
-.login-option summary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   min-height: 52px;
   padding: 8px 14px 8px 10px;
-  border-radius: 11px;
-  list-style: none;
-  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-page);
   font-size: 13px;
   font-weight: 600;
 }
 
-.login-option summary::-webkit-details-marker { display: none; }
-.login-option summary:hover { color: var(--brand-primary); }
+.login-option:hover { border-color: var(--brand-primary); color: var(--brand-strong); background: var(--brand-soft); }
+.login-option > .icon { width: 16px; height: 16px; color: var(--brand-primary); }
 
 .login-option-icon {
   display: grid;
@@ -54,40 +42,6 @@
 
 .login-option-icon .icon { width: 18px; height: 18px; }
 
-.login-option-chevron {
-  width: 8px;
-  height: 8px;
-  margin: -4px 3px 0;
-  border: solid var(--text-secondary);
-  border-width: 0 1.5px 1.5px 0;
-  transform: rotate(45deg);
-  transition: transform 180ms ease;
-}
-
-.login-option[open] .login-option-chevron { transform: translateY(4px) rotate(225deg); }
-
-.login-option ul {
-  margin: 0 10px;
-  padding: 5px 0 8px;
-  list-style: none;
-  border-top: 1px solid var(--border);
-}
-
-.login-option a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 44px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: var(--text-primary);
-  font-size: 13px;
-}
-
-.login-option a:hover { color: var(--brand-primary); background: var(--brand-soft); }
-.login-option a:focus-visible { outline-offset: -2px; }
-.login-option a .icon { width: 16px; height: 16px; color: var(--brand-primary); }
 .login-preview-link { justify-self: start; padding-inline: 10px; }
 
 @media (max-width: 700px) {
@@ -96,15 +50,4 @@
   .auth-layout-login .auth-header { padding-block: 8px; }
   .auth-layout-login .auth-content { padding-block: 10px 24px; }
   .auth-layout-login .auth-icon { display: none; }
-}
-
-@supports (interpolate-size: allow-keywords) {
-  .login-option::details-content {
-    block-size: 0;
-    overflow: clip;
-    interpolate-size: allow-keywords;
-    transition: block-size 220ms ease, content-visibility 220ms allow-discrete;
-  }
-
-  .login-option[open]::details-content { block-size: auto; }
 }
