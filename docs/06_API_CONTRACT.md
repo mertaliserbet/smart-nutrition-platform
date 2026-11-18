@@ -1,5 +1,46 @@
 # 06 — HTTP API ortak sözleşmesi
 
+## 18.11.2026 — K1–K4 seçilen sürümle günlük tüketim karşılaştırması
+
+Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
+
+`GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison?from=...&to=...`
+
+- Başarı 200 NutritionPlanMealComparisonResponse; tüm alan/tip ve hesaplar
+  `05`in K1–K4 bölümündedir. nutritionPlanVersion mevcut sürüm DTO'sudur;
+  nullable caloriesDifferenceKcal yanıtta atlanmaz. Ham öğün listesi dönmez.
+- from/to zorunlu, tek değerli, açık offsetli ISO 8601; `+` URL'de encode
+  edilir. Yerel saatleri 00:00, yerel tarihleri ardışık ve from<to gerekir.
+  Offsetler farklı olabilir (23/25 saatlik gün). date başlangıcın offsetli
+  takvim tarihidir; sunucunun yerel/UTC günü kullanılmaz. Yanıttaki from/to
+  UTC instant'tır. Aralık `[from,to)`; iki sınırdaki offset istemcinin açık
+  seçimidir, danışanın kayıtlı saat dilimi anlamına gelmez. Bu dilim genel
+  hesap saat dilimi/ayar modelini kapatmaz; mevcut su günlük toplamıyla aynı
+  sınır doğrulamasını kullanır.
+- UUID'ler ve versionId'nin bu programa ait olması gerekir. Query'de başka
+  alan, tekrar, eksik/bozuk sınır veya GET gövdesi 400. Snapshot tarih
+  aralığı dışında geçerli gün veya sayısal toplamın decimal sınırını aşması
+  422; yok/yabancı program veya sürüm 404. Diğer yöntemler desteklenmez.
+- Mevcut JWT veya W2 cookie/profil bağlamı. Danışan kendi programı/tüketimini
+  diyetisyen ilişkisi olmadan okur. Web cookie danışan profili açmaz. Admin
+  MFA ile bile okuyamaz. Doğrulanmış diyetisyen yalnız aktif ilişkiyle ve
+  **aynı ilişkinin nutrition_plans ve meal_logs izinlerinin ikisi de açıkken**
+  okuyabilir. İzin eksikliği 403; ilişkisiz/yabancı kaynak varlık açıklamayan
+  404. İzinlerden biri kapalıyken kısmi plan/hedef/tüketim/sayım dönmez.
+- Aktör, ilişki/iki izin, snapshot ve agregasyon aynı PostgreSQL repeatable-read
+  transaction'ında okunur. Başlamış okuma snapshot'ında bitebilir; izin geri
+  çekme commit'inden sonra başlayan yeni okuma reddedilir. no-store ve ortak
+  error/requestId; gizli program/öğün içeriği hata/loga yazılmaz.
+- Program/sürüm açık seçilir; draft/active/archived okunabilir sürümlerde aynı
+  yetki geçerlidir. Eski bir tarihte bu sürümün aktif olduğu ileri sürülmez.
+  Uyum yüzdesi, otomatik kalem eşleştirme, kişisel hedef veya su okuması yoktur.
+  Diğer program/öğün yolları, bağımsız izinleri ve gövdeleri değişmez.
+
+Flutter aynı yolu kullanabilir; yeni mobil ekran bu Uğur backend/React
+tesliminin dışındadır. Her iki checkout bu sözleşme ortak main'e girdikten
+sonra eşitlenir. Genel uyum formülü/tarihsel aktivasyon açık notları, bu
+onaylı seçili sürüm karşılaştırmasını geri açmaz.
+
 ## 18.11.2026 — M1–M4 diyetisyenin gerçek ölçüm okuması
 
 Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini

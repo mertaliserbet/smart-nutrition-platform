@@ -46,6 +46,7 @@ builder.Services.AddScoped<DietitianApplicationService>();
 builder.Services.AddScoped<RelationshipAccessService>();
 builder.Services.AddScoped<RelationshipService>();
 builder.Services.AddScoped<NutritionPlanService>();
+builder.Services.AddScoped<NutritionPlanMealComparisonService>();
 builder.Services.AddScoped<MealLogService>();
 builder.Services.AddScoped<WaterLogService>();
 builder.Services.AddScoped<PersonalNutritionTargetService>();

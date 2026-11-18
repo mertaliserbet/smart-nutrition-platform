@@ -1,5 +1,22 @@
 # Smart Nutrition — Ortak Backend
 
+## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
+
+`GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison`
+zorunlu `from`/`to` açık offsetli yerel gece yarısı sınırlarıyla çalışır.
+Örnek query: `from=2026-11-18T00%3A00%3A00%2B03%3A00&to=2026-11-19T00%3A00%3A00%2B03%3A00`.
+Seçilen gün snapshot tarih aralığında olmalıdır. Beş öğün türünün plan
+öğeleri, sayfalama bağımsız SQL agregasyonları, bilinen değer/eksik sayıları
+ve koşullu günlük kalori farkı döner. Tam DTO ve kurallar `04/05/06` ile
+onaylı `19` K1–K4'tedir; uyum yüzdesi veya otomatik tarihsel aktif sürüm seçimi
+yapılmaz. Yeni tablo/migration veya açılım bayrağı yoktur.
+
+Danışan kendi verisini ilişkisiz okuyabilir; doğrulanmış diyetisyen için
+aktif ilişkinin hem `nutrition_plans` hem `meal_logs` açık izni gerekir.
+Mevcut izin açılım bayrağı yalnız izin yazmayı yönetir, karşılaştırma için
+var olan açık izin kontrolünü kaldırmaz. Actor/iki izin/snapshot/tüketim aynı
+repeatable-read transaction'ındadır. Admin sağlık erişimi yoktur.
+
 ## 18.11.2026 — Diyetisyenin gerçek ölçüm okuması
 
 `GET /api/v1/dietitian/clients/{clientId}/body-measurements` mevcut ölçüm

@@ -1,5 +1,25 @@
 # 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
 
+## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
+
+Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
+Mevcut NutritionPlan/Version/Item, MealLog/Item ve MealType korunur.
+Yeni kalıcı entity, tablo, izin kategorisi veya enum yoktur.
+
+- `NutritionPlanMealComparisonResponse`: clientId/nutritionPlanVersion/date/
+  from/to/actual/caloriesDifferenceKcal/meals.
+- `NutritionPlanMealComparison`: mealType/plannedItems/actual.
+- `MealLogNutritionSummary`: mealLogCount/itemCount/estimatedItemCount ve
+  caloriesKcal/proteinGrams/carbsGrams/fatGrams.
+- `NutritionValueSummary`: knownTotal/missingItemCount.
+- `/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison`:
+  seçilen değişmeyen sürüm ve açık günlük sınırlarla salt okunur hesap.
+
+nutritionPlanVersion mevcut NutritionPlanVersionResponse, plannedItems mevcut
+NutritionPlanItem şeklidir. JSON camelCase; C#/Dart/TS aynı kavramları kullanır.
+Alan ve hesap kuralları `05`, HTTP ve profil/izin kontrolleri `06`dadır.
+Bu adım bir uyum yüzdesi veya tarihsel aktivasyon modeli tanımlamaz.
+
 ## 18.11.2026 — Ortak ölçüm geliştirmelerinin birleştirilmesi
 
 Kullanıcı kararıyla Uğur'un web ölçüm ekranı/ortak migration'ı ve Mert'in

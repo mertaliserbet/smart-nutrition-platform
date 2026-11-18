@@ -1,5 +1,17 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+**18.11.2026 — K1–K4:** Gerçek danışan detayındaki program kartında
+"Program ve tüketimi karşılaştır" işlemi seçili sürümle günlük tüketim
+karşılaştırmasını açar. Gün ve sürüm seçilir; gün sınırlarının tarayıcı saat
+dilimi/offsetleri, sürüm kayıt zamanı ve snapshot tarih aralığı görünür.
+Planlanan öneriler/alternatifler ve kaydedilen kcal/makro özetleri öğün türüne
+göre sunulur. Günlük fark sunucudan gelir; eksikler ve tahmini kalemler
+gizlenmez. Geçmişte hangi sürümün aktif olduğu veya uyum yüzdesi iddia edilmez.
+İki kategori izni gerekir; karşılaştırmanın 403/404'ü ayrı izinli program veya
+öğün bileşenini kapatmaz. Değişen gün/sürüm/danışan/oturumda eski sonuç
+kaldırılır; odak/görünürlük dönüşü ve yenilemede yetki yeniden okunur.
+Tam sözleşme `04/05/06`, karar kaydı `19`dadır; Flutter görünümü Mert'indir.
+
 **18.11.2026 M1–M4:** Gerçek danışan detayında ölçüm listesi mevcut ölçüm API'sine
 bağlanır: kilo/bel/kalça/göğüs/yağ oranı/not, kaynak ve zaman salt okunur görünür.
 10'lu sunucu sayfalaması, açık UTC tarih filtresi ve elle/fokusa dönüşte yenileme

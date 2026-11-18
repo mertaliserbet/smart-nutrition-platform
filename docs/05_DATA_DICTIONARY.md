@@ -1,5 +1,44 @@
 # 05 — Ortak veri sözlüğü (domain schema)
 
+## 18.11.2026 — K1–K4 günlük program–tüketim hesabı
+
+Kullanıcının açık `19` K1–K4 onayıyla aşağıdaki **hesaplanan**, kalıcı olmayan
+DTO'lar eklenir. Tablo/migration, plan–tüketim FK'si veya kişisel hedef erişimi
+eklenmez. Genel otomatik uyum/tarihsel aktivasyon hesabı açık kalır.
+
+| DTO | Eksiksiz alanlar |
+|---|---|
+| NutritionPlanMealComparisonResponse | clientId: uuid; nutritionPlanVersion: mevcut NutritionPlanVersionResponse; date: date; from/to: instant; actual: MealLogNutritionSummary; caloriesDifferenceKcal: decimal?; meals: NutritionPlanMealComparison[] |
+| NutritionPlanMealComparison | mealType: mevcut MealType; plannedItems: mevcut NutritionPlanItem[]; actual: MealLogNutritionSummary |
+| MealLogNutritionSummary | mealLogCount/itemCount/estimatedItemCount: negatif olmayan integer; caloriesKcal/proteinGrams/carbsGrams/fatGrams: NutritionValueSummary |
+| NutritionValueSummary | knownTotal: negatif olmayan decimal; missingItemCount: 0..itemCount integer |
+
+Seçilen offsetli başlangıcın tarihi `date`tir; ISO gün buna göre hesaplanır.
+Snapshot tarih aralığı dahil sınırlarla geçerlidir. Plan öğelerinden dayOfWeek
+null veya aynı ISO gün olanlar alınır, mealType'a ayrılıp sortOrder artan
+sıralanır. Beş grup breakfast/lunch/dinner/snack/other sırasıyla her zaman
+bulunur. Alternatifler birlikte zorunlu tüketim veya ayrı tamamlanma hedefi
+sayılmaz. Öğün adından/metninden otomatik eşleşme yapılmaz.
+
+`actual`, aynı danışanın `[from,to)` aralığındaki silinmemiş tüm kayıtlarının
+kalemlerini toplar; sayfalama bu hesaba etki etmez. mealLogCount öğün kaydı,
+itemCount besin kalemi, estimatedItemCount isEstimated=true kalem sayısıdır.
+knownTotal yalnız bilinen değerleri decimal toplar; missingItemCount ilgili
+değeri null kalem sayısıdır. Boş gün/grup 0 sayım ve 0 bilinen toplam taşır;
+arayüz "Kayıt yok" gösterir. Kayıt yokluğu tüketim yapılmadığı anlamına gelmez.
+Eksik değerler tam toplam gibi sunulmaz, tahmini kalemler ayrıca belirtilir.
+
+caloriesDifferenceKcal, yalnız itemCount>0, eksik kalori=0 ve snapshot kalori
+hedefi doluysa bilinen kcal toplamı eksi snapshot hedefidir; aksi halde açık
+null. Kişisel hedefler, su tüketimi ve programda olmayan makro hedefleri
+hesaba katılmaz. Yuvarlama yapılmaz; decimal toplam taşması kontrollü 422'dir.
+Bu fark kaydedilen enerji farkıdır; klinik eşik/uyum değerlendirmesi değildir.
+
+Kullanıcı belirli sürümü açıkça seçer. Snapshot'ın o gün aktif olduğu iddia
+edilmez: mevcut sürüm geçmişi aktivasyon/arşivleme zaman çizelgesi değildir.
+Yeni revizyon eski snapshot'ı değiştirmez. Tüketim ise okuma anındaki güncel
+silinmemiş kayıtlardır; geçmişteki tüketimin dondurulmuş kopyası tutulmaz.
+
 ## 18.11.2026 — Ortak ölçüm paylaşımı migration'ı
 
 Kullanıcının birleştirme kararıyla yalnız ortak main'deki

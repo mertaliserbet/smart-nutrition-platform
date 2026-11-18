@@ -98,7 +98,10 @@ export async function getNutritionPlanVersions(planId: string, number: number, s
   return result
 }
 export async function getNutritionPlanVersion(planId: string, versionId: string, signal: AbortSignal): Promise<NutritionPlanVersionResponse> {
-  const row = object(await request(`/${planId}/versions/${versionId}`, signal), 'createdAt,id,nutritionPlanId,snapshot,versionNumber')
+  return parseNutritionPlanVersion(await request(`/${planId}/versions/${versionId}`, signal), planId, versionId)
+}
+export function parseNutritionPlanVersion(value: unknown, planId: string, versionId: string): NutritionPlanVersionResponse {
+  const row = object(value, 'createdAt,id,nutritionPlanId,snapshot,versionNumber')
   const { snapshot: content, ...metadata } = row
   const info = versionInfo(metadata, planId)
   if (info.id !== versionId) throw invalid()

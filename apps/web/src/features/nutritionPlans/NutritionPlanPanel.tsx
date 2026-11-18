@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { NutritionPlanEditor } from './NutritionPlanEditor'
+import { MealComparisonPanel } from './MealComparisonPanel'
 import { changeNutritionPlan, getNutritionPlans, getNutritionPlanVersion, getNutritionPlanVersions, mealLabels, saveNutritionPlan } from './nutritionPlanApi'
 import type { NutritionPlanResponse, NutritionPlanSnapshot, PlanContentRequest } from './nutritionPlanApi'
 import './nutritionPlans.css'
@@ -41,6 +42,7 @@ function ProgramHistory({ planId, handleDenied, onClose }: { planId: string; han
 export function NutritionPlanPanel({ clientId }: { clientId: string }) {
   const session = useWorkspaceSession()
   const [page, setPage] = useState(1); const [editorId, setEditorId] = useState<string>(); const [historyId, setHistoryId] = useState<string>()
+  const [comparisonId, setComparisonId] = useState<string>()
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState(''); const [notice, setNotice] = useState(''); const [denied, setDenied] = useState('')
   const operation = useRef<AbortController | null>(null)
   const handleDenied = useCallback((error: unknown) => {
@@ -84,7 +86,9 @@ export function NutritionPlanPanel({ clientId }: { clientId: string }) {
               {plan.status !== 'active' && <button className="button button-primary" disabled={busy} onClick={() => { void mutate('activate', plan) }}>Programı etkinleştir</button>}
               {plan.status !== 'archived' && <button className="button button-secondary" disabled={busy} onClick={() => { void mutate('archive', plan) }}>Programı arşivle</button>}</>}
             <button className="button button-secondary" disabled={busy} onClick={() => { setHistoryId(plan.id); setEditorId(undefined) }}>Sürüm geçmişini aç</button>
+            <button className="button button-secondary" disabled={busy} onClick={() => setComparisonId(plan.id)}>Program ve tüketimi karşılaştır</button>
           </div>
+          {comparisonId === plan.id && <MealComparisonPanel plan={plan} onClose={() => setComparisonId(undefined)} />}
         </article>)}
         <div className="expert-pagination"><button className="button button-secondary" disabled={busy || page <= 1} onClick={() => { setPage(value => value - 1); setEditorId(undefined); setHistoryId(undefined) }}>Önceki programlar sayfası</button><span>Sayfa {page}</span><button className="button button-secondary" disabled={busy || page * 10 >= state.data.totalCount} onClick={() => { setPage(value => value + 1); setEditorId(undefined); setHistoryId(undefined) }}>Sonraki programlar sayfası</button></div>
         {historyId && <ProgramHistory key={historyId} planId={historyId} handleDenied={handleDenied} onClose={() => setHistoryId(undefined)} />}
