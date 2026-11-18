@@ -1,5 +1,40 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+## 19.11.2026 — U2 gerçek görev atama ve takip
+
+Kullanıcının U2 uygulama onayıyla gerçek danışan detayına **Danışan görevleri**
+bölümü eklendi. U1'in `/api/v1/client-tasks` liste/detay/POST/PATCH ve
+`/{clientTaskId}/versions` yolları kullanılır; yeni DTO/endpoint/durum yoktur.
+
+- 10'lu liste ve sürüm geçmişi sayfalaması; açıklama, son tarih, durum, atama/
+  son değişiklik, tamamlanma zamanı ve her sürümün açıklama/durum/tarih/tercihi.
+  U1'de completed terminal olduğundan updatedAt tamamlama zamanıdır; completed
+  snapshot'ı da aynı zamanı taşır. Geçmiş salt okunurdur.
+- Yeni görev doğrudan seçili danışana atanır. Uzman yalnız açık görevin
+  açıklama/son tarihini düzenler ve onay adımıyla iptal eder. Danışan adına
+  tamamlama/ilerletme veya hatırlatma tercihi değiştirme sunulmaz.
+- Son tarih isteğe bağlı datetime-local alanıdır; cihazın saat dilimi görünür,
+  yeni/değişen değer UTC ISO instant olarak gönderilir. Değişmeyen son tarihin
+  sunucu hassasiyeti korunur; geçmiş tarihin değişmediği açıklama düzenlemesi
+  engellenmez. Geçmiş kayıtlar yerel saat/offset ile gösterilir.
+- Sürüm önkoşulu expectedVersionNumber'dır. 409'da taslak korunur, güncel
+  görev/geçmiş okunur, kaydetme durur; kullanıcı taslağı silip güncel sürümle
+  yeniden başlayabilir. Yazma otomatik tekrarlanmaz. Belirsiz ağ/yazma sonucunda
+  tekrar göndermeden önce listeyi kontrol etmek gerekir; taslak kapatılırken
+  kaydedilmemiş değişiklik uyarısı vardır.
+- Yüklenme/boş/hata/422/403/404 ayrıdır. İzin/ilişki kaybında görev listesi,
+  sayıları, detay, geçmiş ve form kaldırılır; program/öğün/ölçüm izinleri
+  değiştirilmez. Danışan/uzman/CSRF oturumu değişince eski içerik gösterilmez.
+- Elle yenileme, odağa/görünür sekmeye dönüş ve görünür sekmede 30 saniyelik
+  kontrollü okuma kullanılır. Gizli sekmede yeni okuma yoktur; görünürlük
+  dönüşünde yetki yeniden doğrulanır. Reddedilen erişim butonla tekrar kontrol
+  edilir. WebSocket, yeni bildirim altyapısı veya teslim vaadi yoktur.
+- Mevcut tema tokenları, kartlar, 44 px işlemler ve 950/600 px kırılımları
+  kullanılır. Flutter M2 ortak main'e d14576f ile alınmıştır; bu U2 oturumunda
+  mobil görev doğrulaması yapılmadı.
+  Varsayılan ClientTasksEnabled=false korunur; istemci izin uyumu olmadan ortak
+  ortamda açılmaz. API ve React DOM canlı doğrulaması ayrı geçici DB'de yapıldı.
+
 **18.11.2026 — K1–K4:** Gerçek danışan detayındaki program kartında
 "Program ve tüketimi karşılaştır" işlemi seçili sürümle günlük tüketim
 karşılaştırmasını açar. Gün ve sürüm seçilir; gün sınırlarının tarayıcı saat
@@ -64,7 +99,7 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 | Su / Ölçüm / Aktivite | İzinli kayıtlar, kaynak/geçmiş, ölçüm ve gelişim grafikleri | `/dietitian/clients/{clientId}/water-logs`, `/dietitian/clients/{clientId}/body-measurements`, `/dietitian/clients/{clientId}/activity-logs` |
 | Beslenme Planları | Kendi atadığı programı oluştur/düzenle/aktif et; alternatif ve sürüm geçmişi; kişisel programı izin kapsamında yalnız oku | `/nutrition-plans`; tam items/sürüm/alternatif ve değiştirme akışı AÇIK ŞEMA |
 | Tarifler | Kendi özel tarifleri ve erişime izinli kaynaklarla program hazırlama | `/recipes`; bileşen/görünürlük/geçmiş AÇIK ŞEMA |
-| Görevler | Yetkili danışana ClientTask, son tarih, durum ve isteğe bağlı hatırlatma | `/client-tasks`; durum geçişi/son tarih/hatırlatma AÇIK ŞEMA |
+| Görevler | Gerçek danışan detayında atama, liste/detay, son tarih, düzenleme/iptal ve salt okunur sürüm geçmişi; hatırlatma tercihi yalnız okunur | U1 `/client-tasks` ve `/{clientTaskId}/versions`; U2 uygulandı, tam sözleşme `04/05/06` |
 | Laboratuvar Takibi | İzinli değer/birim/tarih/referans ve açıklama; ayrıca tahlil açık onayı gerekir | `/dietitian/clients/{clientId}/lab-reports`, `/lab-reports/{labReportId}/insights`; danışan yerine tahlil CRUD yetkisi vermez |
 | Analiz ve PDF raporları | İzinli trend, program uyumu ve PDF; kapsam dışında kategori/tahlil eklenmez | Dashboard mevcut; uyum formülü, rapor DTO/dosya erişimi ve PDF endpointi açık |
 | Bildirimler | İlk sürüm yorum/cevap bildirimi ve onaylı tercih akışı | Bildirim modeli/kanalı/endpointleri açık; WebSocket varsayılmaz |
