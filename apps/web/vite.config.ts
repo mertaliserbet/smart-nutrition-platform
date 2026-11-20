@@ -18,6 +18,8 @@ export default defineConfig({
       '/api/v1/auth/register': { target: anonymousAuthTarget, secure: true },
       '/api/v1/auth/verify-email': { target: anonymousAuthTarget, secure: true },
       '/api/v1/auth/resend-verification': { target: anonymousAuthTarget, secure: true },
+      '/api/v1/auth/password-reset-requests': { target: anonymousAuthTarget, secure: true },
+      '/api/v1/auth/reset-password': { target: anonymousAuthTarget, secure: true },
       '/api/v1/auth/csrf': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/web-session': { target: 'https://localhost:7099', secure: true },
       '/api/v1/auth/me': { target: 'https://localhost:7099', secure: true },

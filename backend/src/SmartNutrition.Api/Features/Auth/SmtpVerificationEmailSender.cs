@@ -11,7 +11,8 @@ public interface IVerificationEmailSender
     Task SendAsync(string recipient, string token, CancellationToken cancellationToken);
 }
 
-public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, IHostEnvironment environment)
+public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, IHostEnvironment environment,
+    IOptions<WebSessionOptions>? web = null)
     : IVerificationEmailSender, IPasswordResetEmailSender, IAdminEmailCodeSender
 {
     public Task SendAdminCodeAsync(string recipient, string code, CancellationToken cancellationToken) =>
@@ -22,9 +23,21 @@ public sealed class SmtpVerificationEmailSender(IOptions<SmtpOptions> settings, 
         SendMessageAsync(recipient, "Smart Nutrition — E-posta doğrulama",
             $"E-posta doğrulama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nBu isteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);
 
-    public Task SendResetAsync(string recipient, string token, CancellationToken cancellationToken) =>
-        SendMessageAsync(recipient, "Smart Nutrition — Parola sıfırlama",
-            $"Parola sıfırlama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nKodu parola sıfırlama formuna yapıştırın. İsteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);
+    public Task SendResetAsync(string recipient, string token, CancellationToken cancellationToken)
+    {
+        var origin = web?.Value.Origin;
+        string link = "";
+        if (!string.IsNullOrEmpty(origin))
+        {
+            // Use only the existing configured/trusted web origin, never request Host.
+            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri) || uri.Scheme != "https" ||
+                origin != uri.GetLeftPart(UriPartial.Authority) || !string.IsNullOrEmpty(uri.UserInfo))
+                throw new InvalidOperationException("Password reset web origin is invalid.");
+            link = $"Şifrenizi yenilemek için bağlantıyı açın:\n\n{origin}/sifremi-unuttum#token={Uri.EscapeDataString(token)}\n\n";
+        }
+        return SendMessageAsync(recipient, "Smart Nutrition — Parola sıfırlama",
+            $"{link}Parola sıfırlama kodunuz:\n\n{token}\n\nBu tek kullanımlık kod 30 dakika geçerlidir.\nİsteği siz yapmadıysanız e-postayı yok sayabilirsiniz.", cancellationToken);
+    }
 
     public Task SendResetCompletedAsync(string recipient, CancellationToken cancellationToken) =>
         SendMessageAsync(recipient, "Smart Nutrition — Parolanız değiştirildi",

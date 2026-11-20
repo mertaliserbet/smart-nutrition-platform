@@ -308,8 +308,9 @@ User'a yalnız sunucuda tutulan şu alanlar eklenir:
 | `credentialsVersion: int64` | bigint NOT NULL DEFAULT 0 | Negatif olamaz; gerçek parola resetinde checked +1; Identity rehash artırmaz |
 
 Token 32 rastgele byte, 43 Base64URL karakteri, 30 dakika ve tek kullanımdır.
-Yalnız doğrulanmış client/dietitian uygundur. Admin, rol, MFA ve e-posta doğrulaması
-bu işlemle değiştirilmez. Parola/hash, sürüm artışı, token tüketimi, tüm AuthSession
+20.11.2026 U5 kullanıcı onayıyla e-postası doğrulanmış client/dietitian/Admin
+uygundur; önceki Admin kapsam dışılığı bu onayla kaldırılmıştır. Rol, MFA sırrı,
+kurtarma kodları ve e-posta doğrulaması bu işlemle değiştirilmez. Parola/hash, sürüm artışı, token tüketimi, tüm AuthSession
 ve tüm RefreshToken ailelerinin iptali aynı User kilidi ve transaction içindedir.
 Reset metadata'sı User JSON'una veya login/me/kayıt yanıtlarına çıkmaz.
 Migration yalnız dört sütun, indeks ve bütünlük kısıtları ekler; mevcut kayıtları silmez.

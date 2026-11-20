@@ -159,8 +159,9 @@ mevcut danışan verileri, ilişkileri, JWT sürüm kontrolü ve oturum iptali k
 
 P1–P7 kullanıcı tarafından onaylandı; normatif HTTP/şema `04/05/06`dadır.
 Reset tokenı amaç önekli hash olarak saklanır, 30 dakika/tek kullanımdır; yalnız
-onaylı client/dietitian hesaplara gönderilir. Genel 202, asenkron SMTP ve 60 sn
-cooldown hesap varlığını gizler; IP limitleri talepte 5/dakika, tüketimde 10/dakikadır. Admin kurtarma ayrı kalır.
+doğrulanmış client/dietitian hesaplara gönderilir; 20.11.2026 U5 onayı aynı
+mekanizmayı doğrulanmış Admin'e de açar. Genel 202, asenkron SMTP ve 60 sn
+cooldown hesap varlığını gizler; IP limitleri talepte 5/dakika, tüketimde 10/dakikadır.
 Parola değişimi, checked güvenlik sürümü artışı, kod tüketimi, bütün web oturumları
 ve refresh ailelerinin iptali atomiktir. Başarılı reset eski JWT'leri kalan 15 dakika
 beklemeden reddeder: her bearer doğrulaması DB'deki credentialsVersion'ı kontrol eder.
@@ -168,8 +169,28 @@ DB kesintisinde genel 500 ve kapalı erişim; cache ile iptal penceresi açılma
 Normal logout sürüm artırmaz; onun mevcut access JWT kalan-süre sınırı korunur.
 Claim'siz eski JWT reddedilir; geçerli refresh yeni claim'li JWT alabilir. Önce
 yedekli migration ve tüm API örneklerinin uyarlanması, sonra reset kullanımı gerekir.
-Mailpit teslimi geliştirme içindir; üretim kalıcı teslim/ortak rate-limit ve Admin
-kurtarma işleri tamamlanmış sayılmaz. Token/parola/ham SMTP exception'ı loglanmaz.
+Mailpit teslimi geliştirme içindir; üretim kalıcı teslim/ortak rate-limit ve MFA
+kaybında Admin kurtarma işleri tamamlanmış sayılmaz. Token/parola/ham SMTP exception'ı loglanmaz.
+
+### 20.11.2026 — U5 web bağlantısı ve Admin MFA sınırı
+
+SMTP reset e-postası yalnız mevcut yapılandırılmış HTTPS WebSession Origin'inden
+`/sifremi-unuttum#token=...` bağlantısı üretir; Host/istemci dönüş adresi kullanılmaz.
+Standalone kod mobil uyumluluk için korunur. Web Origin boşsa eski yalnız-kod
+davranışı sürer. Fragment sunucu request URL'sine gitmez; React URL/history'den
+replace ile temizler, tokenı yalnız monte edilmiş sayfada tutar. Router state,
+localStorage/sessionStorage, log, analitik ve hata metinlerine yazmaz. HTML ve
+reset fetch referrer politikası no-referrer'dır; istekler credentials omit/no-store
+kullanır ve ham hata gövdesi gösterilmez. Temiz URL yenilenince kod tekrar istenir.
+Gizli alanlar gönderimde/ayrılmada temizlenir; geç yanıt yeni bağlantıyı etkileyemez.
+
+Başarılı reset sonrası istemci girişe yönlenir, otomatik oturum açılmaz. Mevcut
+hesap/çalışma alanı önbelleği route bileşenlerindedir ve sayfadan ayrılmada kalkar;
+kalıcı Auth cache yoktur. Sunucu mevcut transaction içinde bütün web/refresh
+oturumlarını iptal eder ve credentialsVersion ile eski access JWT'yi reddeder.
+Admin'in rolü, e-posta doğrulaması, TOTP sırrı, son kullanılmış TOTP adımı ve
+kurtarma hash'leri aynen korunur; parola yenileme MFA kurtarma/yeniden kurulum
+değildir. Admin yeni parolayla da geçerli MFA sunmadan oturum alamaz.
 
 ## 31.10.2026 mobil refresh/iptal güncellemesi
 

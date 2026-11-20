@@ -21,7 +21,7 @@ using SmartNutrition.Api.Models;
 
 namespace SmartNutrition.Api.Tests;
 
-public sealed class PasswordResetTests
+public sealed partial class PasswordResetTests
 {
     private const string Email = "synthetic-reset@example.test";
     private const string Password = " Sentetik şifre 🔒 ";
@@ -154,6 +154,7 @@ public sealed class PasswordResetTests
         Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
         _ = await sender.Tokens.Reader.ReadAsync(timeout.Token);
+        _ = await sender.Tokens.Reader.ReadAsync(timeout.Token); // Verified Admin now uses the same reset mechanism; MFA remains mandatory.
         for (var n = 0; n < 10; n++)
         {
             using var invalid = await client.PostAsJsonAsync(ResetRoute, new { token = "invalid", password = NewPassword });
@@ -162,7 +163,7 @@ public sealed class PasswordResetTests
         using var consumedLimit = await client.PostAsJsonAsync(ResetRoute, new { token = "invalid", password = NewPassword });
         Assert.Equal(HttpStatusCode.TooManyRequests, consumedLimit.StatusCode);
         await using var db = factory.Database();
-        Assert.Equal(1, await db.Users.CountAsync(x => x.PasswordResetTokenHash != null));
+        Assert.Equal(2, await db.Users.CountAsync(x => x.PasswordResetTokenHash != null));
         Assert.All(await db.Users.ToArrayAsync(), x => Assert.Equal(0, x.CredentialsVersion));
     }
 

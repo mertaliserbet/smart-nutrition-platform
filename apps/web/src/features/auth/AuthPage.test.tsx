@@ -85,13 +85,15 @@ describe('authentication presentation boundary', () => {
     expect(screen.getByLabelText('Şifre', { exact: true })).toHaveValue('')
   })
 
-  it('does not claim a reset email was sent or reveal account existence', async () => {
-    const request = vi.spyOn(globalThis, 'fetch')
+  it('uses the real reset request without revealing account existence or promising delivery', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(null, { status: 202 }))
     const user = renderApp('/sifremi-unuttum')
     await user.type(screen.getByLabelText('E-posta adresi'), 'demo@example.com')
     await user.click(screen.getByRole('button', { name: 'Sıfırlama bağlantısı iste' }))
-    expect(screen.getByRole('status')).toHaveTextContent('Herhangi bir e-posta gönderilmedi.')
-    expect(request).not.toHaveBeenCalled()
+    expect(await screen.findByRole('status')).toHaveTextContent('Uygun bir hesap varsa')
+    expect(request).toHaveBeenCalledWith('/api/v1/auth/password-reset-requests', expect.objectContaining({
+      method: 'POST', credentials: 'omit', body: JSON.stringify({ email: 'demo@example.com' }),
+    }))
   })
 
   it('announces errors and blocks interaction while a presentation loading state is supplied', () => {

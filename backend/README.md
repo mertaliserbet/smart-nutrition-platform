@@ -1,5 +1,29 @@
 # Smart Nutrition — Ortak Backend
 
+## 20.11.2026 — U5 reset bağlantısı / Admin MFA regresyonu
+
+Mevcut reset servisi/tokenı/transaction/oturum iptali kullanılır; yeni endpoint,
+entity veya migration yoktur. `Auth:WebSession:Origin` yapılandırılmışsa SMTP
+aynı 43 karakter kodu `<HTTPS-origin>/sifremi-unuttum#token=<kod>` bağlantısıyla
+da gönderir; Host başlığından adres türetilmez. Origin boşken yalnız kod
+davranışı korunur. Mobil M5 DTO veya standalone kod ayrıştırıcısı değişmez.
+
+U5 kullanıcı onayıyla doğrulanmış Admin de mevcut reset mekanizmasına uygundur;
+bu, eski P1 Admin istisnasını kaldırır. Rol/email/TOTP/kurtarma kodları değişmez;
+Admin yeni parolayla da mevcut MFA girişini kullanır. DTO/başarı/hata/rate-limit
+kuralları aynı kalır (`docs/06`). React no-referrer/URL temizleme ayrıntıları web
+README'sindedir. Önceki tarihli Admin/reset istemci sınırları bu kayda göre okunur.
+
+Testler: ayrı sentetik PostgreSQL için `SMART_NUTRITION_TEST_CONNECTION_STRING`,
+Mailpit HTTP için `SMART_NUTRITION_TEST_MAILPIT_URL`, SMTP için
+`SMART_NUTRITION_TEST_SMTP_HOST`, `SMART_NUTRITION_TEST_SMTP_PORT` ve
+`SMART_NUTRITION_TEST_SMTP_FROM` ayarlanır. `dotnet test
+SmartNutrition.Backend.slnx --no-build --no-restore --filter
+FullyQualifiedName~PasswordResetTests` gerçek e-posta bağlantısı, tek kullanım,
+eski cookie/JWT/refresh reddi ve MFA korunmasını da çalıştırır. U5 test DB'si
+`127.0.0.1:55585/nutrition_u5_test`, Mailpit HTTP 58027/SMTP 51027'dir;
+uygulama DB'si veya mevcut hesaplar kullanılmaz. Fiziksel tarayıcı/Flutter testi değildir.
+
 ## 19.11.2026 — U4 diyetisyen su okuması / M4
 
 Kendi WaterLog CRUD/toplam ve kişisel hedef davranışı korunur. Uzman için
@@ -181,9 +205,11 @@ Bu görev otomatik olarak mevcut uygulama DB'sine migration uygulamaz.
 - POST /api/v1/auth/reset-password yalnız {token,password}: atomik başarı boş 204;
   geçersiz/süresi dolmuş/kullanılmış kod veya parola politikası 422. Ortak hata zarfı,
   4096 byte JSON ve no-store korunur; tam kurallar docs/06'dadır.
-- Yalnız doğrulanmış client/dietitian. Admin kurtarma ayrı; MFA/cookie biçimi korunur.
-- 256 bit kod, 30 dakika, amaç önekli hash. Mevcut SMTP/Mailpit kullanılır, kod elle
-  yapıştırılır. Reset ve başarı bildirimi sınırlı bellek kuyruğundadır; teslim garantisi yok.
+- Yalnız doğrulanmış client/dietitian; U5 20.11 onayıyla Admin de uygundur.
+  Admin MFA/kurtarma kodları ve cookie biçimi korunur.
+- 256 bit kod, 30 dakika, amaç önekli hash. Mevcut SMTP/Mailpit kullanılır; kod elle
+  yapıştırılabilir veya U5 web bağlantısı açılır. Reset ve başarı bildirimi sınırlı
+  bellek kuyruğundadır; teslim garantisi yok.
 - Auth:PasswordReset: ResendCooldownSeconds=60, RequestsPerMinute=5,
   ConsumeRequestsPerMinute=10, QueueCapacity=100. Süre TokenLifetime=30 dakika;
   eski metadata 10 dakikalık temizlikle kaldırılır. Üretim ortak limit/teslim ayrı kalır.
