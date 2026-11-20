@@ -49,6 +49,7 @@ class DietitianApi {
     'meal_logs',
     'body_measurements',
     'client_tasks',
+    'water_logs',
   ];
 
   Future<DietitianStatusResponse?> profile() => _safe(() async {

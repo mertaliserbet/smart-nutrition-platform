@@ -31,6 +31,7 @@ export default defineConfig({
       '/api/v1/dietitian-relationships': { target: 'https://localhost:7099', secure: true },
       '/api/v1/data-sharing-permissions': { target: 'https://localhost:7099', secure: true },
       '/api/v1/dietitian/clients': { target: 'https://localhost:7099', secure: true },
+      '/api/v1/meal-logs': { target: 'https://localhost:7099', secure: true },
       '/api/v1/nutrition-plans': { target: 'https://localhost:7099', secure: true },
       '/api/v1/client-tasks': { target: 'https://localhost:7099', secure: true },
     },

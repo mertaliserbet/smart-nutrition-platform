@@ -123,6 +123,12 @@ void main() {
     (tester) async {
       api.active = status('active');
       api.grant = permission;
+      api.waterGrant = const DataSharingPermission(
+        id: '88888888-8888-4888-8888-888888888888',
+        relationshipId: '33333333-3333-4333-8333-333333333333',
+        category: 'water_logs',
+        isGranted: true,
+      );
       await manage(tester);
       expect(find.text('Paylaşım izni açık.'), findsOneWidget);
       final old = Completer<List<DataSharingPermission>>();
@@ -132,11 +138,21 @@ void main() {
       api.permissionsResult = null;
       api.active = null;
       api.grant = null;
+      api.waterGrant = null;
       session.changeOwner();
       await tester.pumpAndSettle();
-      old.complete([permission]);
+      old.complete([
+        permission,
+        const DataSharingPermission(
+          id: '88888888-8888-4888-8888-888888888888',
+          relationshipId: '33333333-3333-4333-8333-333333333333',
+          category: 'water_logs',
+          isGranted: true,
+        ),
+      ]);
       await tester.pumpAndSettle();
       expect(find.text('Paylaşım izni açık.'), findsNothing);
+      expect(find.text('Su tüketimi paylaşımı açık.'), findsNothing);
       expect(find.text('Aktif diyetisyen bağlantınız yok.'), findsOneWidget);
       expect(api.permissionWrites, 0);
     },
@@ -169,7 +185,7 @@ void main() {
     },
   );
   testWidgets(
-    'four sharing categories are independent and each revoke preserves the others',
+    'five sharing categories are independent and each revoke preserves the others',
     (tester) async {
       api.active = status('active');
       api.grant = permission;
@@ -231,6 +247,54 @@ void main() {
       await change('client_tasks', 'Görev iznini geri al');
       expect(api.taskGrant?.isGranted, isFalse);
       expect(api.bodyGrant?.isGranted, isTrue);
+      expect(api.waterGrant, isNull);
+      await change('water_logs', 'Su paylaşımına izin ver');
+      expect(api.lastPermission, isNull);
+      expect(api.waterGrant?.isGranted, isTrue);
+      expect(api.grant?.isGranted, isFalse);
+      expect(api.mealGrant?.isGranted, isFalse);
+      expect(api.bodyGrant?.isGranted, isTrue);
+      expect(api.taskGrant?.isGranted, isFalse);
+      await change('water_logs', 'Su iznini geri al');
+      expect(api.lastPermission?.category, 'water_logs');
+      expect(api.waterGrant?.isGranted, isFalse);
+      expect(api.bodyGrant?.isGranted, isTrue);
+      expect(api.permissionWrites, 10);
+    },
+  );
+  testWidgets(
+    'water rollout failure is not retried and preserves every other grant',
+    (tester) async {
+      api.active = status('active');
+      api.grant = permission;
+      api.permissionFailure = const DietitianApiException(
+        'Su paylaşımı henüz kullanılamıyor.',
+        statusCode: 422,
+      );
+      await manage(tester);
+      final button = find.byKey(const ValueKey('sharing-water_logs'));
+      await visible(tester, button);
+      expect(
+        find.textContaining('Su tüketimi paylaşımı kapalı.'),
+        findsOneWidget,
+      );
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.widgetWithText(
+            FilledButton,
+            'Su paylaşımına izin ver',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(api.permissionWrites, 1);
+      expect(api.waterGrant, isNull);
+      expect(api.grant?.isGranted, isTrue);
+      expect(find.byKey(const ValueKey('sharing-water_logs')), findsNothing);
+      expect(find.textContaining('Tekrar işlem yapmadan'), findsOneWidget);
     },
   );
   testWidgets(
@@ -893,7 +957,12 @@ class _Api extends DietitianApi {
   List<RelationshipResponse> history = [];
   int historyPage = 0, ends = 0, permissionWrites = 0;
   int? historyTotal;
-  DataSharingPermission? grant, mealGrant, bodyGrant, taskGrant, lastPermission;
+  DataSharingPermission? grant,
+      mealGrant,
+      bodyGrant,
+      taskGrant,
+      waterGrant,
+      lastPermission;
   String? lastCategory;
   Future<List<DataSharingPermission>>? permissionsResult;
   bool? lastGranted;
@@ -905,7 +974,8 @@ class _Api extends DietitianApi {
     if (permissionReadFailure) {
       throw const DietitianApiException('Paylaşım durumu okunamadı.');
     }
-    return permissionsResult ?? [?grant, ?mealGrant, ?bodyGrant, ?taskGrant];
+    return permissionsResult ??
+        [?grant, ?mealGrant, ?bodyGrant, ?taskGrant, ?waterGrant];
   }
 
   @override
@@ -924,7 +994,9 @@ class _Api extends DietitianApi {
         await (permissionResult ??
             Future.value(
               DataSharingPermission(
-                id: category == 'client_tasks'
+                id: category == 'water_logs'
+                    ? '88888888-8888-4888-8888-888888888888'
+                    : category == 'client_tasks'
                     ? '77777777-7777-4777-8777-777777777777'
                     : category == 'body_measurements'
                     ? '66666666-6666-4666-8666-666666666666'
@@ -936,7 +1008,9 @@ class _Api extends DietitianApi {
                 isGranted: isGranted,
               ),
             ));
-    if (category == 'client_tasks') {
+    if (category == 'water_logs') {
+      waterGrant = result;
+    } else if (category == 'client_tasks') {
       taskGrant = result;
     } else if (category == 'body_measurements') {
       bodyGrant = result;
