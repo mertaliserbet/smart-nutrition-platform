@@ -28,7 +28,7 @@ describe('connection identity and invitation clipboard', () => {
     let finish!: () => void
     const writeText = vi.fn(() => new Promise<void>(resolve => { finish = resolve }))
     vi.stubGlobal('navigator', { clipboard: { writeText } })
-    setup(); fireEvent.click(await screen.findByRole('button', { name: 'Davet kodu oluştur' }))
+    setup(); await waitFor(() => expect(screen.getByRole('button', { name: 'Davet kodu oluştur' })).toBeEnabled()); fireEvent.click(screen.getByRole('button', { name: 'Davet kodu oluştur' }))
     const copy = await screen.findByRole('button', { name: 'Kodu kopyala' })
     await waitFor(() => expect(copy).toBeEnabled())
     fireEvent.click(copy); fireEvent.click(copy)
@@ -40,7 +40,7 @@ describe('connection identity and invitation clipboard', () => {
   it.each(['denied', 'unavailable'])('provides accessible feedback when clipboard is %s', async state => {
     const writeText = vi.fn().mockRejectedValue(new Error('Synthetic denial'))
     vi.stubGlobal('navigator', state === 'denied' ? { clipboard: { writeText } } : {})
-    setup(); fireEvent.click(await screen.findByRole('button', { name: 'Davet kodu oluştur' }))
+    setup(); await waitFor(() => expect(screen.getByRole('button', { name: 'Davet kodu oluştur' })).toBeEnabled()); fireEvent.click(screen.getByRole('button', { name: 'Davet kodu oluştur' }))
     const copy = await screen.findByRole('button', { name: 'Kodu kopyala' })
     await waitFor(() => expect(copy).toBeEnabled())
     fireEvent.click(copy)
@@ -50,11 +50,11 @@ describe('connection identity and invitation clipboard', () => {
   it('does not copy expired or malformed codes', async () => {
     const writeText = vi.fn(); vi.stubGlobal('navigator', { clipboard: { writeText } })
     const view = setup(new Date(Date.now() - 1).toISOString())
-    fireEvent.click(await screen.findByRole('button', { name: 'Davet kodu oluştur' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Davet kodu oluştur' })).toBeEnabled()); fireEvent.click(screen.getByRole('button', { name: 'Davet kodu oluştur' }))
     const copy = await screen.findByRole('button', { name: 'Kodu kopyala' })
     expect(copy).toBeDisabled(); fireEvent.click(copy); expect(writeText).not.toHaveBeenCalled()
     view.unmount(); setup(new Date(Date.now() + 60_000).toISOString(), 'invalid')
-    fireEvent.click(await screen.findByRole('button', { name: 'Davet kodu oluştur' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Davet kodu oluştur' })).toBeEnabled()); fireEvent.click(screen.getByRole('button', { name: 'Davet kodu oluştur' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Sunucu yanıtı doğrulanamadı')
     expect(screen.queryByRole('button', { name: 'Kodu kopyala' })).not.toBeInTheDocument()
     expect(writeText).not.toHaveBeenCalled()

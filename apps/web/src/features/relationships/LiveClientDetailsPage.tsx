@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
@@ -43,6 +43,7 @@ function ClientDetails({ clientId }: { clientId: string }) {
 
 function ClientSections({ client }: { client: ClientDashboardResponse }) {
   const [params] = useSearchParams()
+  const navigate = useNavigate()
   const requested = params.get('bolum') ?? 'ozet'
   const section: Section = Object.hasOwn(sections, requested) ? requested as Section : 'ozet'
   // Editors are loaded on first visit and remain mounted within this client only.
@@ -68,7 +69,7 @@ function ClientSections({ client }: { client: ClientDashboardResponse }) {
       <div><h3>Aktif danışan bağlantısı</h3><p>Her kayıt türü danışanın bağımsız paylaşım izniyle açılır.</p><p>Program ve görev taslaklarınız bu danışanın bölümleri arasında geçiş yaparken korunur.</p></div>
       <span className="access-badge">Aktif bağlantı</span>
     </section>}
-    {(opened.program || section === 'program') && <div hidden={section !== 'program'} inert={section !== 'program'}><NutritionPlanPanel clientId={client.clientId} active={section === 'program'} /></div>}
+    {(opened.program || section === 'program') && <div hidden={section !== 'program'} inert={section !== 'program'}><NutritionPlanPanel clientId={client.clientId} clientName={client.displayName} active={section === 'program'} onReturnToEditor={() => { if (section !== 'program') navigate(target('program')) }} /></div>}
     {(opened.gorevler || section === 'gorevler') && <div hidden={section !== 'gorevler'} inert={section !== 'gorevler'}><ClientTaskPanel clientId={client.clientId} /></div>}
     {section === 'ogunler' && <MealLogPanel clientId={client.clientId} />}
     {section === 'olcum-su' && <><BodyMeasurementPanel clientId={client.clientId} /><WaterLogPanel clientId={client.clientId} /></>}
