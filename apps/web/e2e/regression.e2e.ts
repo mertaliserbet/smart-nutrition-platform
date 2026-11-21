@@ -6,7 +6,18 @@ import { randomUUID } from 'node:crypto'
 const origin = 'https://localhost:5446', password = 'Synthetic U6 password 🔑', changedPassword = ' New synthetic U6 password 🔒 '
 type Account = { id: string; email: string; displayName: string }
 type Identity = { accessToken: string; refreshToken: string }
+let loginAttempts: number[] = []
+async function paceLogin() {
+  // Respect the real shared 10/minute limit as the browser suite grows.
+  while (true) {
+    const now = Date.now()
+    loginAttempts = loginAttempts.filter(time => now - time < 60_100)
+    if (loginAttempts.length < 10) { loginAttempts.push(now); return }
+    await new Promise(resolve => setTimeout(resolve, Math.min(60_000, 60_100 - (now - loginAttempts[0]!))))
+  }
+}
 async function api(request: APIRequestContext, path: string, method: string, status: number, data?: object, bearer?: string) {
+  if (path === '/api/v1/auth/login') await paceLogin()
   // Mobile-only endpoints are intentionally absent from the web proxy.
   const direct = bearer || /^\/api\/v1\/(?:auth\/(?:login|refresh)|water-logs)(?:[/?]|$)/.test(path)
   const response = await request.fetch(direct ? 'https://localhost:7099' + path : path, { method, data, headers: bearer ? { Authorization: `Bearer ${bearer}`, 'X-Profile-Context': 'client' } : {} })
@@ -44,6 +55,7 @@ async function account(request: APIRequestContext, expert: boolean, approved = t
 async function signIn(page: Page, email: string, value = password) {
   await page.goto('/giris')
   await page.getByLabel('E-posta adresi').fill(email); await page.getByLabel('Şifre', { exact: true }).fill(value)
+  await paceLogin()
   await page.getByRole('button', { name: 'Giriş yap', exact: true }).click()
 }
 async function pair(page: Page, request: APIRequestContext) {
@@ -64,9 +76,10 @@ test('HTTPS UI: login, client, task completion/history, independent water grant/
   const water = await api(request, '/api/v1/water-logs', 'POST', 201, { amountMl: 321.125, consumedAt: new Date().toISOString(), source: 'manual' }, mobile.accessToken)
   await page.getByRole('link', { name: 'Danışanlarım', exact: true }).click()
   await page.getByRole('link', { name: 'Sentetik U6 danışan için danışan detayını aç' }).click()
-  await expect(page.getByRole('heading', { name: 'Danışan detayı', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sentetik U6 danışan', exact: true })).toBeVisible()
+  const sections = page.getByRole('navigation', { name: 'Danışan bölümleri' })
+  await sections.getByRole('link', { name: 'Görevler', exact: true }).click()
   const tasks = page.getByRole('region', { name: 'Danışan görevleri' }), waterPanel = page.getByRole('region', { name: 'Su takibi', exact: true })
-  await expect(waterPanel.getByRole('alert')).toContainText('Su paylaşımı kapalı')
   await tasks.getByRole('button', { name: 'Yeni görev ata' }).click()
   await tasks.getByLabel('Görev açıklaması').fill('Sentetik HTTPS görevi')
   const due = new Date(Date.now() + 86_400_000)
@@ -80,6 +93,8 @@ test('HTTPS UI: login, client, task completion/history, independent water grant/
   await tasks.getByRole('button', { name: 'Görevleri yenile' }).click()
   await expect(tasks.getByText('Sürüm 2 · Tamamlandı')).toBeVisible()
   await expect(tasks.getByText('Danışanın tamamlama zamanı', { exact: true })).toBeVisible()
+  await sections.getByRole('link', { name: 'Ölçüm ve Su', exact: true }).click()
+  await expect(waterPanel.getByRole('alert')).toContainText('Su paylaşımı kapalı')
   const grant = await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category: 'water_logs', isGranted: true }, mobile.accessToken)
   await waterPanel.getByRole('button', { name: 'Su takibini yenile' }).click()
   await expect(waterPanel.getByRole('status', { name: 'Seçilen günün su toplamı' })).toContainText('321,125 mL')
@@ -89,6 +104,7 @@ test('HTTPS UI: login, client, task completion/history, independent water grant/
   await expect(waterPanel.getByRole('alert')).toContainText('Su paylaşımı kapalı')
   await expect(waterPanel.getByText('321,125 mL', { exact: true })).toHaveCount(0)
   await expect(waterPanel.getByRole('table')).toHaveCount(0)
+  await sections.getByRole('link', { name: 'Görevler', exact: true }).click()
   await expect(tasks.getByText('Sürüm 2 · Tamamlandı')).toBeVisible()
   await api(request, `/api/v1/water-logs/${water.id}`, 'GET', 200, undefined, mobile.accessToken)
   const invalidHeaders: Record<string, string>[] = [{ Origin: origin }, { Origin: origin, 'X-CSRF-TOKEN': 'invalid' }, { Origin: 'https://invalid.example.test', 'X-CSRF-TOKEN': csrf }]
@@ -131,6 +147,74 @@ test('HTTPS UI: real Mailpit link resets password, clears URL and invalidates pr
   await api(request, '/api/v1/auth/login', 'POST', 401, { email: expert.email, password })
   await api(request, '/api/v1/auth/reset-password', 'POST', 422, { token, password: changedPassword })
   await signIn(resetPage, expert.email, changedPassword); await expect(resetPage).toHaveURL(origin + '/calisma-alani')
+})
+
+test('HTTPS UI: client sections preserve drafts and task focus during delayed rechecks in both themes and widths', async ({ page, context, request }, testInfo) => {
+  const { mobile, relation } = await pair(page, request)
+  const grant = await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category: 'client_tasks', isGranted: true }, mobile.accessToken)
+  await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category: 'nutrition_plans', isGranted: true }, mobile.accessToken)
+  const detail = `/calisma-alani/danisanlar/${relation.clientId}`
+  await page.goto(detail)
+  const sections = page.getByRole('navigation', { name: 'Danışan bölümleri' })
+  await expect(sections.getByRole('link', { name: 'Özet', exact: true })).toHaveAttribute('aria-current', 'page')
+  await sections.getByRole('link', { name: 'Görevler', exact: true }).click()
+  await page.getByRole('button', { name: 'Yeni görev ata' }).click()
+  const input = page.getByLabel('Görev açıklaması')
+  await input.fill('Sentetik yarım görev')
+  const original = await input.elementHandle()
+  await input.evaluate(node => (node as HTMLTextAreaElement).setSelectionRange(7, 7))
+  let release!: () => void, reads = 0
+  const delayed = new Promise<void>(resolve => { release = resolve })
+  await page.route('**/api/v1/client-tasks?**', async route => {
+    reads++
+    const response = await route.fetch()
+    await delayed
+    await route.fulfill({ response })
+  })
+  await page.evaluate(() => { window.dispatchEvent(new Event('focus')); window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')) })
+  await expect.poll(() => reads).toBe(1)
+  await expect(input).toBeFocused()
+  expect(await input.evaluate((node, old) => node === old, original)).toBe(true)
+  expect(await input.evaluate(node => (node as HTMLTextAreaElement).selectionStart)).toBe(7)
+  await page.keyboard.type(' ek')
+  const draft = await input.inputValue()
+  await expect(page.getByRole('button', { name: 'Görevi oluştur ve ata' })).toBeDisabled()
+  release()
+  await expect(page.getByText('Görevler kontrol ediliyor…')).toHaveCount(0)
+  await expect(input).toBeFocused(); await expect(input).toHaveValue(draft)
+  expect(await original!.evaluate(node => node.isConnected)).toBe(true)
+  await page.unroute('**/api/v1/client-tasks?**')
+  await sections.getByRole('link', { name: 'Program', exact: true }).click()
+  await page.getByRole('button', { name: 'Yeni program oluştur' }).click()
+  await page.getByLabel('Program başlığı').fill('Sentetik yarım program')
+  await sections.getByRole('link', { name: 'Özet', exact: true }).click()
+  await page.goBack(); await expect(page.getByLabel('Program başlığı')).toHaveValue('Sentetik yarım program')
+  await page.goBack(); await expect(input).toHaveValue(draft)
+  await page.goForward(); await expect(page.getByLabel('Program başlığı')).toHaveValue('Sentetik yarım program')
+  await sections.getByRole('link', { name: 'Görevler', exact: true }).click()
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme })
+    for (const width of [1366, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+      await input.scrollIntoViewIfNeeded()
+      await page.screenshot({ path: testInfo.outputPath(`client-tasks-${theme}-${width}.png`), fullPage: true })
+    }
+  }
+  await page.reload()
+  await expect(sections.getByRole('link', { name: 'Görevler', exact: true })).toHaveAttribute('aria-current', 'page')
+  await page.getByRole('button', { name: 'Yeni görev ata' }).click(); await input.fill('İzin geri çekme taslağı')
+  await api(request, `/api/v1/data-sharing-permissions/${grant.id}`, 'PATCH', 200, { isGranted: false }, mobile.accessToken)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect(input).toHaveCount(0)
+  await expect(page.getByRole('region', { name: 'Danışan görevleri' }).getByRole('alert')).toContainText('Görev paylaşımı kapalı')
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin })
+  await page.goto('/calisma-alani/baglantilar')
+  await page.getByRole('button', { name: 'Davet kodu oluştur' }).click()
+  await page.getByRole('button', { name: 'Kodu kopyala' }).click()
+  await expect(page.getByText('Davet kodu kopyalandı.')).toBeVisible()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await page.locator('.invitation-code').textContent())
 })
 
 test('HTTPS UI: unapproved expert boundary, client web denial, narrow layout and keyboard validation', async ({ page, request }) => {

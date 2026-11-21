@@ -1,13 +1,9 @@
 import { useCallback, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useWorkspaceRead } from '../workspace/workspaceSession'
-import { getClientDashboard, getClients } from './relationshipApi'
-import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './relationshipApi'
-import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
-import { MealLogPanel } from '../clients/MealLogPanel'
-import { BodyMeasurementPanel } from '../clients/BodyMeasurementPanel'
-import { WaterLogPanel } from '../clients/WaterLogPanel'
-import { ClientTaskPanel } from '../clientTasks/ClientTaskPanel'
+import { getClients } from './relationshipApi'
+import type { ClientListItem, PagedResponse } from './relationshipApi'
+export { LiveClientDetailsPage } from './LiveClientDetailsPage'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
 
@@ -33,20 +29,5 @@ export function LiveClientsPage() {
       </>}
       <div className="panel-actions"><button className="button button-secondary" disabled={state.pending} onClick={state.refresh}>Listeyi yenile</button></div>
     </section><div className="inline-note"><Icon name="shield" /><p>Danışan detaylarında her kayıt türü kendi paylaşım izniyle görüntülenir.</p></div>
-  </>
-}
-export function LiveClientDetailsPage() {
-  const { clientId = '' } = useParams()
-  const load = useCallback((signal: AbortSignal) => getClientDashboard(clientId, signal), [clientId])
-  const state = useWorkspaceRead<ClientDashboardResponse>(load)
-  return <><Link className="text-link back-link" to="/calisma-alani/danisanlar"><Icon name="back" />Danışan listesine dön</Link>
-    <div className="page-heading"><p className="eyebrow">DANIŞAN TAKİBİ</p><h1 tabIndex={-1}>Danışan detayı</h1><p>Görevleri, beslenme programlarını ve kayıt geçmişini bu alandan yönetin.</p></div>
-    {state.pending && <p role="status">Danışan okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}
-    {state.data && <section className="card client-profile-card"><span className="client-avatar large-avatar" aria-hidden="true">{state.data.displayName.slice(0, 1).toLocaleUpperCase('tr-TR')}</span><div><h2>{state.data.displayName}</h2><p>Aktif danışan bağlantınız bulunuyor.</p></div><span className="access-badge">Aktif bağlantı</span></section>}
-    {state.data && <NutritionPlanPanel key={state.data.clientId} clientId={state.data.clientId} />}
-    {state.data && <ClientTaskPanel clientId={state.data.clientId} />}
-    {state.data && <MealLogPanel key={`meals-${state.data.clientId}`} clientId={state.data.clientId} />}
-    {state.data && <BodyMeasurementPanel key={`measurements-${state.data.clientId}`} clientId={state.data.clientId} />}
-    {state.data && <WaterLogPanel clientId={state.data.clientId} />}
   </>
 }

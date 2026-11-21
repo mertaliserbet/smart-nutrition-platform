@@ -99,7 +99,7 @@ describe('workspace entry and session recovery', () => {
     expect(screen.queryByRole('navigation', { name: 'Diyetisyen çalışma alanı' })).not.toBeInTheDocument()
   })
 
-  it('hides dashboard counts and names on refresh failure instead of retaining private data or displaying zero', async () => {
+  it('hides the failed client count and names while keeping the independently verified request count', async () => {
     const request = api()
     const original = request.getMockImplementation()!
     let reads = 0
@@ -115,8 +115,8 @@ describe('workspace entry and session recovery', () => {
     await screen.findByRole('alert')
     expect(screen.queryByText('Sentetik Danışan')).not.toBeInTheDocument()
     const metrics = within(screen.getByRole('region', { name: 'Çalışma alanı özeti' }))
-    expect(metrics.getAllByText('—')).toHaveLength(2)
-    expect(metrics.queryByText('0', { exact: true })).not.toBeInTheDocument()
+    expect(metrics.getAllByText('—')).toHaveLength(1)
+    expect(metrics.getByText('0', { exact: true })).toBeVisible()
   })
 
   it('closes the live mobile menu on Escape and on route selection', async () => {

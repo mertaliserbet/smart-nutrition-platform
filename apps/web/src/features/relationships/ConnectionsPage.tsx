@@ -9,6 +9,10 @@ import { EmptyState } from '../../core/components/EmptyState'
 const labels: Record<RelationshipStatus, string> = { pending: 'Bekleyen', active: 'Aktif', rejected: 'Reddedilen', ended: 'Sonlanan' }
 export function ConnectionsPage() {
   const session = useWorkspaceSession()
+  return <ConnectionsContent key={`${session.dietitianId}:${session.token}`} />
+}
+function ConnectionsContent() {
+  const session = useWorkspaceSession()
   const [status, setStatus] = useState<RelationshipStatus>('pending'); const [page, setPage] = useState(1)
   const [invitation, setInvitation] = useState<InvitationCodeResponse>(); const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(''); const [notice, setNotice] = useState('')
@@ -40,13 +44,13 @@ export function ConnectionsPage() {
   return <><div className="page-heading"><p className="eyebrow">YENİ BİR YOLCULUĞUN İLK ADIMI</p><h1 tabIndex={-1}>Bağlantılar ve davet</h1><p>Danışan taleplerini karşılıklı onayla yönetin.</p></div>
     <section className="card invitation-card"><span className="invitation-icon"><Icon name="link" /></span><div><h2>Davet kodu</h2><p>Kod, danışanın bağlantı talebi başlatmasını sağlar. Veri paylaşımı ayrıca danışanın kontrolündedir.</p>
       <button className="button button-secondary" disabled={busy || state.pending} onClick={() => { void mutate('invite') }}>{invitation ? 'Yeni kod oluştur' : 'Davet kodu oluştur'}</button>
-      {invitation && <div className="form-message" role="status"><p>Davet kodunuz: <output className="invitation-code">{invitation.invitationCode}</output></p><p>Son geçerlilik: <time dateTime={invitation.expiresAt}>{new Date(invitation.expiresAt).toLocaleString('tr-TR')}</time>. Bir kez kullanılabilir. Yeni kod eskisini geçersiz kılar.</p></div>}</div>
+      {invitation && <InvitationCode key={`${invitation.invitationCode}:${invitation.expiresAt}`} invitation={invitation} busy={busy} />}</div>
     </section>
     {message && <p role="alert">{message}</p>}{notice && <p role="status">{notice}</p>}{busy && <p role="status">İşlem sürüyor…</p>}
     <section className="card"><header className="card-header"><div><h2>Danışan bağlantıları</h2><p>{state.data ? `${state.data.totalCount} bağlantı` : 'Talepler, aktif bağlantılar ve geçmiş'}</p></div><label className="panel-filter">Durum<select disabled={busy || state.pending} value={status} onChange={event => { setStatus(event.target.value as RelationshipStatus); setPage(1); setNotice('') }}>{Object.entries(labels).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select></label></header>
       {state.pending && <p className="panel-feedback" role="status">Bağlantılar okunuyor…</p>}{state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
       {state.data && <>{state.data.totalCount === 0 && <EmptyState icon="link" title="Bu durumda bağlantı bulunmuyor.">Farklı bir durum seçebilir veya yeni bir davet kodu oluşturabilirsiniz.</EmptyState>}
-        <ul className="connection-list" aria-label="Danışan bağlantıları">{state.data.items.map(row => <li key={row.id}><div className="connection-heading"><h3>{labels[row.status]} bağlantı</h3><span className="neutral-badge">{labels[row.status]}</span></div><p className="connection-id">Danışan kimliği: {row.clientId}</p><p>Talep: <time dateTime={row.requestedAt}>{new Date(row.requestedAt).toLocaleString('tr-TR')}</time></p>
+        <ul className="connection-list" aria-label="Danışan bağlantıları">{state.data.items.map(row => <li key={row.id}><div className="connection-heading"><h3>Danışan adı mevcut değil</h3><span className="neutral-badge">{labels[row.status]}</span></div><p>Talep: <time dateTime={row.requestedAt}>{new Date(row.requestedAt).toLocaleString('tr-TR')}</time></p>
           {row.status === 'pending' && <div className="expert-pagination"><button className="button button-primary" disabled={busy || state.pending} onClick={() => { void mutate('accept', row.id) }}>Kabul et</button><button className="button button-secondary" disabled={busy || state.pending} onClick={() => { void mutate('reject', row.id) }}>Reddet</button></div>}
           {row.status === 'active' && <button className="button button-secondary" disabled={busy || state.pending} onClick={() => { void mutate('end', row.id) }}>Bağlantıyı sonlandır</button>}
         </li>)}</ul>
@@ -55,4 +59,40 @@ export function ConnectionsPage() {
       <div className="panel-actions"><button className="button button-secondary" disabled={busy || state.pending} onClick={state.refresh}>Bağlantıları yenile</button></div>
     </section>
   </>
+}
+
+function InvitationCode({ invitation, busy }: { invitation: InvitationCodeResponse; busy: boolean }) {
+  const expires = Date.parse(invitation.expiresAt)
+  const [expired, setExpired] = useState(() => expires <= Date.now())
+  const [pending, setPending] = useState(false)
+  const [feedback, setFeedback] = useState<{ error: boolean; text: string }>()
+  const operation = useRef({ active: false, copying: false })
+  useEffect(() => {
+    const lifetime = operation.current
+    lifetime.active = true
+    const remaining = expires - Date.now()
+    const timer = remaining > 0 ? window.setTimeout(() => { setExpired(true); setFeedback(undefined) }, Math.min(remaining, 2_147_483_647)) : undefined
+    return () => { lifetime.active = false; window.clearTimeout(timer) }
+  }, [expires])
+  async function copy() {
+    const lifetime = operation.current
+    if (lifetime.copying || busy || expired || !/^[A-Z2-7]{16}$/.test(invitation.invitationCode) || !(expires > Date.now())) return
+    lifetime.copying = true; setPending(true); setFeedback(undefined)
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable')
+      await navigator.clipboard.writeText(invitation.invitationCode)
+      if (lifetime.active && expires > Date.now()) setFeedback({ error: false, text: 'Davet kodu kopyalandı.' })
+    } catch {
+      if (lifetime.active && expires > Date.now()) setFeedback({ error: true, text: 'Kod kopyalanamadı. Davet kodunu seçerek elle kopyalayabilirsiniz.' })
+    } finally {
+      lifetime.copying = false
+      if (lifetime.active) setPending(false)
+    }
+  }
+  return <div className="form-message"><p>Davet kodunuz: <output className="invitation-code">{invitation.invitationCode}</output></p>
+    <p>Son geçerlilik: <time dateTime={invitation.expiresAt}>{new Date(invitation.expiresAt).toLocaleString('tr-TR')}</time>. Bir kez kullanılabilir. Yeni kod eskisini geçersiz kılar.</p>
+    <button className="button button-secondary" disabled={expired || pending || busy} onClick={() => { void copy() }}>{pending ? 'Kopyalanıyor…' : 'Kodu kopyala'}</button>
+    {expired && <p role="status">Davet kodunun süresi doldu. Yeni bir kod oluşturun.</p>}
+    {feedback && <p role={feedback.error ? 'alert' : 'status'}>{feedback.text}</p>}
+  </div>
 }
