@@ -51,7 +51,7 @@ describe('authenticated dietitian workspace', () => {
   it('reads client details only from the requested dashboard and rejects another client id', async () => {
     const request = gated().mockResolvedValueOnce(Response.json({ clientId: client, displayName: 'Sentetik Danışan' })).mockResolvedValue(new Response(null, { status: 403 }))
     setup(`/calisma-alani/danisanlar/${client}`)
-    expect(await screen.findByRole('heading', { level: 2, name: 'Sentetik Danışan' })).toBeVisible()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sentetik Danışan' })).toBeVisible()
     expect(request.mock.calls[3]?.[0]).toBe(`/api/v1/dietitian/clients/${client}/dashboard`)
     expect(screen.queryByText('Tahliller')).not.toBeInTheDocument()
   })

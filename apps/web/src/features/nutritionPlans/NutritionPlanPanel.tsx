@@ -39,7 +39,7 @@ function ProgramHistory({ planId, handleDenied, onClose }: { planId: string; han
   </section>
 }
 
-export function NutritionPlanPanel({ clientId }: { clientId: string }) {
+export function NutritionPlanPanel({ clientId, active = true }: { clientId: string; active?: boolean }) {
   const session = useWorkspaceSession()
   const [page, setPage] = useState(1); const [editorId, setEditorId] = useState<string>(); const [historyId, setHistoryId] = useState<string>()
   const [comparisonId, setComparisonId] = useState<string>()
@@ -54,6 +54,14 @@ export function NutritionPlanPanel({ clientId }: { clientId: string }) {
   const load = useCallback((signal: AbortSignal) => getNutritionPlans(clientId, page, signal), [clientId, page])
   const state = useWorkspaceRead(load, handleDenied)
   useEffect(() => () => operation.current?.abort(), [])
+  const { revalidate } = state
+  useEffect(() => {
+    if (!active) return
+    const visible = () => { if (document.visibilityState === 'visible' && !operation.current) revalidate() }
+    visible()
+    window.addEventListener('focus', visible)
+    return () => window.removeEventListener('focus', visible)
+  }, [active, revalidate])
 
   async function mutate(action: 'save' | 'activate' | 'archive', plan?: NutritionPlanResponse, content?: PlanContentRequest) {
     if (operation.current || state.pending || denied) return

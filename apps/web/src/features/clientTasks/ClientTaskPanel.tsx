@@ -36,12 +36,13 @@ function ClientTaskContent({ clientId }: { clientId: string }) {
     return { kind: 'ready' as const, list, detail, versions }
   }, [clientId, session.dietitianId, page, selected, historyPage])
   const state = useWorkspaceRead(load, handleDenied)
-  const recheck = useRef({ refresh: state.refresh, denied })
-  useEffect(() => { recheck.current = { refresh: state.refresh, denied } }, [state.refresh, denied])
+  const recheck = useRef({ refresh: state.refresh, revalidate: state.revalidate, denied })
+  useEffect(() => { recheck.current = { refresh: state.refresh, revalidate: state.revalidate, denied } }, [state.refresh, state.revalidate, denied])
   useEffect(() => {
-    const refreshVisible = () => { if (document.visibilityState === 'visible' && !operation.current && !recheck.current.denied) recheck.current.refresh() }
+    const refreshVisible = () => { if (document.visibilityState === 'visible' && !operation.current && !recheck.current.denied) recheck.current.revalidate() }
     const visibility = () => {
       if (document.visibilityState !== 'visible') {
+        setDraft(undefined); setSelected(undefined); setCancelVersion(undefined); setNotice('')
         if (operation.current) {
           operation.current.abort(); operation.current = null; setBusy(false); setUncertain(true)
           setMessage('Görev işleminin sonucu doğrulanamadı. Yeniden göndermeden önce görevleri kontrol edin.')
@@ -86,7 +87,7 @@ function ClientTaskContent({ clientId }: { clientId: string }) {
     {state.message && <p role="alert" className="panel-feedback error-message">{state.message}</p>}
     {data && <>
       {message && <p role="alert" className="panel-feedback error-message">{message}</p>}{notice && <p role="status" className="panel-feedback">{notice}</p>}
-      {draft && <ClientTaskEditor draft={draft} disabled={disabled} conflicted={conflicted} onChange={setDraft} onClose={() => { setDraft(undefined); setConflict(false); setMessage('') }}
+      {draft && <ClientTaskEditor draft={draft} disabled={busy || uncertain} checking={state.pending} conflicted={conflicted} onChange={setDraft} onClose={() => { setDraft(undefined); setConflict(false); setMessage('') }}
         onSave={content => { void mutate(content) }} onRestart={() => { setDraft(current && isOpenTask(current) ? taskDraft(current) : undefined); setConflict(false); setMessage('') }} />}
       <div className={`task-layout${current ? ' task-with-detail' : ''}`}><div>
         {data.list.items.length === 0 ? <EmptyState icon="check" title={data.list.totalCount ? 'Bu sayfada görev yok' : 'Henüz atanmış görev yok'}>Yeni bir görev atayabilir veya görev listesini yenileyebilirsiniz.</EmptyState>

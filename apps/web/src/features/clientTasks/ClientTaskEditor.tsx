@@ -2,12 +2,12 @@ import { useId, useState } from 'react'
 import type { FormEvent } from 'react'
 import { isDirtyDraft, taskContent } from './clientTaskForm'
 import type { TaskDraft } from './clientTaskForm'
-export function ClientTaskEditor({ draft, disabled, conflicted, onChange, onClose, onSave, onRestart }: {
-  draft: TaskDraft; disabled: boolean; conflicted: boolean; onChange: (draft: TaskDraft) => void; onClose: () => void
+export function ClientTaskEditor({ draft, disabled, checking, conflicted, onChange, onClose, onSave, onRestart }: {
+  draft: TaskDraft; disabled: boolean; checking: boolean; conflicted: boolean; onChange: (draft: TaskDraft) => void; onClose: () => void
   onSave: (content: { description: string; dueAt: string | null }) => void; onRestart: () => void
 }) {
   const id = useId(); const [error, setError] = useState(''); const [discard, setDiscard] = useState(false)
-  function submit(event: FormEvent) { event.preventDefault(); try { const content = taskContent(draft); setError(''); onSave(content) } catch (error) { setError((error as Error).message) } }
+  function submit(event: FormEvent) { event.preventDefault(); if (disabled || checking || conflicted) return; try { const content = taskContent(draft); setError(''); onSave(content) } catch (error) { setError((error as Error).message) } }
   return <form className="task-editor" onSubmit={submit} aria-label={draft.original ? 'Görevi düzenle' : 'Yeni görev atama'}>
     <h3>{draft.original ? 'Görevi düzenle' : 'Yeni görev ata'}</h3>
     <fieldset disabled={disabled}>
@@ -19,7 +19,7 @@ export function ClientTaskEditor({ draft, disabled, conflicted, onChange, onClos
       <p id={`${id}-zone`} className="task-help">Saat dilimi: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Seçtiğiniz yerel saat kaydedilir. Son tarih olmadan da görev atayabilirsiniz.</p>
       {error && <p role="alert" className="error-message">{error}</p>}
       {conflicted && <p role="alert">Görevin güncel durumu değişti. Yazdıklarınız kaydedilmedi; güncel görevi inceleyin.</p>}
-      <div className="task-actions"><button className="button button-primary" type="submit" disabled={conflicted}>{draft.original ? 'Değişiklikleri kaydet' : 'Görevi oluştur ve ata'}</button>
+      <div className="task-actions"><button className="button button-primary" type="submit" disabled={conflicted || checking}>{draft.original ? 'Değişiklikleri kaydet' : 'Görevi oluştur ve ata'}</button>
         <button className="button button-secondary" type="button" onClick={() => isDirtyDraft(draft) ? setDiscard(true) : onClose()}>Düzenlemeyi kapat</button>
         {conflicted && <button className="button button-secondary" type="button" onClick={onRestart}>Taslağı silip güncel sürüme dön</button>}
       </div>

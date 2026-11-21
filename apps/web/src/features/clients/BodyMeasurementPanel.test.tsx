@@ -247,13 +247,15 @@ describe('real measurement panel', () => {
       if (path.includes('/meal-logs?')) return new Response(null, { status: 403 })
       throw new Error('Unexpected test request')
     })
-    render(<MemoryRouter initialEntries={[`/calisma-alani/danisanlar/${clientId}`]}><App /></MemoryRouter>)
+    render(<MemoryRouter initialEntries={[`/calisma-alani/danisanlar/${clientId}?bolum=olcum-su`]}><App /></MemoryRouter>)
     const section = await screen.findByRole('region', { name: 'Vücut ölçümleri' })
     if (allowed) {
       expect(await within(section).findByText('73,123456789 kg')).toBeVisible()
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Program' }))
       expect(await screen.findByText('Programlara erişim veya düzenleme izniniz bulunmuyor.')).toBeVisible()
     } else {
       expect(await within(section).findByRole('alert')).toHaveTextContent('Ölçüm paylaşımı kapalı')
+      await userEvent.setup().click(screen.getByRole('link', { name: 'Program' }))
       expect(await screen.findByRole('button', { name: 'Yeni program oluştur' })).toBeVisible()
     }
     expect(screen.getByRole('heading', { name: 'Sentetik danışan' })).toBeVisible()
