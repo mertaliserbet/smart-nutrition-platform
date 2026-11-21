@@ -1,10 +1,128 @@
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
 > **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
-> **Sürüm:** 1.4 · **Hazırlanma:** 18.11.2026 · **U4 güncelleme:** 19.11.2026 · **Bitirme toplantısı:** 19.11.2026
+> **Sürüm:** 1.6 · **Hazırlanma:** 18.11.2026 · **U6 güncelleme:** 20.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
 ## 1. Bu dokümanın amacı ve geçerliliği
+
+### 20.11.2026 — U6 regresyon ve gerçek HTTPS UI provası
+
+- Başlangıç: Uğur fork origin/ortak upstream; aynı
+  `feature/dietitian-water-tracking`, HEAD `38573bc`. U5'in 20 bekleyen dosyası
+  korundu; stash/reset/clean/fetch/pull/dal/geçmiş/commit/push/PR yapılmadı.
+  mobile/AGENTS/kök yapılandırmaları değiştirilmedi. Yeni ürün özelliği yok.
+- Mevcut üç canlı test React DOM seviyesindeydi. Kullanıcının ayrıca açık
+  onayıyla yalnız web devDependency `@playwright/test=1.65.1` eklendi; kurulu
+  Edge kullanıldı. Playwright/tsconfig ve `test:e2e` komutu, gerçek HTTP testleri,
+  sahiplik kontrollü HTTPS API/Vite başlatma-kapatma betiği eklendi. TLS hata
+  atlama yok; mevcut güvenilir localhost sertifikası, no insecure flags,
+  Secure cookie/tam Origin/CSRF/normal limitler korundu. Sırlar Git dışında.
+- U6 API testi beş kategorinin 5×5 bağımsız erişimini, geri çekmede diğer
+  grant'lerin korunmasını, uzman doğrulamasının kaldırılmasında tüm okumaların
+  kapanmasını ve danışanın kendi okumalarının korunmasını doğrular.
+  U5 testindeki xUnit2009 string uyarıları, gerçek sırları hata çıktısına
+  yazmayan aynı bool assertion'ları yardımcı metoda alınarak giderildi.
+  Bu kontrollerde yeni ürün davranış hatası saptanmadı, üretim kodu değiştirilmedi.
+- Yeni testlerin ilk koşularında tür/DOM tipleri, mobil-only login çağrısının
+  Vite yerine API adresine gitmesi, yenilemede görev detayının kullanıcı
+  adımıyla yeniden açılması ve body_measurements'ın mevcut Development açılımı
+  için test ortamı düzeltildi. Güvenlik/ürün beklentileri gevşetilmedi; sonraki
+  hedefli ve tam koşular geçti, başarısız test silinmedi.
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: **0 hata/0 uyarı**.
+  İlgili görev/su/sağlık/reset filtresi **68/68**, yeni izin matrisi **1/1**.
+  Tam `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`:
+  **484 başarılı, 0 başarısız, 0 atlanan**; gerçek Mailpit testleri de çalıştı.
+  TRX: `u6-focused.trx`, `u6-permission-matrix.trx`, `u6-backend.trx`.
+- `node node_modules/vitest/vitest.mjs run --maxWorkers=2`: **349 başarılı,
+  0 başarısız, 3 atlanan / toplam 352, 23 dosya**. Atlananlar mevcut görev,
+  ölçüm ve yorum opt-in DOM testleri; SNP_TASK_WEB_LIVE/SNP_MEASUREMENT_WEB_LIVE/
+  SNP_COMMENT_WEB_LIVE eski ayrı sabit ortamlarını bekler. Yerlerine gerçek
+  tarayıcı sonucu yazılmadı. `npm run build`, `npm run lint` başarılı/uyarısız.
+- `npm run test:e2e` (ayrı strict TS kontrolü dahil): **4/4 gerçek Edge HTTPS**.
+  Uzman girişi→aktif danışan→son tarihli görev atama→danışan API tamamlama→
+  web durum/tamamlama/geçmiş; bağımsız su izni→liste/toplam/grafik/tablo→geri
+  çekme→veri kaldırma, görevin korunması; CSRF eksik/yanlış 400, yabancı Origin
+  403; yenileme/klavye/çıkış ve eski cookie 401 doğrulandı.
+- Gerçek Mailpit bağlantısı React'te açıldı, URL temizlendi, reset→giriş yapıldı;
+  eski parola/cookie/access/refresh 401 ve aynı token 422. Normal danışan web
+  reddi, onaysız uzman sınırı, açık/koyu tema, 390 px yatay taşma olmaması,
+  form/menü odağı, sunucu idle expiry→hassas liste kaldırma→401 doğrulandı.
+  Admin MFA ve varsayılan sağlık engeli tam backend paketinde doğrulandı.
+- Yalnız tmpfs PostgreSQL 17 `55586/nutrition_u6_test` ve Mailpit 58028/51028,
+  sentetik hesaplar/ayrı test schemaları kullanıldı. `dotnet ef database update`
+  zinciri yalnız yeni test DB'sinde uygulandı; U1/U3/U4 veri fingerprint/Down
+  koruma testleri geçti. EF `has-pending-model-changes`: değişiklik yok.
+  Yeni migration yok; son `20261118230136_AddWaterLogSharingCategory` korundu.
+  Uygulama DB'si ve gerçek hesaplar kullanılmadı.
+- Test DB'sinde 20 migration kaydı ve son migration ayrıca okundu. Son
+  `git diff --check`, yeni dosya whitespace ve PowerShell parser kontrolleri
+  temiz. Kendi süreçleri PID/yol/başlangıç zamanı, anahtarları hash ve konteynerleri
+  ID/U6 etiketiyle doğrulanarak kapatıldı; özel TLS kopyaları/test key ring'leri
+  kaldırıldı, test portlarında dinleyici kalmadı. TRX/sonuçlar Git dışında saklandı.
+- U6 dosyaları: web `package.json`, lockfile, `playwright.config.ts`,
+  `tsconfig.e2e.json`, `e2e/Start-TestServers.ps1`, `e2e/regression.e2e.ts`,
+  README; backend testleri `CrossFeatureAccessRegressionTests.cs`,
+  `PasswordResetWebIntegrationTests.cs`; docs `12` ve bu belge. Başlangıç U5
+  dosyaları ayrıca çalışma ağacında durur. `04/05/06` için yeni U6 değişikliği yok.
+- Kapanış: U1–U5 mevcut yerel checkout'ta yeniden doğrulandı, U6 backend/web
+  kapsamı tamamlandı. Danışan adımları API'dir; Flutter/Health Connect/HealthKit
+  fiziksel testi yapılmadı. Üretim SMTP/yayın ve uzak main güncelliği doğrulanmadı.
+  Sonraki tek adım U5/U6 için ortak main hedefli PR incelemesidir; commit atılmadı.
+
+### 20.11.2026 — U5 uygulama ve doğrulama kaydı
+
+- Uğur checkout'u salt okunur Git komutlarıyla doğrulandı: temiz
+  `feature/dietitian-water-tracking`, HEAD `38573bc`; origin Uğur fork'u,
+  upstream ortak Mert deposu. Kullanıcının bu görev sınırı gereği fetch/pull,
+  dal/geçmiş değişimi, commit/push yapılmadı. U6 başlatılmadı.
+- Mevcut `/sifremi-unuttum` sayfası gerçek `password-reset-requests { email }`
+  ve `reset-password { token, password }` API'lerine bağlandı. Ortak 202 mesajı,
+  Unicode 8–128/kırpılmayan parola ve tekrar, double-submit/AbortController,
+  400/422/429/ağ/sunucu ayrımı, erişilebilir form ve otomatik girişsiz 204→giriş
+  tamamlandı. Yeni endpoint/entity/token akışı veya paket eklenmedi.
+- Somut backend entegrasyon eksikleri: SMTP yalnız kod gönderiyordu; mevcut
+  güvenilir WebSession Origin'den aynı sayfaya `#token=` bağlantısı eklendi,
+  standalone kod korundu. U5 açık Admin reset/MFA gereğiyle doğrulanmış Admin
+  aynı mekanizmaya açıldı. Rol/e-posta/TOTP/kurtarma hash'leri korunur. `05/06/11`
+  önceki Admin ve URL kapsamını bu dar onayla günceller; `04` adları/DTO değişmedi.
+- URL/history replace ile temizlenir, token yalnız sayfa belleğinde kalır;
+  query/bozuk/tekrarlı token reddedilip temizlenir. Router state/storage/log/
+  analitik yok; referrer kapalı, reset fetch credentials omit/no-store. Yenilemede
+  e-posta bağlantısını yeniden açma/yeni talep yolu sunulur. Özel hesap/çalışma
+  alanı belleği route ayrılmasında kalkar, yeni bağlantı eski isteği iptal eder.
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: **0 hata, 0 uyarı**.
+  `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore --filter
+  FullyQualifiedName~PasswordResetTests`: **16/16**. Tam solution aynı komutla
+  filtresiz: **483/483 başarılı, 0 atlanan/başarısız**; üç Mailpit testi de çalıştı.
+  TRX: yerel test-results altında `u5-focused.trx` ve `u5-backend.trx`.
+- Gerçek PostgreSQL 17 yalnız geçici `127.0.0.1:55585/nutrition_u5_test`,
+  ayrı test schemaları ve sentetik hesaplar; ayrı Mailpit HTTP 58027/SMTP 51027.
+  Gerçek SMTP e-postası okundu, bağlantının React yolu ve fragment kodu doğrulandı,
+  aynı tokenla reset 204; eski parola/web cookie/access JWT/refresh 401, yeni
+  parola 200, tekrar token 422. Tamamlama e-postası parola/token içermez.
+  Admin eski cookie 401; aynı MFA kurulumu/kurtarma hash'leri korundu, yeni parola
+  MFA'sız/yanlış MFA ile reddedildi, geçerli MFA ile giriş 200, normal login kapalı.
+- `node node_modules/vitest/vitest.mjs run --maxWorkers=2`: **349 başarılı,
+  3 mevcut opt-in canlı test atlandı; toplam 352, 23 dosya**. U5 odaklı AuthPage
+  ve PasswordResetPage: **37/37**. URL/history, StrictMode, bozuk/eksik token,
+  yenileme, eşleşme/Unicode, durumlar/hatalar, çift gönderim, yönlendirme ve eski
+  yanıt elenmesi doğrulandı. İlk derlemedeki union tipi daraltma hatası düzeltildi;
+  nihai `npm run build` ve `npm run lint` başarılı/uyarısız.
+- `dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api
+  --no-build`: değişiklik yok. Yeni migration gerekmedi; son migration
+  `20261118230136_AddWaterLogSharingCategory` korundu. Yalnız test DB'si
+  `dotnet ef database update` ile hazırlandı; uygulama DB'sine dokunulmadı.
+  `git diff --check` ve yeni dosya whitespace kontrolleri temiz.
+- Dosyalar: web `README.md`, `index.html`, `src/App.tsx`, `vite.config.ts`, Auth
+  `AuthPage.tsx`, `AuthPage.test.tsx`, yeni `PasswordResetPage.tsx`,
+  `PasswordResetPage.test.tsx`, `passwordResetApi.ts`; backend `README.md`, Auth
+  `PasswordResetService.cs`, `SmtpVerificationEmailSender.cs`, test
+  `PasswordResetTests.cs`, yeni `PasswordResetWebIntegrationTests.cs`;
+  docs `05/06/08/11/12` ve bu belge. mobile/AGENTS/kök yapılandırmaları değişmedi.
+- M5 mevcut DTO/standalone kodla uyumludur; mobil/deep-link/Flutter entegrasyonu
+  yapılmadı. React DOM testleri gerçek tarayıcı testi değildir; Mailpit/API testleri
+  ayrı çalıştırıldı. Fiziksel tarayıcı/cihaz ve üretim e-posta teslimi doğrulanmadı.
 
 ### 19.11.2026 — U4 uygulama ve doğrulama kaydı
 
@@ -150,8 +268,8 @@ Bu belge **iki ayrı Codex oturumunun aynı özellikleri yeniden geliştirmesini
 | **U2** | React görev atama ve takip | **Uygulandı/doğrulandı; ortak main entegrasyonu bekler.** Gerçek danışan çalışma alanında atama, liste/detay, düzenleme/iptal, geçmiş, 409 ve izin/ilişki kaybı. Mevcut API korunur; test sonuçları aşağıda. PR tabanı mobil M2'yi içeren d14576f'tir; Flutter canlı provası ayrıca yapılır. | `apps/web/**`, ilgili backend testleri ve docs |
 | **U3** | Sağlık verisi API + PostgreSQL | **19.11 kullanıcı uygulama onayıyla kodlandı.** U1 dalda/snapshot tutarlı. Birim/tarih/kaynak/tekrar/izin sözleşmesi 04/05/06/20'de; yalnız danışanın kendi JWT'si, atomik sync, gerçek özet. Test sonuçları aşağıdaki U3 kaydındadır. | `backend/**`, ilgili `docs/**` |
 | **U4** | Diyetisyen su görüntüleme | **19.11 kullanıcı onayıyla uygulandı.** Bağımsız water_logs, salt okunur liste/toplam/31 günlük IANA geçmişi ve gerçek React bölümü. Migration U3 sonrasındadır; varsayılan kapalı açılım, M4 teslim notu 21. Doğrulama kaydı aşağıdadır. | `backend/**`, `apps/web/**`, `docs/**` |
-| **U5** | React şifre sıfırlama entegrasyonu | Var olan reset backend'ini koruyarak web formlarını gerçek API'ye bağla, Mailpit ile doğrula; Admin MFA'yı koru. | `apps/web/**` |
-| **U6** | Web/backend regresyon testi | Diyetisyen panelinde program, gerçek öğün, yorumlar, karşılaştırma, ölçüm grafikleri, görevler ve su görüntüleme; gerçek oturum/izin iptali/CSRF/rol testi. | Backend/web test ve rapor |
+| **U5** | React şifre sıfırlama entegrasyonu | 20.11 uygulandı: gerçek formlar/SMTP bağlantısı, oturum iptali ve Admin MFA; doğrulama kaydı yukarıda. | `apps/web/**`; dar backend/test ve sözleşme düzeltmeleri |
+| **U6** | Web/backend regresyon testi | **20.11 yerel kapsam doğrulandı:** backend 484/484, React 349+3 opt-in skip, gerçek Edge HTTPS 4/4. Kapsam/sınırlar üstteki U6 kaydında. | Backend/web test ve rapor |
 
 **U1/U3 kuralı:** Kullanıcının ilgili uygulama talimatları ortak kararları onayladı; U1 ve U3 uygulanan sözleşmeleri esas alınır. U3 yalnız kendi sağlık verisidir, diyetisyen paylaşımı açmaz. Sonraki kapsam değişiklikleri ayrıca yetkilendirilir.
 

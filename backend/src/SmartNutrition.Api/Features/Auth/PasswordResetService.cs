@@ -105,5 +105,5 @@ public sealed class PasswordResetService(AppDbContext database, ILookupNormalize
         token.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_');
     internal static string Hash(string token) => Convert.ToHexString(
         SHA256.HashData(Encoding.UTF8.GetBytes("password-reset:v1:" + token)));
-    private static bool Eligible(User user) => user.IsEmailVerified && user.Role is UserRole.Client or UserRole.Dietitian;
+    private static bool Eligible(User user) => user.IsEmailVerified && user.Role is UserRole.Client or UserRole.Dietitian or UserRole.Admin;
 }

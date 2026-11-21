@@ -997,15 +997,17 @@ Kullanıcının açık onayıyla aşağıdaki reset ve P4 kuralları uygulanır.
 
 | İşlem | İstek | Sonuç |
 |---|---|---|
-| `POST /api/v1/auth/password-reset-requests` | PasswordResetRequest: yalnız zorunlu geçerli `email: string` | Gövdesiz `202`; olmayan, doğrulanmamış, Admin, cooldown ve kuyruk doluluğunda da aynı sonuç. Bozuk/eksik/null/ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
+| `POST /api/v1/auth/password-reset-requests` | PasswordResetRequest: yalnız zorunlu geçerli `email: string` | Gövdesiz `202`; olmayan, doğrulanmamış hesap, cooldown ve kuyruk doluluğunda da aynı sonuç. Admin dahil hesap uygunluğu açıklanmaz. Bozuk/eksik/null/ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
 | `POST /api/v1/auth/reset-password` | ResetPasswordRequest: yalnız zorunlu string `token`, `password` | Commit sonrası gövdesiz `204`. Boş/geçersiz/süresi dolmuş/tüketilmiş/önceki token veya parola politikası ihlali aynı `422 validation_failed`; eksik/null/yanlış JSON tipi/ek alan `400`; IP limiti `429` |
 
 - İki işlem oturumsuzdur. Hesap yalnız reset tokenından seçilir; varsa cookie/bearer
   kimliği dikkate alınmaz. İstemciler bu kimlikleri göndermez. Query `400`,
   application/json dışında `415`, 4096 byte üstü `413`; altyapı hatası genel `500`.
   Ortak hata zarfı ve no-store korunur; başarı kimlik/cookie/Location üretmez.
-- Yalnız e-postası doğrulanmış client/dietitian hesapları uygundur. Admin ayrı
-  kurtarma kararı bekler; reset e-posta/rol/MFA doğrulaması sağlamaz.
+- 20.11.2026 U5 kullanıcı onayıyla e-postası doğrulanmış client/dietitian/Admin
+  hesapları uygundur. Bu dar kapsam genişlemesi önceki Admin istisnasını kaldırır;
+  reset e-posta/rol/MFA doğrulaması sağlamaz. Admin TOTP sırrı, kullanılmış adım ve
+  kurtarma kodu hash'leri korunur; yeni parola da mevcut Admin MFA girişini gerektirir.
 - Token CSPRNG 256 bit/43 Base64URL, 30 dakika ve tek kullanımlıktır; tam bitiş
   anı geçersizdir. Yalnız amaç önekli SHA-256 hash'i saklanır (`05`). Yeni kod
   eskiyi geçersiz kılar. Doğrulama/CSRF/access/refresh tokenları reset yetkisi vermez.
@@ -1038,7 +1040,14 @@ Kullanıcının açık onayıyla aşağıdaki reset ve P4 kuralları uygulanır.
   içermeyen bildirim kuyruğa alınır; teslim hatası commit'i geri almaz.
 - Süresi biten hash/expiry 10 dakikalık temizlikte silinir; 24 saati geçmiş
   lastSentAt yalnız canlı kod yoksa temizlenir. Hesap/veri silinmez.
-- Kod elle yapıştırılır; URL/query/fragment/depolama/analitik/loga taşınmaz.
+- U5 web bağlantısı, mevcut güvenilir `Auth:WebSession:Origin` yapılandırılmışsa
+  `<https-origin>/sifremi-unuttum#token=<43-karakter-kod>` biçimindedir. İstek Host'u
+  kullanılmaz, yeni API/rota alias'ı yoktur. Kod e-postada ayrı satırda da kalır;
+  web yapılandırılmamış mobil/JWT ortamında yalnız kod gönderilir. Fragment HTTP
+  isteğine gitmez; React tokenı yalnız geçici belleğe alıp URL/history girdisini
+  `replace` ile temizler. Query/tekrarlı/bozuk token kabul edilmez ve URL temizlenir.
+  Token router state/depolama/analitik/loga taşınmaz; no-referrer kullanılır.
+  Temiz URL yenilenirse e-posta bağlantısı yeniden açılır veya yeni kod istenir.
   Reset POST'u otomatik tekrarlanmaz, otomatik giriş yapılmaz. Mobil mevcut tek
   refresh koordinasyonunu korur; iptal edilmiş refresh'in 401'i oturumu temizler.
 - Dağıtım: önce yedekli additive migration, ardından bütün API örneklerinin aynı

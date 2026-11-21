@@ -1,5 +1,51 @@
 # 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
 
+## 20.11.2026 — U6 web/backend regresyon kapanışı
+
+Kullanıcı U6 test/hata düzeltme kararlarını onayladı; ayrıca eksik gerçek HTTPS
+tarayıcı altyapısı için yalnız apps/web altında Playwright test bağımlılığına
+açık onay verdi. Başlangıçtaki U5 değişiklikleri korundu; Git dalı/geçmişi
+değişmedi. Yeni özellik, ürün refactor'u, migration veya gevşetilmiş güvenlik yok.
+
+Güncel yerel kodda tam backend 484/484, React DOM 349 başarılı/3 mevcut opt-in
+atlandı, gerçek Edge HTTPS 4/4. Program/sürüm/tek aktif, öğün/yorum/yanıt,
+karşılaştırma/eksik besin/tarih, ölçüm/grafik, görev, su, sağlık sync, yetki,
+Admin MFA, reset ve migration koruma testleri yeniden çalıştırıldı. Beş izin
+kategorisinin 5×5 bağımsızlık matrisi ve uzman onayının kaldırılmasında toplu
+erişim kapanışı eklendi. Gerçek UI senaryoları ve komutlar koordinasyon kaydında;
+tekrar kurulum web README'sindedir. Geçmiş raporlar yeni sonuç yerine kullanılmadı.
+
+U6, `04/05/06`yu veya mobil sözleşmeyi değiştirmez; U5'in tarihli Admin reset ve
+web fragment bağlantısı kararı korunur. Mert M2/M4/M5 aynı kanonik API'yi kullanır;
+bu provada danışan işlemleri API ile yapıldı, Flutter/cihaz doğrulanmadı.
+U1–U5 mevcut checkout'ta doğrulandı, U6 web/backend kapsamı kapandı. Ortak main'in
+uzak güncelliği fetch yasağı nedeniyle doğrulanmadı; yayın/mağaza onayı değildir.
+Sonraki tek adım U5/U6 değişikliklerini ortak main hedefli PR ile incelemeye sunmaktır;
+bu görevde commit/push/PR yapılmaz.
+
+## 20.11.2026 — U5 React parola sıfırlama ve M5 etkisi
+
+Kullanıcı U5 ortak izin/ürün/teknik kararlarını uygulama yetkisiyle onayladı.
+Mevcut `/sifremi-unuttum` ekranı kanonik PasswordResetRequest `{ email }` ve
+ResetPasswordRequest `{ token, password }` ile gerçek backend'e bağlandı;
+tekrar alanı yalnız istemcidedir. İkinci endpoint/entity/token akışı eklenmedi.
+
+İncelemede SMTP yalnız kod gönderiyor ve 02.11 P1 Admin'i dışlıyordu. U5'in açık
+Admin reset/MFA doğrulama gereğiyle aynı mekanizma doğrulanmış Admin'e açıldı;
+MFA sırrı/adımı/kurtarma hash'leri değişmez ve yeni parola MFA yerine geçmez.
+Bu tarihli dar onay eski client/dietitian sınırlamasını ve web için URL yasağını
+günceller; diğer açık kararları kapatmaz. `05/06/11` uygulanan davranışı tanımlar;
+`04` adları ve DTO zorunlu alanları değişmedi. Yeni migration gerekmiyor.
+
+Mevcut güvenilir WebSession Origin yapılandırılmışsa SMTP e-postası aynı kodu
+`/sifremi-unuttum#token=...` bağlantısında da verir. Standalone 43 karakter kod
+korunur; Mert M5 mevcut API/manuel kod akışını kullanabilir. Flutter/deep-link
+entegrasyonu bu görevde yapılmadı. React URL'yi replace ile temizler, tokenı
+yalnız bellekte tutar; yenilemede bağlantıyı yeniden açma yolu gösterilir.
+204 sonrası girişe yönlenir; eski cookie/access/refresh backend'de reddedilir.
+Gerçek Mailpit/PostgreSQL ve ayrı React DOM testleri koordinasyon kaydındadır;
+fiziksel tarayıcı/Flutter testi yapılmış sayılmaz. U6 kapsam dışıdır.
+
 ## 19.11.2026 — U4 su paylaşımı API/React ve M4 teslimi
 
 Kullanıcı U4 ürün/teknik/izin kararlarının tamamını uygulama yetkisiyle onayladı.

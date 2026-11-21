@@ -113,7 +113,7 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 
 | Ekran | İçerik ve işlemler | İlgili API / açık bağımlılık |
 |---|---|---|
-| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. W2 web cookie/CSRF/iptal onaylıdır; uzman doğrulama durumu, sıfırlama ve MFA açık bağımlılıktır |
+| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. W2 cookie/CSRF/iptal ve U5 gerçek reset uygulanmıştır; Admin girişi mevcut MFA akışını korur |
 | Dashboard | aktif danışan sayısı, bekleyen istekler, son kayıtların özeti | `/dietitian-relationships`, `/dietitian/clients` |
 | Danışan Listesi | Aktif ilişkili danışanların sınırlı id/displayName listesi; izinli ek özetler ayrı kapsam | `/dietitian/clients`; bekleyen/bitmiş ilişki durumları `/dietitian-relationships`ten |
 | Danışan Detayı | hedefler, günlük/haftalık özet, ölçüm trendi | `/dietitian/clients/{clientId}/dashboard` |
@@ -132,6 +132,29 @@ Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden
 Doğrulama, kullanıcı/hesap operasyonları, şikâyetler, besin kataloğu, Audit Log (`AuditEvent`) ve sistem durumu onaylı kapsamdır. İlk sürüm paneli webdedir; yönetim oturumu MFA gerektirir. Admin'in sağlık verilerini varsayılan okuma hakkı **yoktur**; destek/audit ekranı sağlık değerlerini topluca açamaz.
 
 Başvuru mobil veya webden alınabilir; doğrulayan Admin'dir. Başvuru belgeleri, ret/yeniden başvuru, idari rol değişiklikleri, MFA challenge ve admin endpoint DTO'ları açıktır. Bunlar ortak sözleşme onayından sonra `06`da tamamlanır; yeni `/admin/*` yolları bu belgeden tahmin edilmez.
+
+## 20.11.2026 — U5 gerçek parola sıfırlama
+
+- Mevcut `/sifremi-unuttum` sayfası linksiz açıldığında yalnız `{ email }` ile
+  `POST /api/v1/auth/password-reset-requests` çağırır. Boş 202 için her hesapta
+  aynı “Uygun bir hesap varsa sıfırlama talebi işleme alınır. Gelen kutunuzu
+  kontrol edin.” mesajı kullanılır; e-postanın teslim edildiği iddia edilmez.
+- E-postadaki aynı sayfanın `#token=` bağlantısı yeni parola/tekrar formunu açar.
+  Yalnız `{ token, password }` mevcut `reset-password` yoluna gönderilir. Tekrar
+  alanı istemcidedir. Parola 8–128 Unicode kod noktasıdır; kırpılmaz/normalize
+  edilmez. Yerel kurallar backend varsayılanıyla eşleşir; son karar sunucudadır.
+- Token yalnız sayfa belleğindedir; URL/history replace ile temizlenir, query ve
+  hatalı/tekrarlı fragment reddedilip temizlenir. Kalıcı depolama, router state,
+  log/analitik yoktur. Referrer kapalıdır. Yenileme tokenı kaybettirir; e-postayı
+  yeniden açma/yeni bağlantı isteme yolu gösterilir. Yeni bağlantı eski isteği iptal eder.
+- 400 biçim, ortak 422 geçersiz/süresi dolmuş/kullanılmış token veya parola,
+  429 limit, ağda belirsiz sonuç ve sunucu hataları ayrı geri bildirim alır.
+  Gönderim ref + disabled ile tekilleştirilir; alan/hata odağı ve aria durumları
+  mevcut AuthLayout/tema/dar ekran düzeniyle çalışır. POST otomatik tekrarlanmaz.
+- 204 sonrası token/parola bırakılır, route'a bağlı hesap/çalışma alanı durumu
+  kaldırılmış olur, `/giris` replace ile açılır; otomatik giriş veya yeni kimlik
+  alınmaz. Backend eski oturumları iptal eder. Admin sıfırlama MFA'yı kaldırmaz;
+  Admin girişi mevcut ayrı MFA ekranından yapılır.
 
 ## Temel UX davranışları
 Onaylı W2-C1–C7 diliminde giriş mevcut beş alanlı hesap özetine ve hesap ekranına

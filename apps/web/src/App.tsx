@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthPage } from './features/auth/AuthPage'
+import { PasswordResetPage } from './features/auth/PasswordResetPage'
 import { EmailVerificationPage } from './features/auth/EmailVerificationPage'
 import { AccountPage } from './features/auth/AccountPage'
 import { WorkspacePreview } from './features/workspace/WorkspacePreview'
@@ -40,7 +41,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/giris" replace />} />
         <Route path="/giris" element={<AuthPage key="login" mode="login" />} />
         <Route path="/kayit" element={<Navigate to="/giris" replace />} />
-        <Route path="/sifremi-unuttum" element={<AuthPage key="reset" mode="reset" />} />
+        <Route path="/sifremi-unuttum" element={<PasswordResetPage />} />
         <Route path="/eposta-dogrulama" element={<EmailVerificationPage />} />
         <Route path="/hesabim" element={<AccountPage />} />
         <Route path="/uzman-basvurusu" element={<DietitianApplicationPage />} />

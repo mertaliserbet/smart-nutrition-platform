@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": { "strict": true, "noUncheckedIndexedAccess": true, "lib": ["ES2023", "DOM"] },
+  "include": ["playwright.config.ts", "e2e/**/*.ts"]
+}

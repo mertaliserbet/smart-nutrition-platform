@@ -1,5 +1,95 @@
 # Smart Nutrition — Web
 
+## 20.11.2026 — U6 gerçek HTTPS tarayıcı regresyonu
+
+`npm run test:e2e`, Playwright Test 1.65.1 ve kurulu Microsoft Edge ile gerçek
+tarayıcıyı çalıştırır; React DOM testlerinden ayrıdır. U6 sırasında test
+bağımlılığı kullanıcı tarafından ayrıca açıkça onaylandı. Dört senaryo:
+
+- Uzman girişi → aktif danışan → son tarihli görev atama → danışan API'sinden
+  tamamlama → webde durum/geçmiş; bağımsız su izni/okuma/geri çekme, CSRF/Origin,
+  sayfa yenileme, profil menüsü klavyesi ve sunucuda çıkış.
+- Gerçek Mailpit e-postasının React bağlantısı → URL temizliği → reset → yeni
+  parolayla giriş; eski parola/web cookie/access/refresh ve tekrar token reddi.
+- Normal danışanın web giriş reddi, onaysız uzman sınırı, 390 px ekran,
+  açık/koyu sistem teması ve doğrulama hatasında klavye odağı.
+- Süresi dolan sunucu oturumunda danışan listesinin kaldırılması ve eski cookie reddi.
+
+Yalnız ayrı, sentetik test ortamında çalıştırın. Sabit uçlar: PostgreSQL 17
+`127.0.0.1:55586/nutrition_u6_test` (`nutrition_test`), Mailpit HTTP 58028/SMTP
+51028, test API `https://localhost:7099`, Vite `https://localhost:5446`.
+Uygulama servisi 7099'u kullanıyorsa betik durur; başka süreci kapatmaz.
+Kurulu/geçerli ve zaten güvenilir localhost ASP.NET geliştirme sertifikası
+gereklidir. TLS doğrulaması, Secure cookie, CSRF, tam Origin ve normal limitler
+korunur; `ignoreHTTPSErrors=false`. Test CA güveni Node'a yalnız PEM ile verilir.
+
+Önce repo kökünden yalnız bu test konteynerlerini oluşturun (uygulama volume'u yok):
+
+```powershell
+docker run --rm -d --name nutrition-u6-postgres --label smart-nutrition.test=U6 --tmpfs /var/lib/postgresql/data -p 127.0.0.1:55586:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_USER=nutrition_test -e POSTGRES_DB=nutrition_u6_test postgres:17
+docker run --rm -d --name nutrition-u6-mailpit --label smart-nutrition.test=U6 -p 127.0.0.1:58028:8025 -p 127.0.0.1:51028:1025 axllent/mailpit:v1.32.0
+$env:ConnectionStrings__DefaultConnection = 'Host=127.0.0.1;Port=55586;Database=nutrition_u6_test;Username=nutrition_test;Pooling=true'
+Push-Location backend
+dotnet build SmartNutrition.Backend.slnx --no-restore
+dotnet ef database update --project src/SmartNutrition.Api --no-build
+Pop-Location
+Push-Location apps/web
+$u6Artifacts = Join-Path $env:TEMP ('nutrition-u6-' + [guid]::NewGuid().ToString('N'))
+./e2e/Start-TestServers.ps1 -Artifacts $u6Artifacts
+$env:SNP_E2E_TEST_ENV = 'nutrition_u6_test'
+$env:SNP_E2E_RESULTS = Join-Path $u6Artifacts 'results'
+$env:NODE_EXTRA_CA_CERTS = Join-Path $u6Artifacts 'localhost.pem'
+npm run test:e2e
+./e2e/Start-TestServers.ps1 -Artifacts $u6Artifacts -Stop
+Pop-Location
+```
+
+Betik test JWT/SMTP/paylaşım ayarlarını yalnız çocuk süreçlere verir. İşaretli
+test klasörü Git dışında olmalıdır; özel anahtar kopyaları/hash'leri ve süreç
+PID/yol/başlangıç zamanı kaydıyla sahiplik doğrulanır. `-Stop` yalnız eşleşen
+süreçleri, değişmemiş anahtar kopyalarını ve kendi test key ring'ini temizler;
+asıl geliştirme sertifikası/deposu değiştirilmez. Son olarak konteynerlerin U6
+etiketlerini `docker inspect` ile doğrulayıp yalnız `nutrition-u6-postgres` ve
+`nutrition-u6-mailpit` adlarını `docker stop` ile kapatın; `--rm`/tmpfs veriyi kaldırır.
+Trace/video/screenshot ve kalıcı Auth storage kullanılmaz. Danışan işlemleri
+gerçek API ile yapılır; Flutter testi değildir. Başlangıç sentetik hesapları API
+ile kaydolur/e-postası doğrulanır; uzman onayı ve oturum süresi yalnız etiketli
+test DB'sindeki yeni UUID/e-posta eşleşmesine sınırlı SQL ile hazırlanır.
+
+U6 sonuçları: dört Edge/HTTPS testi başarılı; React DOM 349 başarılı/3 eski
+opt-in canlı DOM testi atlandı. Bu üçü SNP_TASK_WEB_LIVE, SNP_MEASUREMENT_WEB_LIVE,
+SNP_COMMENT_WEB_LIVE için eski sabit ayrı ortamları bekler; silinmedi. Tam backend
+ve migration sonuçları koordinasyon kaydındadır. Bu testler üretim yayını veya
+fiziksel Flutter/Health Connect/HealthKit onayı değildir.
+
+## 20.11.2026 — U5 gerçek parola sıfırlama
+
+Girişteki **Şifremi unuttum** mevcut `/sifremi-unuttum` sayfasını açar. E-posta
+formu gerçek `POST /api/v1/auth/password-reset-requests { email }` yolundadır;
+202 mesajı hesap varlığını veya teslimi açıklamaz. Mailpit e-postasındaki
+`<Auth:WebSession:Origin>/sifremi-unuttum#token=<kod>` aynı sayfada yeni parola
+formunu açar. Vite iki kanonik reset yolunu mevcut backend'e proxy eder.
+Yerel başlatıcıdaki güvenilir Origin `https://localhost:5173` ile eşleşmelidir;
+uygulama hesabı veya ayarlar bu U5 görevinde değiştirilmedi.
+
+Token yalnız sayfa belleğinde tutulur, URL/history replace ile temizlenir.
+Query/bozuk/tekrarlı token reddedilir. Yenileme sonrası e-postadaki bağlantıyı
+yeniden açın veya yeni bağlantı isteyin. Local/session storage, router state,
+log/analitik kullanımı yoktur; no-referrer ve credentials omit/no-store vardır.
+Şifre ve tekrarı kırpılmaz; 8–128 Unicode kod noktası politikası uygulanır.
+Yalnız `{ token, password }` gönderilir; 204 sonrası `/giris`, otomatik giriş yok.
+Route'a bağlı hesap/çalışma alanı belleği sayfadan ayrılmada kalkar. Backend eski
+web/access/refresh kimliklerini iptal eder. Admin yeni parolayla da MFA ekranından
+girmelidir; MFA kurulumu/kurtarma kodları değişmez.
+
+Doğrulama: `node node_modules/vitest/vitest.mjs run --maxWorkers=2`,
+`npm run build`, `npm run lint`. PasswordResetPage testleri talep/ortak başarı,
+422/429/ağ/sunucu hataları, Unicode/eşleşme, double-submit, StrictMode, URL/history,
+yenileme ve geç yanıtları sınar. Gerçek Mailpit/PostgreSQL ve kimlik iptali
+`backend/tests/SmartNutrition.Api.Tests/PasswordResetWebIntegrationTests.cs`
+içindedir. React DOM/API testleri fiziksel tarayıcı veya Flutter testi değildir.
+Bu kayıt aşağıdaki eski reset sunum/açık bağımlılık notlarının yerini alır.
+
 ## 19.11.2026 — U4 gerçek su takibi
 
 Danışan çalışma alanındaki WaterLogPanel gerçek uzman su liste/toplam/geçmiş
@@ -403,7 +493,7 @@ kayıt, öğün kalemi ve tahlil sonucu sahiplik bağlantıları görüntüleme 
 Bu istemci kontrolleri gerçek kaynak/yetki denetimi olarak sunulmaz.
 Giriş/sıfırlama formlarında e-posta biçimi ve boş şifre yerel olarak kontrol
 edilir; kayıt parola politikası girişte uygulanmaz. Giriş gerçek W2 API'sine
-bağlıdır; sıfırlama formu hâlâ istek/e-posta üretmeyen sunumdur.
+bağlıdır; sıfırlama U5 ile mevcut gerçek request/reset API'lerine bağlıdır.
 Şifre gönderimde ve sayfa geçişinde temizlenir; saklanmaz veya loglanmaz.
 `isLoading` / `errorMessage` yalnız test edilebilir sunum girdileridir; yapay
 gecikme veya sahte ağ yanıtı yoktur.
