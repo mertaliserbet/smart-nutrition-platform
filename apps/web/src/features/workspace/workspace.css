@@ -78,3 +78,12 @@
   .panel-inset { padding-inline: 18px; }
   .client-profile-card { padding: 20px; }
 }
+
+.dashboard-quick-actions { padding: 18px 24px; }
+.dashboard-quick-actions h2 { font-size: 1rem; margin-bottom: 12px; }
+.live-workspace .live-metrics { gap: 12px; margin-block: 16px; }
+.live-workspace .live-metrics .metric-card { padding: 14px 18px; }
+.live-workspace .live-metrics .metric-top h2 { font-size: 0.875rem; }
+.live-workspace .live-metrics .metric-value { font-size: 1.5rem; line-height: 1.25; }
+.live-workspace .live-metrics .metric-card > p { font-size: 0.875rem; }
+@media (max-width: 600px) { .dashboard-quick-actions { padding: 16px; } }

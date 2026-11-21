@@ -1,5 +1,31 @@
 # 08 — Diyetisyen ve admin web deneyimi
 
+## 21.11.2026 — Web program hazırlama ve günlük çalışma
+
+Program editörü Her gün ve Pazartesi–Pazar seçicisiyle çalışır; Her gün
+önerileri güne özel önerilerle birlikte geçerlidir. Günü kopyalama yeni satır
+ve alternatif grupları üretir, dolu hedefi açık onay olmadan değiştirmez.
+Taslak listeden bağımsız bellekte tutulur; yenileme, geçmiş ve sayfalama
+korur. Başka taslak veya sayfaya geçişte değişiklikler için uyarı vardır;
+oturum/danışan/yetki değişiminde önceki taslak kaldırılır. Kalıcı depolama yoktur.
+Etkinleştirme ve arşivleme program adı/sonucuyla ayrıca onaylanır.
+
+Kendi programımdan kopyala, mevcut sayfalı danışan/program okumalarından
+yalnız oturumdaki uzmanın yetkili programını seçtirir; seçimde ve kayıttan
+önce kaynak tekrar doğrulanır. Yalnız düzenlenebilir öğün yapısı taşınır;
+başlık, tarih, hedef ve program/sürüm/satır kimlikleri taşınmaz. Hedef danışan
+ve kişiye özel serbest metin uyarısı görünürdür. Kaydetmek bağımsız taslak
+oluşturur; atama ayrı etkinleştirmedir. Bağımsız Şablonlarım kütüphanesi yoktur.
+
+Öğün filtresi ve görünen kayıt saatleri cihazın aynı saat dilimini kullanır.
+Bugün / Dün / Son 7 gün / Özel aralık yerel takvim gece yarılarından hesaplanır;
+özel aralıkta ilk ve son gün dahildir. API'ye ISO anlarıyla başlangıç dahil,
+ertesi gün başlangıcı hariç `[from,to)` gönderilir; su ve program karşılaştırma
+gün sınırı yöntemi korunur. DST günleri sabit 24 saat varsaymaz.
+Danışan arama/sıralama/sayfa bilgisi yalnız oturum belleğinde korunur;
+detaydan Geri veya liste bağlantısıyla dönülebilir. Genel Bakış yeni listeyi
+varsayılana sıfırlar; adlar URL veya tarayıcı depolamasına yazılmaz.
+
 ## 19.11.2026 — U4 gerçek su takibi
 
 Gerçek danışan çalışma alanında Su takibi eklendi; sentetik önizleme değildir.
