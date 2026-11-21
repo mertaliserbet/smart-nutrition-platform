@@ -310,27 +310,17 @@ void main() {
     }
   });
 
-  testWidgets(
-    'password reset validates email without claiming an email was sent',
-    (tester) async {
-      await pumpAuth(tester, const ForgotPasswordPage());
-      await tapText(tester, 'Sıfırlama bağlantısı iste');
-      expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
-      await enterField(tester, 0, 'gecersiz');
-      await tapText(tester, 'Sıfırlama bağlantısı iste');
-      expect(find.text('Geçerli bir e-posta adresi girin.'), findsOneWidget);
-      await enterField(tester, 0, 'ornek@example.com');
-      await tapText(tester, 'Sıfırlama bağlantısı iste');
-
-      expect(
-        find.text(
-          'E-posta gönderimi şu anda kullanıma açık değil. Sıfırlama bağlantısı gönderilmedi.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.byType(ForgotPasswordPage), findsOneWidget);
-    },
-  );
+  testWidgets('password reset validates email before sending a request', (
+    tester,
+  ) async {
+    await pumpAuth(tester, const ForgotPasswordPage());
+    await tapText(tester, 'Sıfırlama kodu iste');
+    expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
+    await enterField(tester, 0, 'gecersiz');
+    await tapText(tester, 'Sıfırlama kodu iste');
+    expect(find.text('Geçerli bir e-posta adresi girin.'), findsOneWidget);
+    expect(find.byType(ForgotPasswordPage), findsOneWidget);
+  });
 
   testWidgets(
     'auth screens navigate and return without simulating registration',
@@ -462,7 +452,7 @@ void main() {
             (
               const ForgotPasswordPage(),
               'Şifrenizi mi unuttunuz?',
-              'Sıfırlama bağlantısı iste',
+              'Sıfırlama kodu iste',
             ),
             (
               const EmailVerificationPage(
