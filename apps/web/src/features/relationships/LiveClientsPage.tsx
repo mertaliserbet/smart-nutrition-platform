@@ -1,20 +1,25 @@
-import { useCallback, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useWorkspaceRead } from '../workspace/workspaceSession'
-import { getClientDashboard, getClients } from './relationshipApi'
-import type { ClientDashboardResponse, ClientListItem, PagedResponse } from './relationshipApi'
-import { NutritionPlanPanel } from '../nutritionPlans/NutritionPlanPanel'
-import { MealLogPanel } from '../clients/MealLogPanel'
-import { BodyMeasurementPanel } from '../clients/BodyMeasurementPanel'
-import { WaterLogPanel } from '../clients/WaterLogPanel'
-import { ClientTaskPanel } from '../clientTasks/ClientTaskPanel'
+import { getClients } from './relationshipApi'
+import type { ClientListItem, PagedResponse } from './relationshipApi'
+export { LiveClientDetailsPage } from './LiveClientDetailsPage'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
+import { useClientListState } from './clientListState'
 
 export function LiveClientsPage() {
-  const [input, setInput] = useState(''); const [query, setQuery] = useState(''); const [sort, setSort] = useState('asc'); const [page, setPage] = useState(1)
+  const [{ input, query, sort, page }, setFilters] = useClientListState()
+  const setInput = (input: string) => setFilters(value => ({ ...value, input }))
+  const setQuery = (query: string) => setFilters(value => ({ ...value, query, page: 1 }))
+  const setSort = (sort: string) => setFilters(value => ({ ...value, sort, page: 1 }))
+  const setPage = (next: number | ((value: number) => number)) => setFilters(value => ({ ...value, page: typeof next === 'function' ? next(value.page) : next }))
   const load = useCallback((signal: AbortSignal) => getClients(page, query, sort, signal), [page, query, sort])
   const state = useWorkspaceRead<PagedResponse<ClientListItem>>(load)
+  useEffect(() => {
+    if (state.data && page > Math.max(1, Math.ceil(state.data.totalCount / 10)))
+      setFilters(value => ({ ...value, page: Math.max(1, Math.ceil(state.data!.totalCount / 10)) }))
+  }, [state.data, page, setFilters])
   return <><div className="dashboard-heading"><div className="page-heading"><p className="eyebrow">BİRLİKTE İLERLEYİN</p><h1 tabIndex={-1}>Danışanlarım</h1><p>Aktif bağlantı kurduğunuz danışanlar ve beslenme programları.</p></div>
     <Link className="button button-primary" to="/calisma-alani/baglantilar"><Icon name="link" />Bağlantıları ve daveti yönet</Link></div>
     <section className="card"><header className="card-header"><div><h2>Danışan listesi</h2><p>Detaylara geçmek için bir danışan seçin.</p></div><span className="neutral-badge">{state.data ? `${state.data.totalCount} danışan` : 'Aktif bağlantılar'}</span></header>
@@ -25,7 +30,8 @@ export function LiveClientsPage() {
     </form>
       {state.pending && <p className="panel-feedback" role="status">Danışanlar okunuyor…</p>}{state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
       {state.data && <>
-        {state.data.totalCount === 0 && <EmptyState icon="users" title="Aktif bağlantı veya aramanıza uygun danışan bulunmuyor.">Aramanızı değiştirebilir veya bağlantılar bölümünden yeni bir davet kodu oluşturabilirsiniz.</EmptyState>}
+        {state.data.totalCount === 0 && (query ? <EmptyState icon="search" title="Aramanıza uygun danışan bulunamadı"><button className="button button-secondary" onClick={() => { setInput(''); setQuery('') }}>Filtreyi temizle</button></EmptyState>
+          : <EmptyState icon="users" title="Henüz aktif danışanınız yok">Bağlantılar bölümünden bir davet kodu oluşturabilirsiniz.</EmptyState>)}
         <ul className="live-client-list" aria-label="Aktif danışanlar">{state.data.items.map(client => <li key={client.id}><Link className="live-client-row" aria-label={`${client.displayName} için danışan detayını aç`} to={`/calisma-alani/danisanlar/${client.id}`}>
           <span className="client-avatar" aria-hidden="true">{client.displayName.slice(0, 1).toLocaleUpperCase('tr-TR')}</span><span className="client-identity"><strong>{client.displayName}</strong><small>Danışan detayını aç</small></span><span className="access-badge">Aktif bağlantı</span><Icon name="arrow" />
         </Link></li>)}</ul>
@@ -33,20 +39,5 @@ export function LiveClientsPage() {
       </>}
       <div className="panel-actions"><button className="button button-secondary" disabled={state.pending} onClick={state.refresh}>Listeyi yenile</button></div>
     </section><div className="inline-note"><Icon name="shield" /><p>Danışan detaylarında her kayıt türü kendi paylaşım izniyle görüntülenir.</p></div>
-  </>
-}
-export function LiveClientDetailsPage() {
-  const { clientId = '' } = useParams()
-  const load = useCallback((signal: AbortSignal) => getClientDashboard(clientId, signal), [clientId])
-  const state = useWorkspaceRead<ClientDashboardResponse>(load)
-  return <><Link className="text-link back-link" to="/calisma-alani/danisanlar"><Icon name="back" />Danışan listesine dön</Link>
-    <div className="page-heading"><p className="eyebrow">DANIŞAN TAKİBİ</p><h1 tabIndex={-1}>Danışan detayı</h1><p>Görevleri, beslenme programlarını ve kayıt geçmişini bu alandan yönetin.</p></div>
-    {state.pending && <p role="status">Danışan okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}
-    {state.data && <section className="card client-profile-card"><span className="client-avatar large-avatar" aria-hidden="true">{state.data.displayName.slice(0, 1).toLocaleUpperCase('tr-TR')}</span><div><h2>{state.data.displayName}</h2><p>Aktif danışan bağlantınız bulunuyor.</p></div><span className="access-badge">Aktif bağlantı</span></section>}
-    {state.data && <NutritionPlanPanel key={state.data.clientId} clientId={state.data.clientId} />}
-    {state.data && <ClientTaskPanel clientId={state.data.clientId} />}
-    {state.data && <MealLogPanel key={`meals-${state.data.clientId}`} clientId={state.data.clientId} />}
-    {state.data && <BodyMeasurementPanel key={`measurements-${state.data.clientId}`} clientId={state.data.clientId} />}
-    {state.data && <WaterLogPanel clientId={state.data.clientId} />}
   </>
 }

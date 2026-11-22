@@ -111,6 +111,33 @@ describe('ClientTask U1 contract', () => {
 })
 
 describe('React task assignment and tracking', () => {
+  it.each(['timer', 'focus'])('keeps the editor node, caret and focus through a delayed %s recheck and coalesces events', async trigger => {
+    vi.useFakeTimers()
+    try {
+      const { request } = server()
+      await act(async () => { render(panel()) })
+      fireEvent.click(screen.getByRole('button', { name: 'Yeni görev ata' }))
+      const input = screen.getByLabelText<HTMLTextAreaElement>('Görev açıklaması')
+      fireEvent.change(input, { target: { value: 'Yazmaya devam ediyorum' } }); input.focus(); input.setSelectionRange(5, 5)
+      let finish!: (response: Response) => void
+      request.mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
+      const before = request.mock.calls.length
+      await act(async () => {
+        if (trigger === 'timer') await vi.advanceTimersByTimeAsync(30_000)
+        else window.dispatchEvent(new Event('focus'))
+      })
+      expect(screen.getByLabelText('Görev açıklaması')).toBe(input)
+      expect(input).toBeEnabled(); expect(input).toHaveFocus(); expect(input.selectionStart).toBe(5)
+      expect(screen.getByRole('button', { name: 'Görevi oluştur ve ata' })).toBeDisabled()
+      fireEvent.change(input, { target: { value: 'Yazmaya devam ediyorum ve bitirdim' } }); input.setSelectionRange(8, 8)
+      await act(async () => { window.dispatchEvent(new Event('focus')); document.dispatchEvent(new Event('visibilitychange')); await vi.advanceTimersByTimeAsync(60_000) })
+      expect(request).toHaveBeenCalledTimes(before + 1)
+      await act(async () => finish(Response.json({ items: [task()], totalCount: 1 })))
+      expect(screen.getByLabelText('Görev açıklaması')).toBe(input)
+      expect(input).toHaveValue('Yazmaya devam ediyorum ve bitirdim'); expect(input).toHaveFocus(); expect(input.selectionStart).toBe(8)
+      expect(screen.getByRole('button', { name: 'Görevi oluştur ve ata' })).toBeEnabled()
+    } finally { vi.useRealTimers() }
+  })
   it('shows empty state then creates and assigns a real-contract task with a local deadline', async () => {
     const { state, request } = server(); state.rows = []; state.history = []
     const user = userEvent.setup(); render(panel()); await screen.findByText('Henüz atanmış görev yok')

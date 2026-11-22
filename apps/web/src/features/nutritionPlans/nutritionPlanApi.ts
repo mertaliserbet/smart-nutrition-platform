@@ -77,6 +77,11 @@ export async function getNutritionPlans(clientId: string, number: number, signal
   if (new Set(result.items.map(row => row.id)).size !== result.items.length) throw invalid()
   return result
 }
+export async function getNutritionPlan(clientId: string, id: string, signal: AbortSignal) {
+  const result = plan(await request(`/${id}`, signal), clientId)
+  if (result.id !== id) throw invalid()
+  return result
+}
 export async function saveNutritionPlan(clientId: string, content: PlanContentRequest, token: string, signal: AbortSignal, existing?: NutritionPlanResponse) {
   const result = plan(await request(existing ? `/${existing.id}` : '', signal, existing ? 'PATCH' : 'POST', token, existing ? content : { ...content, clientId }), clientId)
   if ((existing && (result.id !== existing.id || result.versionNumber <= existing.versionNumber)) || (!existing && (result.status !== 'draft' || result.versionNumber !== 1))) throw invalid()

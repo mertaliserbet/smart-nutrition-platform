@@ -6,6 +6,8 @@ import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSes
 import { MealLogList } from './ClientRecordViews'
 import { getMealLogs } from './mealLogApi'
 import { MealLogComments } from './MealLogComments'
+import { mealDateRange, mealPeriodRange } from './mealDateRange'
+import type { MealPeriod } from './mealDateRange'
 import './clientTracking.css'
 
 export function MealLogPanel({ clientId }: { clientId: string }) {
@@ -17,6 +19,8 @@ function MealLogContent({ clientId }: { clientId: string }) {
   const [range, setRange] = useState<{ from?: string; to?: string }>({})
   const [page, setPage] = useState(1)
   const [error, setError] = useState('')
+  const [preset, setPreset] = useState<MealPeriod | 'custom' | ''>('')
+  const [first, setFirst] = useState(''), [last, setLast] = useState('')
   const [accessError, setAccessError] = useState('')
   const denied = useCallback((error: WebSessionError) => setAccessError(error.message), [])
   const load = useCallback(async (signal: AbortSignal) => {
@@ -39,26 +43,28 @@ function MealLogContent({ clientId }: { clientId: string }) {
 
   function applyFilter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const from = data.get('from') ? new Date(`${data.get('from')}Z`) : undefined
-    const to = data.get('to') ? new Date(`${data.get('to')}Z`) : undefined
-    if ((from && !Number.isFinite(from.getTime())) || (to && !Number.isFinite(to.getTime())) || (from && to && from >= to)) {
-      setError('Bitiş tarihi ve saati başlangıçtan sonra olmalı.'); return
-    }
-    setError(''); setPage(1); setRange({ from: from?.toISOString(), to: to?.toISOString() })
+    try { setRange(mealDateRange(first, last)); setPage(1); setError(''); setAccessError('') }
+    catch (error) { setError(error instanceof Error ? error.message : 'Tarihleri kontrol edin.') }
+  }
+  function selectPeriod(period: MealPeriod) {
+    try { setRange(mealPeriodRange(period)); setPreset(period); setPage(1); setError(''); setAccessError('') }
+    catch (error) { setError(error instanceof Error ? error.message : 'Tarihleri kontrol edin.') }
   }
 
   return <section className="card" aria-label="Öğün günlüğü">
     <header className="card-header"><div><h2>Öğün günlüğü</h2><p>Danışanın açık paylaşım izniyle görüntülenen tüketim kayıtları.</p></div><span className="neutral-badge">Salt okunur</span></header>
-    <form className="meal-preview-filters" aria-label="Öğün tarihi filtresi" onSubmit={applyFilter}
-      onReset={() => { setError(''); setPage(1); setRange({}) }}>
-      <p id="meal-log-time-zone">Filtre saatleri UTC (UTC+00:00). Kayıt saatleri cihazın saat diliminde gösterilir.</p>
-      <label>Başlangıç<input name="from" type="datetime-local" step="1" aria-describedby="meal-log-time-zone" /></label>
-      <label>Bitiş<input name="to" type="datetime-local" step="1" aria-describedby="meal-log-time-zone" /></label>
-      <div className="meal-preview-actions"><button className="button button-primary" type="submit">Filtrele</button>
-        <button className="button button-secondary" type="reset">Filtreyi temizle</button></div>
-      {error && <p role="alert">{error}</p>}
-    </form>
+    <div className="expert-pagination" role="group" aria-label="Öğün tarih aralığı">
+      {([['today', 'Bugün'], ['yesterday', 'Dün'], ['week', 'Son 7 gün']] as const).map(([value, label]) => <button key={value} className="button button-secondary" aria-pressed={preset === value} onClick={() => selectPeriod(value)}>{label}</button>)}
+      <button className="button button-secondary" aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Özel aralık</button>
+    </div>
+    <p id="meal-log-time-zone">Tarihler ve kayıt saatleri cihazınızın saat dilimindedir: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Seçilen ilk ve son gün dahil; ertesi günün başlangıcı hariçtir.</p>
+    {preset === 'custom' && <form className="meal-preview-filters" aria-label="Öğün tarihi filtresi" onSubmit={applyFilter} noValidate>
+      <label>Başlangıç<input name="from" type="date" value={first} onChange={event => setFirst(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
+      <label>Bitiş<input name="to" type="date" value={last} onChange={event => setLast(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
+      <button className="button button-primary" type="submit">Filtrele</button>
+    </form>}
+    <button className="button button-secondary" onClick={() => { setError(''); setAccessError(''); setPage(1); setRange({}); setFirst(''); setLast(''); setPreset('') }}>Filtreyi temizle</button>
+    {error && <p role="alert">{error}</p>}
     {state.pending && <p className="panel-feedback" role="status">Öğünler okunuyor…</p>}
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
     {accessError && <p className="panel-feedback error-message" role="alert">{accessError}</p>}

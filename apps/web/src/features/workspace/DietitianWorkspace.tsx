@@ -8,6 +8,7 @@ import { WorkspaceContext } from './workspaceSession'
 import type { WorkspaceSession } from './workspaceSession'
 import { WorkspaceLayout } from './WorkspaceLayout'
 import { LiveDashboardPage } from './LiveDashboardPage'
+import { ClientListProvider } from '../relationships/clientListState'
 export function DietitianWorkspace() {
   const [session, setSession] = useState<WorkspaceSession>()
   const [profile, setProfile] = useState<{ displayName: string; email: string; token: string }>()
@@ -51,12 +52,12 @@ export function DietitianWorkspace() {
         {message && <><h1 tabIndex={-1}>Çalışma alanı</h1><p className="form-message error-message" role="alert">{message}</p>
           <Link className="text-link" to="/uzman-basvurusu">Diyetisyen başvuru seçeneklerini aç</Link></>}
         {!session && !pending && <button className="button button-secondary" onClick={() => { void load() }}>Erişimi yeniden kontrol et</button>}
-        {session && <WorkspaceContext.Provider value={session}><Routes>
+        {session && <WorkspaceContext.Provider value={session}><ClientListProvider key={`${session.dietitianId}:${session.token}`}><Routes>
           <Route index element={<LiveDashboardPage />} />
           <Route path="danisanlar" element={<LiveClientsPage />} />
           <Route path="danisanlar/:clientId" element={<LiveClientDetailsPage />} />
           <Route path="baglantilar" element={<ConnectionsPage />} />
           <Route path="*" element={<><h1 tabIndex={-1}>Bölüm bulunamadı</h1><Link to="/calisma-alani/danisanlar">Danışanlarıma dön</Link></>} />
-        </Routes></WorkspaceContext.Provider>}
+        </Routes></ClientListProvider></WorkspaceContext.Provider>}
   </WorkspaceLayout>
 }
