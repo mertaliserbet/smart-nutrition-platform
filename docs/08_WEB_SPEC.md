@@ -1,184 +1,62 @@
-# 08 — Diyetisyen ve admin web deneyimi
+# 08 — Gerçek React ekranları ve web davranış
 
-## 19.11.2026 — U4 gerçek su takibi
+İnceleme tabanı 22.11.2026 / `4f160b3`. Route kaynağı `apps/web/src/App.tsx`, gerçek çalışma alanı DietitianWorkspace'tir. HTTP/DTO/yetki [06](06_API_CONTRACT.md), tasarım [09](09_DESIGN_SYSTEM.md), güvenlik [11](11_SECURITY_AND_RELEASE.md) içindedir.
 
-Gerçek danışan çalışma alanında Su takibi eklendi; sentetik önizleme değildir.
-Bağımsız water_logs izniyle kendi aktif danışanının seçilen gün toplamı, 10'lu
-kayıt sayfaları (mL/saat/kaynak) ve en çok 31 günlük günlük toplam SVG grafiği +
-erişilebilir tablo gösterilir. Mevcut WaterLogList, tema tokenları ve tarih
-yardımcısı kullanılır; yeni grafik paketi yoktur. Mikro-saniye/offset sıralaması korunur.
+## Route ve erişim
 
-Gün ve tarih aralığı tarayıcının görünür IANA saat diliminde seçilir; API'ye ayrı
-başlangıç/bitiş offsetleri, çok günlük sorguya timeZone gönderilir. Aralık UI'da
-iki gün dahil; API to son günün ertesi gece yarısıdır. Kişisel/program hedefi bu
-bölümde istenmez/gösterilmez; program kartı bağımsız nutrition_plans yetkisini korur.
+| Route | Gerçek davranış |
+|---|---|
+| / | /giris'e yönlendirme |
+| /giris | Diyetisyen web oturumu; normal danışan paneli değildir |
+| /kayit | /giris'e yönlendirme; eski RegistrationPage dosyası aktif web danışan kaydı değildir |
+| /sifremi-unuttum | Gerçek reset talebi veya e-posta fragment tokenıyla yeni parola formu |
+| /eposta-dogrulama | Kod ile doğrulama ve yeniden gönderim |
+| /hesabim | Beş alanlı hesap özeti, mevcut başvuru/uzman durumuna göre geçiş ve çıkış |
+| /uzman-basvurusu | Oturumsuz yeni uzman formu; mevcut danışana mobil Profil'i önerir, ancak bu mobil erişim henüz yok ([07](07_MOBILE_SPEC.md)/[12](12_TEAM_PLAN_AND_DECISIONS.md)) |
+| /uzman/basvuru-durumu | Mevcut uzman başvurusu/doğrulanmışlık durumu |
+| /yonetici-giris | Ayrı parola + TOTP/kurtarma kodu; yalnız yerel Development/Mailpit için e-posta kodu seçeneği |
+| /yonetim, /yonetim/uzmanlar | MFA Admin uzman başvuru listesi ve onayı |
+| /calisma-alani | Gerçek, doğrulanmış uzman çalışma alanı ve sınırlı gerçek dashboard |
+| /calisma-alani/danisanlar | Aktif danışan listesi, arama/sıralama/sayfalama |
+| /calisma-alani/danisanlar/:clientId | Temel kimlik ve bağımsız izinli sağlık/program/görev bölümleri |
+| /calisma-alani/baglantilar | Davet kodu, istek kabul/red ve ilişki sonlandırma |
+| /onizleme/* | Yalnız Development; sentetik WorkspacePreview, gerçek danışan alanından ayrıdır |
 
-Yüklenme/boş/hata/403/404 ayrıdır, hata sıfır tüketim değildir. 403'te paylaşımın
-danışanın mobil uygulamasından yönetileceği belirtilir; uzman adına izin açma veya
-kayıt değiştirme işlemi sunulmaz. Okumalardan birinin reddinde toplam, liste,
-grafik ve tablo birlikte kaldırılır. Danışan/oturum/tarih değişiminde eski veri
-anında gizlenir, AbortController geç yanıtları eler; kalıcı sağlık cache'i yoktur.
-Görünür sekmede 30 sn, odak/görünürlüğe dönüş ve elle yenileme; gizli sekmede
-okuma/içerik yok. Mevcut kart/44 px kontrol, açık/koyu tema ve dar ekran CSS'si kullanılır.
-U4 API, izin ve M4 mobil açılımı [21](21_WATER_LOG_SHARING_CONTRACT.md) içindedir.
+Çalışma alanına girişte CSRF, auth/me ve dietitians/me okunur. client temel rollü, onaylı DietitianProfile sahibi kullanıcı aynı hesabıyla diyetisyen çalışma alanına erişir; yeni diyetisyen hesabı oluşturması gerekmez. Rol adı veya başvuru yapılmış olması tek başına yetki değildir. Bekleyen uzman başvuru durumuna gider; bekleyen veya henüz onaylanmamış kullanıcıya çalışma alanı erişimi verilmez. Mevcut backend başvuru ve yetkilendirme kuralları korunur. 401 veya hesap bağlamı kaybında hassas görünüm bırakılmaz.
 
-## 19.11.2026 — U2 gerçek görev atama ve takip
+**Kesinleşmiş mobil geçiş:** Flutter Profil'deki **“Diyetisyen Paneline Git”**, onaylı kullanıcı için güvenilir HTTPS web adresindeki çalışma alanını harici tarayıcıda açar. Geçerli web oturumu varsa kullanılır; yoksa kullanıcı aynı e-posta/şifreyle normal web girişini yapar. Web oturumu mobilden bağımsızdır; mobil JWT/refresh token web adresine, URL'ye veya tarayıcıya aktarılmaz. Profil başvuru/durum ve bu panel seçeneği Flutter'da henüz geliştirilip doğrulanmış değildir; mevcut web başvuru metni tamamlanmış mobil akış kanıtı sayılmaz ([07](07_MOBILE_SPEC.md)).
 
-Kullanıcının U2 uygulama onayıyla gerçek danışan detayına **Danışan görevleri**
-bölümü eklendi. U1'in `/api/v1/client-tasks` liste/detay/POST/PATCH ve
-`/{clientTaskId}/versions` yolları kullanılır; yeni DTO/endpoint/durum yoktur.
+## Gerçek danışan detayındaki bölümler
 
-- 10'lu liste ve sürüm geçmişi sayfalaması; açıklama, son tarih, durum, atama/
-  son değişiklik, tamamlanma zamanı ve her sürümün açıklama/durum/tarih/tercihi.
-  U1'de completed terminal olduğundan updatedAt tamamlama zamanıdır; completed
-  snapshot'ı da aynı zamanı taşır. Geçmiş salt okunurdur.
-- Yeni görev doğrudan seçili danışana atanır. Uzman yalnız açık görevin
-  açıklama/son tarihini düzenler ve onay adımıyla iptal eder. Danışan adına
-  tamamlama/ilerletme veya hatırlatma tercihi değiştirme sunulmaz.
-- Son tarih isteğe bağlı datetime-local alanıdır; cihazın saat dilimi görünür,
-  yeni/değişen değer UTC ISO instant olarak gönderilir. Değişmeyen son tarihin
-  sunucu hassasiyeti korunur; geçmiş tarihin değişmediği açıklama düzenlemesi
-  engellenmez. Geçmiş kayıtlar yerel saat/offset ile gösterilir.
-- Sürüm önkoşulu expectedVersionNumber'dır. 409'da taslak korunur, güncel
-  görev/geçmiş okunur, kaydetme durur; kullanıcı taslağı silip güncel sürümle
-  yeniden başlayabilir. Yazma otomatik tekrarlanmaz. Belirsiz ağ/yazma sonucunda
-  tekrar göndermeden önce listeyi kontrol etmek gerekir; taslak kapatılırken
-  kaydedilmemiş değişiklik uyarısı vardır.
-- Yüklenme/boş/hata/422/403/404 ayrıdır. İzin/ilişki kaybında görev listesi,
-  sayıları, detay, geçmiş ve form kaldırılır; program/öğün/ölçüm izinleri
-  değiştirilmez. Danışan/uzman/CSRF oturumu değişince eski içerik gösterilmez.
-- Elle yenileme, odağa/görünür sekmeye dönüş ve görünür sekmede 30 saniyelik
-  kontrollü okuma kullanılır. Gizli sekmede yeni okuma yoktur; görünürlük
-  dönüşünde yetki yeniden doğrulanır. Reddedilen erişim butonla tekrar kontrol
-  edilir. WebSocket, yeni bildirim altyapısı veya teslim vaadi yoktur.
-- Mevcut tema tokenları, kartlar, 44 px işlemler ve 950/600 px kırılımları
-  kullanılır. Flutter M2 ortak main'e d14576f ile alınmıştır; bu U2 oturumunda
-  mobil görev doğrulaması yapılmadı.
-  Varsayılan ClientTasksEnabled=false korunur; istemci izin uyumu olmadan ortak
-  ortamda açılmaz. API ve React DOM canlı doğrulaması ayrı geçici DB'de yapıldı.
+| Bölüm | Mevcut arayüz |
+|---|---|
+| Program | Taslak oluşturma, kendi atadığı içeriği düzenleme, açık etkinleştirme/arşivleme ve değişmez sürüm gösterimi; başkasının/kişisel programı salt okunur |
+| Öğün | Kaynak/zaman, miktar ve nullable besin değerleri; tarih/sayfalama, yorum ve tek düzey cevaplar |
+| Ölçüm | Kilo/bel/kalça/göğüs/yağ liste ve grafik, tarih/sıralama; sağlık yorumu/BMI türetmez |
+| Görev | Atama, açıklama/son tarih düzenleme, iptal onayı, durum/tamamlama ve sayfalı snapshot geçmişi |
+| Su | Seçilen gün kayıt/toplam, en çok 31 günlük grafik ve tablo; kişisel su hedefini çağırmaz |
+| Program–tüketim | Açık sürüm/gün seçimi; bilinen toplam/eksik değerler ve yalnız uygun koşullarda kayıtlı kcal farkı |
 
-**18.11.2026 — K1–K4:** Gerçek danışan detayındaki program kartında
-"Program ve tüketimi karşılaştır" işlemi seçili sürümle günlük tüketim
-karşılaştırmasını açar. Gün ve sürüm seçilir; gün sınırlarının tarayıcı saat
-dilimi/offsetleri, sürüm kayıt zamanı ve snapshot tarih aralığı görünür.
-Planlanan öneriler/alternatifler ve kaydedilen kcal/makro özetleri öğün türüne
-göre sunulur. Günlük fark sunucudan gelir; eksikler ve tahmini kalemler
-gizlenmez. Geçmişte hangi sürümün aktif olduğu veya uyum yüzdesi iddia edilmez.
-İki kategori izni gerekir; karşılaştırmanın 403/404'ü ayrı izinli program veya
-öğün bileşenini kapatmaz. Değişen gün/sürüm/danışan/oturumda eski sonuç
-kaldırılır; odak/görünürlük dönüşü ve yenilemede yetki yeniden okunur.
-Tam sözleşme `04/05/06`, karar kaydı `19`dadır; Flutter görünümü Mert'indir.
+Güncel web aktivite/laboratuvar görünümleri sentetik önizleme bileşenleridir; gerçek diyetisyen sağlık/aktivite paylaşımı veya laboratuvar API'si yoktur. Tarif, bildirim teslimi, PDF raporu, kapsamlı kullanıcı/şikâyet/katalog/audit yönetimi tamamlanmış panel sayılmaz.
 
-**18.11.2026 M1–M4:** Gerçek danışan detayında ölçüm listesi mevcut ölçüm API'sine
-bağlanır: kilo/bel/kalça/göğüs/yağ oranı/not, kaynak ve zaman salt okunur görünür.
-10'lu sunucu sayfalaması, açık UTC tarih filtresi ve elle/fokusa dönüşte yenileme
-kullanılır. İzin reddi/bağlantı bitişi/boş/hata ayrı; yenileme veya danışan/oturum
-değişiminde eski sağlık verisi/sayılar gizlenir, geç yanıtlar yok sayılır.
-Program/öğün/ölçüm izinleri bağımsızdır; sentetik önizlemeye dönüş yoktur.
-İlk adım grafik/uyum hesabı eklemez. Normatif kaynak `04/05/06`, mobil açılım `18`dir.
+## İstek ve etkileşim davranışı
 
-**17.11.2026:** Web girişi, başvurusu bulunan diyetisyen profilleri ve MFA ile
-giriş yapan yöneticiler içindir. Danışan işlemleri mobil uygulamada yapılır.
-Panelin sağ üstündeki avatar hesap ve çıkış menüsünü açar. Çıkış onaylandığında
-ilgili giriş ekranına dönülür. Web uzman işlemleri aktif ilişki ve ilgili
-kategori izinlerini sunucuda denetler (`06/12`).
+Web same-origin HTTPS cookie taşır; JWT login/refresh'i kullanmaz. CSRF ve hesap özeti yalnız geçici bellektedir. Cookie/CSRF/hesap taşıma ayrıntısı ve süreler [06](06_API_CONTRACT.md)'dadır.
 
-**N1–N3 durumu (29.10.2026):** Gerçek danışan detayında izinli program
-listesi, taslak formu, gün/miktar/alternatif grupları, kendi atadığı programı
-düzenleme, açık etkinleştirme/arşivleme ve salt okunur sürüm geçmişi API'ye
-bağlıdır. Kişisel/başka uzmanın programı salt okunur; hedefler boş başlar.
-Paylaşım kapalıyken program verisi/formu gösterilmez; temel kimlik kalır.
-409'da taslak korunur, atama başarı mesajı çıkmaz. 128 web testi ve üretim
-derlemesi başarılı; tam tarayıcı/mobil ortak sunum provası ayrıca yapılır.
-Flutter kaynakları bu Uğur çalışmasında değiştirilmedi.
+Danışan/oturum/gün/sürüm/filtre değişince eski veri ve sayılar temizlenir; AbortController ve işlem kimlikleri geç yanıtı eler. 403 paylaşım kapalı, 404 kaynak/ilişki yok, yetkili boş veri ve ağ/DB hatası ayrı gösterilir; hata 0 toplam veya sentetik kayıt değildir.
 
-**R1–R3 durumu (29.10.2026):** `/calisma-alani` gerçek uzman doğrulaması,
-danışan listesi/sınırlı detayı, bağlantı durumları ve davet kodu işlemleriyle
-API'ye bağlıdır. Mevcut sentetik sağlık önizlemesi ayrı kalır. Program
-DTO'ları sonraki N1–N3 ortak onayıyla kesinleşti; diğer sağlık bileşenleri açık.
+Görevde 409 taslağı korur, güncel sürüm okunup açık yeniden başlatma istenir; otomatik üzerine yazma yoktur. Görev ve su bölümleri görünür sekmede 30 saniyelik/fokus/elle yenileme kullanır; gizli sekmede su içeriği kaldırılır. Bu polling bildirim teslimi veya WebSocket değildir; oturumu yaşatmak için keepalive kurulmaz. Diğer bölümlerdeki yenileme davranışı kendi bileşenine aittir.
 
-**29.10.2026 B1–B3 durumu:** Uzman başvurusu, kendi başvuru durumu, ayrı
-MFA'lı Admin girişi ve başvuru inceleme/onay ekranları gerçek API'ye bağlıdır.
-Yollar ve kurulum `apps/web/README.md`dedir. Bu dilimde Admin sağlık verisi
-görmez; diyetisyen takip paneli R/N teslimleriyle gerçek API'ye bağlandı. Aşağıdaki eski
-başvuru/MFA açık notları için güncel normatif istisna `06`nın B1–B3 bölümüdür.
+Su okumalarının herhangi birinde 403/404 alınırsa kayıt/toplam/grafik birlikte kaldırılır. Diyetisyen danışan adına kategori izni açmaz. Ölçüm/öğün tüketimini değiştirmez veya danışan görevini tamamlamaz.
 
-## Ürün odağı
-Web uygulaması **diyetisyenin günlük çalışma masasıdır**; ağırlıklı iş akışı danışan takibi ve beslenme planı yönetimi. Yönetici operasyonları diyetisyen iş akışından ayrılmalıdır. Danışanların tüm özel verileri rol gerekçesi olmadan açılmaz.
+## Parola sıfırlama
 
-React/TypeScript ve ilk sürüm yönetim panelinin webde olması onaylıdır; Uğur web, Auth ve ilgili API'lerin sahibidir. İlk sürüm öğün yorum/cevap/bildirim şartı korunur; PDF raporu/görev gibi onaylı özelliklerin yayın takvimi `01/12`de ayrıca planlanır. Açık/koyu tema ve ortak tasarım tokenları kullanılır.
+Bağlantısız sayfa genel email talebi yapar. Güvenilir web origin'inden gelen `#token=` fragment'i belleğe alınır ve URL/history replace ile temizlenir; query/bozuk/tekrarlı kod reddedilir ve temizlenir. Token kalıcı depoya, router state'e, analitik/loga taşınmaz; no-referrer kullanılır. Yenilemede kod kaybolur; e-posta bağlantısını yeniden açma/yeni talep yolu gösterilir.
 
-## Diyetisyen ekranları
-Yollar `/api/v1` tabanına göredir; yeni endpoint veya DTO bu ekran listesinden çıkarılmaz. Açık şemalar `06/12`ye göre önce tamamlanır.
+Formda yeni parola/tekrar, tek gönderim ve erişilebilir hata odağı vardır. Reset POST'u otomatik tekrarlanmaz. 204 sonrası /giris replace ile açılır, otomatik oturum oluşturulmaz. Admin reset MFA'yı kaldırmaz.
 
-| Ekran | İçerik ve işlemler | İlgili API / açık bağımlılık |
-|---|---|---|
-| Giriş / Hesabım | E-posta/şifre, doğrulama/sıfırlama, güvenli oturum ve uzman doğrulama durumu | `/auth/*`, `GET /auth/me`; hesap özeti yalnız `06`daki beş alandır. W2 cookie/CSRF/iptal ve U5 gerçek reset uygulanmıştır; Admin girişi mevcut MFA akışını korur |
-| Dashboard | aktif danışan sayısı, bekleyen istekler, son kayıtların özeti | `/dietitian-relationships`, `/dietitian/clients` |
-| Danışan Listesi | Aktif ilişkili danışanların sınırlı id/displayName listesi; izinli ek özetler ayrı kapsam | `/dietitian/clients`; bekleyen/bitmiş ilişki durumları `/dietitian-relationships`ten |
-| Danışan Detayı | hedefler, günlük/haftalık özet, ölçüm trendi | `/dietitian/clients/{clientId}/dashboard` |
-| Öğün Günlüğü | İzinli öğün/zaman/kalori/makro; yorum ve cevaplar; diyetisyen tüketimi değiştiremez | `/dietitian/clients/{clientId}/meal-logs`; comments için `06`daki öneri AÇIK ŞEMA |
-| Su / Ölçüm / Aktivite | İzinli kayıtlar, kaynak/geçmiş, ölçüm ve gelişim grafikleri | `/dietitian/clients/{clientId}/water-logs`, `/dietitian/clients/{clientId}/body-measurements`, `/dietitian/clients/{clientId}/activity-logs` |
-| Beslenme Planları | Kendi atadığı programı oluştur/düzenle/aktif et; alternatif ve sürüm geçmişi; kişisel programı izin kapsamında yalnız oku | `/nutrition-plans`; tam items/sürüm/alternatif ve değiştirme akışı AÇIK ŞEMA |
-| Tarifler | Kendi özel tarifleri ve erişime izinli kaynaklarla program hazırlama | `/recipes`; bileşen/görünürlük/geçmiş AÇIK ŞEMA |
-| Görevler | Gerçek danışan detayında atama, liste/detay, son tarih, düzenleme/iptal ve salt okunur sürüm geçmişi; hatırlatma tercihi yalnız okunur | U1 `/client-tasks` ve `/{clientTaskId}/versions`; U2 uygulandı, tam sözleşme `04/05/06` |
-| Laboratuvar Takibi | İzinli değer/birim/tarih/referans ve açıklama; ayrıca tahlil açık onayı gerekir | `/dietitian/clients/{clientId}/lab-reports`, `/lab-reports/{labReportId}/insights`; danışan yerine tahlil CRUD yetkisi vermez |
-| Analiz ve PDF raporları | İzinli trend, program uyumu ve PDF; kapsam dışında kategori/tahlil eklenmez | Dashboard mevcut; uyum formülü, rapor DTO/dosya erişimi ve PDF endpointi açık |
-| Bildirimler | İlk sürüm yorum/cevap bildirimi ve onaylı tercih akışı | Bildirim modeli/kanalı/endpointleri açık; WebSocket varsayılmaz |
-| Bağlantı İstekleri | kabul/red ve ilişki sonlandırma | `/dietitian-relationships` |
-| Uzman Profili / Ayarlar | hesap/uzmanlık alanları, oturum ve bildirim tercihleri | `GET /auth/me` yalnız hesap özeti; uzmanlık/profil düzenleme ve tercihler bu DTO'ya eklenmez, ilgili açık şemalar ayrıca tamamlanır |
+## Doğrulama durumu
 
-## Admin ekranları — onaylı kapsam, açık uygulama ayrıntıları
-Doğrulama, kullanıcı/hesap operasyonları, şikâyetler, besin kataloğu, Audit Log (`AuditEvent`) ve sistem durumu onaylı kapsamdır. İlk sürüm paneli webdedir; yönetim oturumu MFA gerektirir. Admin'in sağlık verilerini varsayılan okuma hakkı **yoktur**; destek/audit ekranı sağlık değerlerini topluca açamaz.
+React DOM, gerçek ağ/API/DB ve gerçek Edge HTTPS testleri ayrı düzeylerdir. Playwright senaryoları `apps/web/e2e/regression.e2e.ts` içindedir; danışan adımlarının bir kısmını API yapar, Flutter testi değildir. İki tema, dar ekran ve klavye kontrolleri tarihsel U6 raporunda yer alır; bu görevde yeniden çalıştırılmadı.
 
-Başvuru mobil veya webden alınabilir; doğrulayan Admin'dir. Başvuru belgeleri, ret/yeniden başvuru, idari rol değişiklikleri, MFA challenge ve admin endpoint DTO'ları açıktır. Bunlar ortak sözleşme onayından sonra `06`da tamamlanır; yeni `/admin/*` yolları bu belgeden tahmin edilmez.
-
-## 20.11.2026 — U5 gerçek parola sıfırlama
-
-- Mevcut `/sifremi-unuttum` sayfası linksiz açıldığında yalnız `{ email }` ile
-  `POST /api/v1/auth/password-reset-requests` çağırır. Boş 202 için her hesapta
-  aynı “Uygun bir hesap varsa sıfırlama talebi işleme alınır. Gelen kutunuzu
-  kontrol edin.” mesajı kullanılır; e-postanın teslim edildiği iddia edilmez.
-- E-postadaki aynı sayfanın `#token=` bağlantısı yeni parola/tekrar formunu açar.
-  Yalnız `{ token, password }` mevcut `reset-password` yoluna gönderilir. Tekrar
-  alanı istemcidedir. Parola 8–128 Unicode kod noktasıdır; kırpılmaz/normalize
-  edilmez. Yerel kurallar backend varsayılanıyla eşleşir; son karar sunucudadır.
-- Token yalnız sayfa belleğindedir; URL/history replace ile temizlenir, query ve
-  hatalı/tekrarlı fragment reddedilip temizlenir. Kalıcı depolama, router state,
-  log/analitik yoktur. Referrer kapalıdır. Yenileme tokenı kaybettirir; e-postayı
-  yeniden açma/yeni bağlantı isteme yolu gösterilir. Yeni bağlantı eski isteği iptal eder.
-- 400 biçim, ortak 422 geçersiz/süresi dolmuş/kullanılmış token veya parola,
-  429 limit, ağda belirsiz sonuç ve sunucu hataları ayrı geri bildirim alır.
-  Gönderim ref + disabled ile tekilleştirilir; alan/hata odağı ve aria durumları
-  mevcut AuthLayout/tema/dar ekran düzeniyle çalışır. POST otomatik tekrarlanmaz.
-- 204 sonrası token/parola bırakılır, route'a bağlı hesap/çalışma alanı durumu
-  kaldırılmış olur, `/giris` replace ile açılır; otomatik giriş veya yeni kimlik
-  alınmaz. Backend eski oturumları iptal eder. Admin sıfırlama MFA'yı kaldırmaz;
-  Admin girişi mevcut ayrı MFA ekranından yapılır.
-
-## Temel UX davranışları
-Onaylı W2-C1–C7 diliminde giriş mevcut beş alanlı hesap özetine ve hesap ekranına
-gider; danışan veya diyetisyen rolü tek başına panel/sağlık yetkisi vermez.
-Hesap ekranı yenilenince aynı origin HTTPS cookie ile CSRF ve GET auth/me yeniden
-okunur. Başarısız çıkışta hassas bilgiler kaldırılır, sunucuda iptal doğrulanmadığı
-gösterilir; eski CSRF/hesap değişiminde yazma otomatik tekrarlanmaz. JWT/CSRF
-kalıcı depolama veya URL'ye yazılmaz. Uzman doğrulama durumu beş alanlı hesap
-DTO'suna eklenmez; başvuru/MFA ve gerçek panel erişimi ayrı açık bağımlılıktır.
-
-- Ekranlar profesyonel, erişilebilir, responsive; masaüstünde verimli tablo ve filtreler; tablette kullanılabilir düzen.
-- Danışanın yeni öğün kaydı ilk aşamada **yenileme veya isteğe bağlı polling ile** görülebilir; anlık push/WebSocket ancak karar sonrası uygulanır. “Anında düşer” vaadi bağlantı mekanizması yoksa verilmez.
-- Yetkisiz danışana erişimde frontend saklama yeterli değildir; backend doğrulanmış uzman + aktif ilişki + kategori izni, tahlilde ayrıca açık onay kontrol eder. Geri çekilince yeni okumalar, cache ve PDF erişimi engellenir; listeler/sayılar kapalı kategoriden bilgi sızdırmaz.
-- Sonuç kartları kaynağı, tarihi, belirsizliği gösterir. AI tahminleri sanki doğrulanmış gerçekmiş gibi görüntülenmez.
-- Formlarda değişiklik kaybı uyarısı, loading, boş durum, hata yönetimi ve geri bildirim bulunur.
-- Plan oluşturma aşamalı ve kolay olmalı; uzun tek form yerine mantıklı gruplar tercih edilir. Gereksiz iç içe bileşen/klasör yapılmaz.
-- İkinci aktif program `409` ile ele alınır; başka programı veya sahipliği sessizce değiştiren UI akışı kurulmaz. Sürüm geçmişi korunur; program geçişi/alternatif DTO'su açıkken form kendi veri yapısını üretmez.
-- OCR'da diyetisyen yardımcı inceleme yapabilir; kullanıcının kontrol/onayı yerine geçemez. Geçersiz/eksik birim-aralıkta kesin klinik yorum veya otomatik alarm eşikleri uydurulmaz.
-
-## Kabul kriterleri
-1. İlgisiz diyetisyen başka danışanın bilgilerini göremez (sunucuda test).
-2. Diyetisyen planı oluşturup aktif ettiğinde danışan mobilde görür.
-3. Danışanın öğün kaydı webde doğru gram, birim ve zamanla görünür.
-4. Her ekran `04/05/06` kanonik adlarını kullanır; farklı DTO tahmin edilmez.
-5. Admin işlevleri için yetki ve audit testleri bulunur.
-6. İlk sürüm yorum/cevap/bildirim akışı, kategori/tahlil onayı geri çekme ve tek aktif program çakışması doğrulanır. Admin MFA ve varsayılan sağlık verisi erişiminin yokluğu test edilir; testin gerçekten çalıştırıldığı raporlanır.
-7. Kişisel programın diyetisyen tarafından değiştirilememesi, görev/yorumun başka danışana bağlanamaması, raporlarda izin kapsamı ve açık/koyu tema doğrulanır. Açık DTO'lar için feature bitmiş sayılmaz; hazırlık ve onay listesi `12`dedir.
+Kurulum/test komutları [kök README](../README.md), tarih/commit/kapsamla sınırlı geçmiş raporlar [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir.

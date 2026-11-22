@@ -1,8 +1,8 @@
-# U3 — Sağlık verisi API teslimi / M3 entegrasyonu
+# 20 — Sağlık verisi aktarımı, kaynaklar, birimler ve tekilleştirme
 
-19.11.2026 kullanıcı uygulama talimatı birim, zaman, kaynak, izin ve tekrar aktarım
-kararlarını onaylar. Bu belge `04/05/06` sözleşmesinin somut M3 kullanım notudur.
-M1 mobil okuyucusu değiştirilmedi; HTTP aktarımını ve senkronizasyon ekranını M3 yapar.
+Bu belge uygulanan HealthData endpointlerinin ayrıntılı teknik sözleşmesidir. Kaynak incelemesi 22.11.2026 / `4f160b3`; genel HTTP/hata/kimlik kaynağı [06](06_API_CONTRACT.md), kalıcı entity alanları [05](05_DATA_DICTIONARY.md), mobil ekran davranışı [07](07_MOBILE_SPEC.md), güvenlik [11](11_SECURITY_AND_RELEASE.md)'dedir.
+
+Backend ve Flutter ön plan HTTP aktarımı kaynakta mevcuttur. Native okuma, sentetik API/DB testi ve fiziksel Android/iOS cihaz doğrulaması ayrı kanıtlardır; güncel durum [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir. Bu belge cihaz/OS desteği veya test başarısı iddiası değildir.
 
 ## Kimlik ve izin
 
@@ -15,7 +15,7 @@ hatalar `no-store` kullanır. Diyetisyen ilişkisi/kategori paylaşım izni aran
 bu teslim hiçbir sağlık paylaşım kategorisi açmaz.
 
 `WearableConnection.status` **uygulamaya aktarım tercihi**dir; OS izni kanıtı değildir.
-M3 okumadan önce/sonra OS izinlerini denetler, reddedilen/başarısız okumanın
+Mobil istemci okumadan önce/sonra OS izinlerini denetler, reddedilen/başarısız okumanın
 verilerini ve bekleyen otomatik aktarımlarını göndermez. Kullanıcı aktarımı
 durdurunca bağlantıyı `revoked` yapar; tekrar açmak açık kullanıcı işlemiyle,
 güncel sürümle `active` PATCH gerektirir. Sunucu `revoked` bağlantının sync'ini
@@ -52,9 +52,9 @@ Sayfalar ayrı snapshot'lardır; değişiklik sırasında tarama baştan yenilen
 Bilinmeyen/tekrarlanan query anahtarları, GET/DELETE gövdesi ve fazladan JSON
 alanı `400`. UTC `Z` veya açık `±hh:mm` zorunlu; saat dilimsiz zaman `400`.
 
-## Birimler ve M1 eşlemesi
+## Birimler ve native okuyucu eşlemesi
 
-| API metric | M1 metric | Native rawType | rawUnit → saklanan birim |
+| API metric | Native okuyucu metric | Native rawType | rawUnit → saklanan birim |
 |---|---|---|---|
 | `steps` | `steps` | `STEPS` | `COUNT` → `count`, tam sayı ≥0 |
 | `distance` | `distance` | HC `DISTANCE_DELTA`; HK `DISTANCE_WALKING_RUNNING` / `DISTANCE_CYCLING` / `DISTANCE_SWIMMING` | `METER` → `km`, rawValue /1000 |
@@ -62,8 +62,8 @@ alanı `400`. UTC `Z` veya açık `±hh:mm` zorunlu; saat dilimsiz zaman `400`.
 | `active_energy` | `activeEnergy` | `ACTIVE_ENERGY_BURNED` | `KILOCALORIE` → `kcal` (yalnız aktif enerji) |
 | `heart_rate` | `heartRate` | `HEART_RATE` | `BEATS_PER_MINUTE` → `bpm`, >0 |
 
-M1 `healthConnect` → `health_connect`, `healthKit` → `health_kit`.
-M1 `start/end` → `startedAt/endedAt`. **M1 rawValue/rawUnit gönderilir**;
+Native okuyucu `healthConnect` → `health_connect`, `healthKit` → `health_kit`.
+Native okuyucu `start/end` → `startedAt/endedAt`. **Native okuyucu rawValue/rawUnit gönderilir**;
 normalize edilmiş `value` tekrar metre olarak gönderilmez. `sourceId` Android
 package/bundle kimliği, `externalRecordId` gerçek native ID/UUID, `sourceName`
 uygulama adı; her biri boş/kenar boşluklu/kontrol karakterli olamaz, en çok
@@ -120,7 +120,7 @@ aynı anahtarla, yeni batchId ve güncel `expectedVersionNumber` ile upsert yap�
 skaler kayıt tek örneğini, egzersiz aynı ActivityLog'u günceller. Kaynak ID değişirse
 eski ID açıkça silinip yeni ID eklenmelidir; sunucu benzer değerlerden kimlik üretmez.
 
-Nabızda aynı native record birden çok örnek içerir: M1 verisini anahtar bazında
+Nabızda aynı native record birden çok örnek içerir: Native okuyucu verisini anahtar bazında
 grupla, örnek anahtarını normalize UTC başlangıcıyla belirle. Upsert **delta**dır;
 gönderilmeyen nabız noktası korunur. Aynı noktada değer düzeltmesi yerinde yapılır.
 Zaman düzeltmesinde eski zaman `deletedSampleStarts` listesinde ve yeni nokta
@@ -152,7 +152,7 @@ eşit upsert/delete yeni sürüm üretmez; değişiklik eski sürümle `409` olu
 `batchId` o bağlantıda kalıcı idempotency anahtarıdır. Ağ hatasında **aynı batchId
 ve aynı içerikle** tekrar gönder; normalize içerik hash'i aynıysa ilk yanıt ve
 committedAt döner, son başarı zamanı yapay ilerlemez. Makbuz tekrarı son deneme
-durumunu da yeniden yazmaz; M3 bağlantı durumu ve son HTTP sonucunu ayrı gösterir.
+durumunu da yeniden yazmaz; Mobil istemci bağlantı durumu ve son HTTP sonucunu ayrı gösterir.
 İçerik farklıysa `409 sync_batch_conflict`. Sürüm çatışmasında başlığı/örnekleri yeniden oku, uzlaştır,
 yeni batchId ile güncel sürümü gönder; rastgele sürüm yükseltip üzerine yazma.
 
@@ -170,7 +170,7 @@ aktivitesi bu CRUD'da düzenlenemez/silinemez (`409 source_record_read_only`).
 Gün özeti iki **açık offsetli ardışık yerel gece yarısı** alır; UTC farkı 22–26 saat,
 DST için farklı offsetler mümkün. Örnek İstanbul: URL-encode edilmiş
 `from=2026-10-20T00:00:00+03:00&to=2026-10-21T00:00:00+03:00`.
-Sunucu kullanıcının saat dilimini tahmin etmez; doğru gün sınırları M3'ün görevidir.
+Sunucu kullanıcının saat dilimini tahmin etmez; doğru gün sınırları mobil istemcinin görevidir.
 Yanıttaki from/to UTC'dir, başlangıç dahil/bitiş hariçtir.
 
 `conservative_overlap_v1`: her metric ayrı hesaplanır. Manuel ölçüm →
@@ -204,7 +204,7 @@ Bağlantı yanıtı: `id,clientId,provider,status,versionNumber,lastSyncedAt,
 lastAttemptAt,lastSyncStatus,lastErrorCode`. lastSyncStatus `never/succeeded/failed`.
 lastSyncedAt yalnız yeni batch transaction'ı başarıyla commit edilince ilerler;
 boş/başarısız istek başarı sayılmaz. Yetki/JSON/gövde/DB kesintisi gibi işlemlerde
-attempt metadata'sı yazılamayabilir; M3 son HTTP hatasını ayrıca gösterir.
+attempt metadata'sı yazılamayabilir; Mobil istemci son HTTP hatasını ayrıca gösterir.
 Semantik/sürüm/batch-limit hatası yalnız attempt metadata'sını günceller; sağlık
 satırları ve önceki başarı zamanı korunur. Mobilde veri okunmuş olması başarılı
 backend senkronizasyonu değildir.
@@ -220,13 +220,9 @@ Ortak zarf: `{error:{code,message},requestId}`; sağlık değeri/kimliği hata/l
 | 422 | `unsupported_provider`, `unsupported_metric`, `unsupported_source_type`, `unsupported_unit`, `invalid_source_identity`, `invalid_interval`, `invalid_value`, `duration_mismatch`, `invalid_sync_batch`, `duplicate_source_record`, `aggregation_limit_exceeded` |
 | 415/429/500 | `unsupported_media_type` / `rate_limited` / `internal_error` |
 
-Migration `20261118222117_AddHealthDataSync`, U1 `20261118204842_AddClientTasks`
-sonrasındadır. Yalnız beş yeni tablo/index/constraint ekler; eski veri/izinlere
-backfill/değişiklik yapmaz. Veri/bağlantı/receipt varken Down reddedilir.
-Uygulama DB'sine uygulanmadı. PostgreSQL API testleri fiziksel Android/iOS sağlık
-doğrulaması değildir; cihaz doğrulaması ve M3 HTTP entegrasyonu ayrı teslimdir.
 
-U3 doğrulaması: build 0 hata/0 uyarı; ayrı PostgreSQL'de 20 U3 testi dahil
-468 başarılı/0 başarısız/2 Mailpit testi atlandı (toplam 470). Model/snapshot ve
-gerçek PostgreSQL sütun/FK/key/index karşılaştırması geçti. Komutlar ve ilk test
-ortamı düzeltmeleri [koordinasyon kaydında](PARALLEL_WORK_PLAN_2026-11-19.md).
+## Migration ve doğrulama sınırı
+
+`20261118222117_AddHealthDataSync`, `20261118204842_AddClientTasks` sonrasındadır. Beş tablo/index/constraint ekler; eski izinlere backfill yapmaz. Sağlık veri/bağlantı/receipt'i varken Down veri silerek ilerlemez. Kaynak modeline bakmak uygulama DB'sinin aynı sürümde olduğunu kanıtlamaz; bu görevde bağlantı/migration/test çalıştırılmadı.
+
+Geçmiş U3 test/teslim notları [arşivde](archive/README.md) korunmuştur. Sentetik PostgreSQL/API doğrulaması fiziksel sensör/HealthKit/Health Connect başarısı değildir. Yeni koşu ve ortam kanıtı olmadan geçmiş test sayıları güncel sonuç olarak verilmez.

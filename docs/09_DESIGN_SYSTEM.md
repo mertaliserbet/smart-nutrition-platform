@@ -1,54 +1,42 @@
-# 09 — UI/UX ve tasarım sistemi
+# 09 — Uygulanan tasarım tokenları ve deneyim kuralları
 
-## Hedef deneyim
-Gerçek diyetisyen ve danışanların güvenle kullanacağı **premium, modern, temiz** sağlık/beslenme ürünü. Sadece mezuniyet demosu gibi görünmemeli; erişilebilir, tutarlı ve mağaza görsellerine hazır olmalı. `12` karar 22 uyarınca ortak tasarım tokenları ve **açık/koyu tema** onaylıdır; renk/font/değerler ve ekran tasarımları henüz onaylanmamıştır. Nihai ekran kodundan önce ilgili tasarım onayı önerilir; sentetik prototip gerçek API/şema onayı sayılmaz.
+Açık/koyu tema ve ortak görsel dil onaylıdır. Aşağıdaki değerler kaynakta uygulanmıştır; nihai marka paleti, kapsamlı erişilebilirlik veya mağaza tasarım onayı verildiği anlamına gelmez.
 
-## Temel ilkeler
-- Kişisel sağlık verisinde **güven**: açık etiket, veri kaynağı, zaman, uyarı ve sade grafik.
-- **Hızlı kayıt**: manuel yemek/su girişi mümkün olduğunca az adım; kamera aksiyonu belirgin.
-- **Görsel hiyerarşi**: tipografi, beyaz alan/boşluk, kontrollü kartlar, birincil CTA, anlaşılır ikon.
-- **Tutarlılık**: mobil ve web aynı marka dilini taşır, platforma özgü navigasyonu korur.
-- **Erişilebilirlik**: WCAG AA kontrast hedefi, yeterli dokunma alanı, ekran okuyucu label, yalnız renkle anlam taşıma yok.
-- **Duyarlı düzen**: web masaüstü/tablet, mobil dar/geniş ekran; yükleniyor/boş/hata/başarılı durumların görsel tasarımı.
-- **Anlamı koruma**: kişisel düzenlenebilir hedef ile diyetisyen salt okunur hedefi, plan ile tüketim, bilinmeyen ölçüm ile sıfır ve erişim kapalı kategori ile boş veri farklı gösterilir. Laboratuvar aralığındaki “normal” etiketi genel sağlık hükmü değildir.
+## Mevcut tokenlar
 
-## Tasarım tokenları (değer önerileri — onay bekliyor)
-| Token | Öneri | Kullanım |
+Kaynaklar: [Flutter AppTokens](../mobile/lib/core/theme/app_tokens.dart), [AppTheme](../mobile/lib/core/theme/app_theme.dart), [web tokens.css](../apps/web/src/core/theme/tokens.css).
+
+| Kavram | Flutter | Web açık / koyu |
 |---|---|---|
-| `color.brand.primary` | sakin koyu yeşil / turkuaz alternatiflerini birlikte seç | Ana CTA ve marka |
-| `color.surface` | açık ve koyu temada nötr, göz yormayan yüzey karşılıkları | Kart/zemin; iki tema da desteklenir |
-| `color.text.primary` | yüksek kontrastlı koyu/açık metin | Okuma |
-| `color.semantic` | success/warning/error + açıklama | Klinik etiketler için tek başına renk kullanılmaz |
-| `spacing` | 4pt tabanlı ölçek | Boşluk sistematiği |
-| `radius` | kontrollü orta yuvarlaklık | Kart/button/input |
-| `typography` | lisanslı, okunabilir ve TR karakter destekli font | Tüm platformlar |
+| Ana marka | seedColor #386A5E | --brand-primary #386a5e / #9bcec0 |
+| Güçlü marka / yumuşak yüzey | Material 3 ColorScheme'den | #285347 / #b4e0d4; #eaf2ee / #243d35 |
+| Kart yüzeyi | Material 3 rolü | #ffffff / #1b2522 |
+| Sayfa yüzeyi | Material 3 rolü | #f7f8fa / #141c19 |
+| Ana metin | Material 3 rolü | #243a36 / #e6eee9 |
+| İkincil metin | Material 3 rolü | #62736e / #a9bdb3 |
+| Kenarlık | Material 3 rolü | #e3e9e6 / #34443c |
+| Hata | Material 3 rolü | #b13535 / #ffb2ab |
+| Boşluklar | 8, 16, 24, 32 logical px | 8, 16, 24, 32 px |
+| Orta radius | 16 | 16 px |
+| Mobil içerik / marka ikonu | maxWidth 480 / 40 | Web ekranına özgü responsive CSS |
 
-**Renk paleti kesinleşmemiştir.** Eski uygulamadaki renkleri otomatik devralma. Önce moodboard, 2–3 ana ekran ve web dashboard düzeni onayı al.
+Flutter useMaterial3 ve ColorScheme.fromSeed kullanır; başlık ağırlığı w600, bodyLarge satır yüksekliği 1.5'tir. Web sistem font zinciri Segoe UI, system-ui, -apple-system, BlinkMacSystemFont, sans-serif'tir; harici font servisine istek yoktur. Ortak token kavramı her platformun bütün üretilmiş renklerinin aynı hex olduğu iddiası değildir.
 
-Token yolları ortak görsel kavramları anlatır; Flutter ve React platformun kendi adlandırmasına eşlenir. Kesin renk, font, spacing/radius değerleri, varsayılan tema ve tema tercihinin saklanması burada seçilmez. 4pt ölçek de başlangıç önerisidir; açık/koyu desteğin kendisi ise karar beklemez.
+Flutter ThemeMode.system kullanır. Web ThemeProvider system/light/dark seçimini yalnız sayfa belleğinde tutar ve sistem değişimini izler; kalıcı tercih saklama kararı yoktur.
 
-## Ortak bileşen ilkeleri
-- Tasarım sözlüğü: `AppButton`, `AppCard`, `MetricCard`, `EmptyState`, `LoadingState`, `ErrorState`, `MealLogCard`, `LabResultRow` gibi **yalnız gerçekten tekrar kullanılan** bileşenler.
-- Flutter ve React kodu paylaşılmaz; **görsel tokenlar/isimlendirme sözlüğü** eşdeğer tutulur.
-- Her küçük metin/blok için component açılmaz. Ortak bileşen ihtiyaç, tekrar ve bakım maliyetine göre çıkarılır.
-- AI tahminleri için “Tahmini”, “Porsiyonu kontrol et” ve düzeltme CTA'sı görünür; lab ekranında ölçüm/birim/referans birlikte gösterilir.
-- AI ve OCR kontrol/onayı görünür bir kullanıcı eylemidir; yükleme/iş tamamlanması onay gibi gösterilmez. Doğru tahmini onaylamak için gereksiz değişiklik zorunluluğu yoktur. Eksik miktar/makro sıfıra çevrilmez.
-- Görev durumları, yorum/cevap ve bildirim ekranı açık DTO'lar için kendi enum/alanını üretmez. İlk sürüm yorum/cevap/bildirim şartı, kendiliğinden anlık sohbet/WebSocket tasarımı anlamına gelmez. Katman veya her küçük blok için bileşen açılmaz; kontrollü refactor kuralı korunur.
+## Tasarım ve bileşen kuralları
 
-## Başlangıç ekran tasarım seti
-1. Mobil Ana Sayfa: günlük kalori/makro/su, yemek ekleme, kişisel/atanmış program ayrımı, gün özeti; her iki tema.
-2. Mobil Fotoğraftan Öğün: kamera/galeri, analiz sonucu, porsiyon düzenleme, onay.
-3. Mobil Laboratuvar: değer + birim + laboratuvar aralığı + açıklama, yardım metni.
-4. Web Danışan Listesi/Detay: filtre, zaman çizgisi, trend, program erişimi.
-5. Web Beslenme Planı Editörü: gün/öğün yapısı, hedef ve atama eylemi.
-6. Mobil/Web Öğün Yorumu ve Görev: yorum/cevap/bildirim, görev/son tarih ve açık durum kurallarını belli eden prototip; ayrı sohbet değildir.
-7. Paylaşım ve Tahlil Onayı: kategori bazlı erişim, ayrı açık onay, geri çekme ve erişim kesilmesi; cihaz izinleri ayrı açıklanır.
+- Temiz hiyerarşi, okunabilir metin, kontrollü beyaz alan ve hızlı manuel kayıt; mobil/web kendi navigasyon düzenini korur.
+- Sağlık değeri yanında birim, tarih, kaynak ve tahmin etiketi bulunur. null “Bilinmiyor”, gerçek 0 “0”, izin kapalı “Erişim yok”, kayıt olmayan gün “Kayıt yok” olarak ayrılır. Aralık içindeki lab bayrağı genel sağlık hükmü değildir.
+- Kişisel düzenlenebilir hedef, atanmış salt okunur hedef ve gerçek tüketim farklı sunulur. Alternatif program öğeleri ayrı zorunlu öğün gibi gösterilmez.
+- AI/OCR için kontrol, gerekirse düzeltme ve açık onay görünür eylemdir; işin tamamlanması onay değildir. Doğru öneriyi değiştirme zorunluluğu ve eksik besini sıfıra çevirme yoktur.
+- Ortak bileşen yalnız tekrar/sorumluluk/test ihtiyacıyla çıkarılır. Flutter/React bileşen kodu paylaşılmaz; görsel kavramlar eşlenir.
+- WCAG AA kontrast hedefi, ekran okuyucu etiketleri, yeterli dokunma alanları, klavye/odak ve yalnız renkle anlam taşımama korunur. Kaynakta skip-link, odaklanabilir başlık, aria form durumları ve klavyeyle tema menüsü vardır; bunlar tam uygunluk sertifikası değildir.
+- Yüklenme, boş, ağ/sunucu hatası ve yetki kaybı ayrı görünür; hata halinde sentetik başarı/sağlık verisi gösterilmez.
+- Tablo/grafikte birim ve eksiklik açıklaması vardır; grafik metin/tablo alternatifiyle anlaşılır kalmalıdır. Animasyon kısa ve düşük güçlü cihazlara uygun olmalıdır.
 
-Program alternatif/sürüm, görev durumları ve rapor gövdesi gibi açık veri yapıları prototipte kesin sözleşme diye sabitlenmez; bağımlılıklar `12`de izlenir. Admin ekranlarında MFA adımı bulunur, genel sağlık verisi tarama ekranı varsayılmaz.
+## Tasarım ve doğrulama durumu
 
-## UI kalite kapıları
-- Figma/örnek statik onay (varsa), ekranların tema/token uyumu, erişilebilirlik ve hata durumları.
-- Demo verisi gerçek kişisel sağlık verisi içermez.
-- Scroll/klavye/odak, loading/skeleton, ağ hatası, form doğrulama, responsive kırılmaları manuel test edilir.
-- Animasyon kısa ve amaçlı, düşük güçlü cihazlarda performansa zarar vermez.
-- İki temada kontrast, tahmin/unknown/izin kapalı etiketleri, salt okunur atanmış program ve onay/geri çekme akışları kontrol edilir. Tema/token ve ekran onayı tamamlanmadan premium/erişilebilir deneyim test edildi denmez.
+Gerçek ekranlar [07](07_MOBILE_SPEC.md) ve [08](08_WEB_SPEC.md)'dedir. Webde sentetik önizleme ayrı Development rotasıdır; tasarım örneği gerçek veri kanıtı değildir.
+
+Nihai marka/font/palet onayı, bütün ekranlarda iki tema/kontrast, ekran okuyucu, küçük ekran, scroll/klavye, zayıf ağ ve fiziksel cihaz performansı ayrıca doğrulanmalıdır. Planlanan fotoğraf, laboratuvar, bildirim ve paylaşım/onay akışları da aynı kurallara tabidir. Tarihsel test raporları ve güncel doğrulama sınırı [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir.

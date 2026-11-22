@@ -1,3 +1,5 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
 # 13 — Auth ve profil sözleşmesi önerisi
 
 **29.10.2026 güncellemesi:** `14` B1–B3 uzman başvurusu/Admin MFA paketi
@@ -42,7 +44,7 @@ açık kalır. Hesap okumasının kapanması tüm A3 veya A1–A8 paketinin onay
 Dayanaklar: [kanonik adlar](04_NAMING_CONVENTIONS.md),
 [veri sözlüğü](05_DATA_DICTIONARY.md), [HTTP sözleşmesi](06_API_CONTRACT.md),
 [geliştirmeye hazırlık](12_TEAM_PLAN_AND_DECISIONS.md) ve
-[mevcut backend hazırlığı](../backend/README.md).
+[mevcut backend hazırlığı](../../../backend/README.md).
 
 ## Onaylı P1–P7 parola sıfırlama — 02.11.2026
 

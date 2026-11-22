@@ -1,3 +1,5 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
 # 19 — İkinci Uğur adımı: program–gerçekleşen öğün karşılaştırması
 
 **Tarih:** 18.11.2026 · **İnceleme tabanı:** ortak `main`, `0678c3c`.

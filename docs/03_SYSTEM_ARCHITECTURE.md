@@ -1,65 +1,88 @@
-# 03 — Sistem mimarisi
+# 03 — Sistem mimarisi ve repository yapısı
 
-> Teknolojiler `12` karar 20 ile **onaylıdır**. Paket/sürüm, dağıtım, oturum ve açık şema ayrıntıları ayrıca kararlaştırılır; hazırlık durumu `12`de izlenir. Uygulama iskeleti ayrı uygulama görevinin kapsamıdır.
+Kaynak inceleme tabanı: 22.11.2026, yerel kod commit'i `4f160b3`. Bu belge çalışan süreç veya veritabanı incelemesi değildir; klasörler, bağımlılık dosyaları, yapılandırma ve kaynak koddan doğrulanmıştır.
 
-## Tasarlanan bileşenler
+## Gerçek bileşenler
+
+| Katman | Mevcut uygulama |
+|---|---|
+| Mobil | `mobile/`: Flutter/Dart, Material 3, `flutter_secure_storage`, `health`, `url_launcher` |
+| Web | `apps/web/`: React 19, TypeScript 6, React Router 7, Vite 8; Vitest/Testing Library, oxlint ve Playwright |
+| API | `backend/src/SmartNutrition.Api/`: .NET 10 / ASP.NET Core, EF Core 10, Npgsql, Identity PasswordHasher, JWT, Cookie Authentication/Data Protection, MailKit ve Otp.NET |
+| Veri | PostgreSQL 17; EF migration'ları ve `AppDbContextModelSnapshot` kaynakta mevcut |
+| Yerel e-posta | Compose içinde Mailpit; üretim teslim sağlayıcısı değildir |
+| AI | Ayrı servis, model veya inference entegrasyonu yok. İhtiyaç halinde Python/FastAPI onaylı teknoloji; [10](10_AI_SPEC.md) |
+
+Tam sürüm kaynakları `backend/global.json`, API csproj, `apps/web/package.json`/lockfile ve `mobile/pubspec.yaml`/lockfile'dır. Flutter için Dart SDK kısıtı `^3.12.2`, health paketi `13.3.2`dir; sürüm yükseltme kararı bu belgeyle verilmez.
+
 ```text
-Client Mobile       ─┐
-                     ├── HTTPS /api/v1 → Main Backend → PostgreSQL
-Dietitian/Admin Web ──┘
-Main Backend → (gerekirse) AI Service
-                            ├── food-image inference
-                            └── lab insight / OCR
-Wearable OS APIs → Mobile → Main Backend (izinli, kaynak etiketli)
+smart-nutrition-platform/
+├── AGENTS.md
+├── README.md
+├── start.ps1
+├── setup-local-https.ps1
+├── tools/android-browser-https.mjs
+├── .vscode/settings.json
+├── docs/                         # 12 aktif ana belge + archive/
+├── backend/
+│   ├── SmartNutrition.Backend.slnx
+│   ├── global.json
+│   ├── compose.yaml
+│   ├── src/SmartNutrition.Api/
+│   │   ├── Features/             # Auth, Dietitians, Relationships, NutritionPlans,
+│   │   │                         # MealLogs, WaterLogs, PersonalNutritionTargets,
+│   │   │                         # BodyMeasurements, ClientTasks, HealthData
+│   │   ├── Data/                 # AppDbContext + Migrations/
+│   │   ├── Models/
+│   │   ├── Infrastructure/
+│   │   └── Health/
+│   └── tests/SmartNutrition.Api.Tests/
+├── apps/web/
+│   ├── src/core/                 # theme, components
+│   ├── src/features/             # auth, dietitians, relationships, clients,
+│   │                             # nutritionPlans, clientTasks, workspace
+│   └── e2e/
+└── mobile/
+    ├── lib/core/                 # network, theme, widgets
+    ├── lib/features/             # auth, navigation, home, nutrition, water,
+    │                             # body_measurements, personal_nutrition_targets,
+    │                             # dietitians, client_tasks, health, progress, profile
+    ├── android/
+    ├── ios/
+    └── test/
 ```
 
-- **Mobil:** danışan deneyimi, kamera/galeri, cihaz izinleri, öğün/su/ölçüm/lab/aktivite, kişisel/atanmış program, görev/yorum ve paylaşım akışları; ayrıca diyetisyen başvurusu.
-- **Web:** ilk sürüm diyetisyen ve ayrı Admin yönetim paneli; danışan izleme, program/alternatif/geçmiş, görev/yorum, analiz ve izinli PDF raporları. Admin sağlık içeriğini varsayılan göremez.
-- **Backend:** kimlik, doğrulama/MFA, rol, ilişkiler, kişisel/atanmış program yetkileri, kategori paylaşımı/tahlil açık onayı, tek aktif kuralları, kaynak/tekilleştirme, audit ve ortak API.
-- **AI:** uygun hazır model/API veya gerektiğinde model çalıştırma; özel eğitim zorunlu değildir. Sahiplik/izin ana backend'de denetlenir; AI servisi veri güvenlik kuralını by-pass etmez. OCR kullanıcı onayı öncesinde kalıcı LabResult üretmez.
-- **Veritabanı:** ilişkisel, migration ile versiyonlu.
+`apps/mobile`, `services/api` ve `services/ai` mevcut klasörler değildir; eski öneri yapı, gerçek repo yerine kullanılmaz.
 
-## Onaylı teknolojiler
-| Katman | Seçim | Gerekçe |
-|---|---|---|
-| Mobile | Flutter / Dart | Android/iOS, kamera ve platform köprüleri |
-| Web | React + TypeScript | Diyetisyen paneli, tutarlı tipler |
-| Backend | ASP.NET Core Web API / C# | Yetki, DTO, sağlam servis katmanı |
-| DB | PostgreSQL | İlişkiler, transaction, indeksleme |
-| AI | Gerektiğinde Python / FastAPI | Model/inference ekosistemi; ayrı servis veya belirli sağlayıcı zorunluluğu yok |
-| Kontrat | OpenAPI + `docs/06_API_CONTRACT.md` | Aynı client/server sözleşmesi |
+## İstek ve veri akışı
 
-## Sınırlar ve entegrasyon ilkeleri
-1. Mobil veya web veritabanına doğrudan bağlanmaz.
-2. API JSON anahtarları `camelCase`, kalıcı kayıt ID'leri UUID, zamanlar UTC ISO 8601, ölçü birimleri açık (bkz. 04–06).
-3. Yetkilendirme kaynak bazlı yapılır: URL'deki `clientId` tek başına erişim izni vermez.
-4. AI'ya gönderilen veri en az gerekli miktardır; kişisel veri paylaşımı için açık izin/uygun işleme şartı değerlendirilir.
-5. Sağlık verisi için hata mesajları gereksiz kişi/ölçüm bilgisi sızdırmaz.
-6. AI yavaş/kapalıysa manuel öğün ve lab kaydı çalışmaya devam eder.
-7. Dosya yüklemeleri için içerik türü, boyut, virüs taraması/izin kontrolleri ve güvenli depolama kararları gerekir.
-8. `FoodAnalysis` mevcut `pending/processing/completed/failed` durumlarıyla asenkron çalışır; sonuç güncellemesi tekrar güvenli olmalıdır. Bu enum OCR veya LabInsight için otomatik yeniden kullanılmaz; onların iş/durum şeması açıktır.
-9. Aktif diyetisyen ilişkisi tek başına tüm kaydı açmaz; doğrulanmış uzman + aktif ilişki + ilgili kategori izni, tahlilde ayrıca açık onay kontrol edilir. İzin geri çekilince cache, analiz veya rapor bağlantısı eski erişimi sürdüremez.
-10. Tek aktif ilişki/program yalnız UI kontrolüyle sağlanmaz; backend ve PostgreSQL eşzamanlı işlemlerde de bütünlüğü korur. Kişisel/atanmış program aynı NutritionPlan'dır; kişisel program için diyetisyen gerekmez. Sürüm geçmişi fiziksel yapısı onaylanmadan yerinde güncelleme ile geçiştirilmez.
-11. U3 kullanıcı onayıyla cihaz kaynağı/dış kimlik, manuel giriş, birim, tekrar/örtüşme kuralları `05/06/20`de kapandı. HealthData feature'ı WearableConnection/WearableRecord/HealthMetricSample ve kanonik ActivityLog'u kullanır. Yalnız kendi client JWT'si; User→ClientProfile kilidi + sürüm + unique kaynak/batch anahtarları, atomik receipt; okumada RepeatableRead. OS aktarım tercihi paylaşım izninden bağımsızdır. Yeni türler bu kontrollü metric kapsamından çıkarılmaz.
+Mobil ve web aynı `/api/v1` API'sini kullanır; doğrudan DB bağlantısı yoktur. Controller'lar HTTP/şekil kontrollerini, feature servisleri iş kurallarını ve transaction'ları yürütür. EF eşlemeleri entity/feature altında, migration ve snapshot Data altındadır. Gereksiz repository/katman ekleme zorunluluğu yoktur.
 
-## Repo organizasyonu önerisi
-```text
-apps/mobile/                  # tek Flutter projesi (uygulama görevi kapsamında)
-apps/web/                     # tek web projesi (uygulama görevi kapsamında)
-services/api/                 # tek backend; feature/domain klasörleri
-services/ai/                  # gerekliyse AI inference/deneyleri
-docs/                         # ortak sözleşmeler
-```
-İç dizinleri ve sınıf ayrımlarını gerçek ihtiyaç çıktıkça feature/domain sorumluluklarına göre kur. `controllers/services/repositories` gibi soyutlamaları sırf şablon olsun diye çoğaltma. Tek dev dosya da üretme; her metot/widget için dosya açma. Ortak bileşen/servis tekrar, sorumluluk veya test ihtiyacı doğduğunda çıkarılır; başka geliştiricinin alanında geniş refactor ayrı görevdir. Flutter/React kodu paylaşılmaz; isimler, JSON ve tasarım token karşılıkları eşdeğerdir.
+Mobil bearer ve güvenli refresh deposu, web ise aynı HTTPS origin üzerinden cookie/CSRF kullanır. Kaynak/profil/ilişki/kategori kontrolü sunucudadır. Kimlik taşıma ve endpoint kuralları [06](06_API_CONTRACT.md), güvenlik ve üretim koşulları [11](11_SECURITY_AND_RELEASE.md) içindedir.
 
-## API–AI ilişki örnek akışı
-1. Mobil `POST /api/v1/food-analyses` çağırır.
-2. Backend token, dosya, izin ve hız limitini doğrular; analiz kaydı oluşturur.
-3. AI inference tetiklenir, belirsizlik ve model sürümü saklanır.
-4. Mobil analizi okur; kullanıcı öneriyi kontrol eder, gerektiğinde düzeltir ve onaylar.
-5. Kullanıcı ayrıca `POST /api/v1/meal-logs` ile onaylı öğünü kaydeder. **Analiz otomatik olarak yemek kaydına dönüşmez.**
+Sağlık senkronizasyonunda User → ClientProfile kilitleri, sürümler ve batch receipt kullanılır. Özetler/sayfalı izinli okumalar tutarlı snapshot'larla alınır. Günlük toplamlar kalıcı ayrı sağlık tabloları değildir. Veri modeli [05](05_DATA_DICTIONARY.md), aktarım politikası [20](20_HEALTH_DATA_SYNC_CONTRACT.md) içindedir.
 
-## İzlenebilirlik / kalite
-API istek ID, merkezi yapılandırılmış log, health check, asgari performans ölçümleri, otomatik test ve gizli bilgilerin konfigürasyon yönetimi hedeflenir. Tanımlı olmayan deployment sağlayıcısı veya bulut maliyeti varsayma.
+## Yapılandırma ve yerel geliştirme
 
-Profil düzenleme/uzman profili, kalan oturum işlemleri, kategori/consent kodları, program sürüm/alternatif ve geçiş, görev/yorum, OCR ve sync DTO'ları için `12` hazırlık tablosu modül giriş koşuludur. Kendi hesap okuması `GET /auth/me` için `06`daki onaylı beş alanlı DTO kullanılır. Queue, WebSocket, depolama sağlayıcısı, ORM/paket sürümü veya OCR iş modeli bu mimari çiziminden çıkarılmaz; ilgili sözleşme açıkken gerçek entegrasyon tamamlandı denmez.
+Kurulum/başlatma komutlarının ana kaynağı [kök README](../README.md)'dir. Alt [backend](../backend/README.md), [web](../apps/web/README.md) ve [mobil](../mobile/README.md) README'lerinde ayrıntılı komutlar vardır; tarihli teslim notları güncel özellik durumu için kullanılmaz.
+
+- API launch profilleri HTTP 5052 ve HTTPS 7099; Vite varsayılan 5173'tür. Cookie akışı HTTPS gerektirir. Vite proxy hedefleri `apps/web/vite.config.ts` içindedir; mobil-only yolların tamamı web proxy'sinde bulunmaz.
+- Compose API'yi çalıştırmaz: PostgreSQL `127.0.0.1:5433`, Mailpit SMTP 1025/UI 8025 sunar. Parola dışarıdan gelir; kalıcı volume korunur.
+- ConnectionStrings:DefaultConnection ve JWT issuer/audience/SigningKeyBase64 repo dışında ayarlanır. Web için Auth:WebSession:Origin ve KeyRingPath gerekir. Başlangıçta otomatik EnsureCreated/Migrate yoktur.
+- Genel paylaşım ayarları varsayılan false'tur. Kaynaktaki Development override'ı yalnız MealLogsEnabled ve ClientTasksEnabled değerlerini true yapar; BodyMeasurementsEnabled ve WaterLogsEnabled için aynı varsayım yapılamaz. Gerçek ortamın secrets/environment override'ları bu incelemede okunmadı.
+- `start.ps1` aynı terminalde API, web ve uygun Android emülatörü/Flutter alt süreçlerini yönetir. Eksik bağımlılık/paket/ayar veya migration'ı otomatik kurmaz. Başkasının portundaki süreci kapatmaz; Ctrl+C kendi süreçlerini ve kendisinin başlattığı servisleri temizler.
+- API `/health/live` DB'ye ihtiyaç duymaz; `/health/ready` PostgreSQL'i kontrol eder. `/openapi/v1.json` ve `/swagger` yalnız Development ortamında açılır.
+
+## Android tarayıcı için yerel HTTPS
+
+Flutter'ın API geliştirme sertifikasına güvenmesi Android Chrome'un web sertifikasına güvendiği anlamına gelmez. `setup-local-https.ps1`, PowerShell 7.5+ ile yalnız test AVD'si için yerel CA ve localhost sunucu sertifikası hazırlar; kullanım komutu kök README'dedir.
+
+CA özel anahtarı CurrentUser DPAPI ile korunur; dosyalar `LOCALAPPDATA/SmartNutrition/browser-https` altında kullanıcı/SYSTEM erişimiyle tutulur. Yalnız açık CA emülatör Download klasörüne kopyalanır ve Android'in standart CA yükleme ekranında kullanıcı tarafından kurulur. CA iki yıl, sunucu sertifikası 180 gün geçerlidir; son yedi günde sunucu sertifikası yenilenir. CA değişiminde Android güven onayı yeniden gerekir.
+
+CA dosyaları varsa akış Android Chrome localhost:5173 → adb reverse 5173:5174 → loopback HTTPS geçidi → sertifikası doğrulanan Vite 5173 → API 7099'dur. Web origin'i değişmez; API tüneli 7099:7099 kalır. CA yoksa doğrudan web tüneli kullanılır; bu, tarayıcı güvenini sağlamaz. Farklı hedefe bağlı tüneller otomatik değiştirilmez.
+
+Windows güven deposuna CA eklenmez, kişisel/fiziksel cihaza kurulum yapılmaz, özel anahtar cihaza kopyalanmaz. HTTP'ye düşme, sertifika uyarısını atlama veya TLS doğrulamasını kapatma yoktur. Geri almada yalnız test AVD'sindeki Smart Nutrition Local Development CA kaldırılır; bütün sertifikalar veya AVD verisi silinmez. Bu akış üretim sertifika altyapısı değildir.
+
+## Planlanan mimari parçalar
+
+AI/OCR, dosya depolama/tarama, kalıcı bildirim/e-posta teslimi, PDF üretimi, dağıtım sağlayıcısı, ortak rate limit ve üretim izleme ayrıca geliştirilir. Queue, WebSocket, yeni bulut sağlayıcısı veya genel job modeli mevcutmuş gibi kabul edilmez. Gerçek veri/yayın kapıları [11](11_SECURITY_AND_RELEASE.md), açık kararlar [12](12_TEAM_PLAN_AND_DECISIONS.md) içindedir.

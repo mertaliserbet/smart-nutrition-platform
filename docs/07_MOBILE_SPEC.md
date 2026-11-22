@@ -1,71 +1,64 @@
-# 07 — Danışan mobil uygulaması
+# 07 — Gerçek Flutter ekranları ve mobil davranış
 
-**18.11.2026 kullanıcı kararı (güncel mobil giriş):** Mobil uygulamada normal
-danışan hesabı kullanılır. Giriş ekranında `WEB_BASE_URL` tabanındaki `/giris`
-adresi görünür ve dış tarayıcıda açılır; mobil parola/JWT/refresh aktarılmaz.
-Web yalnız diyetisyen profili olan hesaplar ve Admin MFA içindir; sunucudaki
-mevcut kural korunur. Mobil uzman paneli/başvuru kısayolları şimdilik kapalıdır;
-önceki ekranların kaynakları silinmez. Rolü dietitian olan mevcut mobil oturum
-danışan veya uzman paneli yerine web yönlendirmesi ve çıkış seçeneği görür.
-Temel rolü client olan çift profilli hesap mobilde danışan olarak devam eder.
-Aşağıdaki 17.11 mobil uzman ekranı notu bu kullanıcı kararıyla ertelenmiştir.
+İnceleme tabanı 22.11.2026 / `4f160b3`. Mevcut uygulama açıklamaları kaynak koddan doğrulanmıştır; fiziksel Android/iOS veya yeni test koşusu sonucu değildir. Kesinleşmiş ancak geliştirmesi kalan Profil akışı ayrıca işaretlenmiştir. Ürün kapsamı [01](01_PROJECT_SCOPE.md), HTTP sözleşmesi [06](06_API_CONTRACT.md), sağlık aktarımı [20](20_HEALTH_DATA_SYNC_CONTRACT.md)'dedir.
 
-**17.11.2026:** Danışan işlemleri mobil uygulamadadır. Danışan, Profil üzerinden
-mevcut hesabıyla diyetisyen başvurusu yapabilir. Onaylı diyetisyen mobilde
-aktif danışanlarını ve bağlantı taleplerini görebilir, talepleri yönetebilir
-ve davet kodu oluşturabilir. Ayrıntılar `06/12`dedir.
+## Uygulama girişi ve navigasyon
 
-## Kullanıcı deneyimi hedefi
-Play Store hedefini gözeten, sade, hızlı, premium, ekran okuma erişilebilirliğine uygun mobil uygulama. Fotoğraf/kamera akışları beslenme kaydını kolaylaştırmalı; tıbbi doğruluk veya kesin kalori vaadi sunmamalı.
+`mobile/lib/main.dart` SmartNutritionApp'i açar. Mevcut AuthGate doğrulanmış oturum olmadan özel ekran açmaz; başlangıç/deep-link yolları aynı kontrolden geçer. Normal mobil danışan deneyimi client temel rolündedir; aynı hesapla uzman başvurusu bu rolü değiştirmez. Mevcut kod diğer temel rolleri web paneline yönlendirir; eski diyetisyen mobil widget dosyalarının bulunması onların aktif yönetim paneli olduğu anlamına gelmez.
 
-Flutter/Dart onaylıdır; Mert mobil ve ilgili API entegrasyonlarının sahibidir. Danışan diyetisyensiz de kayıt tutar ve kişisel program/hedef oluşturur. Diyetisyen mobil üzerinden başvurabilir; ilk sürüm yönetim paneli webdedir. İlk sürüm öğün yorum/cevap/bildirim şartı ile diğer özelliklerin takvim ayrımı `01/12`ye uyar; açık/koyu tema desteklenir.
+| Yol/ekran | Kaynaktaki davranış |
+|---|---|
+| /, /register, /email-verification | Giriş, gerçek kayıt ve e-posta doğrulama/yeniden gönderim |
+| /forgot-password | Gerçek reset talebi ve manuel kodla yeni parola/tekrar formu |
+| Ana Sayfa | API'den günlük tüketim/enerji/makro, su, aktif program veya kişisel hedef ve son öğünler |
+| /nutrition — Beslenme | Kendi aktif programını ve öğün önerilerini salt okunur gösterme; sürümle günlük tüketim karşılaştırması |
+| Öğün geçmişi/detayı/formu | Manuel oluşturma/düzenleme/silme, kalemler, miktar ve nullable besin değerleri; yorum/cevap |
+| Su formu/özeti | Gerçek su kaydı, günlük toplam, düzeltme/silme |
+| /progress — İlerleme | Kilo/bel/kalça/göğüs/yağ kayıtları, liste/detay/düzeltme/silme ve grafik |
+| /personal-nutrition-targets | Kalori/protein/karbonhidrat/yağ/su hedeflerini girme veya temizleme |
+| /dietitians, /client-connections | Doğrulanmış uzman arama, istek, ilişki durumu/sonlandırma ve beş bağımsız kategori izni |
+| /client-tasks | Gerçek görev listesi/detay/sürüm geçmişi, danışanın izinli durum/hatırlatma tercihi |
+| /device-health | Destek/izin durumları, açık ön plan okuması, ayrı sunucuya aktarım onayı/tercihi ve backend özeti |
+| /profile | Hesap adı/e-postası ve ilgili ekranlara bağlantılar; başvuru/durum/panel seçeneği henüz yok, tam profil/gizlilik düzenleme ekranı değildir |
+| /dietitian-account | Harici HTTPS web girişine (/giris) yönlendirme; mobil token URL'ye eklenmez, mevcut hesapla başvuru ekranını açmaz |
 
-## Önerilen navigasyon (onay bekliyor)
-Alt sekmeler: `Ana Sayfa` / `Beslenme` / `İlerleme` / `Profil`; `+` veya belirgin CTA üzerinden öğün, su, aktivite ve tahlil ekleme. Diyetisyen planı ana sayfada ve beslenme içinde erişilebilir.
+MainShell sekmeleri Ana Sayfa, Beslenme, İlerleme ve Profil'dir. Sekme/hesap/lifecycle değişimlerinde güncel veri yeniden okunur; eski hesaptan geç yanıtların görünmesi engellenir. Ana sayfa gün sınırında yenilenir; bütün veri için arka plan sürekli senkronizasyon taahhüdü yoktur.
 
-## Ekran listesi ve eylemler
-Yollar `/api/v1` tabanına göredir; method, alan ve yetki kaynağı `06`dır. **AÇIK ŞEMA** işaretli gövde/akışlar onaylanmadan gerçek entegrasyon veya kesin mock sayılmaz.
+## Kesinleşmiş çift profil ve Profil akışı
 
-| Ekran | İçerik | Mevcut API / açık bağımlılık |
-|---|---|---|
-| Onboarding / Login / Register | E-posta/şifre, doğrulama, şifre sıfırlama, profil ve yasal bilgilendirme; izinleri gerektiğinde iste | `/auth/*`, `GET /auth/me`; kayıt/JWT giriş/kendi hesap özeti `06`da onaylı. Refresh/logout, profil düzenleme ve istemci entegrasyonu ayrı |
-| Ana Sayfa | Günlük enerji/makro, su, plan durumu, son öğün, bağlanan diyetisyen, CTA | `/meal-logs`, `/water-logs`, `/nutrition-plans/active` |
-| Beslenme Günlüğü | Gün bazlı öğünler, ekle/düzelt/sil, tarih filtresi | `/meal-logs`, `/food-items` |
-| Tarifler | Kendi özel tarifleri ve erişilebilir katalog; geçmiş tüketim değerlerini değiştirmeden kayıt | `/recipes`; bileşen/porsiyon/görünürlük AÇIK ŞEMA |
-| Yemek fotoğrafı | kamera/galeri → yükle → tahminleri düzenle → onay | `/food-analyses`, `/meal-logs` |
-| Su | hızlı miktar ekleme, günlük toplam, hedef | `/water-logs` |
-| Planım / Kişisel program | Diyetisyensiz kişisel program oluştur/düzenle; atanmış programı/hedefleri salt okunur gör; tek aktif program, alternatif ve geçmiş | `/nutrition-plans`, `/nutrition-plans/active`; tam items/alternatif/sürüm ve program geçişi AÇIK ŞEMA |
-| Diyetisyenim | Doğrulanmış uzman ara, davet kodu/karşılıklı onay, ilişki durumu/geçmişi ve sonlandırma | `/dietitians`, `/dietitian-relationships`; davet kodu girdisi açık |
-| Diyetisyen başvurusu | Uzman başvurusu ve doğrulama durumunu gör; rol seçimi doğrulanmış yetki vermez | `/auth/*`, `GET /auth/me` yalnız hesap özeti içindir; uzman başvuru/doğrulama durumu bu DTO'da yoktur. Başvuru belge/endpoint DTO'su açık |
-| Görevlerim | Atanan ClientTask, son tarih, durum ve isteğe bağlı hatırlatma | `/client-tasks`; durum geçiş yetkisi/son tarih/hatırlatma AÇIK ŞEMA |
-| Öğün yorumları/cevaplar | Kendi öğününde yorum/cevap ve bildirim akışı; ayrı sohbet yok | `06`daki `/meal-logs/{mealLogId}/comments` önerisi AÇIK ŞEMA; bildirim DTO/kanalı açık |
-| İlerleme | tarih aralığı, kilo/ölçümler, beslenme trendi | `/body-measurements`, `/meal-logs` |
-| Aktivite | manuel yürüyüş/koşu, süre/mesafe; kaynağı göster | `/activity-logs` |
-| Laboratuvar | Manuel değer/birim/aralık, sonuç geçmişi ve açıklama; ardından kullanıcı kontrol/onaylı PDF/fotoğraf OCR | `/lab-reports` ve insights; OCR yolu/yanıtı `06`da öneri, AÇIK ŞEMA |
-| Cihaz bağlantıları | açık izin, hangi veri toplanıyor, senkronize et/iptal et | `/wearable-connections` (sonraki faz) |
-| Profil ve gizlilik | Hesabım; kategori paylaşımı/tahlil açık onayı ve geri çekme; cihaz izinleri; veri indirme/hesap silme talepleri | `GET /auth/me` kendi hesap özeti; profil düzenleme ayrı açık taslak. `/data-sharing-permissions`, `/consent-records`; silme/indirme uçları ve onay kanıtı henüz tam tanımlı değil |
+**Durum: onaylı gereksinim; Flutter geliştirmesi ve uygulama doğrulaması tamamlanmadı.** ProfilePage'de başvuru bağlantısı yoktur; eski DietitianAccountPage dosyası aktif /dietitian-account yolunda açılmaz. Mevcut genel web giriş bağlantısı aşağıdaki Profil akışının teslimi değildir.
 
-## Kritik etkileşimler
-1. Kamera ve galeri izinleri sadece gerektiğinde istenir; reddedilirse manuel yemek kaydı devam eder.
-2. Fotoğraf sonucu **doğrudan kalori kaydı değildir**; kontrol/düzeltme ve onay ekranı zorunlu, kullanıcı her doğru öneriyi değiştirmek zorunda değildir. Onay ayrı MealLog isteğini başlatır; OCR taslağı da kullanıcı onayı öncesi kalıcı tahlil olmaz.
-3. Tahmin başarısızsa kullanıcının manuel besin seçip devam edebileceği fallback vardır.
-4. Öğün, laboratuvar ve su girişinde boş/yükleniyor/hata/başarı/çevrimdışı durumları tasarlanır.
-5. Diyetisyenin gördüğü kategoriler kullanıcıya açıklanır; ilişki/izin bitince sunucu yeni erişimi keser. Tahliller ayrıca geri çekilmemiş açık onay gerektirir; cihaz izni paylaşım onayı değildir. Danışanın kendi verisi ilişki olmadan erişilebilir kalır.
-6. Laboratuvar ekranı birim/aralık belirsizliğini gösterir; tıbbi tanı görselleştirmez.
-7. `RecordSource` veri kaynağı manuel/cihaz/AI destekli olarak görünür olmalıdır.
-8. Aktivite takibi spor programı / koçluk özelliği değildir; beslenme bağlamındadır.
-9. Kişisel öneriler düzenlenebilir; diyetisyen programı/hedefi için salt okunur davranış sunucuda da korunur. Alternatif öğün seçimi programı değiştirmez; tüketim serbesttir. İkinci aktif programda `409` gösterilir, diğer program sessizce arşivlenmez.
-10. Görev/yorum durumları ve bildirimler onaylı akışlara dayanır; serbest status, yeni onay bayrağı veya örnek token alanı uydurulmaz. Çevrimdışı/hata durumunu tasarlamak offline sağlık verisi kuyruğu veya arka plan sync seçimi anlamına gelmez.
+- Kullanıcı mobilde danışan olarak kayıt olur, daha sonra aynı User hesabıyla diyetisyen başvurusu yapabilir. Başvuruda onaysız DietitianProfile oluşması mevcut backend davranışıdır; Admin onayından sonra onaylı uzman yetkisi açılır. ClientProfile, öğünler, ölçümler ve diğer kişisel kayıtlar korunur; ikinci hesap oluşturulmaz.
+- Flutter V1 yalnız danışan deneyimidir. Onaylı diyetisyen kendi danışan özelliklerini kullanmaya devam eder; mobil diyetisyen yönetim paneli geliştirilmez.
+- **Profil** mevcut hesapla başvuru girişini ve güncel başvuru/onay durumunu gösterir. Yalnız onaylı diyetisyende **“Diyetisyen Paneline Git”** seçeneği bulunur; bekleyen veya onaylanmamış kullanıcı çalışma alanına erişemez.
+- Panel seçeneği güvenilir, yapılandırılmış HTTPS web adresindeki diyetisyen çalışma alanını harici tarayıcıda açar. Geçerli web oturumu kullanılabilir; web oturumu yoksa kullanıcı aynı e-posta ve şifresiyle ayrıca giriş yapar. Mobil JWT/refresh token web adresine, URL'ye veya tarayıcıya aktarılmaz; yeni bir oturum aktarım mekanizması tanımlanmaz.
 
-## Cihaz entegrasyonu (ayrı faz)
-- Android Health Connect / iOS HealthKit için platform izinleri, kullanıcı bilgilendirmesi ve veri türleri ayrı değerlendirilir.
-- Onaylı veri türleri: adım, mesafe, egzersiz, süre, aktif kalori ve nabız; **tüm akıllı saatlerin doğrudan entegrasyonu garanti değildir**. Yayın/OS önceliği ve adım/nabız veri yapısı açıktır; tüm ölçümler ActivityLog'a zorlanmaz.
-- Yeniden aktarımda `externalRecordId` + sağlayıcı ile tekilleştirme; `wearableConnectionId` üzerinden aynı danışanın kaynağı ve `lastSyncedAt` gösterimi. Manuel/cihaz örtüşme politikası ve aktif/toplam enerji ayrımı açıkken çift sayım sessizce kabul edilmez.
-- İzin geri alındığında senkronizasyon durur; veri silme/retention politikası uygulanır.
+Başvuru ve uzman yetkisi mevcut [06](06_API_CONTRACT.md) kurallarına tabidir. Web davranışı [08](08_WEB_SPEC.md), geliştirme/kanıt durumu [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir.
 
-## Mobil kabul kriterleri
-- İstemcinin JSON alanları `04/05/06` ile birebir uyumlu.
-- UI küçük/büyük ekranlarda taşmaz; açık/koyu tema ve ortak token karşılıklarına uygundur.
-- Tokenlar güvenli saklanır, hassas sağlık verileri loglanmaz.
-- Öğün + su + plan + diyetisyen izleme akışı gerçek backend ile test edilir.
-- İlk sürüm yorum/cevap/bildirim, kişisel/atanmış düzenleme farkı, tek aktif çakışması ve kategori/tahlil onayı geri çekme doğrulanır. Görev/sürüm/OCR/sync için ilgili açık sözleşme önce kapatılır; belge veya UI prototipi tamamlanmış feature testi sayılmaz. Hazırlık bağımlılıkları `12`de izlenir.
+## Gerçek işlev ve önizleme ayrımı
+
+Ana sayfanın hızlı işlemlerinde Öğün ekle ve Su ekle gerçek API kullanır. **Aktivite ekle ve Tahlil ekle önizleme açar, kayıt oluşturmaz.** Manuel aktivite API'sinin bulunması mobil manuel aktivite formunun tamamlandığı anlamına gelmez. Fotoğraftan besin, laboratuvar/OCR, bildirim teslimi, tarif/katalog ve tam kişisel program editörü henüz bağlı mobil akışlar değildir.
+
+Kaynakta dashboard_demo_data gibi sentetik yardımcı dosyalar vardır; dosya varlığı gerçek ekranda kullanıldığını kanıtlamaz. Gerçek veri yükleme hatasında sentetik kayda veya sahte başarıya dönülmez. Hedefin programdan mı kişisel tercihten mi geldiği ayrılır; atanmış hedefler düzenlenmez.
+
+## Oturum ve parola sıfırlama
+
+AuthSession başlangıçta güvenli refresh deposunu okur, oturumu yeniler ve auth/me ile hesabı doğrular. Access token/hesap bellektedir; yalnız refresh token, mutlak bitiş ve rotationPending işareti API origin'ine ayrılmış şifreli kayıtta tutulur. Android/iOS dışındaki kalıcı depo kullanımı engellenir. Android resetOnError/migrateOnAlgorithmChange kapalı; iOS Keychain unlocked_this_device ve synchronizable=false kullanır.
+
+Eşzamanlı yenileme tek koordinatörden yürür; ağ/saklama belirsizliği güvenli oturum durumu olarak gösterilir. Hesap değişiminde Navigator ve hassas ekranlar kaldırılır; dönüşte süre ve hesap kontrol edilir. Normal logout ile parola resetinin iptal farkı [06](06_API_CONTRACT.md)'dadır.
+
+ForgotPasswordPage aynı backend akışını kullanır: talep için email, tüketim için token/password; tekrar alanı istemcidedir. Kod elle girilir, parola kırpılmaz, POST otomatik tekrarlanmaz. 204 sonrası normal girişe dönülür; otomatik login/deep-link tüketimi yoktur. Hata, limit ve sonucu bilinmeyen ağ durumu başarı sayılmaz.
+
+## Sağlık platformu ekranı
+
+DeviceHealthReader yalnız izinli native okumayı; HealthSyncService HTTP aktarımı/tekrar denemeyi yürütür. Desteklenmiyor, kurulum/güncelleme gerekiyor, izin reddi, veri yok ve hata ayrı durumlardır. İzin istemek kendi başına okuma/aktarım yapmaz.
+
+Aktarım yalnız açık ön plan eylemi ve ayrı onayla başlar. Hesap/lifecycle/izin değişiminde bekleyen okuma ve kuyruk belleği bırakılır. Kalıcı sağlık önbelleği/disk kuyruğu veya otomatik arka plan upload yoktur. Eksik okuma ve iOS boş sonuç silme kanıtı değildir; mevcut mobil akış açık upsert kullanır, native silme delta'sı otomatik üretmez. Backend'in delete desteği mobil silme entegrasyonu sayılmaz.
+
+Android manifestte okuma izinleri, iOS HealthKit entitlement ve açıklaması vardır. Fiziksel sensör/saat, gerçek native ID, OS sürümü, iOS/macOS imzalama ve mağaza kapsamı ayrıca doğrulanır. Kaynak başlık/birim/tekilleştirme ve API sınırları için yalnız [20](20_HEALTH_DATA_SYNC_CONTRACT.md) esas alınır.
+
+## Yapılandırma ve doğrulama sınırı
+
+API_BASE_URL release'te geçerli HTTPS origin olmalıdır; debug varsayılanı localhost:7099'dur. Kod yalnız debug loopback için HTTP'ye sınırlı izin verir; ortak yerel çalışma HTTPS kullanır. API_DEV_CERT_BASE64 yalnız debug'da açık geliştirme sertifikasına güven ekler, hostname/süre/TLS kontrolünü kapatmaz. WEB_BASE_URL HTTPS web origin'idir; release'te ayrıca ayarlanır.
+
+Kurulum [kök README](../README.md)'dedir. Unit/widget testleri ile live/device probe dosyaları ayrı kanıtlardır. `mobile/test/mobile_quality_device_probe.dart` veya `device_health_live_probe.dart` bulunması çalıştırıldıkları anlamına gelmez. M5/M6 commit başlığı da tek başına cihaz test sonucu değildir. Güncel kanıt ve eksikler [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir.

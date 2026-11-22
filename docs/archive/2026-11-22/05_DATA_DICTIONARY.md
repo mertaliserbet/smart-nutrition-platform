@@ -1,0 +1,676 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
+# 05 — Ortak veri sözlüğü (domain schema)
+
+## 19.11.2026 — U4 water_logs / WaterLog
+
+U4 kullanıcı uygulama onayıyla `DataSharingPermission.category` destek kümesine
+bağımsız `water_logs` eklenir. Eksik/false izin kapalı; diğer dört kategori
+erişim vermez, yeni ilişkide su izni otomatik oluşturulmaz. Unique ilişki/kategori,
+yalnız null consentRecordId ve güncel active ilişki/sahiplik kuralları korunur.
+`WaterLogsEnabled` yeni izin yazım açılımı varsayılan false; M4 ayrıştırıcı ve
+beş kategori sayfalaması doğrulanmadan açılmaz. Geri çekme ayar kapalıyken de mümkündür.
+
+WaterLog modeli/CRUD/indexleri değişmez: id/clientId UUID, amountMl pozitif
+decimal mL, consumedAt UTC instant, source mevcut RecordSource; soft delete.
+Günlük projeksiyon `WaterLogDailyTotalResponse {from,to,totalAmountMl}`;
+from/to UTC, toplam decimal mL. History aynı projeksiyondan sayfalı gün listesidir,
+tablo/entity değildir. En çok 31 gün, IANA timeZone + uyuşan endpoint offsetleri,
+başlangıç dahil/bitiş hariç; DST günleri ayrı sınırlanır. Yetkili boş gün sıfır,
+hata/izin reddi sıfır değildir. Kişisel hedef paylaşılmaz; program hedefi bağımsız
+nutrition_plans yetkisine tabidir. Tam sınır/örnekler [M4 sözleşmesinde](21_WATER_LOG_SHARING_CONTRACT.md).
+
+## 18.11.2026 — U1 ClientTask / ClientTaskVersion
+
+Kullanıcının U1 uygulama onayıyla görev şeması ve bağımsız paylaşımı kapanmıştır.
+Önceki görev durum/son tarih/hatırlatma açık notlarının yerini bu bölüm alır.
+
+| Model | Alanlar / tipler | Bütünlük |
+|---|---|---|
+| `ClientTask` | `id`, `clientId`, `dietitianId`, `relationshipId`: uuid; `description`: string; `status`: ClientTaskStatus; `dueAt`: instant?; `isReminderEnabled`: boolean; `createdAt`, `updatedAt`: instant; `versionNumber`: integer | Hedef ClientProfile, atayan DietitianProfile, özgün DietitianClientRelationship. İlişki/hedef/atayan üçlüsü composite FK ile eşleşir; kimlikler ve createdAt değişmez. Açıklama kırpılır, 1–2000 Unicode kod noktası, boş/NUL içerik reddedilir |
+| `ClientTaskVersion` | `id`, `clientTaskId`, `recordedByUserId`: uuid; `versionNumber`: integer; `createdAt`: instant; `snapshot`: ClientTaskResponse biçiminde JSONB | Oluşturma ve her gerçek değişiklikte append-only EF kaydı; task+version tek transaction. Aynı task/version tekildir. Aktör User bağlantısı yalnız sunucuda; HTTP'ye çıkmaz. Snapshot önceki açıklama/durum/son tarih/tercihi korur |
+
+- Başlangıç pending, versionNumber=1, isReminderEnabled=false, updatedAt=createdAt.
+  Durumlar pending/in_progress/completed/cancelled. Danışan pending'den
+  in_progress veya completed'a; in_progress'ten completed'a geçebilir.
+  Atayan diyetisyen yalnız açık görevin açıklama/son tarihini değiştirir veya
+  cancelled yapar. Terminal görev değişmez; aynı açık değer no-op'tur,
+  yeni sürüm üretmez. Geç kalma ayrı durum değildir; geç tamamlama kabul edilir.
+- dueAt nullable kesin UTC instant'tır. Gönderilen tarih açık offset içermeli;
+  oluşturma veya gerçek tarih değişikliğinde sunucu zamanından ileride olmalı.
+  PostgreSQL mikrosaniyesine normalize edilir, gün sınırı/saat dilimi varsayılmaz.
+  Eski, değişmeyen dueAt'in geçmiş olması başka geçerli değişikliği engellemez.
+- Hatırlatma yalnız danışanın göreve ait tercihidir. dueAt yokken true olamaz;
+  diyetisyen dueAt'i kaldırdığında tercih otomatik false olur. Teslim/zamanlama
+  işi yoktur. Tamamlama zamanı completed durumuna geçen sürümün createdAt'idir.
+- client_tasks eksikse kapalıdır; başka kategori erişim vermez. Yalnız danışan
+  kendi aktif ilişkisinde mevcut DataSharingPermission yollarından izin yönetir.
+  `Relationships:Sharing:ClientTasksEnabled` varsayılan false, yeni izin yaratma
+  ve true yapmayı kapatır; mevcut satırlar okunabilir/geri çekilebilir.
+- Diyetisyen onaylı profil + özgün active ilişki + açık izin + atayan sahipliği
+  ile erişir. İzin geri çekilmesi durumu değiştirmez; danışan kendi görevinde
+  durum/tercih işlemlerini sürdürebilir. İlişki sonunda yalnız o ilişkinin açık
+  görevleri aynı transaction'da cancelled olur ve geçmiş eklenir. Yeni ilişki
+  eski görevi diyetisyene açmaz. Danışanın tüm kendi geçmiş okumaları sürer.
+- Yazma, izin geri çekme ve ilişki sonu mevcut User→ClientProfile kilit sırasını
+  kullanır; PATCH görev kilidinde expectedVersionNumber karşılaştırır. Sürüm
+  uyuşmazlığı 409; geçmiş yazma hatası tüm işlemi geri alır. Okuma yetki/sayı/
+  sayfa için RepeatableRead snapshot kullanır; iptalden önce başlayan yetkili
+  okuma tamamlanabilir, sonraki okuma güncel izni denetler.
+- Restrict FK'ler, durum/metin/zaman/tercih check'leri ve görev/sürüm tekilliği
+  PostgreSQL'de de korunur. Migration veri silmez/izin backfill etmez; görev,
+  geçmiş veya client_tasks izin satırı varken Down reddedilir. Genel silme ve
+  saklama için `11` geçerlidir; bu görev DELETE API'si oluşturmaz.
+
+## 18.11.2026 — Onaylı MealLogComment
+
+Kullanıcı onayıyla tek kalıcı `MealLogComment` modeli uygulanır:
+id: uuid; mealLogId: uuid; authorUserId: uuid; text: string;
+createdAt: UTC instant (PostgreSQL mikrosaniye); parentCommentId: uuid?.
+Kimlik/yazar/zaman sunucudan gelir. Metin kırpılır; 1–2000 Unicode skaler
+karakter, boş/beyaz alan veya NUL kabul edilmez. İçerik düz metindir.
+MealLog ve User FK'leri RESTRICT; `(mealLogId,parentCommentId)` aynı öğündeki
+yorumun `(mealLogId,id)` anahtarına bağlıdır. Liste indeksi mealLogId/createdAt/id.
+API yalnız kök diyetisyen yorumu ve ona bağlı birden fazla danışan yanıtı
+oluşturur; yanıta yanıt/döngü oluşturulamaz. Kayıtlar EF üzerinden güncellenmez.
+Öğünün mantıksal silinmesi yorumları tüm normal erişimlerden kaldırır;
+fiziksel silme/saklama politikası eklenmez. Yeni migration yalnız yorum tablosu,
+FK/indeks/check ekler; eski verileri ve izinleri değiştirmez. Down, yorum
+varken veri kaybettirecek DROP işlemini reddeder.
+Bildirim, moderasyon, düzenleme/silme ve genel sohbet bu teslimin dışındadır.
+
+## 18.11.2026 — K1–K4 günlük program–tüketim hesabı
+
+Kullanıcının açık `19` K1–K4 onayıyla aşağıdaki **hesaplanan**, kalıcı olmayan
+DTO'lar eklenir. Tablo/migration, plan–tüketim FK'si veya kişisel hedef erişimi
+eklenmez. Genel otomatik uyum/tarihsel aktivasyon hesabı açık kalır.
+
+| DTO | Eksiksiz alanlar |
+|---|---|
+| NutritionPlanMealComparisonResponse | clientId: uuid; nutritionPlanVersion: mevcut NutritionPlanVersionResponse; date: date; from/to: instant; actual: MealLogNutritionSummary; caloriesDifferenceKcal: decimal?; meals: NutritionPlanMealComparison[] |
+| NutritionPlanMealComparison | mealType: mevcut MealType; plannedItems: mevcut NutritionPlanItem[]; actual: MealLogNutritionSummary |
+| MealLogNutritionSummary | mealLogCount/itemCount/estimatedItemCount: negatif olmayan integer; caloriesKcal/proteinGrams/carbsGrams/fatGrams: NutritionValueSummary |
+| NutritionValueSummary | knownTotal: negatif olmayan decimal; missingItemCount: 0..itemCount integer |
+
+Seçilen offsetli başlangıcın tarihi `date`tir; ISO gün buna göre hesaplanır.
+Snapshot tarih aralığı dahil sınırlarla geçerlidir. Plan öğelerinden dayOfWeek
+null veya aynı ISO gün olanlar alınır, mealType'a ayrılıp sortOrder artan
+sıralanır. Beş grup breakfast/lunch/dinner/snack/other sırasıyla her zaman
+bulunur. Alternatifler birlikte zorunlu tüketim veya ayrı tamamlanma hedefi
+sayılmaz. Öğün adından/metninden otomatik eşleşme yapılmaz.
+
+`actual`, aynı danışanın `[from,to)` aralığındaki silinmemiş tüm kayıtlarının
+kalemlerini toplar; sayfalama bu hesaba etki etmez. mealLogCount öğün kaydı,
+itemCount besin kalemi, estimatedItemCount isEstimated=true kalem sayısıdır.
+knownTotal yalnız bilinen değerleri decimal toplar; missingItemCount ilgili
+değeri null kalem sayısıdır. Boş gün/grup 0 sayım ve 0 bilinen toplam taşır;
+arayüz "Kayıt yok" gösterir. Kayıt yokluğu tüketim yapılmadığı anlamına gelmez.
+Eksik değerler tam toplam gibi sunulmaz, tahmini kalemler ayrıca belirtilir.
+
+caloriesDifferenceKcal, yalnız itemCount>0, eksik kalori=0 ve snapshot kalori
+hedefi doluysa bilinen kcal toplamı eksi snapshot hedefidir; aksi halde açık
+null. Kişisel hedefler, su tüketimi ve programda olmayan makro hedefleri
+hesaba katılmaz. Yuvarlama yapılmaz; decimal toplam taşması kontrollü 422'dir.
+Bu fark kaydedilen enerji farkıdır; klinik eşik/uyum değerlendirmesi değildir.
+
+Kullanıcı belirli sürümü açıkça seçer. Snapshot'ın o gün aktif olduğu iddia
+edilmez: mevcut sürüm geçmişi aktivasyon/arşivleme zaman çizelgesi değildir.
+Yeni revizyon eski snapshot'ı değiştirmez. Tüketim ise okuma anındaki güncel
+silinmemiş kayıtlardır; geçmişteki tüketimin dondurulmuş kopyası tutulmaz.
+
+## 18.11.2026 — Ortak ölçüm paylaşımı migration'ı
+
+Kullanıcının birleştirme kararıyla yalnız ortak main'deki
+`20261118122704_AddBodyMeasurementSharingCategory` korunur. Kategori check'i
+üç bağımsız koda genişler; mevcut ölçüm/izin satırları değişmez, backfill yoktur.
+Yeni kategori satırı (false dahil) varken eski check yeniden kurulamaz;
+Down transaction'ı başarısız olur ve veriler korunur. Satır silerek geri alma
+zorlanmaz. BodyMeasurement DTO'su ve nullable note alanı aynen korunur.
+
+## 18.11.2026 — M1–M4 ölçüm paylaşımı ve okuma verisi
+
+Kullanıcının `18` önerisi için uygulama onayıyla `DataSharingPermission.category`
+desteklenen değerleri nutrition_plans/meal_logs/body_measurements olur. Ölçüm izni
+ayrı, varsayılan kapalıdır; ilişki kabulü veya migration izin satırı oluşturmaz.
+Bu üç kategoride consentRecordId null kalır; tahlil açık onayı eklenmez.
+İlişki/kategori unique kuralı ve danışan sahipliği korunur.
+
+`AddBodyMeasurementSharingCategory` yalnız ck_permissions_category kısıtını
+genişletir; ölçüm veya eski izin satırlarına yazmaz. Down, body_measurements
+izin satırı varsa check ihlaliyle geri alınır; veri silerek zorlanmaz.
+
+Diyetisyen okuması Mert'in mevcut BodyMeasurement kaynağını ve aynı yanıtı
+kullanır: id/clientId/measuredAt/weightKg/waistCm/hipCm/chestCm/bodyFatPercent/note/source.
+Nullable değerler açık null; kg/cm pozitif, yağ oranı 0–100, en az bir ölçüm
+dolu ve not en fazla 2000 Unicode karakterdir. Saklama/yuvarlama değişmez.
+Ölçüm satırı kopyası, özet veya yeni entity eklenmez; HTTP/yetki ayrıntısı `06`dadır.
+
+## 17.11.2026 — PersonalNutritionTarget
+
+Kullanıcının doğrudan backend göreviyle kişisel günlük hedefler ayrı saklanır.
+`personal_nutrition_targets.client_id`, ClientProfile.id'ye RESTRICT FK ve
+aynı zamanda PK'dir: danışan başına en fazla bir satır, ek bir User/FK veya
+gereksiz ikinci unique indeks yoktur. GET henüz satır yoksa beş null hedef
+döndürür; satır/seed/otomatik öneri oluşturmaz. İlk geçerli PATCH satırı oluşturur.
+
+| Alan | Tip ve kural |
+|---|---|
+| `clientId` | uuid, yalnız sunucuda JWT sub → User → ClientProfile; istek/yanıtta gönderilmez |
+| `dailyCaloriesTargetKcal` | nullable decimal/numeric, `0 < değer <= 10000`, kcal/gün |
+| `dailyProteinTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyCarbsTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyFatTargetGrams` | nullable decimal/numeric, `0 < değer <= 1000`, g/gün |
+| `dailyWaterTargetMl` | nullable decimal/numeric, `0 < değer <= 15000`, mL/gün |
+
+Alanlar bağımsızdır; null hedef tanımlanmadığını gösterir. Sıfır hedef yerine
+null kullanılır. Ölçek zorlayan yuvarlama yapılmaz; negatif/sonsuz/NaN ve
+üst sınır dışı değerler DB check kısıtlarıyla da engellenir. Bu üst sınırlar
+girdi/depolama sınırlarıdır, önerilen/güvenli tüketim veya klinik eşik değildir.
+Makrodan kalori türetilmez; hedefler arası oran/eşitlik zorunlu değildir.
+
+Hedefler günlük tekrar eden güncel ayarlardır; tarih aralığı, saat dilimi,
+geçmiş günlere yeniden uygulama veya hedef sürüm geçmişi bu dilimde yoktur.
+Kişisel yazma NutritionPlan/versiyonlarını veya MealLog/WaterLog kayıtlarını
+değiştirmez; programdan kişisel tabloya veri kopyalanmaz. `source: personal`
+HTTP metadata'sıdır, ayrı bir DB source enumu değildir. Gösterim önceliği `06`dadır.
+Yazmalar mevcut User → ClientProfile kilit sırasıyla atomiktir; aynı anda ilk
+kayıt/kısmi güncellemeler birbirinin atlanmış alanlarını kaybetmez.
+
+`AddPersonalNutritionTargets` yalnız yeni tablo, PK/FK ve check kısıtları ekler.
+Önceki tablolara veri yazmaz. Down, tabloda satır varsa (beş hedef de null
+olsa bile) veri silmek yerine durur; boş tablo geri alınabilir. Uygulama
+DB'sine otomatik uygulanmaz; geçici PostgreSQL'de doğrulanır.
+Aşağıdaki programsız/makro kişisel hedef saklamasına ilişkin eski AÇIK
+notlarının yerini bu bölüm alır; otomatik öneri hesabı açık kalır.
+
+## 16.11.2026 — WaterLog manuel kayıt ve günlük toplam dilimi
+
+Kullanıcının doğrudan backend göreviyle mevcut WaterLog alanları değiştirilmeden
+uygulandı: `id`, `clientId`, `amountMl`, `consumedAt`, `source`. amountMl pozitif
+ve sonlu decimal/mL, PostgreSQL'de ölçek zorlamayan `numeric`; consumedAt UTC
+`timestamptz` ve mikrosaniye hassasiyetindedir. Sıfır, negatif veya bilinmeyen
+miktar geçerli su kaydı değildir; klinik miktar üst sınırı uydurulmaz.
+
+`water_logs.client_id` → `client_profiles.id` FK'si RESTRICT'tir. Silinmemiş
+satırlar için `(client_id, consumed_at DESC, id)` indeksi vardır. DELETE,
+MealLog düzenindeki gibi dahili nullable `deleted_at` işaretler; normal liste,
+detay ve toplam bu satırları dışlar. Yanıta yeni alan eklenmez. Bu işlem kalıcı
+KVKK silme veya saklama süresi kararı değildir; `11`deki yayın kapısı korunur.
+Güncellemede yalnız miktar ve tüketim zamanı değişebilir; sahibi/kaynak sabittir.
+Bu dilimde POST yalnız manual kaynağı kabul eder; cihaz/AI aktarımı eklenmez.
+
+`WaterLogDailyTotalResponse` saklanan entity değildir: `from: instant`,
+`to: instant`, `totalAmountMl: decimal`. Toplam SQL'de yalnız sahibinin
+silinmemiş `[from,to)` kayıtlarından hesaplanır; sayfalama uygulanmaz,
+boş küme 0 mL'dir. Toplam .NET decimal kapasitesini aşarsa 422 döner;
+sessiz yuvarlama veya kısmi toplam verilmez.
+
+Seçilen günün yerel 00:00 başlangıcı ve ertesi günün yerel 00:00 başlangıcı
+istemciden açık UTC/ofsetli anlar olarak gelir. Ofsetler farklı olabilir;
+23/25 saatlik günler desteklenir. İstemci, seçtiği saat diliminin doğru gün
+sınırlarını hesaplamakla sorumludur; sunucu IANA saat dilimi tahmin etmez veya
+cihaz/sunucu saatini günlük sınır olarak kullanmaz. Normal kayıtlarda UTC
+saklama değişmez; bu kural başka modüllerin yerel gün/program uyum kararını
+kapatmaz. Su hedefleri/program hedefleri bu görevin dışındadır.
+
+`AddWaterLogs` yalnız yeni tablo/indeks/kısıt oluşturur. Önceki Auth, öğün,
+program ve paylaşım tablolarına veri yazmaz. Veri bulunan su tablosunu
+(mantıksal silinmiş kayıtlar dahil) düşürecek Down engellenir. Uygulama DB'sine
+otomatik uygulanmaz; migration ayrı geçici PostgreSQL'de doğrulanır.
+
+## 16.11.2026 — Danışanın manuel öğün saklama dilimi
+
+Kullanıcının doğrudan backend geliştirme göreviyle mevcut MealLog/MealLogItem
+alanları ve kanonik adları korunarak PostgreSQL eşlemesi eklendi. Bu kayıt
+yalnız danışanın kendi manuel CRUD akışıdır; G2/G3 diyetisyen okumasını,
+katalog/tarif/AI entegrasyonunu veya yeni paylaşım onayını kapsamaz.
+
+- `meal_logs.client_id` → `client_profiles.id`, `meal_log_items.meal_log_id`
+  → `meal_logs.id`; iki FK de `RESTRICT`. Alt kalemler ayrı tabloda, besin
+  değerleri ölçek zorlamayan nullable `numeric`, zamanlar `timestamptz` tutulur.
+- API miktar ve besin değerlerini kaydedildiği haliyle saklar; gramdan kcal
+  türetmez, bilinmeyen null değerleri sıfıra dönüştürmez. Miktar biliniyorsa
+  pozitif, enerji/makrolar biliniyorsa sonlu ve negatif olmayan değerlerdir.
+- API bu dilimde yalnız `manual` ve null katalog/tarif/analiz referanslarını
+  kabul eder. Referans sütunları korunur; henüz bulunmayan tablolara sahte FK
+  veya doğrulanmış analiz/cihaz kaydı oluşturulmaz.
+- Aktif satırlar için `(client_id, consumed_at DESC, id)` indeksi ve kalem
+  FK indeksi vardır. Kalemlerin istek sırasını koruyan dahili `position`
+  sütunu yeni bir HTTP/domain alanı değildir.
+- DELETE dahili nullable `deleted_at` işaretler; EF normal öğün okumaları
+  bu satırları dışlar, mevcut kalemler korunur. Bu, KVKK silme talebinin
+  tamamlanması veya kalıcı saklama/anonimleştirme süresi kararı değildir.
+  Bu alan yanıt DTO'suna eklenmez; genel yayın/silme kapısı `11`de açıktır.
+- PATCH kalem dizisi verilirse eski kalemler tek transaction içinde yenileriyle
+  değiştirilir; verilmezse kimlikleri korunur. Öğün kimliği, sahibi, kaynak ve
+  oluşturulma zamanı değişmez. Kalem UUID'lerini sunucu üretir.
+- `AddMealLogs` yalnız iki yeni tablo/indeks/kısıt oluşturur; eski tablolara,
+  programlara veya izin kayıtlarına veri yazmaz. Veri bulunan öğün tablolarını
+  düşürecek Down engellenir; boş tablolar geri alınabilir. Uygulama DB'sine
+  otomatik migration uygulanmaz.
+
+## G1 — Öğün paylaşım izni, 07.11.2026 ortak onayı
+
+Kullanıcı `17` ortak onayını teyit edip yalnız G1 uygulamasını istedi.
+DataSharingPermission alanları/tipleri korunur. category artık
+`nutrition_plans` veya `meal_logs`; her ikisinde consentRecordId null'dır.
+Kategori değiştirilemez; yalnız danışanın kendi aktif ilişkisinde
+isGranted yazılır. İlişki/kategori unique indeksi korunur. Otomatik satır,
+izin kopyalama veya varsayılan onay yoktur.
+
+`AddMealLogSharingCategory` yalnız ck_permissions_category check kısıtını
+genişletir; tablo/sütun veya öğün kaydı eklemez, eski izinleri değiştirmez.
+Down, meal_logs satırı varsa eski check'i kuramayarak transaction'ı geri
+alır; satır silmez. Önceki yalnız nutrition_plans sınırı bu kapsamda genişler;
+diğer sağlık kategorileri/tahlil onayı açık kalır. Mobil geçiş `06/17`dedir.
+
+
+## Yerel Admin kodu — 03.11.2026 onayı
+
+Yeni entity, sütun veya migration yoktur. Yalnız açıkça etkin Development ve
+loopback SMTP:1025 ortamında, mevcut doğrulanmış ve TOTP kurulumu bulunan Admin
+için 6 haneli kriptografik rastgele kod üretilir. Kod yalnız gönderim sırasında
+bellektedir; 32 byte rastgele salt ve SHA-256 hash, User kimliği/parola hash'i/
+credentialsVersion ve mevcut korumalı MFA kurulumu ile süreç belleğinde tutulur.
+Parola/sürüm/MFA kurulumu değişirse bekleyen kod reddedilir. Süre 5 dakika, yeniden gönderim
+aralığı 60 saniye, hatalı deneme sınırı 5'tir. Yeni gönderim eski kodu geçersiz kılar;
+API yeniden başlarsa bütün yerel kodlar düşer. Gönderilemeyen kod kullanılamaz.
+Kod tüketimi tek kazananlıdır; oturum yazması başarısız olsa bile tekrar açılmaz.
+User TOTP sırrı/adımı/kurtarma hash'leri değiştirilmez. Mevcut AuthSession'da
+doğrulama kanıtı tutulur; yerel e-posta oturumunun imzalı cookie claim'i her
+doğrulamada yeniden kontrol edilir, Production/Staging veya kapalı yapılandırmada
+kabul edilmez. HTTP ayrıntıları `06`dadır.
+
+## Aynı hesapta çift profil — 02.11.2026 kullanıcı onayı
+
+User aynı anda en fazla bir ClientProfile ve bir DietitianProfile taşıyabilir.
+Mevcut unique User FK'leri korunur; yeni tablo, alan veya migration gerekmez.
+Doğrulanmış danışan web hesabından yapılan başvuru yalnız kendi User'ına bağlı,
+`isVerified=false` DietitianProfile oluşturur (Pending). Yeni User/ClientProfile
+oluşturulmaz; mevcut ClientProfile, parola, credentialsVersion, danışan kayıtları
+ve ilişkileri değişmez. Başvuru ve yinelenme denetimi User kilidi/transaction ile
+serileştirilir. Mevcut profil pending veya onaylı ise ikinci başvuru 409 olur.
+Admin MFA onayı yalnız uzman profilinin isVerified alanını ve mevcut audit'i
+yazar; User.role=client, JWT ve AuthSession rolleri korunur. Kişi hem kendi
+danışan verisine hem onaylı uzman olarak yetkili danışanlarına erişebilir.
+Kendi iki profili arasında diyetisyen ilişkisi kurulamaz. Diğer danışanlara
+erişimde aktif ilişki ve kategori izni zorunluluğu sürer. Admin kapsam dışıdır.
+Yeni kullanıcıların role=dietitian ile mevcut public başvuru akışı korunur;
+bu onay o hesaplara kendiliğinden ClientProfile oluşturmaz.
+
+## Onaylı parola sıfırlama bütünlüğü — 02.11.2026
+
+User'a yalnız sunucuda tutulan şu alanlar eklenir:
+
+| Alan | PostgreSQL | Kural |
+|---|---|---|
+| `passwordResetTokenHash: string?` | nullable varchar(64) | Unique, 64 büyük hex; SHA-256(UTF-8(`password-reset:v1:` + ham token)) |
+| `passwordResetExpiresAt: instant?` | nullable timestamptz | Hash ile birlikte null/non-null; varsa lastSentAt dolu ve expiresAt > lastSentAt |
+| `passwordResetLastSentAt: instant?` | nullable timestamptz | 60 saniye cooldown; tüketimde korunur |
+| `credentialsVersion: int64` | bigint NOT NULL DEFAULT 0 | Negatif olamaz; gerçek parola resetinde checked +1; Identity rehash artırmaz |
+
+Token 32 rastgele byte, 43 Base64URL karakteri, 30 dakika ve tek kullanımdır.
+20.11.2026 U5 kullanıcı onayıyla e-postası doğrulanmış client/dietitian/Admin
+uygundur; önceki Admin kapsam dışılığı bu onayla kaldırılmıştır. Rol, MFA sırrı,
+kurtarma kodları ve e-posta doğrulaması bu işlemle değiştirilmez. Parola/hash, sürüm artışı, token tüketimi, tüm AuthSession
+ve tüm RefreshToken ailelerinin iptali aynı User kilidi ve transaction içindedir.
+Reset metadata'sı User JSON'una veya login/me/kayıt yanıtlarına çıkmaz.
+Migration yalnız dört sütun, indeks ve bütünlük kısıtları ekler; mevcut kayıtları silmez.
+
+## 29.10.2026 N1–N3 onaylı program verisi
+
+`16` N1–N3 ortak onayı kullanıcı tarafından teyit edildi. Programın aşağıdaki
+şeması ve kuralları eski miktar/gün/alternatif/sürüm açık notlarının yerini alır.
+
+- NutritionPlan id/clientId/dietitianId?/title/status/startDate/endDate?/
+  dailyCaloriesTargetKcal?/dailyWaterTargetMl?/createdAt alanlarına ek
+  `versionNumber: integer` tutar; ilk değer 1. Yanıt ayrıca güncel
+  `versionId: uuid` taşır; sürüm satırından türetilir, ikinci FK oluşturulmaz.
+- Güncel items `jsonb` dizisidir; 1–100 kalem. Her kalemde sunucunun ürettiği
+  id/nutritionPlanId UUID'leri, dayOfWeek: integer? (ISO 1–7; null her gün),
+  mealType: mevcut MealType, description: string (kırpılmış 1–2000 Unicode
+  kod noktası), recommendedQuantity: string? (kırpılmış 1–200; boş null),
+  sortOrder: integer (>=0, aynı sürümde tek), recipeId: uuid? (ilk dilimde
+  yalnız null), alternativeGroupId: uuid? bulunur. Grup yerel UUID'dir;
+  en az iki üye aynı gün ve mealType'a ait olur; ayrı tablo/FK değildir.
+- title kırpılmış 1–120; PostgreSQL text. Tarihler date ve endDate >= startDate.
+  Hedefler nullable pozitif decimal/numeric, kcal ve mL; otomatik hesap veya
+  yuvarlama yoktur. Status draft/active/archived; aktiflik tarihten bağımsızdır.
+- Yeni NutritionPlanVersion: id: uuid, nutritionPlanId: uuid FK,
+  versionNumber: integer (>0), recordedByUserId: uuid FK User, createdAt:
+  instant, snapshot: jsonb object. Snapshot yalnız title/tarihler/hedefler/items
+  içerir; sunucu modeli SnapshotJson özelliğini snapshot sütununa eşler.
+  recordedByUserId yanıtta açılmaz. (nutritionPlanId,versionNumber) unique.
+- Program→ClientProfile/nullable DietitianProfile ve sürüm→User/Program FK'leri
+  NO ACTION. Programda status=active için clientId kısmi unique indeksi vardır.
+  Sürüm içerikleri uygulamada sonradan değiştirilemez; her geçerli PATCH yeni
+  satır ve yeni item UUID'leri oluşturur. Önceki JSONB içeriği değişmez.
+- Program güncel içerik ve sürüm ekleme aynı transaction'da; User →
+  ClientProfile → program kilit sırasıyla kaydedilir. İzin geri çekme ve
+  ilişki bitişi aynı ClientProfile kilidini kullanır. Yeni yazma commit'inden
+  önce aktif ilişki/izin yeniden kontrol edilir. Zamanlar UTC mikro saniyedir.
+- Aktif ilişki bitince yalnız o diyetisyenin bu danışana atanmış active
+  programı aynı transaction'da archived olur; kişisel programa dokunulmaz,
+  sahiplik/geçmiş korunur. Danışan kendi tüm program/geçmişini okumaya devam
+  eder. Genel sahipler arası replace akışı bu dilimin dışındadır.
+
+HTTP DTO, null/atlanmış alan ve erişim ayrıntıları `06`daki N1–N3 bölümündedir.
+
+## 29.10.2026 R1–R3 onaylı ilişki/paylaşım verisi
+
+`15` R1–R3 ortak onayı kullanıcı tarafından teyit edildi. Mevcut
+DietitianClientRelationship alan/tipleri korunur; pending/active/rejected/ended
+değerleri aynıdır. ClientProfile ve DietitianProfile FK'leri NO ACTION.
+PostgreSQL'de clientId için status=active kısmi unique; aynı clientId/dietitianId
+çifti için status=pending kısmi unique indeks uygulanır. Geçmiş silinmez.
+
+DietitianProfile'a nullable invitationCodeHash (SHA-256/64 hex) ve
+invitationCodeExpiresAt (instant) eklenir. İlk alan unique indekslidir;
+ham 80 bit/16 Base32 kod saklanmaz. Yeni üretim eskisini iptal eder; kod
+pending ilişki ekleme transaction'ında tek kullanımlık tüketilir. Süre 24 saat.
+
+DataSharingPermission mevcut id/relationshipId/category/isGranted/
+consentRecordId/createdAt/updatedAt alanlarıyla uygulanır. Tek kategori
+`nutrition_plans`, consentRecordId daima null (DB check); diğer kategoriler
+ve rıza tür/politikası bu dilimin dışındadır. Aynı ilişki/kategori unique,
+relationshipId FK/NO ACTION. İzin yoksa kapalıdır; ilişki kabulü izin üretmez.
+Yalnız ilişkinin danışanı aktif ilişkide oluşturur/günceller. Geçmiş ilişki
+ve mevcut audit/rıza kayıtları silinmez. Tam izin değişiklik audit'i ve sağlık
+saklama/politika kapıları `11`e göre ayrıca tamamlanır.
+
+Mutasyonlar User ardından ClientProfile satır kilidini kullanır; aktif ilişki
+ve izin denetimleri transaction içinde güncel kalır. Geri çekme/sonlandırma
+yeni program erişimini kapatır. Danışanın kendi program erişimi ilişkisizdir.
+Bu dilimde dönen yeni ilişki/izin zamanları PostgreSQL mikro saniye hassasiyetiyle
+aynı UTC anına normalize edilir; ilk ve tekrar yanıtları aynı kalır. Bu kural
+decimal sağlık ölçümlerine hassasiyet/yuvarlama seçimi getirmez.
+
+## 29.10.2026 B1–B3 onaylı veri güncellemesi
+
+Kullanıcı `14` B1–B3 için ortak onayı teyit etti. Aşağıdaki alanlar, eski
+başvuru/MFA açık notlarının bu dilimdeki yerini alır; diğer şemalar açık kalır.
+
+| Model / alan | Onaylı tip ve kalıcı karşılık |
+|---|---|
+| `DietitianProfile` | Mevcut id/userId/displayName/isVerified; `licenseInfo: string` zorunlu. displayName kırpılmış 1–120, licenseInfo 1–2000 Unicode kod noktası; PostgreSQL text, DB check. userId unique/FK, NO ACTION; isVerified başlangıç false |
+| `User.totpSecretProtected` | string?, text; User UUID'sine bağlı Data Protection purpose ile şifreli Base32 TOTP anahtarı |
+| `User.lastUsedTotpStep` | 64 bit integer?, bigint; başarılı TOTP adımı monoton ilerler |
+| `User.mfaRecoveryCodeHashes` | list<string>, text[]; boş başlangıç; kurulumda 10 kodun SHA-256 hash'i; tüketilen çıkarılır |
+| `AuthSession.isMfaVerified` | boolean, is_mfa_verified; varsayılan false. Admin cookie'si için true gerekir; normal kullanıcı oturumunda false |
+| `AuditEvent` | Mevcut alanlar; metadata fiziksel JSONB, bu onay olayında null. action dietitian_verified, resourceType DietitianProfile, resourceId uzman profil UUID'si; actorUserId MFA'lı Admin |
+
+Başvuru User(role=dietitian, isEmailVerified=false) ve profili tek transaction'da
+oluşturur; ClientProfile oluşturmaz. Mevcut danışanın aynı hesapla başvurusu için
+02.11.2026 çift profil onayı geçerlidir. auth/me'de diyetisyen adı kendi DietitianProfile'ından,
+danışan adı ClientProfile'dan gelir; profil yoksa null kalır. Admin beş alanlı
+yanıtı yalnız geçerli MFA cookie oturumuyla alabilir; MFA alanları seçilmez.
+
+TOTP/kurtarma tüketimi ve oturum ekleme User satır kilidi + tek transaction;
+oturum başarısızsa tüketim geri alınır. Admin onayı, hedef User/profil kilidi
+ve AuditEvent aynı transaction'dadır; tekrar onay ikinci audit olayı oluşturmaz.
+Admin'in sağlık verisi erişimi açılmaz. Kayıt/JWT mobil gövdeleri değişmez.
+
+> Kanonik model adları: `04_NAMING_CONVENTIONS.md`. Bu belge alan/tip/ilişki otoritesidir. **Taslak sözleşme**; açık parçalar için migration hazırlamadan önce ekip onayı al. Karar temeli: `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Kayıt, e-posta doğrulama, JWT girişi ve kendi hesap özetinin 27.10.2026 tarihli onaylı ayrıntıları `04/06/11/12` ile birlikte güncellenmiştir; diğer açık şemalar kesinleşmiş sayılmaz.
+
+Mevcut geçerli alanlar korunur; kişisel program için `NutritionPlan.dietitianId` nullable yapılır. Yeni asgari alanlar aşağıda tanımlanır. Henüz kesinleşmemiş alt kayıt adları, enum değerleri ve saklama tercihleri **AÇIK** veya **ÖNERİ** olarak ayrılır; bunlar uygulama için onaylanmış kabul edilmez. Bir domain ilişkisi tanımlanması her ilişki için ayrı tablo/model oluşturulmasını gerektirmez.
+
+## Genel kurallar
+
+- Tüm ilişkili sağlık kayıtları `clientId` ile kendi verisine bağlanır.
+- Silme ve veri saklama süresi KVKK tasarımına göre kararlaştırılır; sağlık verisi için varsayılan herkes görür yaklaşımı **yok**.
+- Sayısal ölçümler `decimal` karşılığı hassas tip; kesin olmayan kalori ve makro alanları tahmin bayrağı/analiz kaynağıyla ilişkilidir.
+- Ölçümlerde `null` bilinmiyor demektir; `0` ölçülmüş gerçek sıfırdır. Eksik laboratuvar aralığı için sıfır yazılmaz. Opsiyonel ilişkilerde null, bağlantının bulunmadığını ifade edebilir; kişisel programın boş `dietitianId`si gibi istisnaların anlamı ilgili modelde belirtilir.
+- Tablo adı `snake_case` çoğul: `meal_logs`, `lab_reports` vb.; backend property PascalCase; JSON camelCase.
+
+### Tip, nullability ve birim gösterimi
+
+Tablolarda `alan: tip?` nullable, `alan: tip` zorunludur. `?` JSON anahtarının parçası değildir. Bir alanın domain'de zorunlu olması istemcinin onu göndermesini gerektirmez: kimlik, sahiplik, hesaplanan bayrak ve audit alanları sunucu tarafından atanabilir. PATCH'te alanın gönderilmemesi ile açıkça `null` gönderilmesinin farkı `06`da tanımlanmalıdır.
+
+| Tip | Anlam / eşleme |
+|---|---|
+| `uuid` | İç kayıt/FK kimliği; PostgreSQL `uuid`, JSON UUID string. `externalRecordId` dış sistemin string kimliğidir; UUID olması beklenmez |
+| `instant` | UTC an; PostgreSQL `timestamptz`, JSON ofseti açık ISO 8601. `createdAt`, `updatedAt` dahil tüm `...At` alanları bu tiptedir |
+| `date` | Saat dilimsiz takvim günü; PostgreSQL `date`, JSON `YYYY-MM-DD` |
+| `decimal` | Kesin ondalık ölçüm; PostgreSQL `numeric`, JSON number. Hassasiyet, ölçek ve yuvarlama henüz seçilmemiştir; bilinmeyen değer sıfıra çevrilmez |
+| `integer` | Tam sayı; sıralama/adet gibi anlamlar için. `dayOfWeek` gün numaralama standardı **AÇIK**tır |
+| `string`, `boolean` | Metin ve true/false. Zorunlu ad/açıklama alanları boş veya yalnız boşluk olamaz; uzunluk sınırları ayrıca onaylanır |
+| `object`, `list<T>` | Mantıksal nesne/koleksiyon; fiziksel tablo veya JSON/JSONB saklama seçimi değildir |
+| `UserRole`, `MealType`, `RelationshipStatus`, `NutritionPlanStatus`, `FoodAnalysisStatus`, `LabFlag`, `RecordSource` | `04`teki mevcut string enumlar ve değerleri aynen korunur; yeni enum değeri eklenmez |
+| `AÇIK` | Alanın adı korunur, tipi veya biçimi henüz kesinleşmemiştir; kod/DTO/migration için varsayılan tip seçilmez |
+
+`heightCm`, `weightKg`, `waistCm` ve bilinen porsiyon/servis gramı pozitiftir; enerji, makro, mesafe ve süre negatif olamaz. `amountMl` pozitiftir; `bodyFatPercent` biliniyorsa 0–100 aralığındadır. Laboratuvar değerlerine genel bir pozitiflik kuralı uygulanmaz; analit/birim kuralları ayrıca doğrulanır. Sayılar sonlu olmalıdır; keyfî klinik alt/üst sınır uydurulmaz.
+
+## Kullanıcı ve ilişki
+
+| Entity | Temel alanlar | Not / kısıt |
+|---|---|---|
+| `User` | `id: uuid`, `email: string`, `passwordHash: string`, `role: UserRole`, `isEmailVerified: boolean`, `emailVerificationTokenHash: string?`, `emailVerificationExpiresAt: instant?`, `emailVerificationLastSentAt: instant?`, `passwordResetTokenHash: string?`, `passwordResetExpiresAt: instant?`, `passwordResetLastSentAt: instant?`, `credentialsVersion: int64`, `createdAt: instant`, `updatedAt: instant` | E-posta harf duyarsız unique; yeni kayıt yalnız `client`, doğrulama başlangıcı `false`. Parola hash'i ve token metadata'sı API yanıtlarına çıkmaz. `isEmailVerified` yalnız onaylı kendi hesap DTO'sunda açılır; entity JSON'u gizli kalır. W2 web oturumu aşağıda onaylıdır; parola sıfırlama 02.11.2026, refresh ve Admin MFA üstteki tarihli onaylarla tanımlıdır; diğer açıklar bu onaylardan türetilmez |
+| `ClientProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `birthDate: date?`, `heightCm: decimal?` | `userId` → User ve unique; boy cm. Yaş/kişisel veri hassas ele alınır; doğum tarihi şimdilik isteğe bağlıdır |
+| `DietitianProfile` | `id: uuid`, `userId: uuid`, `displayName: string`, `licenseInfo: AÇIK?`, `isVerified: boolean` | `userId` → User ve unique; uzmanı Admin doğrular. Mobil/web başvuru, belge biçimi ve doğrulama geçmişinin yapısı **AÇIK**tır; `isVerified` istemcinin kendi değiştireceği bir alan değildir |
+| `DietitianClientRelationship` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid`, `status: RelationshipStatus`, `requestedAt: instant`, `respondedAt: instant?`, `endedAt: instant?` | `clientId` → ClientProfile, `dietitianId` → DietitianProfile; danışan başına en fazla bir aktif ilişki. Karşılıklı onay gerekir; arama/davet kodu onayın yerine geçmez |
+
+### Onaylı kayıt ve e-posta doğrulama bütünlüğü
+
+- Kayıtta User ile ClientProfile farklı UUID'lerle tek transaction içinde oluşturulur; `ClientProfile.userId` güvenilir User kimliğinden atanır ve unique zorunlu FK'dir. `displayName` zorunlu/boş olamaz; `birthDate` ve `heightCm` kayıt sırasında alınmaz, null kalır. Çoklu rol/profil ve diğer profil uçları bu kararla kapanmaz.
+- E-posta dış boşlukları kırpılır, Identity `UpperInvariantLookupNormalizer` kullanılır; PostgreSQL harf duyarsız, aksanı ayırt eden ICU collation ve unique indeks ile yarışan mükerrer kayıtları da reddeder. Parola kırpılmaz/normalize edilmez; Identity `PasswordHasher<User>` kullanılır. İlk sürüm politika ayrıntıları `06/11`dedir.
+- Token, kriptografik rastgele 32 byte'tan üretilen 43 karakter Base64URL değeridir (256 bit). Yalnız SHA-256 hash'i saklanır: `emailVerificationTokenHash`, PostgreSQL `varchar(64)`, 64 büyük harfli hexadecimal karakter ve null olmayan değerler için unique indeks. Ham token DB'ye, API yanıtına veya log/audit'e yazılmaz.
+- Hesap başına tek güncel token vardır. `emailVerificationExpiresAt` ve `emailVerificationLastSentAt` nullable UTC `timestamptz` alanlarıdır. İlk üretim öncesi üç metadata alanı null'dır. Hash doluysa süre sonu ve son gönderim zamanı dolu olmak zorundadır; hash yoksa süre sonu da null'dır. Son gönderim zamanı, SMTP'den önce atomik ayrılan **gönderim denemesi** zamanıdır; teslim kanıtı değildir.
+- Geçerlilik token üretiminden itibaren **30 dakika**dır; `now < emailVerificationExpiresAt` gerekir. Doğrulama, hash eşleşmesi + doğrulanmamış hesap + süre kontrolü ile tek atomik DB işleminde `isEmailVerified = true` yapar, hash ve süre sonunu temizler, `updatedAt`yi günceller. Son gönderim zamanı kalabilir. Eşzamanlı iki doğrulama birden başarılı olamaz.
+- Yeniden gönderim yeni token/hash üretir ve önceki tokenı geçersiz kılar. Aynı hesaba gönderim denemeleri arasında varsayılan 60 saniye gerekir; bu sınır DB'de atomik uygulanır ve yapılandırılabilir. Doğrulanmış/bulunmayan hesap için token üretilmez. SMTP hatası hesabı silmez veya doğrulamaz; kullanıcı yeniden gönderim isteyebilir.
+- Token için ayrı tablo veya düz metin outbox oluşturulmaz. Mevcut arka plan kuyruğu yalnız e-posta adreslerini bellekte tutar; yeniden başlatmada kalıcı teslim garantisi yoktur. SMTP/TLS ve hata davranışı `06/11`, yerel Mailpit kurulumu `backend/README.md` içindedir.
+
+### Giriş ve JWT — kalıcı model sınırı
+
+- Giriş mevcut User e-postası/Identity hash'i/doğrulama bayrağı/rolünü kullanır; User/ClientProfile ilişkisi ve alanları değişmez. `isEmailVerified = false` veya `role = admin` için access token üretilmez. Login yeni profil oluşturmaz veya kullanıcı kimliğini istemciden almaz.
+- `LoginUserResponse.accessToken: string`, `tokenType: string` (sabit `Bearer`), `expiresAt: instant`, `refreshToken: string`, `refreshTokenExpiresAt: instant` yalnız HTTP yanıt alanlarıdır; User sütunları değildir. JWT DB'ye saklanmaz. 31.10.2026 refresh görevi aşağıdaki ayrı hash geçmişini ekler; 15 dakikalık JWT'nin şekli/süresi değişmez.
+
+### Mobil refresh hash geçmişi — 31.10.2026
+
+Kullanıcının refresh/iptal göreviyle eklenen `RefreshToken` (`refresh_tokens`)
+yalnız sunucu içindir; entity JSON'u API yanıtı değildir.
+
+| Alan | Tip | Kural |
+|---|---|---|
+| `id` | uuid | Sunucu üretir; token değildir |
+| `userId` | uuid | User FK, NoAction; otomatik kullanıcı/profil silinmez |
+| `role` | UserRole | Giriş anındaki `client`/`dietitian`; Admin DB check'iyle de dışlanır |
+| `familyId` | uuid | Her girişte yeni aile; rotasyonda aynı kalır |
+| `tokenHash` | string(64) | 256 bit ham refresh tokenın SHA-256 büyük harf hex hash'i; unique, JSON'a çıkmaz |
+| `createdAt` | instant | Bu tokenın UTC üretimi |
+| `expiresAt` | instant | Ailenin mutlak UTC bitişi; varsayılan giriş+30 gün, rotasyon uzatmaz |
+| `consumedAt` | instant? | Başarılı rotasyonda atomik tüketim |
+| `revokedAt` | instant? | Logout/tekrar kullanım/geçersiz hesapta aile iptali |
+
+Bir ailede tüketilmemiş/iptal edilmemiş en fazla bir token, kısmi unique indeksle
+korunur. User satır kilidi login/refresh/logout yarışlarını serileştirir.
+Tüketilmiş hash'ler aile süresi dolana kadar korunur; erken silme replay tespitini
+bozar. On dakikada bir yalnız mutlak süresi bitmiş kayıtlar temizlenir.
+Ham token/parola/access JWT veya web cookie bu tabloda tutulmaz.
+`Auth:RefreshTokens:LifetimeDays` 1–365 (varsayılan 30); HTTP IP limiti
+`RequestsPerMinute` >0 (varsayılan 30), refresh ve logout için ayrı sayaçtır.
+Gelecekteki parola/güvenlik yazmaları aynı User kilidi altında refresh ailelerini
+de iptal etmelidir; otomatik access JWT iptali bu modelden türetilmez.
+- JWT `sub`, User UUID'sidir. Sonraki iş modülleri `clientId`yi güvenilir User → ClientProfile ilişkisinden çözer; token içindeki rol tek başına uzman doğrulaması, aktif ilişki veya veri paylaşım izni sağlamaz.
+- Identity `SuccessRehashNeeded` sonucunda yalnız başarılı ve girişe uygun hesabın `passwordHash`/`updatedAt` alanları güncellenebilir. Güncelleme önceki hash/doğrulama/rol koşuluyla atomiktir; yarışta başka bir parola değişikliği ezilmez ve token verilmez. Yanlış parola, doğrulanmamış hesap ve Admin için hash değiştirilmez.
+
+### Kendi hesap özeti — mevcut veriden salt okunur DTO
+
+`CurrentUserResponse` ayrı bir kalıcı model değildir; migration veya User/ClientProfile
+alan değişikliği gerektirmez. `GET /api/v1/auth/me` yalnız aşağıdaki alanları seçer:
+
+| Alan | Tip / nullability | Kaynak |
+|---|---|---|
+| `id` | `uuid`, zorunlu | Doğrulanmış JWT veya W2 cookie `sub` ile bulunan `User.id`; ClientProfile UUID'si değildir |
+| `displayName` | `string?`, anahtar daima bulunur | O User'ın opsiyonel ClientProfile ilişkisindeki mevcut ad; profil yoksa null. Zorunlu profil adı alanının kendisi nullable yapılmaz |
+| `email` | `string`, zorunlu | User'ın DB'deki güncel e-postası |
+| `role` | `UserRole`, zorunlu | User'ın DB'deki güncel kanonik rolü |
+| `isEmailVerified` | `boolean`, zorunlu | User'ın sunucu tarafından tutulan doğrulama durumu |
+
+Hesap ID'si, tek ve geçerli `sub` claim'inden çözülür; istemci girdisi veya profil ID'si
+ile başka hesap seçilemez. User ve varsa kendi ClientProfile'ı tek salt okunur
+projeksiyonla sorgulanır. Hash/token/sağlık/profilin diğer alanları seçilmez; entity
+serileştirilmez. Profilsiz `client`/`dietitian` için aynı DTO ve null ad kullanılır;
+DietitianProfile veya yapay ad/varsayılan profil üretilmez.
+
+Bu işlemde hesap hâlâ bulunmalı, e-postası doğrulanmış olmalı ve güncel rolü tokenın
+izinli `client`/`dietitian` rolüyle eşleşmelidir; aksi durumda `06`daki ortak `401`
+uygulanır. Admin MFA engeli korunur. Bu kontrol yalnız kendi hesap okumasının
+güvencesidir; diğer endpointler için genel anlık oturum iptali anlamına gelmez.
+
+### Onaylı web oturumu — AuthSession (27.10.2026)
+
+W2-C1–C7 ortak onayı kullanıcı tarafından teyit edilmiştir. Bu sunucu kaydı
+`auth_sessions` tablosunda tutulur; HTTP yanıtı değildir.
+
+| Alan | Tip / sütun | Bütünlük |
+|---|---|---|
+| `id` | `uuid`, `id` | Sunucunun ürettiği PK; çıplak UUID kimlik doğrulama sırrı değildir |
+| `userId` | `uuid`, `user_id` | Zorunlu FK → User.id; unique değildir, birden çok cihaz desteklenir; silme NO ACTION |
+| `createdAt` | `instant`, `created_at` | İlk giriş UTC anı; değişmez |
+| `lastSeenAt` | `instant`, `last_seen_at` | İlk değer createdAt; başarılı yetkili istekte geriye gitmeden ilerler |
+| `idleExpiresAt` | `instant`, `idle_expires_at` | Başlangıç createdAt + 30 dakika; başarılı yetkili istekte en fazla now + 30 dakika |
+| `absoluteExpiresAt` | `instant`, `absolute_expires_at` | Değişmez createdAt + 8 saat; idle bu sınırı aşmaz |
+| `revokedAt` | `instant?`, `revoked_at` | Başlangıç null; iptal sonrası yeniden null olamaz; createdAt'ten önce olamaz |
+
+DB kısıtı: `createdAt <= lastSeenAt < idleExpiresAt <= absoluteExpiresAt`.
+`user_id`, `idle_expires_at`, `revoked_at` indekslenir. Cookie bileti/ham cookie,
+JWT, parola, refresh token veya Data Protection anahtarı bu tabloda saklanmaz;
+User'a yeni oturum/refresh alanı eklenmez. Etkin bitiş idle/absolute sürelerinin
+erken olanıdır; eşitlik anında geçersizdir. İptal veya süre bitişinden en geç
+24 saat sonra yalnız oturum satırı temizlenir. Normal çalışmada 10 dakikalık
+temizlik 23 saat 50 dakika eşiğini kullanır; DB kesintisindeki gecikme izlenir.
+Sağlık/audit saklama süresi buradan türetilmez.
+
+Her cookie kimlik kontrolü oturum ve güncel doğrulanmış User/rolünü DB'den okur.
+Süre uzatma ve iptal koşullu atomik işlemlerdir; eski istek süreyi geri alamaz
+ve iptali silemez. Login User satırını kilitleyip doğrulanan hash/rol/doğrulama
+durumunu yeniden kontrol eder. Gelecekteki parola/rol/doğrulama değişimleri
+aynı User kilidi ve transaction içinde bütün web oturumlarını iptal etmelidir;
+mevcut stateless JWT'lerin iptali bu kaydın kapsamına girmez.
+
+## Beslenme ve günlük takip
+
+| Entity | Temel alanlar | Not / kısıt |
+|---|---|---|
+| `FoodItem` | `id: uuid`, `name: string`, `servingBasisGrams: decimal`, `caloriesKcal: decimal`, `proteinGrams: decimal`, `carbsGrams: decimal`, `fatGrams: decimal`, `dataSource: string` | Enerji kcal, makrolar gram; hepsi aynı `servingBasisGrams` temeline aittir. Hibrit katalog kaynağı/kanıtı korunur; sağlayıcı ve lisans seçimi **AÇIK**tır |
+| `MealLog` | `id: uuid`, `clientId: uuid`, `mealType: MealType`, `consumedAt: instant`, `note: string?`, `source: RecordSource`, `foodAnalysisId: uuid?`, `createdAt: instant` | Bir öğünün kalemleri `MealLogItem`; plan dışı gerçek tüketim de kaydedilebilir |
+| `MealLogItem` | `id: uuid`, `mealLogId: uuid`, `foodItemId: uuid?`, `recipeId: uuid?`, `displayName: string`, `quantityGrams: decimal?`, `caloriesKcal: decimal?`, `proteinGrams: decimal?`, `carbsGrams: decimal?`, `fatGrams: decimal?`, `isEstimated: boolean` | `recipeId` → Recipe yeni opsiyonel bağlantıdır. Değerler tüketilen kalemin toplamıdır; katalogdaki gram temeliyle karıştırılmaz. Katalog dışı giriş mümkündür; null porsiyon/besin değeri bilinmiyor demektir |
+| `FoodAnalysis` | `id: uuid`, `clientId: uuid`, `status: FoodAnalysisStatus`, `createdAt: instant`, `completedAt: instant?`, `modelVersion: string?`, `suggestions: list<object>?`, `errorCode: string?` | Bir tahmin **otomatik kayıt değildir**. Öneri tipi aşağıda açıklanır; özel medya saklama politikası gerekir |
+| `WaterLog` | `id: uuid`, `clientId: uuid`, `amountMl: decimal`, `consumedAt: instant`, `source: RecordSource` | Miktar mL; günlük toplam hesaplanır |
+| `NutritionPlan` | `id: uuid`, `clientId: uuid`, `dietitianId: uuid?`, `title: string`, `status: NutritionPlanStatus`, `startDate: date`, `endDate: date?`, `dailyCaloriesTargetKcal: decimal?`, `dailyWaterTargetMl: decimal?`, `createdAt: instant`, `versionNumber: integer` | dietitianId null ise kişisel; toplamda tek active. Güncel sürümün versionId'si yanıta eklenir; items JSONB. N1–N3 sınırları yukarıdadır |
+| `NutritionPlanItem` | `id: uuid`, `nutritionPlanId: uuid`, `dayOfWeek: integer?`, `mealType: MealType`, `description: string`, `recommendedQuantity: string?`, `sortOrder: integer`, `recipeId: uuid?`, `alternativeGroupId: uuid?` | Her satır tavsiyedir. ISO gün 1–7/null her gün, miktar serbest öneri metni; recipeId ilk dilimde yalnız null. Aynı gün/öğün bağlamında en az iki alternatif |
+| `NutritionPlanVersion` | `id: uuid`, `nutritionPlanId: uuid`, `versionNumber: integer`, `recordedByUserId: uuid`, `createdAt: instant`, `snapshot: object` | Değişmeyen JSONB içerik; actor kimliği yalnız sunucudadır. Program/number unique; sürüm metadata ve snapshot DTO'ları `06`da |
+| `BodyMeasurement` | `id: uuid`, `clientId: uuid`, `measuredAt: instant`, `weightKg: decimal?`, `waistCm: decimal?`, `hipCm: decimal?`, `chestCm: decimal?`, `bodyFatPercent: decimal?`, `note: string?`, `source: RecordSource` | Kilo kg, bel/kalça/göğüs cm, yağ oranı yüzde. En az bir ölçüm bulunur; istenmeyen ölçüm zorunlu yapılmaz; kaynak ve geçmiş korunur. 18.11.2026 kullanıcı göreviyle hipCm/chestCm/note eklenmiştir; not en çok 2000 Unicode karakter, kg/cm > 0 ve yağ oranı 0–100. PostgreSQL numeric hassasiyeti kısıtlanmaz; otomatik yuvarlama yapılmaz. Dahili deleted_at mantıksal silmedir, normal okumalara dahil değildir |
+| `ActivityLog` | `id/clientId: uuid`, `activityType: string`, `startedAt: instant`, `endedAt: instant?`, `durationMinutes/rawDurationMinutes/distanceKm/caloriesKcal: decimal?`, `source: RecordSource`, `externalRecordId: string?`, `wearableConnectionId/wearableRecordId: uuid?`, `versionNumber: integer`, `createdAt/updatedAt: instant`, dahili `isDeleted: boolean` | U3 kaynak manual/wearable; süre dakika, mesafe km, yalnız aktif enerji kcal. Cihaz raw süre korunur; source alanları immutable. Aktivite izleme, antrenman programı değildir |
+
+### Kişisel program, hedefler ve sürüm ilişkileri
+
+- `NutritionPlan.clientId` her iki program türünde de zorunludur ve programın danışanını belirler. Kişisel programda `dietitianId = null` olur; sahte diyetisyen kaydı/UUID'si oluşturulmaz. Kullanıcının diyetisyen ilişkisi bulunmaması program oluşturmayı engellemez.
+- Diyetisyen programını yalnız sahibi olan yetkili diyetisyen düzenler; kişisel programı kendi danışanı düzenler. Diyetisyende aktif ilişki ve nutrition_plans izni gerekir. Aktif ilişki bitince o uzmanın active programı archived olur; dietitianId null yapılmaz ve eski uzmana erişim sağlamaz. Danışanın kendi geçmiş okuması sürer. Genel replace/geçiş akışı açıktır.
+- `endDate` varsa `startDate`ten önce olamaz. Aktiflik `status = active` ile belirlenir; tarih aralığı tek aktif sınırını delmek için kullanılmaz. Aynı danışanın kişisel ve diyetisyen programları aynı anda aktif olamaz.
+- Program hedefi ile gerçekleşen `MealLogItem`/`WaterLog` toplamları ayrı tutulur. Danışan gerçek tüketimini kaydederek programı veya diyetisyen hedefini değiştirmez. Kişisel kalori/makro/su önerileri düzenlenebilir; öneri hesaplama yöntemi ve programsız hedeflerin saklanacağı yer **AÇIK**tır. Kişisel program hedefleri mevcut nullable hedef alanlarını kullanabilir; makro hedeflerinin alan adları henüz kesinleşmemiştir.
+- **Sürüm ilişkisi:** Bir `NutritionPlan`ın 1:N geçmiş sürümü bulunur; her sürüm o andaki başlık, tarih, hedef ve `NutritionPlanItem` içerik/alternatiflerini geri getirilebilir biçimde korur. Revizyon geçmiş sürümü değiştirmez. Her sürümün program bağlantısı, kararlı ayıracı, kaydeden `User` bağlantısı ve kayıt zamanı gerekir. Geçmiş sürümler ayrı aktif program sayılmaz; tüketim karşılaştırması doğru tarih/sürüme dayanmalıdır.
+- **Öğün alternatifi ilişkisi:** Aynı programın aynı sürümü ve gün/öğün bağlamındaki `NutritionPlanItem` önerileri alternatif olabilir. Alternatifler birlikte zorunlu tüketim veya toplanacak ayrı öğünler gibi değerlendirilmez; başka danışanın/programın öğesi aynı gruba bağlanamaz. Kullanıcının bir alternatifi seçmesi programı düzenlemesi anlamına gelmez.
+- N1–N3 ile ayrı NutritionPlanVersion tablosu ve değişmeyen JSONB snapshot onaylıdır. Öğeler ilgili snapshot içinde nutritionPlanId ve tarihsel item UUID'leriyle korunur; alternativeGroupId yereldir. Yalnız güncel içeriği yerinde değiştirip geçmiş kaydını atlamak onaylı değildir.
+
+### Tarif, görev ve yorum ilişkileri
+
+`04`te karşılığı bulunan üç yeni kavram için asgari alanlar aşağıdadır. Bunlar yeni endpoint veya enum listesi tanımlamaz.
+
+| Kavram | Asgari alanlar | İlişki / bütünlük |
+|---|---|---|
+| `Recipe` | `id: uuid`, `userId: uuid`, `name: string`, `createdAt: instant` | `userId` → tarifi oluşturan User; bir kullanıcının N tarifi olabilir. Recipe 1:N bileşenden oluşur; FoodItem ile eşleşen bileşen ilgili besine bağlanır. Bileşen modeli/yapısı ve tarif görünürlüğü **AÇIK**tır |
+| `ClientTask` | U1 bölümündeki 11 alan; ayrıca değişmez ClientTaskVersion geçmişi | Görev özgün ilişkiye, danışana ve atayan diyetisyene bağlıdır; onaylı durum/geçiş/izin kuralları yukarıdadır |
+| `DataSharingPermission` | `id: uuid`, `relationshipId: uuid`, `category: string`, `isGranted: boolean`, `consentRecordId: uuid?`, `createdAt: instant`, `updatedAt: instant` | `relationshipId` → DietitianClientRelationship; danışan/diyetisyen bu ilişkiden türetilir, tekrar saklanmaz. Kategori listesi **AÇIK**tır. Aynı ilişki/kategori için tek güncel izin bulunur; değişiklikler audit/rıza geçmişini silmez |
+
+- Tarif bileşenlerinin miktar/birim bilgisi ve pişmiş toplam/porsiyon temeli korunmadan hesaplanmış enerji/makro gösterilmez; kaynak ve belirsizlik görünür tutulur. Bilinen gram miktarı `decimal` ve pozitiftir; bilinmeyen miktar sıfır sayılmaz. Bileşenlerin gram/adet dönüşümü, katalog dışı bileşen yapısı ve tarifin daha sonra değişmesindeki sürümleme yöntemi **AÇIK**tır.
+- `MealLogItem.recipeId` veya `NutritionPlanItem.recipeId` doluysa tarif mevcut ve ilgili kullanıcıya erişilebilir olmalıdır. Tarif/katalog değişikliği önceki tüketim değerlerini veya program geçmişini yeniden yazamaz; kayıttaki değerler tüketim anındaki veriyi korur. `foodItemId` ile `recipeId`nin birlikte kullanım kuralı **AÇIK**tır; aynı kalem iki kez hesaba katılmaz.
+- Görevin nullable dueAt ve varsayılan false isReminderEnabled alanları U1 ile kesinleşmiştir; bildirim teslim/zamanlaması ayrıca geliştirilir. Görev geçmişi ilişki sona erince eski diyetisyene yeni erişim sağlamaz.
+- **Yorum ilişkisi:** `MealLog` 1:N yorum, `User` 1:N yazdığı yorum; cevap aynı öğünün bir yorumuna bağlıdır. Yazar danışanın kendisi veya o öğüne erişmeye yetkili diyetisyen olmalıdır. Başka öğüne/başka danışana cevap bağlantısı ve döngü kurulamaz. Diyetisyenin yorum yetkisi güncel ilişki/paylaşım kontrollerinden bağımsız değildir; bu yapı sohbet özelliği değildir.
+- **Yorum/yanıt alanları:** Üstteki onaylı MealLogComment bölümü geçerlidir; tek model ve tek seviyeli yanıt kullanılır. Düzenleme/silme, bildirim ve moderasyon bu teslimin dışındadır.
+- İlk sürüm yorum/cevap bildirimleri ile görev hatırlatmaları ilgili kayıt ve alıcıyla ilişkilendirilmelidir; bildirimde sağlık içeriği gösterimi paylaşım iznini aşamaz. Bildirim modeli, saklama ve teslim kanalı açık olduğundan yeni notification entity'si tanımlanmaz.
+
+## Laboratuvar ve cihaz
+
+| Entity | Temel alanlar | Not / kısıt |
+|---|---|---|
+| `LabReport` | `id: uuid`, `clientId: uuid`, `collectedAt: instant`, `labName: string?`, `note: string?`, `createdAt: instant` | Kullanıcının tek analiz/rapor oturumu; manuel/OCR giriş aynı kavramı kullanır |
+| `LabResult` | `id: uuid`, `labReportId: uuid`, `testCode: string?`, `testName: string`, `value: decimal`, `unit: string`, `referenceLow: decimal?`, `referenceHigh: decimal?`, `flag: LabFlag` | Rapordaki birim/aralık esastır; sunucu hesaplar, `unknown` olabilir |
+| `LabInsight` | `id: uuid`, `labReportId: uuid`, `createdAt: instant`, `summary: string`, `method: string`, `modelVersion: string?`, `limitations: AÇIK` | Sınırlılık açıklaması zorunludur; metin/liste biçimi ve method değerleri **AÇIK**tır. Kaynak/açıklanabilirlik korunur; klinik tanı içermez |
+| `WearableConnection` | `id: uuid`, `clientId: uuid`, `provider: string`, `status: string`, `versionNumber: integer`, `lastSyncedAt: instant?`, `lastAttemptAt: instant?`, `lastSyncStatus: string`, `lastErrorCode: string?` | U3: provider `health_connect/health_kit`, status `active/revoked`, sync `never/succeeded/failed`; danışan+provider unique, yeniden POST aynı ID ve mevcut durumu korur. OS izni değildir |
+| `WearableRecord` | `id`, `clientId`, `wearableConnectionId`: uuid; `metric`, `sourceId`, `externalRecordId`, `rawType`, `rawUnit`: string; `sourceName`, `recordingMethod`, `exerciseType`: string?; `versionNumber`: integer; `isDeleted`: boolean; `updatedAt`: instant | Native kayıt başlığı/tombstone. `(connectionId,sourceId,rawType,externalRecordId)` unique; provider bağlantıdan, sahip oturumdan. Bir native nabız kaydı çok örnek taşıyabilir |
+| `HealthMetricSample` | `id`, `clientId`, `wearableRecordId`: uuid; `sampleKey`: string (dahili); `startedAt`, `endedAt`: instant; `rawValue`, `value`: decimal; `unit`: string; `isDeleted`: boolean | Metric/rawUnit kaynak başlığında; yalnız steps/count, distance/km, active_energy/kcal, heart_rate/bpm. Adım integer değerli decimal; ham metre /1000 km. `(recordId,sampleKey)` unique; HR key UTC mikro-saniye başlangıcı, diğerleri single |
+| `WearableSyncBatch` | `id`, `clientId`, `wearableConnectionId`, `batchId`: uuid; `requestHash`: SHA256 hex; `responseJson`: jsonb; `committedAt`: instant | `(connectionId,batchId)` unique, normalize istek+ilk yanıt kalıcı; aynı anahtarla farklı içerik 409, receipt ve sağlık yazımı aynı transaction |
+| `ConsentRecord` | `id: uuid`, `userId: uuid`, `consentType: string`, `granted: boolean`, `policyVersion: string`, `recordedAt: instant`, `withdrawnAt: instant?` | `userId` → User; izin/rıza geçmişi ve geri çekilme. Mevcut `granted` adı korunur; onay türü kodları henüz belirlenmemiştir |
+| `AuditEvent` | `id: uuid`, `actorUserId: uuid`, `action: string`, `resourceType: string`, `resourceId: uuid`, `createdAt: instant`, `metadata: object?` | `actorUserId` → User; sağlık değeri/password/token loglanmaz. Kaynak türü/id çifti ilgili kaydı işaret eder; metadata ayrıntıları **AÇIK**tır |
+
+### Paylaşım ve tahlil bütünlüğü
+
+- `ClientProfile` → User üzerinden rıza sahibi belirlenir. `DataSharingPermission` erişim kapsamını, `ConsentRecord` rıza/izin geçmişini temsil eder; aynı kayıt veya birbirinin yerine kullanılan boolean değildir.
+- Bir kategorinin diyetisyene açılması için ilgili ilişki `active`, güncel kategori izni `isGranted = true` olmalıdır. İzin kaydı yoksa diyetisyene erişim yoktur. İlişki bitince veya izin geri çekilince mevcut kayıtlar/PDF raporları dahil diyetisyenin yeni erişimi kesilir; geçmiş kayıt saklamak erişim hakkı vermez. Danışanın kendi verisine erişimi diyetisyen ilişkisine bağlı değildir.
+- Tahlil kategorisi izni veriliyorsa ayrıca `consentRecordId` dolu ve ilgili danışanın User kaydına ait olmalıdır; açık onayın türü/kapsamı tahlil paylaşımıyla eşleşmeli, `granted = true`, `withdrawnAt = null` olmalıdır. Yalnız genel gizlilik kabulü veya cihaz izni yeterli değildir. Kapsam/kategori kodları onaylanmadan uydurulmaz.
+- `ConsentRecord.withdrawnAt` varsa `recordedAt`ten önce olamaz; geri çekilmiş rıza yeni erişimde kullanılamaz. Rıza değişiminde geçmiş kabulün politika sürümü ve zamanı korunur. `DataSharingPermission` veya rızanın eski halinin cache'te kalması erişimi sürdürmez.
+- `LabReport` en az bir `LabResult` içerir. Referans sınırları biliniyorsa aynı analit/birim için anlamlı olmalı; ikisi de varsa `referenceLow <= referenceHigh` sağlanmalıdır. Eksik/uyumsuz birim/aralıkta `flag = unknown`; sıfır referans uydurulmaz. Tek taraflı aralıkların güvenli değerlendirme kuralı **AÇIK**tır.
+- OCR, kullanıcı doğrulamasından önce değerlendirmeye alınan kesin `LabResult` üretmez. Taslak OCR değeri, orijinal birim/referans/tarih ve kullanıcı onayının nasıl saklanacağı **AÇIK**tır; doğrulanmış veriyle karıştırılamaz. Trendler yalnız aynı analit ve aynı/doğrulanmış dönüştürülmüş birimle karşılaştırılır. `LabInsight` tanı/tedavi değildir; ML kullanımı opsiyonel ve validasyona bağlıdır.
+
+### Aktivite, platform kaynağı ve tekilleştirme
+
+**U3 / 19.11.2026 uygulama onayı:** Aşağıdaki kurallar önceki açık kaynak/birim
+kararlarını kapatır. Ayrıntılı DTO ve sentetik örnekler [M3 teslim notunda](20_HEALTH_DATA_SYNC_CONTRACT.md).
+
+- `ActivityLog.wearableConnectionId` doluysa bağlantının `clientId`si aktivite sahibine eşit olmalıdır. `source = wearable` olan içe aktarımda bu bağlantı zorunludur; sağlayıcı buradan belirlenir. Manuel girişte platform bağlantısı ve dış kimlik zorunlu değildir; `source` gerçeği yansıtır.
+- Kararlı native externalRecordId, sourceId ve rawType zorunlu; eksik kimlik reddedilir. Kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId; bağlantı danışan+provider için unique ve yeniden kurulumda aynı ID'dir. Başlık sürümü 0 beklentisi yeni kayıt, mevcut değişiklik güncel sürüm ister. Exact desired-state retry sürüm artırmaz; eski değişiklik 409. Açık silme tombstone yapar, eksik/boş batch veri silmez. Nabız upsert delta'dır; gönderilmeyen nokta korunur, silme açık UTC nokta listesiyle yapılır.
+- `conservative_overlap_v1` her metric'te manuel → health_connect → health_kit → sourceId ordinal; aynı kaynakta uzun aralık → erken başlangıç → kararlı anahtar önceliği uygular. Her yüksek öncelikli aralık doğrudan örtüştüğü düşük aralığı bütünüyle dışlar; ham satırlar silinmez. Adım/mesafe/enerji gün dışına taşıyorsa tahmini oranlama yapılmaz, unallocatedCount ile işaretlenir; egzersiz süresi gün kesişiminden hesaplanır. Süresiz manuel ölçüm toplam dışıdır. Bilinmeyen toplam null, gerçek sıfır 0; HR aritmetik örnek ortalaması, klinik değerlendirme değildir.
+- UTC instants PostgreSQL mikro-saniye hassasiyetindedir; summary ardışık açık offsetli yerel gece yarıları (22–26 saat) alır. Aralık en çok 7 gün, end>start (HR noktada eşit), bitiş en çok sunucu+5 dk. RawValue/rawUnit korunur: COUNT→count, METER→km, KILOCALORIE→kcal, BEATS_PER_MINUTE→bpm; WORKOUT MINUTE aralıkla 1 ms içinde uyuşur. sourceName/recordingMethod/exerciseType ham metadata korunur; tür/birim/kimlik uydurulmaz.
+- `ActivityLog` ek alanları: `endedAt: instant?`, `rawDurationMinutes: decimal?` (cihaz ham süresi), `wearableRecordId: uuid?`, `versionNumber: integer`, `createdAt/updatedAt: instant`, dahili `isDeleted`. caloriesKcal **aktif enerji**dir. Manuel kaynakta platform/dış ID ve rawDurationMinutes null; süre >0 ve en çok 10080 dakika, km/kcal ≥0, en az bir ölçüm. Cihaz exercise tek ActivityLog'dur; ayrı enerji/mesafe kayıtları buraya kopyalanıp tekrar toplanmaz. Bağlantı-kaynak-aktivite sahipliği composite FK ile korunur.
+
+| Ek sağlık verisi | Gerekli mantıksal ilişki / tip | Açık ayrıntı |
+|---|---|---|
+| Adım sayısı | WearableRecord → HealthMetricSample; integer değer, count | U3 ile kapandı; doğrudan tüm kaynakları toplamaz |
+| Nabız | WearableRecord → çok HealthMetricSample; decimal bpm, UTC nokta | U3 ile kapandı; kısmi okuma diğer noktaları silmez |
+| Aktif kalori | WearableRecord → HealthMetricSample; decimal kcal | U3 ile kapandı; exercise enerjisine kopyalanmaz |
+
+Bu verilerin tamamı ActivityLog/BodyMeasurement içine yerleştirilmez. U3 yalnız kontrollü dört metric örneğini HealthMetricSample'da, egzersizi ActivityLog'da tutar. Manuel aktivite korunur; manuel adım/nabız endpointi eklenmez. U3 yeni diyetisyen paylaşım kategorisi açmaz; OS izni/aktarım tercihi paylaşım izni yerine geçmez, geçmişi otomatik silmez.
+
+## İlişki ve bütünlük kuralları
+
+- `User` 1:0..1 `ClientProfile` ve bağımsız 1:0..1 `DietitianProfile`; aynı hesapta ikisi bulunabilir (02.11.2026 onayı). `DietitianClientRelationship` üzerinde kullanıcı ID yerine profil ID kullanılır.
+- `ClientProfile` 1:N `MealLog`, `WaterLog`, `LabReport`, `ActivityLog`, `BodyMeasurement`.
+- `ClientProfile` 1:N `NutritionPlan`, `ClientTask`, `DietitianClientRelationship`, `WearableConnection`; `DietitianProfile` 1:N atadığı ClientTask ve diyetisyen programı. Kişisel programın DietitianProfile bağlantısı yoktur.
+- `MealLog` 1:N `MealLogItem`; `LabReport` 1:N `LabResult`; `NutritionPlan` 1:N `NutritionPlanItem`.
+- `FoodAnalysis` bağımsız rapordur; isteğe bağlı `MealLog.foodAnalysisId` ilişkisi vardır. İki kaydın danışanı aynı olmalıdır; analiz başka danışanın öğününe bağlanamaz. Katalog/tarif referansı olmayan manuel `MealLogItem` geçerlidir.
+- `LabResult.flag` referans aralığına güvenilebiliyorsa hesaplanır; aralık yoksa/uyumsuzsa `unknown`.
+- `ActivityLog.externalRecordId` ve bağlantının provider'ı üzerinden kaynak özelinde tekrar içe alma engellenir; kaynak bağlantısı aynı danışana ait olmalıdır.
+- Diyetisyen programı ve görev atamasında ilgili diyetisyenle danışan arasında yetkili/aktif ilişki olmalı; bu şart kişisel program oluşturmak için aranmaz. Diyetisyenin görev/yorum/rapor erişimlerinde de güncel ilişki ve kategori izinleri kontrol edilir.
+- **Tek aktif diyetisyen:** Her `clientId` için `status = active` olan ilişki sayısı en fazla 1'dir. Kabul işlemi diğer aktif ilişkiyle yarıştığında da kural korunur. `active` ilişki karşılıklı onaylanmış olmalı (`respondedAt` dolu, `endedAt` boş); `ended` için `endedAt` doludur. Olay sırası `requestedAt <= respondedAt <= endedAt` olacak şekilde mevcut zamanlara uygulanır; diğer durum geçiş ayrıntıları **AÇIK**tır. Geçmiş ilişki silinerek veya profil kimliği değiştirilerek sınır aşılmaz.
+- **Tek aktif program:** Her `clientId` için `status = active` olan NutritionPlan sayısı en fazla 1'dir; `dietitianId`ye göre ayrı ayrı sayılmaz. Program değiştirmede eski aktif kaydın durum değişimi ve yeni kaydın aktifleşmesi tutarlı/atomik olmalıdır. Aynı anda iki aktivasyon sınırı aşamaz; tarihleri farklı iki `active` kayıt da kabul edilmez.
+- Bu iki tekillik yalnız UI kontrolüyle sağlanmaz; backend ve PostgreSQL tarafında eşzamanlı işlemlerde de korunur. Kısmi unique indeks/transaction gibi mekanizmanın ayrıntısı uygulama kararıdır; burada migration/SQL üretilmez.
+- FK bağlantılarında danışanın özel alt kayıt/program/analizleri başka danışanın özel kayıtlarına bağlanamaz. Ortak katalog/tarif bağlantısı için ilgili kaynağa erişim yetkisi ayrıca kontrol edilir; bunların görünürlüğü özel sağlık kaydı sahipliğiyle karıştırılmaz. Tarihçe koruma kararı otomatik cascade silme veya süresiz saklama anlamına gelmez; silme/anonymizasyon/FK davranışı veri koruma tasarımında netleşir.
+
+## Hesaplanan / saklanan alan ayrımı
+
+Günlük kalori, makro ve su toplamları `MealLogItem`/`WaterLog` kayıtlarından hesaplanabilir. Agregasyon performans için tutulacaksa tutarlılık/yeniden hesaplama politikası gerekir. Bilinmeyen besin değerleri tam toplam varmış gibi sıfır sayılmaz; eksiklik görünür olmalıdır. Grafikler ve PDF raporları aynı yetkili kaynak verilerden üretilir; bunlar için otomatik yeni entity veya sağlık verisi kopyası gerekmez. Program uyum hesabı, tarih/sürüm eşleştirmesi ve günlük saat dilimi politikası **AÇIK**tır.
+
+`FoodAnalysis.suggestions` için `06`daki mevcut örnek; `displayName: string`, `quantityGrams: decimal?`, `caloriesKcal: decimal?`, `confidence: decimal` (0–1) içerir. Kalori/porsiyon belirsizliği korunur. Onaylı makro tahmini için aynı `proteinGrams`/`carbsGrams`/`fatGrams` adları nullable decimal/gram olarak kullanılmalıdır; `06`daki öneri şeması bunları henüz içermemektedir. Analiz düzeyindeki `limitations` dönüşü `06`da vardır; saklanacak mı üretilecek mi olduğu ve `10` ile iç içelik uyumu **AÇIK**tır. Kullanıcı düzeltip ayrıca onaylamadan MealLog oluşturulmaz.
+
+## `06_API_CONTRACT.md` ile uyumsuzluklar (bu görevde değiştirilmedi)
+
+- Plan oluşturma/düzenleme/aktif etme işlemleri yalnız diyetisyen için anlatılır; kişisel NutritionPlan sahipliği, nullable `dietitianId` ve danışanın kendi programını düzenlemesi API'ye yansıtılmalıdır. Mevcut endpointler bu dosyada değiştirilmez veya yeni alternatif rota üretilmez.
+- ClientTask/ClientTaskVersion U1 ve DataSharingPermission onaylı kategorileri tarihli bölümlerle `06`ya eşittir. Recipe, wearableConnectionId ve kalan tahlil açık onayı ayrıntıları ayrıca tamamlanır.
+- Mevcut enumlar korunur; görev durumları ve PATCH/null kuralları U1 ile tanımlıdır. Onaylanmamış paylaşım kategorileri/provider değerleri istemcilerde serbest string olarak uydurulamaz.
+- Aktivite/adım/nabız/aktif enerji kaynak, birim, tekrar aktarım ve özet U3 ile kapandı (05/06/20). Lab OCR taslağı/kullanıcı onayı, laboratuvar birim dönüşümü ve LabInsight ayrıntıları açıktır.
+- Fotoğraf analizi önerilerinde makrolar eksiktir; `limitations` biçim/konumu belgeler arasında netleştirilmelidir. E-posta doğrulama, şifre sıfırlama ve Admin MFA'nın HTTP ayrıntıları bu veri sözlüğüyle belirlenmez.
+
+## Onay bekleyen şema kararları
+
+Tek aktif diyetisyen/program, kişisel program, program sürüm geçmişi ve öğün alternatifleri **onaylı gereksinimlerdir**; yeniden açık ürün kararı sayılmaz. Açık kalanlar:
+
+- Sürüm/alternatif alt kayıtlarının kanonik adları, alanları ve saklama biçimi; tüketim–program sürümü eşleştirmesi. Öğün kayıtlarının kendi sürümleme ihtiyacı ayrıca açıktır.
+- Tarif bileşenleri, toplam/porsiyon temeli, görünürlük ve değişiklik geçmişi; kişisel makro hedef alanları, programsız hedeflerin yeri ve öneri hesaplama yöntemi.
+- Görev alan/durum/son tarih/tercih U1 ile kapandı; yorum/cevap moderasyonu ve bildirim teslim modeli açık kalır.
+- Paylaşım kategorileri, rıza tür/kapsam kodları, davet/başvuru doğrulama kayıtları, çoklu rol/profil ve doğum tarihi zorunluluğu.
+- U3 dışındaki veri türleri ve fiziksel Android/iOS cihaz uyumluluk/yayın doğrulaması; U3 şema, örtüşme ve gün/tekrar anahtarları açıktan çıkarılmıştır.
+- Besin sağlayıcısı/lisans, test kod standardı, birim dönüşümleri, OCR onay kaydı, AI modeli/veri validasyonu; `licenseInfo`, `recommendedQuantity` ve `LabInsight.limitations` biçimleri.
+- Mobil güvenli saklama/istemci refresh entegrasyonu ve mobil MFA, sayısal hassasiyet/yuvarlama, metin sınırları, veri/fotoğraf/PDF saklama-silme ve anonimleştirme; geçmişi koruyan FK davranışları. Backend refresh hash/iptal modeli 31.10.2026 bölümündedir; gerçek yayın için `11_SECURITY_AND_RELEASE.md` kapısı geçerlidir.
+
+Sonraki ortak sözleşme adımı; açık alt kayıt adlarını `04`te, şema ayrıntılarını burada ve HTTP karşılıklarını `06`da iki geliştiricinin onayıyla eşgüdümlü tamamlamaktır. Kayıt/e-posta doğrulamasının kapanmış alanları bu açık listeye dahil değildir.

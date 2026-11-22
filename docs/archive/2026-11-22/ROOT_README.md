@@ -1,0 +1,240 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
+# Smart Nutrition Platform
+
+**Yapay Zekâ Destekli Akıllı Beslenme ve Diyetisyen Platformu**
+
+Diyetisyen odaklı, danışanlar için mobil uygulama ve diyetisyenler için web yönetim paneli sunması hedeflenen **sıfırdan geliştirilecek** ürün. Üniversite bitirme projesi olarak başlayacak; güvenlik, kullanılabilirlik ve dağıtım gereksinimleri karşılandığında mağazada yayımlanabilir ve ticari olarak sunulabilir bir temele sahip olması amaçlanır.
+
+## Amaçlanan başlıca işlevler
+- Danışan: öğün/besin, kalori/makro, su, kilo/ölçüm, aktivite ve tahlil takibi; kişisel hedef/program veya atanmış program. Kişisel öneriler düzenlenebilir, diyetisyen programı/hedefleri salt okunurdur; gerçek tüketim serbestçe kaydedilir.
+- Diyetisyen: mobil/web başvuru ve Admin doğrulaması; arama/davet kodu ve karşılıklı onayla bağlantı. En fazla bir aktif diyetisyen ve kişisel/atanmış toplamında tek aktif `NutritionPlan`; geçmiş ve öğün alternatifleri korunur.
+- Takip: izinli danışan yönetimi, öğün yorumları/cevaplar/bildirimler, görev/son tarih/durum ve isteğe bağlı hatırlatmalar, grafik/program uyumu/PDF raporları. Hibrit besin kataloğu ve özel tarifler desteklenir.
+- Yapay zekâ: fotoğraf/galeriden **tahmini** kalori/makro; kullanıcı kontrol/onayı olmadan öğün oluşmaz. Tahlilde manuel giriş ve referans değerlendirmesinin ardından kullanıcı onaylı PDF/fotoğraf OCR; doğrulanabilir ML opsiyoneldir.
+- Entegrasyon: ayrı izinle Health Connect/HealthKit üzerinden adım, mesafe, egzersiz, süre, aktif kalori ve nabız; manuel giriş, kaynak ve tekilleştirme.
+- Güvenlik/deneyim: kategori bazlı paylaşım, tahlil için ayrıca açık onay, güvenli e-posta/şifre oturumu ve zorunlu Admin MFA; sağlık verisine varsayılan Admin erişimi yoktur. Premium UI/UX, ortak tokenlar ve açık/koyu tema.
+
+İlk sürüm yönetim paneli webdedir; öğün yorumları, cevaplar ve bildirimler ilk sürüm koşuludur. Diğer onaylı özelliklerin takvimi, sonraya bırakılan sohbet/sürekli kamera ve opsiyonel araştırma ayrımı [proje kapsamında](01_PROJECT_SCOPE.md) açıklanır; tüm özellikler aynı MVP'ye vaat edilmez.
+
+> Sağlık uyarısı: Sistem teşhis koymaz, tedavi/ilaç önermez; görselden kalori hesabı kesin ölçüm değildir. Sağlık verileri özel niteliklidir ve korunmalıdır.
+
+## Durum
+`DOCS-V1` — **Uğur'un 29 Ekim web/Auth/backend dilimi tamamlandı.** Danışan Auth ve W2 web oturumu yanında B1–B3 uzman başvurusu/MFA Admin onayı, R1–R3 davet/karşılıklı onay/izinli danışan yönetimi ve N1–N3 program oluşturma/atama gerçek API'lere bağlıdır. Programlarda gün/miktar/alternatifler, değişmeyen sürüm geçmişi, tek aktif program ve ilişki bitince atanmışı arşivleme uygulanmıştır. Diğer sağlık kayıt ekranları ayrı sentetik önizlemedir. 250 backend testi gerçek geçici PostgreSQL/Mailpit'te atlamasız; 128 web testi, typecheck/lint ve production build başarılıdır. Bu durum canlı yayın veya tüm mobil aşamasının tamamlandığı anlamına gelmez.
+
+**Sonraki tek adım:** Mert'in güncel ortak main'e göre mobil bağlantı/izin ve atanmış program okumasını bağlayıp sentetik hesaplarla ortak sunum provası. Flutter/Mert dosyaları bu çalışmada değiştirilmedi. Kararlar [12](12_TEAM_PLAN_AND_DECISIONS.md), onaylı B/R/N dilimleri [14](14_OCTOBER_PRESENTATION_CONTRACT_PROPOSAL.md), [15](15_RELATIONSHIP_CONTRACT_PROPOSAL.md), [16](16_NUTRITION_PLAN_CONTRACT_PROPOSAL.md) içinde izlenir; [16](16_NUTRITION_PLAN_CONTRACT_PROPOSAL.md) sunum sırasını da içerir. Mevcut danışan register/JWT gövdeleri korunur; entegrasyondan önce iki taraf ortak main sürümünü çeker.
+
+## Yerel geliştirme — tek terminal
+
+VS Code veya Windows terminalinde proje kökünde çalıştırın:
+
+```powershell
+.\start.ps1
+```
+
+VS Code bu proje için `.vscode/settings.json` içindeki **Smart Nutrition
+PowerShell** profilini kullanır. Profil PowerShell 7'yi `RemoteSigned` ile
+başlatır; her terminalde ayrıca izin komutu yazılmaz. Ayar eklenmeden önce
+açılmış terminal süreçleri değişmez: mevcut terminali çöp kutusu düğmesiyle
+bir kez kapatıp **Terminal > New Terminal** açın. Sonraki terminal açılışlarında
+profil otomatik uygulanır. Kullanıcıya özel ve standart PowerShell 7 kurulum
+yolları sırayla kontrol edilir.
+
+Windows PowerShell 5.1 kullanılıyorsa başlatıcı aynı terminalde PowerShell 7'ye
+otomatik geçer. PATH'teki `pwsh`, ardından kullanıcıya özel
+`$env:LOCALAPPDATA/Programs/PowerShell/7/pwsh.exe` ve standart
+`$env:ProgramFiles/PowerShell/7/pwsh.exe` konumları kontrol edilir.
+Node PATH'te yoksa kullanıcıya özel `$env:LOCALAPPDATA/Programs/nodejs/node.exe`
+ve standart Program Files kurulumu bulunur; yalnız alt süreç PATH'i tamamlanır.
+Script yeni terminal/PowerShell
+penceresi veya tarayıcı açmaz; servis loglarını `[Backend]`, `[Web]`, `[Mobil]`
+ve `[Docker]` önekleriyle aynı terminalde gösterir.
+
+Windows PowerShell `running scripts is disabled` hatası veriyorsa, bu komut
+betik daha yüklenmeden engellenmiştir. Yalnız kendi hesabınız için bir kez:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+PowerShell 7 ve Node kurulumu tamamlanıp betik politikasına izin verildiğinde
+doğrudan `.\start.ps1` yeterlidir. Bu ayar kullanıcı düzeyindedir; makine
+politikasını veya sertifika güven deposunu değiştirmez.
+
+**Bir defalık ön koşullar:** Docker Desktop'ın Linux motoru çalışmalı; PowerShell 7, .NET 10 SDK,
+web'in desteklediği Node.js (20.19+ / 20.x veya 22.12+) ve mobil için Flutter
+PATH içinde bulunmalıdır. Web paketlerini `apps/web` içinde `npm ci --include=optional`,
+mobil paketlerini `mobile` içinde `flutter pub get` ile kurun.
+[Backend kurulumu](../../../backend/README.md) üzerinden mevcut `backend/.env`, PostgreSQL
+bağlantısı, JWT, SMTP ve W2 web oturumu User Secrets/environment ayarlarını ve
+gerekli migration'ları önceden hazırlayın. Script sır üretmez, mevcut ayarları
+değiştirmez; npm/Flutter paket kurulumu veya migration uygulamaz. Backend,
+`dotnet run` komutunun standart restore/derleme adımlarını kullanır.
+
+[Web HTTPS kurulumundaki](../../../apps/web/README.md#web-oturumu-w2) güvenilir geliştirme
+sertifikası/özel anahtarı Git dışında hazır olmalıdır. Script mevcut
+`SMART_NUTRITION_HTTPS_CERT` ve `SMART_NUTRITION_HTTPS_KEY` yollarını kullanır;
+ikisi de verilmemişse `$env:LOCALAPPDATA/SmartNutrition/dev-cert.pem` ve
+`dev-cert.key` dosyalarını arar. Sertifika güvenini otomatik değiştirmez.
+`Auth:WebSession:Origin` mevcut web adresi `https://localhost:5173` ile eşleşmelidir.
+Web alt sürecinde `NODE_EXTRA_CA_CERTS` verilmemişse bu PEM kullanılır;
+mevcut bir değer verilmişse yerel API sertifikasına güveni de kapsamalıdır.
+
+- Web: [Diyetisyen girişi](https://localhost:5173/giris), [Diyetisyen başvurusu](https://localhost:5173/uzman-basvurusu),
+  [E-posta doğrulama](https://localhost:5173/eposta-dogrulama).
+- Backend: [Swagger](https://localhost:7099/swagger),
+  [liveness](https://localhost:7099/health/live),
+  [PostgreSQL readiness](https://localhost:7099/health/ready).
+- Mailpit: [yerel posta kutusu](http://127.0.0.1:8025); PostgreSQL: `127.0.0.1:5433`.
+- Yerel Admin girişi: [Yönetici girişi](https://localhost:5173/yonetici-giris).
+  E-posta/şifreyi girip **E-posta ile kod gönder** seçin; Mailpit'teki 6 haneli
+  kodu forma yazın. Kod 5 dakika/tek kullanım; tekrar gönderim 60 saniye sonradır.
+  Bu seçenek yalnız Development + yerel Mailpit içindir; üretim TOTP korunur.
+  Açık oturum uyarısında **Açık hesabı görüntüle ve çıkış yap** üzerinden mevcut
+  hesabı kontrol edip çıkın; çıkış doğrulandıktan sonra Admin ekranına dönülür.
+- Mobil: önceden açtığınız desteklenen Android emülatörü otomatik seçilir;
+  birden fazlaysa cihaz kimliğine göre ilk emülatör kullanılır. Emülatör/Flutter
+  yoksa veya mobil çalıştırma başarısızsa uyarı verilir, backend/web açık kalır.
+  Çalışan cihaz yokken SDK'da tek Android AVD varsa mevcut verileriyle otomatik
+  açılır. Takılı kalmış Quick Boot görüntülerini kullanmamak için soğuk açılış
+  yapılır (`-no-snapshot`); kullanıcı verisi silinmez. Birden fazla AVD varsa önce istediğiniz cihazı açın; script seçim
+  yapmaz, yeni AVD oluşturmaz veya verileri sıfırlamaz. Grafik arayüzü kontrol edilmez.
+  **Türkçe giriş:** Emülatörde Settings > System > Keyboard altında Gboard >
+  Languages bölümüne Türkçe (Türkiye), Türkçe-Q ekleyin; dil tuşuyla seçin.
+  Physical keyboard altında hem AT Translated Set 2 keyboard hem qwerty2 için
+  Turkish düzenini seçin. Show on-screen keyboard açık olabilir. Bu ayarlar AVD
+  kullanıcı verisinde kalır; `start.ps1` bunları sıfırlamaz. `adb shell input text`
+  Unicode yazma testi değildir; Türkçe harfleri gerçek klavye/IME ile deneyin.
+  Mobil API, `adb reverse tcp:7099 tcp:7099` üzerinden `https://localhost:7099`
+  kullanır. Yalnız mevcut açık PEM sertifikası debug'a aktarılır; özel anahtar
+  ve TLS doğrulamasını kapatan seçenek kullanılmaz. Script başka hedefe bağlı
+  mevcut tünelleri değiştirmez; kendi açtığı tünelleri çıkışta kaldırır.
+  `WEB_BASE_URL=https://localhost:5173` ayrıca Flutter'a aktarılır.
+  Android tarayıcı HTTPS kurulumu aşağıdadır.
+
+`Ctrl+C`, bu çalıştırmanın uygulama süreçlerini ve alt süreçlerini kapatır;
+Flutter'a önce `q` gönderilir, kalan süreçler Windows Job Object ile sonlandırılır.
+Yalnız scriptin başlattığı PostgreSQL/Mailpit servislerine `docker compose stop`
+uygulanır. Önceden çalışan Docker servisleri ve emülatör kapatılmaz.
+Başlatıcının açtığı AVD normal `adb emu kill` yoluyla kapatılır; container,
+volume veya veritabanı verileri silinmez. Terminali zorla kapatmak yerine `Ctrl+C`
+kullanın; zorla kapatmada Docker servisleri açık kalabilir.
+
+5052/7099/5173 (Android HTTPS etkinse ayrıca 5174) portları başka bir süreç tarafından kullanılıyorsa script
+o süreci kapatmadan hata verir. Compose portları da başlamadan kontrol edilir;
+zaten çalışan aynı Compose servisi yeniden kullanılır. Backend/web beklenmedik
+şekilde kapanırsa bu çalıştırmanın servisleri temizlenir. Eksik ayar/bağımlılık
+ve başarısız hazırlık kontrolleri terminalde bildirilir. Gerçek web akışları ve
+mobil ekranların görsel kontrolü geliştirici tarafından elle yapılır.
+
+### Android Chrome için yerel HTTPS
+
+`.NET dev-certs` sertifikası kendinden imzalı bir **sunucu** sertifikasıdır;
+`localhost` adı ve süresi doğru olsa da Android Chrome ona kendiliğinden güvenmez.
+Flutter'ın `API_DEV_CERT_BASE64` güveni harici tarayıcıya aktarılmaz.
+Bu kurulum yalnız geliştirme/test içindir; Windows kullanıcı/makine güven
+depolarını, Android sistem deposunu veya üretim ayarlarını değiştirmez.
+
+PowerShell **7.5+** ile, yalnız test emülatörü açıkken:
+
+```powershell
+adb devices
+.\setup-local-https.ps1 -EmulatorId emulator-5580 # kendi test cihazı kimliğinizi kullanın
+```
+
+Script yeni paket kurmaz. CA ve `localhost`, `127.0.0.1`, `::1` SAN'lı sunucu
+sertifikasını `$env:LOCALAPPDATA/SmartNutrition/browser-https` altında hazırlar.
+CA anahtarı Windows DPAPI/CurrentUser ile şifrelenir; dizin erişimi mevcut
+kullanıcı ve SYSTEM ile sınırlıdır. Sunucu özel anahtarı da bu dizinde kalır.
+Dosyaları, özellikle anahtarları Git'e veya başka cihaza kopyalamayın.
+Tekrar çalıştırma aynı CA'yı kullanır; sunucu sertifikası son yedi gününe
+girdiyse yenilenir (180 gün geçerli). CA iki yıl geçerlidir; CA değişimi
+Android'de yeniden güven onayı gerektirir.
+
+Emülatöre **yalnız açık CA** `/sdcard/Download/smart-nutrition-dev-ca.crt`
+olarak kopyalanır. Android Ayarlar aramasında **CA certificate** / **CA sertifikası**
+bulun: Güvenlik ve gizlilik → Diğer güvenlik ve gizlilik → Şifreleme ve kimlik
+bilgileri → Sertifika yükle → CA sertifikası. Android'in CA yükleme uyarısını
+onaylayıp Downloads içindeki bu dosyayı seçin; cihaz PIN'i istenirse cihaz sahibi
+girmelidir. Bu, Chrome sertifika uyarısını atlamak değildir: sonraki TLS
+bağlantısı gerçek CA zinciri, süre ve hostname doğrulamasından geçer.
+Yalnız test AVD'sine yükleyin; fiziksel/kişisel telefona kurmayın.
+Android'in standart yükleme/kaldırma yolu için
+[Google'ın sertifika talimatları](https://support.google.com/pixelphone/answer/2844832) izlenebilir.
+Görünen CA SHA-256 değerini dosyayla karşılaştırabilirsiniz:
+
+```powershell
+Get-FileHash "$env:LOCALAPPDATA/SmartNutrition/browser-https/root-ca.crt" -Algorithm SHA256
+.\start.ps1
+```
+
+Başlatıcı bu CA dosyalarını bulduğunda Node'un mevcut yerleşik HTTPS modülüyle
+yalnız `127.0.0.1:5174` üzerinde Android geçidini açar. Akış şöyledir:
+
+```text
+Android Chrome https://localhost:5173
+  -> adb reverse tcp:5173 tcp:5174
+  -> yerel CA imzalı HTTPS geçidi (127.0.0.1:5174)
+  -> sertifikası doğrulanan mevcut Vite HTTPS (localhost:5173)
+  -> mevcut API HTTPS proxy'si (localhost:7099)
+```
+
+Bilgisayar Chrome'u mevcut Vite/.NET sertifikasını kullanmaya devam eder.
+Telefon tarayıcısındaki origin de `https://localhost:5173` kalır; Host, Origin,
+cookie, CSRF ve MFA davranışları değiştirilmez. JWT URL'ye eklenmez.
+API tüneli `tcp:7099 -> tcp:7099` olarak korunur. CA dosyaları yoksa başlatıcı
+önceki doğrudan `tcp:5173 -> tcp:5173` yolunu kullanır; tarayıcı güveni yine
+ayrıca gerekir. Farklı hedefe bağlı mevcut tünel otomatik değiştirilmez;
+`adb -s emulator-5580 reverse --list` ile sahibini/hedefini kontrol edin.
+
+Doğrulama için Flutter giriş ekranında **Diyetisyen hesabı için başvur**, ardından
+**Web Sitesine Git** seçilir.
+Android Chrome başvuru formunu uyarısız göstermeli; `chrome-error://` veya
+`NET::ERR_CERT_AUTHORITY_INVALID` başarı sayılmaz. AVD sıfırlanırsa kullanıcı
+CA'sı da silinir; açık sertifikayı tekrar yükleyin. Windows'a CA eklemeyin,
+Chrome güvenlik bayrağı/TLS atlama veya HTTP kullanmayın.
+
+Geri alma: `Ctrl+C` ile başlatıcıyı durdurun. Android Ayarlar → Güvenilir kimlik
+bilgileri → Kullanıcı bölümünden yalnız **Smart Nutrition Local Development CA**
+kaydını kaldırın (tüm kimlik bilgilerini temizlemeyin). Downloads'taki açık CA
+dosyasını silebilirsiniz. `browser-https` dizinini farklı adla saklamak başlatıcıyı
+önceki doğrudan web yoluna döndürür. Normal AVD verileri ve diğer sertifikalar korunur.
+
+## Mevcut repo düzeni
+```text
+smart-nutrition-platform/
+├── AGENTS.md
+├── README.md
+├── docs/
+├── apps/web/        # React + TypeScript
+├── backend/         # ASP.NET Core / C#, PostgreSQL ve testler
+└── mobile/          # Flutter / Dart; Mert'in alanı
+```
+Çalıştırma ve doğrulama adımları [web](../../../apps/web/README.md), [backend](../../../backend/README.md) ve [mobil](../../../mobile/README.md) belgelerindedir. Ayrı AI servisi henüz yoktur; ihtiyaç olduğunda Python/FastAPI kullanılması onaylıdır. Yeni paketler/klasörler ihtiyaç oldukça eklenir; feature-based yapı korunur.
+
+## İki geliştiricili çalışma
+1. Her geliştirici önce kökteki [`AGENTS.md`](../../../AGENTS.md) dosyasını okur.
+2. **Aynı isimler** için [`docs/04_NAMING_CONVENTIONS.md`](04_NAMING_CONVENTIONS.md), **aynı veri şeması** için [`docs/05_DATA_DICTIONARY.md`](05_DATA_DICTIONARY.md), **aynı API** için [`docs/06_API_CONTRACT.md`](06_API_CONTRACT.md) temel alınır.
+3. Ortak uzak depo `mertaliserbet/smart-nutrition-platform`, entegrasyon dalı `main`dir. 29.10.2026 kullanıcı kararıyla **Mert doğrudan yerel `main` üzerinde çalışır**; açıkça istenmedikçe onun için yeni dal veya PR açılmaz. **Uğur güncel ortak `main`den görev dalı açar, kendi fork'una push eder ve ortak `main`e PR gönderir**; ortak `main`e doğrudan push yapmaz. Uzak depo adları URL üzerinden doğrulanır; Mert'in bu checkout'unda ortak depo `origin`, Uğur'un belgelenmiş düzeninde ortak depo `upstream`, fork `origin`dir. Ayrıntılı ve güncel kurallar [`AGENTS.md`](../../../AGENTS.md) içindedir.
+4. Görevler küçük commitlere bölünür; değişiklik özeti + test sonucu verilir. Görev ve push/PR öncesi ortak `main` kontrol edilir; aynı dosyaya paralel yazılmaz, force push yapılmaz. Ayrıntılar [`ekip planında`](12_TEAM_PLAN_AND_DECISIONS.md) yer alır.
+5. Sözleşme değişikliği iki geliştirici tarafından onaylanır ve tek ortak commit ile gerçekleştirilir. Mevcut PR'ları birleştirme/kapatma ve eski dalları silme ayrıca açık kullanıcı talimatı gerektirir.
+6. Dal, commit/PR başlığı, dosya, klasör ve modül adlarında geliştirme aracının adı kullanılmaz; amaç ve proje kavramları esas alınır.
+
+Mert mobil ve ilgili API'ler; Uğur web, Auth ve ilgili API'ler; AI ortak sorumluluğundadır. Ayrıntılı modül liderliği `12`de teyit edilir. `04/05/06`daki açık parçalar için her istemci ayrı DTO/endpoint üretmez; ilgili geliştirme öncesi ortak onay gerekir.
+
+## Dokümantasyon
+| Belge | Konu |
+|---|---|
+| [01](01_PROJECT_SCOPE.md) | Ürün kapsamı ve özellik öncelikleri |
+| [02](02_ROLES_AND_WORKFLOWS.md) | Roller, kullanıcı akışları, diyetisyen süreçleri |
+| [03](03_SYSTEM_ARCHITECTURE.md) | Sistem bileşenleri, onaylı teknolojiler ve açık mimari ayrıntılar |
+| [04](04_NAMING_CONVENTIONS.md) | **Kanonik isimlendirme kuralları** |
+| [05](05_DATA_DICTIONARY.md) | **Entity ve alan sözlüğü** |
+| [06](06_API_CONTRACT.md) | **Ortak HTTP/JSON API sözleşmesi** |
+| [07](07_MOBILE_SPEC.md) | Danışan mobil uygulaması |
+| [08](08_WEB_SPEC.md) | Diyetisyen ve admin web paneli |
+| [09](09_DESIGN_SYSTEM.md) | Premium UI/UX kuralları |
+| [10](10_AI_SPEC.md) | Besin görseli ve laboratuvar analizi |
+| [11](11_SECURITY_AND_RELEASE.md) | KVKK, test, kalite ve yayın öncesi kontroller |
+| [12](12_TEAM_PLAN_AND_DECISIONS.md) | Görev sahipliği, yol haritası, karar kaydı |
+
+**Geliştirme ilkesi:** Hedef gerçek ürün kalitesi olsa da tüm özelliklerin ilk sunuma yetiştiği varsayılmaz. MVP ve araştırma özellikleri ayrıdır.

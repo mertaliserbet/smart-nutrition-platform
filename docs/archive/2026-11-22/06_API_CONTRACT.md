@@ -1,0 +1,1196 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
+# 06 — HTTP API ortak sözleşmesi
+
+## 19.11.2026 — U4 diyetisyen su okuması ve M4 izni
+
+U4 kullanıcı uygulama onayıyla bağımsız water_logs kategorisi ve gerçek salt
+okunur uzman yolları uygulanır. Kendi WaterLog CRUD/toplam ve hedef API'leri korunur.
+Normatif DTO/izin/örnek/hata ve mobil açılım notu: [21_WATER_LOG_SHARING_CONTRACT.md](21_WATER_LOG_SHARING_CONTRACT.md).
+
+| Yol | İstek / yanıt |
+|---|---|
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs` | page/pageSize zorunlu, from/to opsiyonel açık-offset instant; 200 `{items:WaterLog[],totalCount}`; consumedAt DESC/id ASC |
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs/daily-total` | zorunlu from/to ardışık yerel 00:00 açık-offset instant; 200 `{from,to,totalAmountMl}`; UTC sınırlar, decimal mL |
+| `GET /api/v1/dietitian/clients/{clientId}/water-logs/daily-history` | page/pageSize/from/to/timeZone zorunlu; IANA/UTC bölgesiyle uyuşan 00:00 sınırları, 1–31 yerel gün; 200 `{items:WaterLogDailyTotalResponse[],totalCount}`; gün ASC, totalCount gün sayısı |
+
+Mevcut sayfa 1+/boyut 1–100/int32 offset ve no-body/tekil-bilinen query kuralları
+geçerlidir. from dahil/to hariç, soft delete/başka danışan toplam dışı, yetkili boş
+gün 0. History her ara günün gerçek timezone sınırını üretir; 22–26 saatlik DST
+aralıkları desteklenir; belirsiz/atlanmış gece yarısı/uyumsuz offset/zone/limit 400.
+Tek gün yolu mevcut kendi su toplamı sınır kuralını aynen kullanır; IANA tahmin etmez.
+
+W2 uzman cookie veya mevcut JWT uzman bağlamı; güncel doğrulanmış uzman + kendi
+active ilişkisi + aynı ilişkide açık water_logs her istekte veriyle aynı snapshot.
+İzin eksik/false veya uzman doğrulaması kayıp 403; yabancı/pending/ended ilişki
+404; Admin MFA erişim vermez. Kayıt değiştirme yetkisi yok, yanıt/hata no-store.
+Kişisel su hedefi yok; nutrition_plans/meal_logs/body_measurements/client_tasks
+izinleri değiştirilmez ve suyu açmaz. Ondalık toplam kapasite aşımı 422, altyapı
+hatası 500; hatalarda toplam/sayı verilmez. Diğer ortak hata kodları korunur.
+
+İzin mevcut POST/PATCH/liste/detay sözleşmesidir: danışan aktif kendi ilişkisinde
+POST `{relationshipId,category:"water_logs",isGranted:true}` →201 izin DTO;
+PATCH `/{dataSharingPermissionId}` `{isGranted:false}` →200. Aynı kategori ikinci
+POST 409, dolu consentRecordId 422, uzman yazması 403. `WaterLogsEnabled=false`
+varsayılanı yeni POST/PATCH true'yu 422 yapar; mevcut PATCH false mümkündür.
+M4'ün kategori/çoklu satır ayrıştırıcısı ortak main'de doğrulanınca ortamda açılır.
+
+## 18.11.2026 — U1 görev API'si (uygulama onaylı)
+
+Kullanıcı U1 ürün ve teknik kararlarını onaylı kabul edip uygulamayı istedi.
+Kanonik ClientTask ve mevcut kaynak yolları korunur; geçmiş yolu aynı kaynağa
+eklenir. Aşağıdaki bölüm önceki görev AÇIK ŞEMA notlarının yerini alır.
+
+Tüm yollar `/api/v1/client-tasks` tabanındadır. JWT veya W2 web cookie kabul
+edilir; iki kimlik birlikte 400. Mevcut X-Profile-Context kuralları geçerlidir;
+çift profilli hesap mobilde client/dietitian bağlamını açık seçer, web yalnız
+uzman bağlamıdır. Admin/MFA sağlık görevi erişimi vermez. Web yazmaları geçerli
+Origin ve oturuma bağlı CSRF ister; bearer yazmasına CSRF eklenmez. Yanıtlar,
+hatalar dahil no-store; ortak hata zarfı korunur.
+
+| Method + ek yol | Request | Response |
+|---|---|---|
+| `GET` | Zorunlu page>=1, pageSize=1..100; diyetisyende ayrıca zorunlu clientId=ClientProfile UUID. Danışan clientId göndermez; kapsam kimliğindendir | `200 { items: ClientTaskResponse[], totalCount }`; yalnız yetkili küme, createdAt DESC/id ASC. Yetkili boş liste 200 |
+| `GET /{clientTaskId}` | Gövde/query yok | `200 ClientTaskResponse` |
+| `POST` | `CreateClientTaskRequest`: zorunlu clientId: uuid, description: string; isteğe bağlı dueAt: offsetli ISO instant veya null (yoksa null). Başka alan alınmaz | `201 ClientTaskResponse`, Location=`/api/v1/client-tasks/{id}`. Oluşturma doğrudan atamadır; atayan ve özgün ilişki sunucudan, pending/version=1/reminder=false |
+| `PATCH /{clientTaskId}` | `PatchClientTaskRequest`: zorunlu expectedVersionNumber: pozitif integer; en az bir description/dueAt/status/isReminderEnabled. Alan yetkileri aşağıdadır | `200 ClientTaskResponse`; gerçek değişiklikte sürüm+1/geçmiş. Aynı açık değer no-op, sürüm artmaz; eski sürüm 409 |
+| `GET /{clientTaskId}/versions` | Zorunlu page/pageSize, aynı sınırlar; başka query/gövde yok | `200 { items: ClientTaskVersionResponse[], totalCount }`; versionNumber DESC; güncel görevle aynı erişim |
+
+ClientTaskResponse tam ve düz alanları: `id`, `clientId`, `dietitianId`,
+`relationshipId`, `description`, `status`, `dueAt`, `isReminderEnabled`,
+`createdAt`, `updatedAt`, `versionNumber`. dueAt anahtarı daima vardır,
+bilinmiyorsa null; zamanlar UTC'dir. ClientTaskVersionResponse tam alanları:
+`id`, `clientTaskId`, `versionNumber`, `createdAt`, `snapshot` (o sürümün tam
+ClientTaskResponse'u). recordedByUserId dahili kalır. Tamamlama zamanı ilk
+completed snapshot'ının createdAt değeridir. Geçmiş satırları değişmez.
+
+- Açıklama kırpılır; 1–2000 Unicode kod noktası, boş/NUL metin 422.
+  dueAt kesin zaman, isteğe bağlı; gün veya ofsetsiz tarih 400. Oluşturma ve
+  gerçek tarih değişikliği anında gelecekte olmalı, aksi 422. Mevcut son tarih
+  geçmiş olsa da geç tamamlama mümkündür; overdue ayrı status değildir.
+- Danışan yalnız status ve isReminderEnabled yazar. pending→in_progress veya
+  completed; in_progress→completed. Geri geçiş 409; danışanın cancelled isteği
+  403. Diyetisyen açık görevde description/dueAt yazar veya cancelled yapar;
+  danışan adına ilerletme/tamamlama ve hatırlatma tercihi yazma 403.
+  completed/cancelled görevde PATCH 409 (aynı değer dahil), yeniden açma yoktur.
+- isReminderEnabled varsayılan false; yalnız danışanın tercihidir. dueAt yokken
+  true 422; dueAt kaldırılınca false olur. Bildirim/teslim/zamanlama API'si,
+  worker veya teslim garantisi yoktur; true yanıtı teslim vaadi değildir.
+- PATCH gönderilmeyen alanı korur; null yalnız dueAt'i temizler. Zorunlu
+  değişiklik alanına null 422, yanlış JSON tipi 400, bilinmeyen status 422.
+  Yalnız expectedVersionNumber/boş gövde, eksik önkoşul, salt okunur/ek alan,
+  query çoğaltma/ek query ve GET gövdesi 400. Hatalı tür/içerik 415; yazma
+  gövdesi en çok 32768 byte (413). Sunucu alanları/hedef/atayan değiştirilemez.
+- Diyetisyenin her işleminde güncel onaylı uzman + özgün active ilişki +
+  bağımsız client_tasks izni + atayan sahipliği gerekir. Mevcut ilişkide izin
+  eksik/false 403; başka danışan/atayan veya bitmiş/pending/başka ilişki 404.
+  Danışanın kendi liste/detay/geçmişi ilişki/izinden bağımsızdır. Diyetisyende
+  clientId verilmemesi/boş olması ve danışanda gönderilmesi 400; POST'ta boş hedef UUID 422.
+- İzin geri çekme diyetisyenin yeni erişimini kapatır, görevi değiştirmez;
+  danışan kendi görev durum/tercihini yönetebilir. İlişki sonu açık görevleri
+  aynı transaction'da cancelled yapıp geçmiş ekler. Yeni ilişki, aynı uzmanla
+  kurulsa bile eski görevleri o uzmana açmaz. Tamamlanmış görev korunur.
+- İzin mevcut `/api/v1/data-sharing-permissions` POST/PATCH yollarıyla,
+  category=`client_tasks`, consentRecordId=null olarak yalnız danışanca yönetilir.
+  İzin yoksa kapalı; program/öğün/ölçüm izni görev izni değildir. Yeni izin
+  yaratma (false dahil) ve true yapma `Relationships:Sharing:ClientTasksEnabled`
+  varsayılan false nedeniyle mobil uyum doğrulanana kadar 422'dir. Kapalı ayar
+  mevcut satırı gizlemez, false ile geri çekmeyi veya verilmiş izni yok saymaz.
+- Yazma işleminde mevcut User→ClientProfile→görev kilit sırası kullanılır;
+  izin/ilişki kilit beklemesinden sonra tekrar kontrol edilir. PATCH önkoşulu
+  görev kilidi altında denetlenir; eşzamanlı aynı sürümden biri 200, diğeri 409.
+  İstemci 409'da güncel kaydı okuyup kullanıcı düzenlemesini tekrar değerlendirir;
+  otomatik overwrite/retry yapılmaz. İçerik/geçmiş/ilişki iptali atomiktir.
+  Okumalar yetki/sayı/sayfa için aynı RepeatableRead snapshot'ını kullanır;
+  iptalden önce başlayan yetkili okuma tamamlanabilir, sonraki istek reddedilir.
+
+Flutter M2 ve React U2 bu teslimin dışındadır. Migration
+`20261118204842_AddClientTasks` uygulama DB'sine otomatik uygulanmaz.
+
+## 18.11.2026 — Onaylı öğün yorumu ve danışan yanıtı
+
+Kullanıcı model/DTO, metin sınırı, tek seviyeli yanıt ve geçmiş erişimini
+açıkça onayladı. Aşağıdaki sözleşme önceki yorum taslağının yerini alır.
+
+- `GET /api/v1/meal-logs/{mealLogId}/comments?page=1&pageSize=10`:
+  200 `{ items, totalCount }`; zorunlu page>=1, pageSize 1–100. createdAt/id
+  artan, düz sayfalı liste; yanıttaki parentCommentId kök yorumu gösterir.
+  Başka/tekrarlı query, Int32 offset taşması veya GET gövdesi 400.
+- `POST /api/v1/meal-logs/{mealLogId}/comments`: JSON yalnız zorunlu `text`
+  ve isteğe bağlı/null `parentCommentId`. Kök için null/atlanmış; yanıt için
+  aynı öğünün kök yorum ID'si. Yazar/clientId/zaman istemciden kabul edilmez.
+  Başarı 201, gövde `MealLogCommentResponse`; ayrı detay rotası yoktur.
+  Her kaydın alanları id/mealLogId/authorUserId/text/createdAt/parentCommentId;
+  null parent alanı atlanmaz. Kimlikler ve UTC zaman sunucudan gelir.
+- Metin kırpıldıktan sonra 1–2000 Unicode skaler karakter; boş/null/NUL/uzun
+  metin ve boş parent UUID 422. Eksik text/bozuk JSON/tip/ek alan/query 400.
+  Aynı öğünde olmayan veya bulunmayan ebeveyn 404; yanıta yanıt 422.
+- Mevcut JWT ve uzman W2 cookie oturumu; profil bağlamı client/dietitian.
+  Cookie yazımları HTTPS, doğru Origin ve oturuma bağlı CSRF gerektirir;
+  cookie danışan bağlamı açmaz. Header tek başına yetki vermez; Admin 403.
+  Kök yorumu yalnız onaylı diyetisyen, yanıtı yalnız öğünün sahibi danışan
+  oluşturur; aksi rol/işlem 403. Bir köke birden fazla danışan yanıtı olabilir.
+- Danışan kendi geçmişini okur/yanıtlar; bu hak ilişki veya paylaşım iznine
+  bağlı değildir. Diyetisyen hem okuma hem yazmada onaylı profil, aktif ilişki
+  ve aynı ilişkinin açık meal_logs iznine ihtiyaç duyar. İzin geçmiş yorumları
+  da kapsar; kategori için ayrı/otomatik izin oluşturulmaz. İzin yoksa 403;
+  yabancı/olmayan/silinmiş öğün veya ilişkisiz diyetisyen 404. Yetkisiz oturum
+  401; ortak error/requestId ve no-store korunur. İçerik hatalara/loga konmaz.
+- GET'te aktör/öğün/ilişki/izin/sayım/liste aynı repeatable-read snapshot'ında
+  okunur; başlamış okuma bitebilir, iptal commit'inden sonraki okuma kapanır.
+  POST aktör/danışan/öğün kilitleriyle izin iptali/ilişki bitişi/öğün silmeyle
+  sıralanır; bekleme sonrası güncel yetki yeniden denetlenir.
+- Düzenleme/silme, ayrı detay, bildirim veya genel sohbet eklenmez. Aynı kaynağa
+  PATCH/DELETE 405'tir. İstemciler yazmayı otomatik tekrarlamamalıdır.
+
+## 18.11.2026 — K1–K4 seçilen sürümle günlük tüketim karşılaştırması
+
+Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
+
+`GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison?from=...&to=...`
+
+- Başarı 200 NutritionPlanMealComparisonResponse; tüm alan/tip ve hesaplar
+  `05`in K1–K4 bölümündedir. nutritionPlanVersion mevcut sürüm DTO'sudur;
+  nullable caloriesDifferenceKcal yanıtta atlanmaz. Ham öğün listesi dönmez.
+- from/to zorunlu, tek değerli, açık offsetli ISO 8601; `+` URL'de encode
+  edilir. Yerel saatleri 00:00, yerel tarihleri ardışık ve from<to gerekir.
+  Offsetler farklı olabilir (23/25 saatlik gün). date başlangıcın offsetli
+  takvim tarihidir; sunucunun yerel/UTC günü kullanılmaz. Yanıttaki from/to
+  UTC instant'tır. Aralık `[from,to)`; iki sınırdaki offset istemcinin açık
+  seçimidir, danışanın kayıtlı saat dilimi anlamına gelmez. Bu dilim genel
+  hesap saat dilimi/ayar modelini kapatmaz; mevcut su günlük toplamıyla aynı
+  sınır doğrulamasını kullanır.
+- UUID'ler ve versionId'nin bu programa ait olması gerekir. Query'de başka
+  alan, tekrar, eksik/bozuk sınır veya GET gövdesi 400. Snapshot tarih
+  aralığı dışında geçerli gün veya sayısal toplamın decimal sınırını aşması
+  422; yok/yabancı program veya sürüm 404. Diğer yöntemler desteklenmez.
+- Mevcut JWT veya W2 cookie/profil bağlamı. Danışan kendi programı/tüketimini
+  diyetisyen ilişkisi olmadan okur. Web cookie danışan profili açmaz. Admin
+  MFA ile bile okuyamaz. Doğrulanmış diyetisyen yalnız aktif ilişkiyle ve
+  **aynı ilişkinin nutrition_plans ve meal_logs izinlerinin ikisi de açıkken**
+  okuyabilir. İzin eksikliği 403; ilişkisiz/yabancı kaynak varlık açıklamayan
+  404. İzinlerden biri kapalıyken kısmi plan/hedef/tüketim/sayım dönmez.
+- Aktör, ilişki/iki izin, snapshot ve agregasyon aynı PostgreSQL repeatable-read
+  transaction'ında okunur. Başlamış okuma snapshot'ında bitebilir; izin geri
+  çekme commit'inden sonra başlayan yeni okuma reddedilir. no-store ve ortak
+  error/requestId; gizli program/öğün içeriği hata/loga yazılmaz.
+- Program/sürüm açık seçilir; draft/active/archived okunabilir sürümlerde aynı
+  yetki geçerlidir. Eski bir tarihte bu sürümün aktif olduğu ileri sürülmez.
+  Uyum yüzdesi, otomatik kalem eşleştirme, kişisel hedef veya su okuması yoktur.
+  Diğer program/öğün yolları, bağımsız izinleri ve gövdeleri değişmez.
+
+Flutter aynı yolu kullanabilir; yeni mobil ekran bu Uğur backend/React
+tesliminin dışındadır. Her iki checkout bu sözleşme ortak main'e girdikten
+sonra eşitlenir. Genel uyum formülü/tarihsel aktivasyon açık notları, bu
+onaylı seçili sürüm karşılaştırmasını geri açmaz.
+
+## 18.11.2026 — M1–M4 diyetisyenin gerçek ölçüm okuması
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini
+istedi. Aşağıdaki alt kapsam, önceki yalnız kendi ölçümü/notları ve açık kategori
+ifadelerinin diyetisyen okumasına ilişkin kısmını tamamlar; kendi CRUD korunur.
+
+`GET /api/v1/dietitian/clients/{clientId}/body-measurements`: gövdesiz; zorunlu
+page ≥ 1/pageSize 1–100, isteğe bağlı from/to ve sortOrder=asc/desc. Başka/tekrarlı query, Int32 offset
+taşması ve bozuk/ofsetsiz/boş tarih 400. Web açıkça pageSize=10 gönderir.
+measuredAt için `[from,to)`; iki sınır varsa from < to. Varsayılan measuredAt azalan,
+eşitlikte id artan. Kullanıcının birleştirme kararıyla sortOrder=asc, grafikler
+için measuredAt/id artan kronolojik okumayı destekler; ayrı grafik endpointi yoktur.
+
+Başarı `200 { items, totalCount }`; her item kendi ölçüm CRUD yanıtındaki tam
+id/clientId/measuredAt/weightKg/waistCm/hipCm/chestCm/bodyFatPercent/note/source
+alanlarıdır. Not dahil mevcut nullable değerler korunur. Silinmiş/yabancı satır
+ve sayılar dönmez. Yetkili boş küme items=[]/totalCount=0 olur; izin reddi veya
+altyapı hatası boş kümeye çevrilmez. Günlük özet/grafik/BMI alanı eklenmez.
+
+Mevcut W2 HTTPS cookie veya JWT; her okumada güncel doğrulanmış hesap, onaylı
+DietitianProfile, aktif ilişki ve aynı ilişkide açık `body_measurements` izni
+denetlenir. Onaylı çift profil temel client rolüyle kabul edilir; web uzman
+bağlamındadır. X-Profile-Context tek başına yetki vermez. Oturumsuz 401;
+uygun olmayan/onaysız uzman veya Admin 403; yabancı/olmayan danışan veya aktif
+olmayan ilişki 404; kendi aktif ilişkisinde eksik/false ölçüm izni 403.
+Kimlik/ilişki/izin/sayım/satırlar aynı PostgreSQL snapshot'ındadır. Commit edilmiş
+izin iptali/ilişki bitişinden sonra başlayan okuma kapanır. Ortak hata zarfı,
+no-store ve sağlık değerlerini loglamama korunur. Diyetisyen ölçüm yazamaz;
+danışanın kendi okuması ilişki/izin şartına bağlanmaz.
+
+Mevcut `/data-sharing-permissions` POST/PATCH/GET yolları bu kategoriye de
+uygulanır; alan ve sahiplik kuralları aynı, consentRecordId yalnız null/atlanmış.
+nutrition_plans/meal_logs/body_measurements birbirini açmaz. Yeni dahili
+`Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam adı
+`Relationships__Sharing__BodyMeasurementsEnabled`. Kullanıcının birleştirme
+kararıyla yalnız Development'ta true etkili olur; Production/Staging'de
+true verilse de yeni satır/PATCH true 422 kalır. Kapalıyken yeni ölçüm izin
+POST'u (true/false) ve PATCH true 422; mevcut satıra PATCH false 200'dür.
+GET mevcut satırları gizlemez/silmez. Bayrak yalnız izin yazma açılımıdır;
+mevcut açık iznin okunmasını engellemez ve danışan onayı yerine geçmez.
+Mobil ayrıştırıcı/kategori/sayfalama uyarlaması ortak main'de doğrulanmadan
+bayrak açılmaz. Bu teslim Flutter'ı değiştirmez; mobil entegrasyon Mert'tedir.
+
+## 18.11.2026 — Danışanın kendi kilo ve vücut ölçümleri
+
+Kullanıcı göreviyle mevcut BodyMeasurement yolları uygulandı. Yalnız JWT
+bearer; sahiplik sub → User → ClientProfile'dan çözülür. `clientId` gövde
+veya query'de kabul edilmez. `X-Profile-Context: client` ve çift profilli
+hesabın kendi danışan bağlamı desteklenir; diyetisyen/Admin/cookie erişimi
+açılmaz. Danışanın kendi erişimi diyetisyen ilişkisine/iznine bağlı değildir.
+
+| İşlem | Sözleşme |
+|---|---|
+| `POST /api/v1/body-measurements` | Zorunlu `measuredAt`, `source: manual`; nullable/opsiyonel `weightKg`, `waistCm`, `hipCm`, `chestCm`, `bodyFatPercent`, `note`. 201 BodyMeasurement + Location |
+| `GET /api/v1/body-measurements` | Zorunlu page ≥ 1/pageSize 1–100; isteğe bağlı açık UTC/ofsetli from/to ve sortOrder=asc/desc (varsayılan desc). Int32 offset taşması, bilinmeyen/tekrarlanan query 400. 200 `{ items, totalCount }` |
+| `GET /api/v1/body-measurements/{bodyMeasurementId}` | Kendi silinmemiş kaydı, 200 BodyMeasurement |
+| `PATCH /api/v1/body-measurements/{bodyMeasurementId}` | Zaman/ölçüm/not alanları; atlanan korunur, nullable açık null temizlenir. measuredAt null ve son ölçümün temizlenmesi 422; boş nesne 400. source/kimlik/sahiplik değiştirilemez |
+| `DELETE /api/v1/body-measurements/{bodyMeasurementId}` | Gövdesiz, mantıksal silme; boş 204. Sonraki GET/PATCH/DELETE 404 |
+
+Yanıt `id`, `clientId`, `measuredAt`, `source` ve tüm nullable ölçüm/not
+alanlarını içerir; null sıfıra dönüştürülmez. En az bir ölçüm zorunludur;
+kg/cm > 0, bodyFatPercent 0–100, not en çok 2000 Unicode karakter ve NUL
+içeremez. Geçersiz değer 422; yanlış JSON türü/alanı veya ofsetsiz tarih
+400; ortak hata zarfı korunur. Tüm değerler decimal/numeric'tir; yeni bir
+klinik üst sınır veya yuvarlama kuralı seçilmez. Bu aşamada yalnız manual
+kaynak oluşturulur; giyilebilir/AI senkronizasyonu uygulanmış sayılmaz.
+
+Tarih filtresi measuredAt üzerinde `[from,to)`; ikisi varsa from < to.
+UTC mikro-saniye saklanır. Varsayılan measuredAt azalan, eşitlikte id artan;
+grafikler `sortOrder=asc` ile measuredAt/id artan sayfaları tüketir. Ayrı
+grafik endpointi veya günlük toplam yoktur. Sayım ve satırlar aynı PostgreSQL
+snapshot'ından gelir. PATCH/DELETE aynı kayıt satırını kilitler. Silinen
+kayıt normal okumalardan çıkar; kalıcı saklama/purge politikası belirlenmez.
+Başka danışanın kayıtları 404, oturumsuz 401, uygun olmayan profil 403;
+yanıtlar no-store'dur. Diyetisyen paylaşım kategorisi/rotası bu teslimde açılmaz.
+
+## 17.11.2026 — Danışanın kişisel günlük beslenme hedefleri
+
+Kullanıcının doğrudan backend göreviyle kişisel hedefler NutritionPlan'dan
+bağımsız yönetilir. Yalnız JWT bearer; kimlik sub → User → ClientProfile
+ile belirlenir. X-Profile-Context: client desteklenir; başlıksız mevcut hesap
+bağlamı korunur. Çift profilli hesap client bağlamıyla kendi hedeflerine erişir.
+Diyetisyen bağlamı/ClientProfile'sız hesap 403, bozuk/çoklu bağlam başlığı 400,
+oturumsuz/bozuk/iptal edilmiş kimlik 401'dir. Cookie tek başına yetki vermez.
+Mevcut Auth/refresh/web oturumu, ilişki ve paylaşım kuralları değiştirilmez.
+
+| Endpoint | İstek / sonuç |
+|---|---|
+| `GET /api/v1/personal-nutrition-targets` | Gövdesiz/query'siz; 200 PersonalNutritionTargetResponse. Henüz kayıt yoksa beş hedef null; GET DB'ye yazmaz |
+| `PATCH /api/v1/personal-nutrition-targets` | Kendi tek kaynağı için kısmi upsert; ilk geçerli istek oluşturur, sonraki günceller. Her ikisinde 200 güncel PersonalNutritionTargetResponse |
+
+PATCH yalnız bağımsız, isteğe bağlı `dailyCaloriesTargetKcal`,
+`dailyProteinTargetGrams`, `dailyCarbsTargetGrams`, `dailyFatTargetGrams`,
+`dailyWaterTargetMl` alanlarını kabul eder. Atlanan korunur (ilk kayıtta null),
+açık null temizler. Bir/beş alanı null göndermek geçerlidir; `{}` 400'dür.
+Yanıt daima bu beş anahtarı ve `source: "personal"` içerir; id/clientId veya
+program hedefi/etkin hedef/gerçek tüketim alanı eklenmez. Bilinmeyen alan,
+source/clientId (null dahil), query, yanlış tür/string sayı, decimal dışı sayı,
+bozuk/eksik gövde 400; JSON dışı içerik 415. Gövde en fazla 4096 byte.
+Bilinen hedef pozitif JSON number/decimal olmalıdır; kalori üst sınırı 10000,
+her makro 1000 g, su 15000 mL. Sıfır/negatif/üst sınır aşımı 422'dir.
+Bu sınırlar beslenme önerisi değildir; otomatik hedef/kalori hesabı yapılmaz.
+Ortak error/requestId ve no-store korunur, hedef değerleri loglanmaz.
+
+**Kaynak ve gelecekte Dashboard gösterim önceliği (alan bazında):**
+
+1. `GET /nutrition-plans/active` yanıtındaki aktif **atanmış** programda
+   (`dietitianId != null`) ilgili kalori/su hedefi tanımlıysa önceliklidir;
+   kaynak etiketi “Diyetisyen programı” olur ve hedef salt okunurdur.
+2. Atanmış program veya ilgili değer yoksa bu API'nin ilgili kişisel değeri
+   kullanılır; etiket “Kişisel hedef”. Mevcut NutritionPlan makro hedefi
+   taşımadığından protein/karbonhidrat/yağ yalnız kişisel kaynaktan gelir.
+3. İki kaynakta da değer yoksa null korunur ve “Henüz hedef belirlenmedi”
+   gösterilir. Yükleniyor/hata, hedef yok olarak yorumlanmaz; kaynak önceliği
+   gerekli okumalar tamamlanmadan kesinleştirilmez.
+
+Bu, alan başına açık kaynak etiketli gösterim kuralıdır; veriler birleştirilip
+tek bir saklanan hedefe çevrilmez. Kişisel hedef PATCH'i atanmış hedefi
+değiştirmez; öncelikli hedefin farklı olması kişisel değeri silmez. Aktif
+**kişisel NutritionPlan** (`dietitianId == null`) hedefleri program ekranında
+ayrıca gösterilir; bu genel kişisel hedeflere sessizce kopyalanmaz/öncelik verilmez.
+Bu uç yalnız kişisel kaynağı döndürür; Dashboard çözümleyicisi ve mobil/web
+entegrasyonu bu backend görevinin dışındadır. Diyetisyen okuma/paylaşım
+kategorisi eklenmez. Önceki programsız/makro hedef saklama AÇIK notları bu
+dilim için tarihsel kalır; öneri hesabı ve program uyum hesabı açık kalır.
+
+## 16.11.2026 — Danışanın manuel su kayıt API'si
+
+Kullanıcının doğrudan backend göreviyle mevcut WaterLog CRUD rotaları ve
+alanları uygulandı; yeni günlük toplam yolu aşağıdadır. Yalnız JWT bearer ve
+sunucunun `sub` → User → ClientProfile çözümlemesi kullanılır. İstemci clientId
+göndermez; gövde/query içindeki sahiplik veya tanımsız alanlar 400'dür.
+X-Profile-Context: client desteklenir; başlıksız mevcut hesap bağlamı korunur.
+Uzman bağlamı/profilsiz hesap 403, bozuk/çoklu bağlam başlığı 400'dür. Çift
+profilli hesap kendi client bağlamını kullanır. Cookie tek başına yetki vermez.
+Mevcut JWT/refresh/Admin MFA/web oturumu davranışı değiştirilmez.
+
+| Endpoint | İstek / sonuç |
+|---|---|
+| `POST /api/v1/water-logs` | Zorunlu `{ amountMl, consumedAt, source }`; source yalnız manual. 201 WaterLog + kendi detay Location'ı |
+| `GET /api/v1/water-logs` | Zorunlu page/pageSize; opsiyonel from/to. 200 `{ items, totalCount }` |
+| `GET /api/v1/water-logs/{waterLogId}` | Gövdesiz/query'siz kendi silinmemiş kaydı; 200 WaterLog |
+| `PATCH /api/v1/water-logs/{waterLogId}` | Yalnız amountMl/consumedAt; atlanan korunur. Boş nesne 400, açık null 422. 200 güncel WaterLog |
+| `DELETE /api/v1/water-logs/{waterLogId}` | Gövdesiz/query'siz; mantıksal silme, boş 204. Tekrar erişim/silme 404 |
+| `GET /api/v1/water-logs/daily-total` | Zorunlu from/to gün sınırları; 200 `{ from, to, totalAmountMl }` |
+
+WaterLog yanıtı tam olarak id/clientId/amountMl/consumedAt/source içerir.
+Miktar JSON number ve pozitif decimal/mL'dir; sıfır/negatif 422, bozuk sayı,
+string sayı, eksik zorunlu alan, bozuk tarih/enum 400. POST/PATCH gövde sınırı
+4096 byte'tır. POST'ta wearable/ai_assisted 422; PATCH source/id/clientId ve
+diğer salt okunur alanlar 400'dür. Hedef veya öneri hesabı eklenmez.
+
+Liste page ≥ 1, pageSize 1–100; varsayılan yoktur, Int32 offset taşması 400'dür.
+Sıra consumedAt azalan/id artan; filtre sıralama ve sayfalama öncesinde uygulanır.
+Sayım ve satırlar aynı DB snapshot'ındadır. Tekrarlı/tanımsız query veya GET
+gövdesi 400'dür. consumedAt/from/to mevcut açık Z veya ±HH:mm ofsetli ISO 8601
+kuralını kullanır. Listede from dahil/to hariç; iki sınır varsa from < to.
+Boş, geçersiz veya ofsetsiz tarih/aralık 400'dür.
+
+Günlük toplamda from, seçilen yerel günün 00:00 anı; to, ertesi yerel günün
+00:00 anıdır. Her ikisi zorunlu ve açık ofsetlidir; takvim tarihleri ardışık,
+yerel saatleri 00:00 ve UTC'de from < to olmalıdır. UTC/ofset değerleri doğrulanır;
+bir IANA bölgesinin kurallarını tahmin/tespit etme veya ofsetlerin o bölgeye ait
+olduğunu kanıtlama yapılmaz. İstemci doğru gün sınırlarını gönderir. Farklı
+ofsetler sayesinde 23/25 saatlik günler desteklenir; varsayılan sunucu/cihaz
+saat dilimi yoktur. Yanıt sınırları UTC'dir; toplam sayfalardan bağımsızdır,
+silinmiş/başka danışana ait kayıtları içermez; kayıt yoksa totalAmountMl=0.
+.NET decimal kapasitesini aşan toplam 422'dir; kısmi sonuç verilmez.
+
+Örnek: seçilen 19 Kasım günü için
+`from=2026-11-19T00:00:00%2B03:00&to=2026-11-20T00:00:00%2B03:00`;
+sunucu `2026-11-18T21:00:00Z` dahil / `2026-11-19T21:00:00Z` hariç aralığı
+toplar. URL query'deki `+` işareti `%2B` kodlanmalıdır. Geceyarısının o bölgede
+atlanması/belirsizliği gibi durumlarda istemci açık gün sınırı sağlayamıyorsa
+sunucu sessiz saat dilimi düzeltmesi yapmaz; mevcut 00:00/ardışık gün kuralı
+dışındaki günlük toplam isteği 400'dür. Bu kural yalnız su toplamı dilimidir;
+genel program uyum/saat dilimi kararını değiştirmez.
+
+Tüm uçlar yalnız danışanın kendi verisidir; diyetisyen ilişkisi/kategori izni
+gerekmez. Diyetisyen su okuması, yeni paylaşım kategorisi veya rıza akışı
+eklenmez. Başkasının/olmayan/silinmiş kaydı aynı 404; oturumsuz istek 401'dir.
+Ortak error/requestId, no-store, miktarları loglamama ve 05/11 silme sınırları
+korunur. PATCH/DELETE satır kilidi ve transaction ile atomiktir.
+
+## 16.11.2026 — Danışanın kendi manuel öğün CRUD uygulaması
+
+Kullanıcının doğrudan backend görevi mevcut aşağıdaki MealLog alanlarını ve
+rotalarını uygular; kanonik ad/endpoint/zorunlu alan değiştirilmez. Bu dilim
+yalnız JWT bearer kullanır. Kimlik doğrulanmış `sub` → User → ClientProfile
+üzerinden belirlenir; istemci `clientId` göndermez. `X-Profile-Context: client`
+desteklenir; başlık yoksa mevcut hesap bağlamı korunur. `dietitian` bağlamı
+ve ClientProfile bulunmayan hesap 403; geçersiz başlık 400'dür. Çift profilli
+hesap kendi client bağlamında kullanabilir. Cookie tek başına yetkilendirmez.
+Mevcut JWT süre/sürüm kontrolü, refresh ve web oturumu davranışı değişmez.
+
+| Endpoint | Bu dilimdeki davranış |
+|---|---|
+| `POST /api/v1/meal-logs` | Zorunlu mealType/consumedAt/source/items; nullable note/foodAnalysisId. Başarı 201 MealLog + Location |
+| `GET /api/v1/meal-logs` | Zorunlu page/pageSize; page ≥ 1, pageSize 1–100, Int32 offset taşması 400. Opsiyonel from/to; başka query veya tekrarlanan query anahtarı 400. 200 `{ items, totalCount }` |
+| `GET /api/v1/meal-logs/{mealLogId}` | Yalnız kendi silinmemiş kaydı; 200 MealLog |
+| `PATCH /api/v1/meal-logs/{mealLogId}` | mealType/consumedAt/note/items/foodAnalysisId; atlanan korunur, nullable açık null temizler. mealType/consumedAt/items null 422, boş nesne 400. source/sahiplik/kimlik/zaman metadata alanları 400. 200 güncel MealLog |
+| `DELETE /api/v1/meal-logs/{mealLogId}` | Gövdesiz; kendi kaydını normal okumalardan kaldırır, boş 204. Sonraki GET/PATCH/DELETE 404 |
+
+Liste consumedAt azalan/id artan sıralanır; count ve sayfa aynı DB snapshot'ından,
+yalnız kendi silinmemiş/filtrelenmiş kayıtlarından üretilir. from dahil/to hariç;
+ikisi varsa from < to. consumedAt/from/to açık Z veya ±HH:mm ofsetli ISO 8601
+anıdır; eksik ofset/bozuk tarih 400. Zamanlar UTC ve PostgreSQL mikrosaniye
+hassasiyetinde saklanır; yerel gün veya uyum hesabı eklenmez.
+
+Kalem zorunlu alanları displayName/isEstimated; nullable foodItemId/recipeId/
+quantityGrams/caloriesKcal/proteinGrams/carbsGrams/fatGrams'tır. Items 1–100;
+displayName boş olamaz, displayName/note en çok 2000 Unicode kod noktasıdır,
+NUL karakteri kabul edilmez. Bilinen miktar > 0, kcal/makrolar ≥ 0; decimal
+alanlar JSON number olmalıdır. İstek gövdesi en fazla 131072 byte'tır.
+
+Bu manuel dilimde source yalnız manual'dır. Katalog/tarif/AI saklama ve
+yetkilendirmesi henüz olmadığından dolu foodItemId/recipeId/foodAnalysisId
+ve wearable/ai_assisted kaynağı 422 döner; bu sınırlama ilgili entegrasyonun
+onaylandığı veya uygulandığı anlamına gelmez. Nullable anahtarlar yanıtta
+açık null kalır. MealLog ve kalem yanıt alanları aşağıdaki mevcut tabloyla
+aynıdır; yeni summary/hedef/position/deletedAt alanı yoktur.
+
+Başkasının/bulunmayan/silinmiş kaydı aynı 404'ü verir. Sahiplik alanları ve
+tanımsız alanlar 400, alan/bütünlük ihlalleri 422, oturumsuz istek 401'dir;
+ortak error/requestId zarfı ve no-store kullanılır. PATCH kalem yenilemesi
+atomiktir; PATCH/DELETE aynı öğün satırını kilitler. DELETE dahili mantıksal
+silmedir; kalıcı silme/saklama süresi veya KVKK talep süreci bu dilimde
+kesinleştirilmez (`05/11`). Danışanın kendi erişimi diyetisyen ilişkisine,
+paylaşım iznine veya MealLogsEnabled bayrağına bağlı değildir. G1 ve G2/G3
+diyetisyen okuma sınırları korunur; Flutter/web değiştirilmez.
+
+## G1 — Öğün paylaşım izin altyapısı, 07.11.2026 ortak onayı
+
+Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi. Bu bölüm
+R2'nin yalnız nutrition_plans kategori sınırını genişletir; yollar,
+JSON alanları, sahiplik ve W2/JWT güvenlik kuralları korunur.
+G1 öğün okuma/yazma API'sini veya web günlüğünü uygulamaz.
+
+| Mevcut işlem | G1 davranışı |
+|---|---|
+| `POST /api/v1/data-sharing-permissions` | category=nutrition_plans mevcut davranışı; category=meal_logs yalnız kullanım ayarı açıkken kabul edilir. İkisinde consentRecordId yalnız null/atlanmış. Aynı ilişki/kategori tekrarında 409; diğer kategori/dolu consentRecordId 422 |
+| `PATCH /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | Yalnız mevcut isGranted değişir. Kullanım ayarı kapalıyken meal_logs satırına true 422; false geri çekmesi aynı yetkiyle 200 |
+| Mevcut izin GET liste/detay yolları | Aynı alan/yetki korunur. Liste ilişkiye ait birden çok kategori satırı döndürebilir; totalCount filtrelenmiş izin satırı sayısıdır. Kullanım ayarı satırları gizlemez |
+
+POST/PATCH yalnız aktif ilişkinin danışanına aittir; pending/ended 409,
+başka danışanın kaydı 404, diyetisyen yazması 403. Admin kabul edilmez.
+Eksik/false izin erişimi açmaz. İki kategori bağımsızdır; tahlil onayı açılmaz.
+
+Dahili `Relationships:Sharing:MealLogsEnabled` ayarı varsayılan false'tur;
+ortam karşılığı `Relationships__Sharing__MealLogsEnabled`. Kapalıyken yeni
+meal_logs satırı true/false fark etmeksizin 422 olur. Ayar HTTP alanı veya
+danışan izni değildir; true olması otomatik izin sağlamaz. Mert'in tek
+kategori/tek satır bekleyen mobil ayrıştırıcısı çoklu kategori ve sayfalama
+için uyarlanmadan aynı ortamda true yapılmamalıdır. Yeniden false yapmak
+kalan meal_logs satırlarıyla eski mobil sürümü uyumlu hale getirmez; liste
+sözleşmesi istemciye göre değiştirilmez, satırlar gizlenmez veya silinmez.
+
+G1 tek başına diyetisyen öğün okumasını açmaz. G2'nin sonraki backend
+teslimi aşağıdadır; G3 web entegrasyonu ayrıdır. Diğer kategori/yorum/görev/cihaz
+kararları açık kalır.
+
+## 18.11.2026 — G2 diyetisyenin izinli öğün okuması
+
+Kullanıcının doğrudan backend göreviyle `17` G2 liste davranışı uygulandı.
+`GET /api/v1/dietitian/clients/{clientId}/meal-logs`: gövdesiz; zorunlu
+`page`/`pageSize` (1–100), isteğe bağlı açık UTC/ofsetli `from`/`to`.
+Tekrarlanan/bilinmeyen query, Int32 offset taşması ve geçersiz tarih/aralık
+400'dür. `consumedAt` için `[from,to)`; sıra consumedAt azalan, id artan.
+Yanıt mevcut `{ items, totalCount }` ve tüm `MealLog`/kalem detaylarıdır;
+nullable değerler korunur. Kullanıcı kararıyla ayrı detay rotası eklenmez.
+
+Her istekte güncel doğrulanmış hesap ve onaylı DietitianProfile gerekir;
+JWT veya mevcut W2 HTTPS cookie aynı kurallara tabidir. Temel rolü client
+olan onaylı çift profil kabul edilir; profil başlığı tek başına yetki değildir.
+Oturumsuz 401; uygun olmayan/onaysız uzman ve Admin 403; bulunmayan/yabancı
+danışan veya aktif olmayan ilişki 404; kendi aktif ilişkisinde eksik/false
+`meal_logs` izni 403. `nutrition_plans` izni öğün okumasını açmaz.
+Kimlik, ilişki, izin, sayı ve kayıtlar aynı PostgreSQL snapshot'ında okunur;
+tamamlanan izin iptali/ilişki sonlandırma sonrasında başlayan okumalar kapanır.
+Yanıtlar no-store ve hatalar ortak zarftadır. Diyetisyene yazma yetkisi verilmez.
+`MealLogsEnabled` yalnız izin yazma açılımını yönetir; varsayılan false korunur,
+mevcut açık izni gizlemez veya onun yerine geçmez. G3 web entegrasyonu bekler.
+
+
+## Development/Mailpit Admin kodu — 03.11.2026 açık kullanıcı onayı
+
+Bu istisna yalnız yerel sunum/geliştirme içindir; üretim Admin MFA yöntemi
+TOTP/kurtarma kodu olarak korunur. `Auth:AdminEmailCode:Enabled=true`, Development
+ortamı ve loopback SMTP hostu/1025 portu birlikte gerekir; üretimde flag tek başına
+açamaz. Mailpit gerçek kullanıcıya ait ikinci faktör/üretim e-posta servisi değildir.
+
+| İşlem | İstek | Sonuç |
+|---|---|---|
+| `POST /api/v1/auth/admin-email-code` | Mevcut `LoginUserRequest { email, password }`; HTTPS, tam Origin ve CSRF; query/Authorization yok, JSON 4096 byte | Geçerli giriş bilgileri olan uygun hesapta boş `202`; 60 saniyelik aralık ve SMTP hatasında da aynı yanıt. Yanlış parola, bilinmeyen veya uygun olmayan hesap için ortak `401 unauthenticated`. Kod/token/cookie dönmez. Kapalı ortamda `404`; açık web oturumunda `409`; biçim/CSRF `400`, Origin/HTTPS `403`, medya/boyut `415/413`, IP başına 5/dakika aşımında `429` |
+| `POST /api/v1/auth/admin-web-session` | Mevcut `{ email, password, mfaCode }`; yalnız yukarıdaki yerel ortamda mfaCode e-postadaki 6 haneli kod da olabilir | Başarı mevcut `200 CurrentUserResponse` ve korumalı cookie. Yanlış/süresi dolmuş/kullanılmış/5 başarısız denemeyle kilitlenmiş kod aynı `401`. Mevcut login IP limiti/CSRF/Origin/oturum çakışması korunur |
+
+Kod 5 dakika ve tek kullanımlıktır; hesap başına yeniden gönderim 60 saniyedir.
+Eşzamanlı tüketimde tek oturum kazanır; POST otomatik tekrarlanmaz. Yeni kod eskisini
+geçersiz kılar, API yeniden başlatılması bekleyen kodları siler. Gönderim `202`si
+giriş yapıldığı veya e-posta teslimi doğrulandığı anlamına gelmez. DB oturum yazması
+başarısız olursa e-posta kodu tekrar kullanılamaz; kullanıcı yeni kod ister.
+
+E-posta ile açılan cookie sunucunun imzaladığı `developmentAdminEmailCode=true`
+kanıtını taşır. Her cookie doğrulaması, auth/me ve idle güncellemesinde Development
+ve yerel yapılandırma yeniden denetlenir; bu cookie Production/Staging'de veya
+özellik kapatılınca reddedilir. JSON yanıtlarına claim eklenmez. Admin JWT/bearer
+girişleri kapalı kalır; mevcut TOTP/kurtarma kodları ve kurulumları değiştirilmez.
+
+Web girişinde `409` sunucu koruması kaldırılmaz. Kullanıcı açık hesabı `/hesabim`
+üzerinden görür ve CSRF korumalı açık çıkış işlemini seçer; yalnız sunucunun `204`
+yanıtından sonra Admin girişine döner. Başka hesabın oturumu sessizce kapatılmaz.
+
+## Mevcut danışanın aynı hesapla uzman başvurusu — 02.11.2026 onayı
+
+Bu bölüm tek profil/çoklu rol açık notlarının bu alt kapsamını kapatır.
+Tek User.role, JWT ve web cookie biçimleri, login/refresh/me yanıtları korunur.
+Danışanın başvuru ve Admin onayından sonra da temel rolü `client` kalır;
+uzman yetkisi her işlemde güncel onaylı DietitianProfile üzerinden denetlenir.
+
+| İşlem | İstek / sonuç |
+|---|---|
+| `POST /api/v1/dietitians/me/application` | E-postası doğrulanmış danışanın mobil JWT oturumu gerekir (17.11.2026). Query yok, JSON 16 KiB. Zorunlu `displayName`, `licenseInfo` (B1 sınırları). `201 DietitianStatusResponse { id, displayName, isVerified: false }`, id uzman profil UUID'si. Location `/api/v1/dietitians/me`. Yeni User, e-posta doğrulaması veya oturum oluşturulmaz |
+| `GET /api/v1/dietitians/me` | Mevcut client/dietitian JWT veya W2 cookie; yalnız kendi uzman profili (pending dahil), yoksa 404. Mevcut yanıt korunur |
+
+Kimlik JWT'den çözülür. email/password/userId/role/isVerified girdileri 400.
+Eksik, yanlış tipli veya null alan 400, boş veya uzun metin 422 döner. Eksik veya
+geçersiz JWT 401, uygun olmayan rol veya profil 403, cookie ile birlikte JWT 400 döner.
+Pending veya onaylı mevcut profil ve yarışan ikinci başvuru
+409; public başvuru ile ortak IP başına 5/dakika limiti aşılırsa 429. Diğer hatalar
+ortak zarfı kullanır. Public `/dietitians/apply` yeni kullanıcı akışı değişmez;
+kayıtlı e-postanın 409 sonucu mevcut danışan hesabıyla mobil başvuruya yönlendirilir.
+
+**İstek profil bağlamı:** `/dietitian-relationships`, `/data-sharing-permissions`
+ve `/nutrition-plans` kaynaklarının mevcut işlemlerinde isteğe bağlı tek
+`X-Profile-Context` başlığı yalnız `client` veya `dietitian` kabul eder.
+JWT isteklerinde başlık yoksa imzalı temel rol uygulanır. Web cookie istekleri
+`dietitian` bağlamını kullanır ve açık `client` isteği 403 döner. JWT ile `client`
+kendi ClientProfile'ını, `dietitian`
+güncel Admin onaylı DietitianProfile'ını gerektirir; eksik/onaysız profil 403,
+yanlış/çoklu başlık 400. Başlık hesap kimliğini/rolünü değiştirmez ve yetki vermez.
+Web uzman alanı bu ortak uçlarda açıkça `dietitian` bağlamı gönderir.
+`/dietitian/clients` ve `/dietitians/me/invitation-code` zaten uzman işlemleridir;
+temel rol client olsa da onaylı profil şartıyla çalışır. Admin kabul edilmez.
+Aktif ilişki, sahiplik, nutrition_plans izni, CSRF ve veri izolasyonu korunur.
+Kendi iki profili arasında ilişki talebi 422'dir (mevcut aktif ilişki çatışması
+önce denetlenirse 409). Onayın kaldırılması sonraki uzman erişimini kapatır.
+Mevcut danışan kayıtları/ilişkileri ve kendi program erişimi korunur.
+
+## 29.10.2026 N1–N3 ortak onaylı program dilimi
+
+Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Normatif
+istek/yanıt ve yetki kaynağı aşağıdaki **NutritionPlan — kişisel/atanmış
+program sözleşmesi** bölümüdür; eski program şeması açık notları kapanmıştır.
+`04/05` aynı değişiklikte güncellenir. Mobil register/JWT gövdeleri değişmez;
+Mert yeni program alan/yollarını kullanmadan ortak main sürümünü çeker.
+
+## 29.10.2026 R1–R3 ortak onaylı ilişki/paylaşım dilimi
+
+Kullanıcı `15` R1–R3 için ortak onayı teyit etti. Bu bölüm eski davet/kategori
+açık notlarının bu dilimini kapatır; tahlil/diğer sağlık DTO'ları ayrıca
+onaylanır. Program DTO'ları N1–N3 bölümündedir. Yollar `/api/v1` tabanına göredir.
+
+| İşlem | Onaylı gövde/yanıt ve sınır |
+|---|---|
+| `POST /dietitians/me/invitation-code` | Gövde/query yok; doğrulanmış diyetisyen. `200 InvitationCodeResponse { invitationCode, expiresAt }`; 16 büyük Base32, 24 saat, tek kullanım; yeni üretim eskisini iptal eder |
+| `POST /dietitian-relationships` | RelationshipRequest'te dietitianId veya invitationCode'dan tam biri; clientId sunucudan. `201 RelationshipResponse`, status pending; mevcut id/clientId/dietitianId/status/requestedAt/respondedAt/endedAt alanları |
+| `GET /dietitian-relationships` | Kendi ilişkileri; zorunlu page/pageSize, opsiyonel mevcut status. `200 { items, totalCount }`, requestedAt azalan/id |
+| `POST /dietitian-relationships/{relationshipId}/accept` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→active, respondedAt atanır; ikinci aktif 409; aynı active sonucu tekrar 200 |
+| `POST /dietitian-relationships/{relationshipId}/reject` | Gövde/query yok; hedef doğrulanmış diyetisyen. pending→rejected; aynı rejected sonucu tekrar 200 |
+| `POST /dietitian-relationships/{relationshipId}/end` | Gövde/query yok; ilişkinin iki tarafı kendi pending/active ilişkisini ended yapar; endedAt atanır. Pending'de respondedAt null; aynı ended tekrar 200. N3 ile aktif ilişki bittiğinde o uzmanın active atanmış programı aynı transaction'da archived olur |
+| `GET /data-sharing-permissions` | Zorunlu relationshipId/page/pageSize; iki taraf yalnız kendi ilişki izin durumunu `{ items, totalCount }` içinde okur |
+| `GET /data-sharing-permissions/{dataSharingPermissionId}` | Gövde/query yok; kendi ilişkisinin mevcut izin kaydı |
+| `POST /data-sharing-permissions` | Mevcut relationshipId/category/isGranted ve nullable consentRecordId. Yalnız danışan, aktif ilişki. category yalnız nutrition_plans, consentRecordId yalnız null. `201` mevcut DataSharingPermission; aynı kategori 409 |
+| `PATCH /data-sharing-permissions/{dataSharingPermissionId}` | Zorunlu isGranted; consentRecordId yalnız null/atlanmış. Kimlik/kategori değişmez. Yalnız ilişkinin danışanı ve active ilişki; `200` güncel kayıt |
+| `GET /dietitian/clients` | Doğrulanmış diyetisyenin aktif danışanları. page/pageSize zorunlu; opsiyonel query (literal harf duyarsız ad), sortOrder asc/desc (varsayılan asc). `200 { items: ClientListItem[], totalCount }`; item yalnız id/displayName |
+| `GET /dietitian/clients/{clientId}/dashboard` | R3'te onaylı minimal ClientDashboardResponse yalnız clientId/displayName. Aktif ilişkisiz 404; sağlık özeti/ölçüm/hedef/sayı eklenmez |
+
+İlişki talebi ve kod üretimi ayrı operation sayaçlarıyla hem hesap hem doğrudan
+IP başına dakikada 5 (Relationships:Limits:RequestsPerMinute ve
+InvitationCodesPerMinute); aşım ortak 429. Proxy başlığı güvenilir sayılmaz;
+çok örnekli ortak sayaç üretim kapısıdır. Hatalı/bilinmeyen/bitmiş/tüketilmiş
+kod aynı 422; kod kırpılıp büyük harfe normalize edilir. Kod ile birlikte ID
+veya clientId/rol gibi ek girdi 400. İlişki talebi ve izin JSON gövdeleri 4096 byte.
+
+Farklı uzmanlara pending talepler olabilir; aynı çiftte ikinci pending veya
+aktif ilişkisi olan danışanın yeni talebi `409 active_relationship_conflict`. İkinci
+aktif ilişki kurulmaya çalışıldığında kabul işlemi aynı hata kodunu döner.
+Diğer pending kayıtlar beklemeye devam eder. Geçersiz durum
+geçişi 409; yabancı ilişki/kayıt 404; kendi kaydında yanlış işlem rolü 403.
+İzin yazması pending/ended ilişkide 409; başka kategori veya dolu consentRecordId
+422. Eksik/gönderilemeyen query/gövde/ID biçimi 400; 413/415 ortak kurallardır.
+
+Bu kaynaklar JWT veya W2 cookie kullanır; Admin yetkisi yoktur. Cookie
+yazmasında CSRF/Origin/HTTPS, çift kimlikte 400 uygulanır. User → profil
+kimliği, güncel e-posta/rol ve uzman doğrulaması sunucuda kontrol edilir.
+Liste sayısı yalnız kendi yetkili kümesidir; temel danışan kimlik görünümü
+diğer sağlık kategorilerinin izni sayılmaz. Program erişimi ayrıca aktif
+ilişki + nutrition_plans izni ister; kayıt yoksa kapalıdır. Danışan kendi
+verisini okumak için diyetisyen ilişkisine ihtiyaç duymaz.
+
+## 29.10.2026 B1–B3 ortak onaylı uzman/Admin dilimi
+
+Kullanıcı `14`teki B1–B3 kararlarını “Ortak onay var devam et.” ile teyit etti.
+Bu bölüm, aşağıdaki eski başvuru/MFA açık notları ve Admin cookie yasağı için
+bu dilimin güncel normatif istisnasıdır; diğer açık şemalar onaylanmamıştır.
+
+| Method + route | İstek | Başarı / yetki |
+|---|---|---|
+| `POST /api/v1/dietitians/apply` | JSON DietitianApplicationRequest: zorunlu email/password/displayName/licenseInfo, ek alan yok; oturumsuz, query yok; 16 KiB | `201 RegisterUserResponse { id }` User UUID. Yalnız dietitian/henüz doğrulanmamış hesap ve profil atomik oluşur. İstemci role/isVerified atayamaz |
+| `GET /api/v1/dietitians/me` | Gövde/query yok; kendi client/dietitian JWT veya W2 cookie | `200 DietitianStatusResponse { id, displayName, isVerified }`; profil yoksa 404. id uzman profil UUID'si; özel licenseInfo dönmez |
+| `GET /api/v1/dietitians` | Public; zorunlu page/pageSize pozitif integer; opsiyonel query, ada göre harf duyarsız literal arama | `200 { items: DietitianListItem[], totalCount }`; item yalnız id/displayName. Hem e-posta hem uzman doğrulaması gerekir |
+| `POST /api/v1/auth/admin-web-session` | JSON AdminLoginRequest: zorunlu email/password/mfaCode, ek alan/query yok; 4096 byte; W2 CSRF/Origin/HTTPS | `200 CurrentUserResponse`; role=admin, displayName profil yoksa null. Cookie yalnız MFA tüketimi ve oturum commit'inden sonra verilir; JWT/secret yok |
+| `GET /api/v1/admin/dietitians` | Zorunlu isVerified boolean, page/pageSize pozitif integer; başka query/gövde yok; yalnız MFA Admin cookie | `200 { items: DietitianReviewItem[], totalCount }`; item id/displayName/licenseInfo/isVerified; sağlık kaydı yok |
+| `POST /api/v1/admin/dietitians/{dietitianId}/verify` | Gövde/query yok; MFA Admin cookie + W2 CSRF/Origin/HTTPS | `200 DietitianStatusResponse { id, displayName, isVerified: true }`; tekrar aynı sonuç/tek audit; bilinmeyen profil 404; e-postası doğrulanmamış uzman 409 |
+
+Ad ve mesleki açıklama dış boşlukları kırpılır; sınırlar `05`tedir. Mevcut
+8–128 Unicode parola politikası korunur. Eksik/yanlış tip/boş zorunlu alan,
+ek alan veya query ihlali 400; parola politikası ve ad/açıklama uzunluğu 422;
+mükerrer e-posta 409, gövde aşımı 413, yanlış medya 415; ortak hata zarfı ve
+no-store geçerlidir. Başvuru IP başına dakikada 5 (Dietitians:Application:
+RequestsPerMinute) ile sınırlıdır. `201` e-posta teslimi/oturum/uzman onayı değildir.
+
+Liste varsayılanı/ürün üst sınırı halen açık olduğundan bu iki liste page ve
+pageSize'ı açıkça ister; eksik/sıfır/negatif veya int32 offset taşması 400.
+Web inceleme sayfası pageSize=10 gönderir; bu bir sunucu varsayılanı değildir.
+Sıra displayName, ardından id; totalCount yetkili/filtrelenmiş kümeye aittir.
+
+Admin TOTP 6 hane/30 saniye/±1 adım; kullanılan adım tekrar kabul edilmez.
+Alternatif 10 kurtarma kodu kriptografik rastgele 128 bit/32 büyük hex hane,
+tek kullanımlıdır; yalnız hash saklanır. Kod kırpılır; parola aynen korunur.
+Yanlış parola/MFA veya uygun olmayan hesap aynı 401; login IP sayacı normal
+web/JWT girişle ortaktır. Mevcut geçerli cookie ile yeniden giriş 409.
+
+Admin yalnız yeni MFA cookie yoluyla kabul edilir. Mevcut JWT login/bearer ve
+normal web-session Admin'e kapalıdır. auth/me, csrf, web logout MFA Admin'i
+kabul eder; cookie süreleri/DB kontrolü/iptal W2 ile aynıdır. auth/me beş alanı
+korunur; Admin rolü MFA cookie bağlamında yeni izinli değerdir. Admin yolları
+Authorization kabul etmez (400); kaynakta eksik oturum 401, yanlış rol 403.
+Her Admin yazmasında güncel DB yetkisi ve CSRF yeniden denetlenir. Bu dilim
+diğer sağlık API'lerine cookie yetkisi veya Admin sağlık erişimi vermez.
+
+İlk Admin ve MFA yenilemesi yalnız yerel `--initialize-admin` komutudur;
+public kurulum/kurtarma endpointi yoktur. Ayrıntı `backend/README.md`dedir.
+Mevcut Admin yenilemesinde güncel parola gerekir, tüm web oturumları aynı
+transaction'da iptal edilir. Ret/yeniden başvuru/doğrulamayı geri alma açıktır.
+
+> **İki Codex için ortak kaynak.** URL, request/response anahtarları, rol ve anlamlar burada değiştirilmeden kullanılacak. Bu bir **taslak V1 sözleşmesidir**; `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar ile güncel `04/05` esas alınır. Teknoloji ve ürün kararları onaylıdır; açık şema/oturum ayrıntıları ayrıca ortak onay gerektirir.
+
+Mevcut method/route çiftleri korunur; eksik işlemler aynı kaynaklara eklenir. **AÇIK ŞEMA** olarak işaretlenen işlemler yalnız HTTP yönünü/bağımlılığını tanımlar: eksik DTO, enum veya kimlik yapısı kesinleşmeden uygulanmış sözleşme veya hazır mock sayılmaz. Yeni entity adı, alternatif model ya da sırf ekran başına endpoint üretilmez.
+
+## Temel prensipler
+
+- Base path: `/api/v1`. JSON `camelCase`; enum değerleri `04_NAMING_CONVENTIONS.md` içindeki lowercase değerler.
+- İç `id`/FK alanları UUID string; zaman UTC ISO 8601 ör. `2026-10-15T12:30:00Z`, tarihler `YYYY-MM-DD`. `externalRecordId` sağlayıcının string kimliğidir, UUID olmak zorunda değildir. Decimal değerler JSON number, boolean true/false; birimler ve nullability `05`e uyar. Ölçümde `null` bilinmeyen, `0` gerçek sıfırdır.
+- Onaylı JWT girişi: 15 dakikalık access token, `Authorization: Bearer <access-token>`. 31.10.2026 kullanıcı göreviyle mobil refresh rotasyonu/iptal eklendi (aşağıda). Web cookie/CSRF/iptal W2-C1–C7 olarak ayrıdır; mobil secure storage/istemci entegrasyonu açık kalır.
+- Auth olmayan/geçersiz oturum `401`, rol/ilişki yetkisiz `403`, bulunamayan `404`, doğrulama `400/422`, çakışma `409`, hız limiti `429`, iç hata `500`. Başka danışanın kaydına dair varlık bilgisi sızmaması için uygun yerde `404` kullanılır; aynı kaynak için davranış tutarlı tutulur.
+- Liste istekleri `page` (1'den başlayan pozitif integer), `pageSize` (pozitif integer, sunucu limiti); yanıt `{ items: [...], totalCount: integer }`. Varsayılanlar/üst limit **AÇIK**tır. `totalCount` yalnız yetkili filtrelenmiş kümenin sayısıdır. Boş liste `200` ve `items: []` döner.
+- Zaman filtresi desteklenen günlük kayıtlarda `from`/`to` UTC instant'tır; `from` dahil, `to` hariçtir; ikisi varsa `from < to` gerekir. Alanlar MealLog/WaterLog için `consumedAt`, ölçüm için `measuredAt`, aktivite için `startedAt`, tahlil için `collectedAt`tır. Yerel gün ve program uyum saat dilimi politikası **AÇIK**tır; istemci/sunucu ayrı ayrı varsaymaz.
+- Hata yanıtı: `error: { code: string, message: string, details?: object }, requestId: string`.
+- API dokümanı ile uygulamanın OpenAPI çıktısı eşleştirilir; karşılıklı uyumsuzluk testte hata sayılır.
+
+### Ortak istek, yanıt ve hata kuralları
+
+- JSON yazma istekleri `Content-Type: application/json` kullanır; yüklemeler aşağıda belirtilen multipart alanlarıyla yapılır. POST oluşturma `201` ve oluşan kaynağı, GET/PATCH `200` ve güncel kaynağı, başarılı DELETE `204` ve boş gövde döndürür; asenkron analiz ve Auth istisnaları ayrıca belirtilir. `201` yanıtında kaynağın mevcut GET yolu varsa `Location` o yolu gösterir.
+- `05`teki `?` JSON anahtarına eklenmez. PATCH'te gönderilmeyen alan korunur; açık `null` yalnız nullable alanı temizler; zorunlu alanı null yapmak `422`dir. İçi boş PATCH `400`dür. Desteklenen `items`/`results` dizisi PATCH'te gönderilirse tam dizi olarak atomik değiştirilir; öğe bazlı kısmi dizi birleştirmesi varsayılmaz. Açık şemalı koleksiyonlar bu kuralla kendiliğinden kesinleşmez.
+- `id`, sahiplik kimlikleri, `createdAt`/`updatedAt`, hesaplanan `flag` ve sunucu durumları istemci tarafından atanmaz. Alan tablosunda açıkça istek girdisi sayılan `clientId`, `relationshipId` veya referanslar istisnadır ve sunucuda doğrulanır. Tanımsız/salt okunur alan gönderimi `400`; başka kullanıcının kimliğini geçirerek yetki kazanılamaz.
+- Yanıt kaynakları `05`in aynı adlı alan/tiplerini kullanır; `MealLog.items`, `NutritionPlan.items` ve `LabReport.results` ilgili alt kayıtları içerir. Bu, passwordHash, token/secret, özel doğrulama belgesi veya başka kullanıcının alanlarını entity'den otomatik serileştirme izni değildir. Biçimi **AÇIK** alanlar için tam yanıt şeması onaylanmış sayılmaz.
+- DELETE normal okumalarda kaydı kaldırır; fiziksel silme, geçmiş ve saklama işlemi `05/11` politikasına uyar. İşlem bu güvenceyle tamamlanamıyorsa sahte `204` verilmez. Cascade davranışı veya anonimleştirme bu belgede seçilmez.
+
+| HTTP | `error.code` | Durum |
+|---|---|---|
+| `400` | `invalid_request` | Bozuk JSON/UUID/tarih, desteklenmeyen veya salt okunur alan |
+| `401` | `unauthenticated` | Oturum yok/geçersiz; hesap/sağlık bilgisi sızdırılmaz |
+| `403` | `forbidden` | Rol, ilişki veya kategori kapsamı işlemi karşılamıyor |
+| `404` | `not_found` | Kaynak yok veya varlığı açıklanmaması gereken yetkisiz kaynak |
+| `409` | `active_relationship_conflict`, `active_nutrition_plan_conflict`, `conflict` | Tek aktif sınırı, tekrar kayıt veya mevcut durumla çatışma |
+| `413` / `415` | `payload_too_large` / `unsupported_media_type` | Yükleme sınırı veya desteklenmeyen dosya türü |
+| `422` | `validation_failed`, `consent_required` | Geçerli JSON'da miktar/bütünlük/alan kuralı ihlali veya gerekli açık onayın yokluğu |
+| `429` / `500` | `rate_limited` / `internal_error` | Hız sınırı veya beklenmeyen hata; iç detay/sağlık değeri dönmez |
+
+`details` yalnız güvenli alan doğrulama bilgilerini içerir; hata gövdesindeki `requestId` izlenebilirlik içindir. Açık bir DTO için yeni enum/alan uydurmak veya sözleşme eksiğini normal kullanıcı hatası gibi sunmak yerine şema onayı tamamlanır.
+
+### Kaynak ve kategori bazlı erişim
+
+- Danışanın `clientId`si oturumdaki User → ClientProfile üzerinden belirlenir. Kendi sağlık kaydına erişmek veya kişisel program oluşturmak için diyetisyen ilişkisi gerekmez.
+- Diyetisyenin her sağlık verisi okumasında doğrulanmış uzman durumu, ilgili danışanla güncel `active` ilişki ve ilgili `DataSharingPermission.isGranted = true` kontrol edilir. Kategori kaydı yoksa varsayılan erişim yoktur. Kategori kodları ve endpoint–kategori eşlemesi `05`te **AÇIK**tır; uygulama öncesinde birlikte onaylanır.
+- Tahlil için ayrıca aynı danışanın User kaydına ait, kapsamı uygun ve geri çekilmemiş `ConsentRecord` gerekir (`granted = true`, `withdrawnAt = null`). İlişki veya izin sona erince geçmiş kayıt/analiz/PDF dahil diyetisyenin yeni erişimi kesilir; cache ve dosya bağlantısı bu kontrolü atlayamaz.
+- Danışanın verisini kaydetme/düzeltme/silme hakkı diyetisyene geçmez. Diyetisyen yalnız kendi atadığı programı/görevi ilgili yetkiyle yönetir ve izinli öğünlere yorum yapar. Diyetisyen kayıtları kendi adına girilmiş tüketim gibi değiştiremez.
+- Günlük kayıtların üst düzey yolları danışanın kendi kaydı içindir; diyetisyen okumaları `/dietitian/clients/{clientId}/...` yollarından yapılır. Program, görev, yorum ve insights gibi aşağıda iki role açık olduğu belirtilen kaynaklar aynı kaynak yetkisini ayrıca denetler.
+- `Admin` özel sağlık verilerine varsayılan erişemez. Sistem yönetimi/doğrulama yetkisi sağlık kaydı yetkisi değildir; Admin MFA zorunludur. İstisnai erişim ve audit `11`e bağlıdır.
+
+## Endpoint kataloğu (taslak)
+
+| Alan | Method + route | Rol / anlam |
+|---|---|---|
+| Kimlik | `POST /api/v1/auth/register` | Yalnız danışan kaydı; `201 { id }`, otomatik giriş yok |
+| Kimlik | `POST /api/v1/auth/verify-email` | E-postadaki tek kullanımlık token ile doğrulama; `204` |
+| Kimlik | `POST /api/v1/auth/resend-verification` | Varlık açıklamayan yeniden gönderim isteği; `202` |
+| Kimlik | `POST /api/v1/auth/login` | Doğrulanmış, Admin olmayan hesap için 15 dakikalık JWT access token |
+| Kimlik | `POST /api/v1/auth/refresh` | Token yenileme |
+| Kimlik | `POST /api/v1/auth/logout` | Oturum kapatma/refresh iptali |
+| Kimlik / web | `GET /api/v1/auth/csrf` | Anonim veya geçerli cookie bağlamında CSRF request tokenı |
+| Kimlik / web | `POST /api/v1/auth/web-session` | CSRF/Origin ile korunan web cookie oturumu oluşturma |
+| Kimlik / web | `DELETE /api/v1/auth/web-session` | CSRF/Origin ile mevcut web oturumunu sunucuda iptal etme |
+| Kimlik / hesap | `GET /api/v1/auth/me` | Geçerli JWT veya web cookie sahibinin beş alanlı kendi hesap özeti |
+| Profil | `PATCH /api/v1/me` | Kendi profilini güncelle |
+| Diyetisyen | `GET /api/v1/dietitians` | Uygun uzman arama/görüntüleme (doğrulama şartı) |
+| İlişki | `POST /api/v1/dietitian-relationships` | Danışanın ilişki talebi |
+| İlişki | `GET /api/v1/dietitian-relationships` | Tarafa göre kendi bağlantıları |
+| İlişki | `POST /api/v1/dietitian-relationships/{relationshipId}/accept` | Diyetisyen kabul |
+| İlişki | `POST /api/v1/dietitian-relationships/{relationshipId}/reject` | Diyetisyen red |
+| İlişki | `POST /api/v1/dietitian-relationships/{relationshipId}/end` | Yetkili taraf bitirir |
+| Öğün | `GET /api/v1/meal-logs` | Danışanın kendi kayıtları, tarih filtresi |
+| Öğün | `POST /api/v1/meal-logs` | Onaylı öğün kaydı |
+| Öğün | `GET /api/v1/meal-logs/{mealLogId}` | Kendi detay |
+| Öğün | `PATCH /api/v1/meal-logs/{mealLogId}` | Güncelle |
+| Öğün | `DELETE /api/v1/meal-logs/{mealLogId}` | Sil / politikaya uygun işlem |
+| Besin | `GET /api/v1/food-items` | Katalog araması (`query`) |
+| AI yemek | `POST /api/v1/food-analyses` | Görsel gönder, tahmin işi başlat |
+| AI yemek | `GET /api/v1/food-analyses/{analysisId}` | İş durum/sonuç |
+| Su | `GET /api/v1/water-logs` | Kendi su kayıtları |
+| Su | `POST /api/v1/water-logs` | Su ekle |
+| Su | `GET /api/v1/water-logs/daily-total` | Kendi seçilen gün toplamı; yukarıdaki açık gün sınırları |
+| Su | `GET /api/v1/water-logs/{waterLogId}` | Kendi detay |
+| Su | `PATCH /api/v1/water-logs/{waterLogId}` | Kendi kaydını düzelt |
+| Su | `DELETE /api/v1/water-logs/{waterLogId}` | Kendi kaydını sil |
+| Ölçüm | `GET /api/v1/body-measurements` | Kendi geçmiş |
+| Ölçüm | `POST /api/v1/body-measurements` | Ölçüm ekle |
+| Ölçüm | `GET /api/v1/body-measurements/{bodyMeasurementId}` | Kendi detay |
+| Ölçüm | `PATCH /api/v1/body-measurements/{bodyMeasurementId}` | Kendi ölçümünü düzelt |
+| Ölçüm | `DELETE /api/v1/body-measurements/{bodyMeasurementId}` | Kendi ölçümünü sil |
+| Aktivite | `GET /api/v1/activity-logs` | Kendi aktiviteleri |
+| Aktivite | `POST /api/v1/activity-logs` | Aktivite ekle |
+| Aktivite | `GET /api/v1/activity-logs/daily-summary` | U3 kendi günlük özeti, açık offsetli yerel gün sınırları |
+| Aktivite | `GET /api/v1/activity-logs/{activityLogId}` | Kendi detay |
+| Aktivite | `PATCH /api/v1/activity-logs/{activityLogId}` | Kendi kaydını düzelt; kaynak kimliğini sahteleştiremez |
+| Aktivite | `DELETE /api/v1/activity-logs/{activityLogId}` | Kendi kaydını sil |
+| Cihaz | `GET /api/v1/wearable-connections` | Kendi bağlantıları; page/pageSize zorunlu |
+| Cihaz | `POST /api/v1/wearable-connections` | Provider için aynı kararlı kendi bağlantısını al/oluştur; 200 |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}` | Kendi bağlantısı/senkronizasyon durumu |
+| Cihaz | `PATCH /api/v1/wearable-connections/{wearableConnectionId}` | expectedVersionNumber + active/revoked aktarım tercihi |
+| Cihaz | `POST /api/v1/wearable-connections/sync` | U3 atomik, sürümlü, batchId ile tekrar güvenli aktarım |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}/records` | Kendi native kaynak başlıkları/tombstone ve sürümleri |
+| Cihaz | `GET /api/v1/wearable-connections/{wearableConnectionId}/records/{wearableRecordId}` | Kendi kaynak başlığı |
+| Sağlık | `GET /api/v1/health-metric-samples` | Kendi adım/mesafe/aktif enerji/nabız örnekleri; page/pageSize |
+| Laboratuvar | `GET /api/v1/lab-reports` | Kendi raporları |
+| Laboratuvar | `POST /api/v1/lab-reports` | Ölçüm + değerler ekle |
+| Laboratuvar | `GET /api/v1/lab-reports/{labReportId}` | Rapor detay |
+| Laboratuvar | `PATCH /api/v1/lab-reports/{labReportId}` | Kendi raporunu/değerlerini düzelt |
+| Laboratuvar | `DELETE /api/v1/lab-reports/{labReportId}` | Kendi raporunu sil; saklama politikasına göre |
+| Laboratuvar | `POST /api/v1/lab-reports/{labReportId}/insights` | Yetkili kullanıcı için açıklayıcı analiz |
+| Laboratuvar | `GET /api/v1/lab-reports/{labReportId}/insights` | Danışan kendi, diyetisyen izinli raporun analizlerini okur; yanıt ayrıntıları AÇIK ŞEMA |
+| Diyetisyen | `GET /api/v1/dietitian/clients` | Aktif/uygun danışan listesi |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/dashboard` | İzinli danışan özetleri |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/meal-logs` | İzinli öğün kayıtları |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/water-logs` | İzinli su kayıtları |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/body-measurements` | İzinli ölçümler |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/activity-logs` | Sonraki aşama taslağı; U3 uygulamaz, hiçbir paylaşım izni bu yolu açmaz |
+| Diyetisyen | `GET /api/v1/dietitian/clients/{clientId}/lab-reports` | İzinli tahlil özet/sonuçları |
+| Plan | `POST /api/v1/nutrition-plans` | Danışan kişisel, diyetisyen yetkili danışanına taslak program oluşturur |
+| Plan | `PATCH /api/v1/nutrition-plans/{nutritionPlanId}` | Danışan yalnız kendi kişisel, diyetisyen yalnız kendi atadığı programı düzenler |
+| Plan | `POST /api/v1/nutrition-plans/{nutritionPlanId}/activate` | Yetkili programı aktif etme; tek aktif sınırı |
+| Plan | `GET /api/v1/nutrition-plans/active` | Danışan kendi tek aktif kişisel veya atanmış programını görür |
+| Plan | `GET /api/v1/nutrition-plans` | Danışanın kendi veya diyetisyenin izinli danışanının program listesi |
+| Plan | `GET /api/v1/nutrition-plans/{nutritionPlanId}` | Aynı yetkiyle detay; active literal yolu kimlik yolu olarak yorumlanmaz |
+
+Yeni tarif/görev/paylaşım yolları ve açık şemalı işlemler aşağıdaki tablolardadır; katalogdan ayrı alternatif rotalar değildir. Admin, bildirim, PDF dışa aktarma ve ayrıntılı Auth/MFA gibi şema bağımlı konular için aşağıdaki açık karar sınırları geçerlidir.
+
+## Günlük kayıtlar — request/response ve eksik işlemler
+
+Aşağıdaki POST alanlarında `?` isteğe bağlı/nullable alanı gösteren dokümantasyon işaretidir; gerçek JSON anahtarına eklenmez. Aynı alanların PATCH'te gönderilmeyenleri korunur; **U3 ActivityLog tam alanlı sürümlü PATCH istisnası aşağıdadır**. `source` oluşturma kaynağını belirtir; sıradan PATCH ile kaynağı/dış kimliği değiştirip cihaz kaydı üretilemez.
+
+| Kaynak | POST gövdesi / düzenlenebilir alanlar | Başarılı yanıt ve doğrulama |
+|---|---|---|
+| `MealLog` | `mealType`, `consumedAt`, `source`, `items`; opsiyonel `note`, `foodAnalysisId`. Her item: `displayName`, `isEstimated`; nullable `foodItemId`, `recipeId`, `quantityGrams`, `caloriesKcal`, `proteinGrams`, `carbsGrams`, `fatGrams` | `201/200`: `id`, `clientId`, `mealType`, `consumedAt`, `note`, `source`, `foodAnalysisId`, `createdAt`, `items`. Item yanıtında ayrıca `id`, `mealLogId`. En az bir item; gram/kcal/makro kuralları `05`e uyar; tüm referanslar yetkili kaynaklara ait olmalı |
+| `WaterLog` | `amountMl`, `consumedAt`, `source`; PATCH yalnız miktar/zaman | `201/200`: `id`, `clientId`, `amountMl`, `consumedAt`, `source`. Miktar pozitif decimal/mL; sıfır/negatif `422` |
+| `BodyMeasurement` | `measuredAt`, `source`; nullable `weightKg`, `waistCm`, `hipCm`, `chestCm`, `bodyFatPercent`, `note`. PATCH zaman/ölçüm/not alanlarını düzeltir | `201/200`: `id`, `clientId` ve aynı ölçüm/not/source alanları. Son durumda en az bir ölçüm; kg/cm pozitif, yüzde 0–100; aksi `422`. 18.11.2026 kullanıcı göreviyle kalça/göğüs/not eklendi |
+| `ActivityLog` | Manuel `activityType`, `startedAt`, `source: manual`; `durationMinutes`, `distanceKm`, `caloriesKcal` anahtarları zorunlu, değerleri nullable. PATCH source olmadan aynı beş alanın tam yeni değerlerini + expectedVersionNumber alır; DELETE query'de expectedVersionNumber ister | `201/200`: id/clientId ve giriş alanları; endedAt, rawDurationMinutes, externalRecordId, wearableConnectionId, wearableRecordId nullable; versionNumber/createdAt/updatedAt. En az bir ölçüm; süre >0/≤10080 dk, km/aktif kcal ≥0. Cihaz kaydı yalnız sync'ten değişir |
+| `LabReport` | `collectedAt`, `results`; nullable `labName`, `note`. Her result: `testName`, `value`, `unit`; nullable `testCode`, `referenceLow`, `referenceHigh`. PATCH aynı alanları düzeltir | `201/200`: `id`, `clientId`, `collectedAt`, `labName`, `note`, `createdAt`, `results`; her result ayrıca `id`, `labReportId`, sunucunun hesapladığı `flag`. En az bir result; bilinen iki sınırda low <= high; eksik/uyumsuz referans `unknown` |
+
+- Bu kaynakların GET detayları aynı yetkili kaynak yanıtını, GET listeleri aynı kaynaklardan `items` ve `totalCount` döndürür. DELETE gövdesizdir. Yazma işlemlerinde ortak hatalara ek olarak referans/yabancı kaynak ihlalleri `422` veya varlık sızdırmayan `404`, geçmiş/silme kısıtıyla çakışma `409`dur.
+- MealLog için manuel ve kullanıcı onaylı `ai_assisted` akışları ayrıdır. AI bağlantısı verildiyse aynı danışana ait uygun tamamlanmış analiz doğrulanır; `foodAnalysisId` mevcut sözleşmedeki gibi opsiyoneldir. `foodItemId`/`recipeId` birlikte kullanım kuralı `05`te **AÇIK**tır; iki referanstan çift kalori hesaplanmaz.
+- **U3 sağlık sözleşmesi / 19.11.2026:** Tam DTO, yanıt alanları, sentetik request örnekleri ve M1→M3 eşlemesi [20_HEALTH_DATA_SYNC_CONTRACT.md](20_HEALTH_DATA_SYNC_CONTRACT.md) içindedir; bu normatif API sözleşmesinin parçasıdır. Yalnız doğrulanmış client JWT + client profil bağlamı; diyetisyen/Admin/web cookie erişimi yok. userId/clientId alınmaz; bağlantı oturum sahibine ait olmalı, yabancı ID 404. Yeni kategori paylaşım izni açılmaz.
+- Provider health_connect/health_kit, bağlantı status active/revoked; OS izni kanıtı değildir. Bağlantı DTO'su id/clientId/provider/status/versionNumber/lastSyncedAt/lastAttemptAt/lastSyncStatus/lastErrorCode. Sync `{wearableConnectionId,batchId,changes}` → `{batchId,wearableConnectionId,committedAt,records}`; her değişiklik operation upsert/delete, metric, sourceId/externalRecordId/rawType/expectedVersionNumber taşır; upsert ayrıca sourceName/recordingMethod/rawUnit, exercise'ta exerciseType ve samples ister. Her örnek startedAt/endedAt/rawValue; HR delta upsert ve açık deletedSampleStarts desteklenir. Grup başlığı ve örnek DTO alanları teslim notunda tam listelidir.
+- Kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId, nabız alt anahtarı normalize UTC başlangıcı. Stable native ID zorunlu; eksik reddedilir. Raw COUNT/METER/MINUTE/KILOCALORIE/BEATS_PER_MINUTE sunucuda count/km/minutes/kcal/bpm olur; kcal yalnız aktif enerjidir. UTC mikro-saniye, ≤7 gün aralık, HR nokta, end en çok sunucu+5 dk; exercise süre farkı ≤1 ms. Bilinmeyenler sıfır olmaz.
+- En çok 100 kaynak/1000 örnek işlemi/512 KiB; tüm batch atomik, kısmi kabul yok. batchId+aynı normalize içerik ilk yanıtı döndürür; farklı içerik 409 sync_batch_conflict. Yeni kaynak expectedVersionNumber=0, gerçek değişiklik güncel sürüm ister; eski sürüm 409 source_version_conflict, exact desired-state no-op sürümü artırmaz. Silme tombstone'dur, boş/eksik batch 422'dir ve toplu silme değildir; HR eksik noktalar korunur. Kayıt/senkronizasyon durumu aynı transaction; başarısız/boş işlem lastSyncedAt ilerletmez.
+- Günlük summary açık offsetli ardışık yerel gece yarıları (22–26 saat) alır. conservative_overlap_v1 metric bazında manuel → health_connect → health_kit → sourceId → uzun aralık → erken başlangıç → kararlı anahtar önceliğiyle doğrudan örtüşen düşük kayıtları bütünüyle dışlar. Scalar gün aşımı ve süresiz manuel ölçüm tahmini oranlanmaz (unallocatedCount); süre gün kesişiminden hesaplanır. Ham kayıtlar korunur; ölçüm yoksa null. Özet örtüşme/eksiklik sayımları ve isPartial içerir; metric başına sorguda >100000 aday 422 aggregation_limit_exceeded. Tanı/tedavi veya otomatik beslenme hedefi değişikliği yoktur.
+- Hatalar ortak zarftadır. 403 sync_disabled; 409 source_version_conflict/sync_batch_conflict/source_record_read_only; 413 sync_batch_limit/payload_too_large; 422 unsupported_provider/unsupported_metric/unsupported_source_type/unsupported_unit/invalid_source_identity/invalid_interval/invalid_value/duration_mismatch/invalid_sync_batch/duplicate_source_record/aggregation_limit_exceeded. Şekil/offset/query 400, mevcut auth 401/403 ve varlık sızdırmayan 404 korunur. Tüm sağlık yanıt/hataları no-store.
+- Tahlil PATCH sonrası eski LabInsight değişen değerlerin güncel açıklamasıymış gibi gösterilemez; yeniden analiz ve geçmiş gösterimi politikası **AÇIK**tır. Kullanıcı onayı olmayan OCR taslağı bu CRUD gövdelerine otomatik taşınmaz.
+- `GET /food-items?query=...` yalnız katalog aramasıdır; `200 { items, totalCount }` içinde FoodItem'ın `05`teki gram temeli, enerji/makro ve `dataSource` alanları bulunur. Yeni katalog yazma endpointi bu görevde açılmaz.
+- Diyetisyen günlük kayıt listeleri aynı pagination/zaman filtrelerini ve aynı kaynak şekillerini kullanır; her biri ilgili kategori iznini kontrol eder. Dashboard yalnız izinli bileşenleri sunabilir; kapalı kategoriyi sıfır ölçüm gibi göstermez, izinsiz kayıtlardan sayı/trend sızdırmaz. Dashboard'un tam bileşen şeması ayrıca netleştirilmelidir.
+- `GET /dietitian/clients` aktif ilişkili danışanların sınırlı listesini `200 { items, totalCount }` olarak döndürür; item'ın kesin temel alanları ClientProfile `id` ve `displayName`dir. Doğum tarihi, boy ve diğer sağlık özetleri varsayılan liste alanı sayılmaz; ek alanlar kategori kapsamı/yanıt şeması onayı gerektirir.
+
+## NutritionPlan — kişisel/atanmış program sözleşmesi
+
+**N1–N3 ortak onaylı ve backend/webde uygulanmıştır.** Yollar `/api/v1`
+tabanındadır. JWT veya W2 cookie; yalnız client/dietitian. Admin kapalıdır.
+Cookie yazmalarında CSRF/Origin/HTTPS, karışık bearer/cookie'de 400 gerekir.
+
+| İşlem | Request | Response / erişim |
+|---|---|---|
+| `POST /api/v1/nutrition-plans` | Zorunlu title/startDate/items; nullable endDate/dailyCaloriesTargetKcal/dailyWaterTargetMl. Diyetisyen ayrıca clientId gönderir; danışan clientId (null dahil) ve dietitianId göndermez | `201 NutritionPlanResponse`, Location; draft, versionNumber=1. Kişiselde dietitianId=null, atanmışta oturumdaki uzman profil UUID'si |
+| `GET /api/v1/nutrition-plans` | page/pageSize zorunlu; diyetisyende clientId zorunlu. Danışan yalnız kendi kapsamı için page/pageSize gönderir | `200 { items: NutritionPlanResponse[], totalCount }`; createdAt azalan/id. Diyetisyen aktif ilişki + nutrition_plans izniyle kişisel/atanmış tüm programları okur |
+| `GET /api/v1/nutrition-plans/{nutritionPlanId}` | Gövdesiz | `200` yetkili program detayı; danışan kendi, diyetisyen yalnız izinli danışanının programını okur |
+| `GET /api/v1/nutrition-plans/active` | Gövdesiz; danışanın kendi kapsamı | `200` tek aktif kişisel veya atanmış NutritionPlan; yoksa `404`. Kişisel/atanmış için iki ayrı aktif program yolu yoktur |
+| `PATCH /api/v1/nutrition-plans/{nutritionPlanId}` | Yalnız title/startDate/endDate/iki hedef/items. Atlanmış korunur; nullable alan açık null ile temizlenir; title/startDate/items null olamaz. Items verilirse tüm koleksiyon değişir | `200 NutritionPlanResponse`, her geçerli kaydetmede yeni versionId ve artan versionNumber. Güncel item UUID'leri yeniden üretilir; eski snapshot değişmez |
+| `POST /api/v1/nutrition-plans/{nutritionPlanId}/activate` | Gövdesiz; aynı düzenleme yetkisi | `200` aktif program. Başka aktif program varsa `409 active_nutrition_plan_conflict`; hedef zaten tek aktif programsa `200`. Tarihleri farklı olsa da iki active program kabul edilmez |
+| `POST /api/v1/nutrition-plans/{nutritionPlanId}/archive` | Gövdesiz; aynı düzenleme yetkisi | `200 NutritionPlanResponse`, archived; tekrarda değişmeyen 200. Başka program etkinleşmez. Status işlemleri içerik sürümünü artırmaz |
+| `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions` | page/pageSize zorunlu; programla aynı okuma yetkisi | `200 { items: NutritionPlanVersionInfo[], totalCount }`, versionNumber azalan. Metadata id/nutritionPlanId/versionNumber/createdAt |
+| `GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}` | Gövde/query yok; sürüm mutlaka bu programa ait olmalı | `200 NutritionPlanVersionResponse`: aynı metadata + snapshot. Başka programın sürüm UUID'si 404 |
+
+NutritionPlanResponse eksiksiz alanları: id/clientId/dietitianId/title/status/
+startDate/endDate/dailyCaloriesTargetKcal/dailyWaterTargetMl/createdAt/items/
+versionId/versionNumber. Nullable alanlar yanıtta atlanmaz. DietitianId
+User değil DietitianProfile kimliğidir. title kırpılmış 1–120; hedefler null
+veya pozitif decimal kcal/mL, tarihler date ve endDate >= startDate.
+
+Items 1–100 kalem; request'te zorunlu mealType/description/sortOrder;
+nullable dayOfWeek/recommendedQuantity/recipeId/alternativeGroupId atlanabilir.
+mealType mevcut enumdur; description kırpılmış 1–2000 Unicode kod noktası;
+sortOrder >=0 ve aynı sürümde tek. dayOfWeek ISO 1–7, null her gün;
+recommendedQuantity kırpılmış 1–200 metin, boş null. RecipeId ilk dilimde
+yalnız null/atlanmış; dolu değer 422. AlternativeGroupId boş olmayan UUID;
+aynı grupta aynı gün/mealType'a ait en az iki üye gerekir. Item yanıtı bu
+yedi alanı ve sunucunun ürettiği id/nutritionPlanId'yi taşır; bu kimlikler
+request'te kabul edilmez. Alternatifler birlikte tüketilecek toplam değildir.
+
+Snapshot yalnız title/startDate/endDate/dailyCaloriesTargetKcal/
+dailyWaterTargetMl/items; eski item ve grup kimlikleri korunur. RecordedByUserId
+yalnız sunucudadır. Başarılı PATCH birebir tekrar gönderilse bile yeni sürüm
+oluşturur; istemci yazmayı otomatik tekrarlamaz. Program+snapshot atomik kaydolur.
+
+Danışan kendi tüm program/geçmişini ilişkisiz okuyabilir; yalnız kişisel
+programını düzenler/etkinleştirir/arşivler. Atanmış program salt okunurdur.
+Doğrulanmış diyetisyen aktif ilişki + nutrition_plans izniyle okur; yalnız
+dietitianId'si kendisi olan programı yazar. Kendi kayıtlarında yanlış sahiplik
+403; izin kapalıysa 403; ilişkisiz/başka danışanın kaynağında varlık açıklamayan
+404. User/ClientProfile/program kilitleri altında yazmadan önce yetki yeniden
+kontrol edilir; izin geri çekme ve ilişki sonlandırmayla yarış serileştirilir.
+
+POST/PATCH JSON gövdesi 128 KiB. Eksik/ek alan, biçim/tip, boş PATCH, request'te
+id/status/kimlik değiştirme 400; değer sınırları veya zorunlu alan null 422;
+boyut aşımı 413, yanlış medya 415. Liste/sürüm listesi dışında query alınmaz.
+Paging ortak sınırları kullanır. Yanıtlar no-store; hata ortak error/requestId
+biçiminde, aktif çakışması yalnız `409 active_nutrition_plan_conflict` kodudur.
+
+Etkinleştirme draft/archived→active; arşivleme draft/active→archived olabilir.
+İkinci active DB kısmi unique ile de engellenir. Başka aktif program sessizce
+arşivlenmez; mevcut sahibi açıkça durdurur. Genel atomik replace/geçiş yolu
+bu dilimde açılmaz. Aktif ilişki bittiğinde yalnız o uzmanın o danışana ait
+active atanmış programı aynı transaction'da archived olur. Sahiplik/içerik/
+geçmiş değişmez; kişisel program etkilenmez, danışan geçmişi okur. Eski uzman
+yeni isteklerde erişemez. Makro/programsız hedef ve uyum hesabı açık kalır.
+
+## Recipe, ClientTask ve DataSharingPermission yolları
+
+Yeni yollar aynı kanonik kökten türetilir. Aşağıda **AÇIK ŞEMA** bulunan satırların bilinen alanları gösterilir; eksik bileşen/durum/kategori değerleri yerine örnekten gerçekmiş gibi veri uydurulmaz.
+
+| Method + route | Request | Response / yetki ve bağımlılık |
+|---|---|---|
+| `GET /api/v1/recipes` | Pagination | `200 { items, totalCount }`; en az kendi tarifleri. Ortak/başkasına ait tarif görünürlük politikası **AÇIK**tır; varsayılan herkese açık sayılmaz |
+| `GET /api/v1/recipes/{recipeId}` | Gövdesiz | `200` erişilebilir Recipe; kesin metadata `id`, `userId`, `name`, `createdAt`. Bileşen yanıtı AÇIK ŞEMA |
+| `POST /api/v1/recipes` | Kesinleşen alan `name`; bileşen/miktar/porsiyon gövdesi AÇIK ŞEMA. `userId` auth'tan | Tam şema onayından sonra `201` Recipe. Yalnız name alanıyla tamamlanmış tarif oluşturulduğu varsayılmaz |
+| `PATCH /api/v1/recipes/{recipeId}` | Kendi tarifinde `name` ve onaylanacak bileşen alanları | `200` Recipe; bileşen/değişiklik geçmişi AÇIK ŞEMA. Önceki MealLogItem ve plan geçmişi yeniden hesaplanıp değiştirilmez |
+| `GET /api/v1/client-tasks` | Pagination; diyetisyen için izinli `clientId`, danışan için kendi kapsamı | `200 { items, totalCount }`; ClientTask alanları `05`teki gibi. Diyetisyen yalnız atayan tarafsa ve güncel ilişki/kategori izni varsa erişir |
+| `GET /api/v1/client-tasks/{clientTaskId}` | Gövdesiz | `200` kendi danışan görevi veya yetkili atayan diyetisyenin görevi |
+| `POST /api/v1/client-tasks` | U1 CreateClientTaskRequest: clientId, description, nullable dueAt | `201` ClientTaskResponse; kimlik/ilişki/başlangıç durumu sunucudan, yukarıdaki U1 kuralları |
+| `PATCH /api/v1/client-tasks/{clientTaskId}` | U1 PatchClientTaskRequest; expectedVersionNumber ve role göre değişiklikler | `200` ClientTaskResponse; yetki/geçiş/409 kuralları U1 bölümündedir |
+| `GET /api/v1/client-tasks/{clientTaskId}/versions` | Zorunlu page/pageSize | U1 sayfalı değişmez ClientTaskVersionResponse geçmişi; güncel görev yetkisi |
+| `GET /api/v1/data-sharing-permissions` | Danışanın kendi kapsamı; opsiyonel `relationshipId`, pagination | `200 { items, totalCount }`; DataSharingPermission alanları `05`teki gibi. Başkasının ilişkisi okunamaz |
+| `GET /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | Gövdesiz | `200` danışanın kendi ilişki izni |
+| `POST /api/v1/data-sharing-permissions` | `relationshipId`, `category`, `isGranted`, nullable `consentRecordId` | `201` DataSharingPermission; yalnız ilişkinin danışanı yönetir. Aynı ilişki/kategori ikinci kaydı `409`; kategori kodları AÇIK ŞEMA |
+| `PATCH /api/v1/data-sharing-permissions/{dataSharingPermissionId}` | `isGranted`, nullable `consentRecordId`; ilişki/kategori değiştirilemez | `200` güncel izin; geri çekme `isGranted: false` ile yapılır, geçmiş silinmez. Diyetisyen/Admin danışan adına izni açamaz |
+
+ClientTask yanıtı yukarıdaki U1 bölümündeki tam 11 alanı kullanır. DataSharingPermission yanıtı: `id`, `relationshipId`, `category`, `isGranted`, `consentRecordId`, `createdAt`, `updatedAt`. `id`/zamanlar sunucudan gelir. Recipe/ClientTask için sırf CRUD tamamlama amacıyla DELETE yolu oluşturulmaz; görev iptali PATCH status=cancelled ile yapılır.
+
+İzin verme isteğinde ilişki danışana ait olmalı; **diyetisyenin paylaşılan sağlık verisine erişimi** active ilişkiye bağlıdır. Danışanın kendi verisi ilişkiye bağlı değildir; U3 sağlık yolları hiçbir kategoriyle diyetisyene açılmaz. Pending/ended ilişkide izin düzenlemenin ayrıntısı **AÇIK**tır; izni önceden kaydetmek veri erişimi vermez. Tahlil kategorisini açarken ilgili danışana ait, kapsamı uygun ve geri çekilmemiş açık onay bağlantısı yoksa `422 consent_required`; izin geri çekme için yeni onay aranmaz. Kategori listesi onaylanmadan `lab`, `all` gibi varsayılan kodlar uydurulmaz; iznin satır bazında varlığı tek başına erişim izni değildir.
+
+### ConsentRecord — açık onay kaydı ve geri çekme
+
+| Method + route | Request | Response / sınır |
+|---|---|---|
+| `GET /api/v1/consent-records` | Giriş yapanın kendi User kapsamı; pagination | `200 { items, totalCount }`; ConsentRecord'un `05`teki alanları. Başka kullanıcının onay geçmişi açılmaz |
+| `POST /api/v1/consent-records` | `consentType`, `granted`, `policyVersion`; `userId` auth'tan | `201` ConsentRecord; `id`, `recordedAt` sunucudan, başlangıç `withdrawnAt: null`. Geçerli tür/politika/sunulan metin eşlemesi AÇIK ŞEMA; istemcinin keyfî politika sürümü onay kanıtı sayılmaz |
+| `POST /api/v1/consent-records/{consentRecordId}/withdraw` | Gövdesiz; yalnız rıza sahibi | `200` güncel ConsentRecord; geri çekme zamanı sunucudan. Tekrar geri çekme aynı kaydı değiştirmeden döndürür; eski kabul zamanı/politikası korunur. Bağlı paylaşımlar yeni erişim vermez |
+
+Rıza oluşturmak tek başına paylaşım izni oluşturmaz; DataSharingPermission ilgili onaya ayrıca bağlanır. Yalnız doğru endpoint çağrıldı diye kullanıcıya gösterilmemiş metne açık onay verilmiş sayılmaz. Kanıt/tür/kapsam tasarımı `05/11` ile tamamlanır; otomatik rıza veya genel tek checkbox varsayılmaz.
+
+## Açık şemaya bağlı OCR işlemi
+
+Bu bölümdeki yollar **önerilen HTTP karşılıklarıdır**; `04/05`te açık olan kanonik alt kayıt adları ve tam DTO'lar onaylanmadan uygulama/mock üretimine dayanak değildir.
+
+| Method + route | İstek/yanıtın bilinen kısmı | Açık karar ve güvence |
+|---|---|---|
+| `POST /api/v1/lab-reports/ocr` | Önerilen yükleme: multipart `document` dosyası (PDF/fotoğraf); danışanın kendi kapsamı | Kabul edilen dosya tür/limitleri, senkron/asenkron iş, OCR taslak/id/durum/response yapısı ve onay kaydı AÇIK ŞEMA. Bunlar seçilmeden `200/202`, jobId veya yeni durum enumu kesinleştirilmez |
+
+OCR yalnız taslak çıkarır; tamamlanmış LabReport veya klinik değerlendirme üretmez. Kullanıcı test/değer/birim/tarih/referansı kontrol edip düzeltir ve açıkça onayladıktan sonra mevcut `POST /lab-reports` gövdesiyle doğrulanmış kayıt oluşturulur. OCR işi tamamlandı diye otomatik POST/insight tetiklenmez. Kullanıcı onayının sunucuda kanıtlanacağı tasarım açık olduğundan yeni `isConfirmed`/`ocrJobId` alanı bu belgede uydurulmaz. Dosya yükleme hataları `413/415`, yetki hataları ortak kurallara uyar.
+
+### LabInsight işlemleri
+
+`POST /lab-reports/{labReportId}/insights` yalnız kaydın danışanı veya aktif ilişki + ilgili kategori + tahlil açık onayı olan diyetisyen içindir; istek gövdesizdir. Başarı hedefi `201` LabInsight; GET aynı kaynağın yetkili analizlerini ortak liste zarfıyla döndürür. Kesin alanlar `id`, `labReportId`, `createdAt`, `summary`, `method`, nullable `modelVersion`; zorunlu `limitations` biçimi ve method değerleri `05`te AÇIK olduğundan tam yanıt henüz onaylı değildir. Asenkron LabInsight işi/status modeli varsayılmaz.
+
+Geçerli birim/referans yoksa açıklama `unknown` ve sınırlılıkları yansıtır; eksik referans tamamlanmış gibi tahmin edilmez. Metin tanı/tedavi önermez; doğrulanabilir ML opsiyoneldir. Tahlil paylaşım onayı yokluğu diyetisyeni engeller; danışanın kendi manuel kaydını okumasını engellemez. AI sağlayıcısına aktarım için ayrı gereken izinler `11`e göre ayrıca kontrol edilir.
+
+## Kimlik, profil ve ilişki işlemlerinin sınırları
+
+- `POST /auth/register` için aşağıdaki danışan kayıt şeması onaylıdır. Public kayıt Admin/Diyetisyen rolü veya doğrulanmış uzman yetkisi vermez; diyetisyen başvurusunu Admin doğrular. Aynı hesapta iki profil için 02.11.2026 onayı geçerlidir; diğer profil sözleşmeleri ayrıca açıktır.
+- `POST /auth/login`: aşağıdaki JWT giriş şeması onaylıdır. Doğrulanmamış hesaba veya Admin'e bearer token verilmez. Mobil refresh/logout sözleşmesi 31.10.2026 bölümündedir; web ayrı W2 cookie kaynağını kullanır. Mobil MFA challenge gövdeleri açık kalır.
+- Kendi hesap okuması, kullanıcının bu görevde açıkça istediği `GET /auth/me` yolunu ve aşağıdaki düz beş alanlı yanıtı kullanır. Eski uygulanmamış `GET /me` taslağı yerine bu yol geçerlidir; GET alias/redirect eklenmez. `PATCH /me` ise ayrı açık profil düzenleme taslağıdır: `displayName`, danışanın nullable `birthDate`/`heightCm` alanları hedeflenir; yanıt/rol ayrıntıları kapanmadan uygulanmaz. `role`, `isVerified`, `isEmailVerified` veya MFA/secret alanı bu yoldan yükseltilemez. `licenseInfo` tipi açıkken keyfî JSON kabul edilmez.
+- `GET /dietitians` araması `query` ve pagination kullanabilir; uygun/doğrulanmış uzman profilleri için `id`, `displayName`, `isVerified` gibi paylaşılabilir alanlar sunulur; sağlık kaydı, özel belge veya hesap sırrı dönmez.
+- `POST /dietitian-relationships`: danışandan hedef `dietitianId`; `clientId` auth'tan. `201` kendi pending DietitianClientRelationship kaydı; GET aynı User'ın taraf olduğu ilişkileri `05` alanlarıyla listeler. Davet kodu biçimi/ömrü/istek alanı açıktır; ayrı kod modeli veya tek taraflı otomatik onay yolu üretilmez.
+- Mevcut accept/reject/end işlemleri gövdesizdir, `200` güncel ilişki döner. Kabul/red ilgili diyetisyene, sonlandırma ilişkinin taraflarına açıktır; kabulde karşılıklı onay ve tek aktif sınırı atomik kontrol edilir. Başka aktif ilişki `409 active_relationship_conflict`, geçersiz durum `409 conflict`; bitmiş ilişkinin tekrar bitirilmesi mevcut sonucu döndürebilir. Geçmiş silinmez; her geçişin tam idempotency politikası **AÇIK**tır.
+
+### Onaylı kayıt ve e-posta doğrulama sözleşmesi — 27.10.2026
+
+Bu üç işlem oturumsuzdur; doğrulama giriş/oturum veya sağlık verisi erişimi sağlamaz. JSON `application/json`, yanıtlar `Cache-Control: no-store` kullanır. Entity'ler doğrudan yanıt olarak serileştirilmez.
+
+| Method + route | Request | Response / hata |
+|---|---|---|
+| `POST /api/v1/auth/register` | `RegisterUserRequest`: zorunlu `email: string`, `password: string`, `displayName: string`; isteğe bağlı `role: UserRole?` (gönderilmez/null ise `client`, yalnız `client` kabul edilir) | `201` `RegisterUserResponse`: yalnız `{ "id": "<User UUID>" }`. User + ClientProfile atomik oluşturulur; `isEmailVerified = false`. Bozuk/eksik/boş zorunlu alan, geçersiz e-posta veya rol, tanımsız/salt okunur alan `400 invalid_request`; parola politikası `422 validation_failed`; normalleştirilmiş mükerrer/yarışan e-posta `409 conflict`; beklenmeyen hata `500 internal_error` |
+| `POST /api/v1/auth/verify-email` | `VerifyEmailRequest`: `{ "token": "<e-postadaki token>" }`; alan zorunlu string | Başarı `204`, boş gövde. Null/boş/yanlış biçimli, bulunmayan, süresi dolmuş, yeniden gönderimle geçersiz kılınmış veya kullanılmış token aynı `422 validation_failed` olur. Eksik alan, bozuk JSON, yanlış JSON tipi veya ek alan `400 invalid_request` |
+| `POST /api/v1/auth/resend-verification` | `ResendVerificationRequest`: `{ "email": "synthetic@example.test" }`; zorunlu geçerli e-posta string | `202`, boş gövde. Hesap yoksa, zaten doğrulanmışsa veya hesap gönderim aralığındaysa da aynı sonuç. Geçersiz/eksik girdi veya ek alan `400 invalid_request`; IP sınırı `429 rate_limited` |
+
+- Kayıt `displayName` girdisini düz alır; iç içe `profile`/`clientProfile`, `userId`, `clientId`, `passwordHash` veya doğrulama alanı kabul etmez. ClientProfile'ın kimliği User kimliğinden ayrıdır; doğum tarihi/boy null kalır. Yanıt e-posta, hash, doğrulama tokenı, access/refresh token veya cookie içermez; otomatik giriş olmaz. `GET /auth/me` yetkili hesap özeti içindir, kayıt kaynağı detay yolu sayılmaz; kayıt `Location` başlığı üretmez.
+- E-posta kırpılır ve Identity normalizer ile normalleştirilir; harf duyarsız unique indeks yarış durumunu da korur. İlk sürüm parola politikası **8–128 Unicode kod noktası**dır; boşluk/Unicode desteklenir, karakter türü zorunluluğu yoktur. Parola kırpılmaz veya normalize edilmez; politika `Auth:RegistrationPasswordPolicy` ile merkezi yapılandırılır, hash Identity PasswordHasher ile saklanır.
+- Token kriptografik 256 bit rastgele, 43 karakter Base64URL'dir; **30 dakika**, tek kullanımlık ve yalnız e-posta doğrulama amaçlıdır. DB'de yalnız SHA-256 hash'i ve `05`teki UTC metadata tutulur. Başarı atomik olarak doğrular ve tokenı tüketir; sürenin tam bittiği an geçersizdir. Yeni gönderim önceki tokenı iptal eder. Ham token istek/yanıt loglarına veya hata detaylarına konmaz.
+- Başarılı kayıt DB commit'inden sonra doğrulama gönderimini kuyruğa alır. Yeniden gönderim HTTP yolu da hesap sorgulamadan aynı kuyruğa yazar; SMTP süresi hesap varlığını açığa çıkarmaz. SMTP hatası/kuyruk doluluğu, başarılı kaydın `201` veya geçerli yeniden gönderimin `202` sonucunu değiştirmez; hesap doğrulanmamış kalır. Bu yanıtlar SMTP teslim makbuzu değildir.
+- Varsayılan yeniden gönderim aralığı **hesap başına 60 saniye**dir; DB'de atomik kontrol edilir. Ayrıca doğrudan bağlantı IP'si başına **dakikada 5 istek** limiti hesap varlığından bağımsız uygulanır; aşım ortak hata zarfıyla `429`dur. Değerler `Auth:EmailVerification` üzerinden yapılandırılır. IP sayacı mevcut API sürecindedir; çok örnekli dağıtım/proxy için ortak limit ve güvenilir proxy yapılandırması ayrıca değerlendirilmelidir.
+- Verify/resend gövdeleri en fazla 4096 byte'tır (`413 payload_too_large`); desteklenmeyen içerik `415 unsupported_media_type`, beklenmeyen sunucu hatası `500 internal_error` ortak zarfı kullanır. Sınırlar token/e-posta değerini yanıta yansıtmaz.
+- SMTP ayarları environment/User Secrets'tan alınır; yerel geliştirmede yalnız loopback Mailpit kullanılır. E-posta metni tokenı ve 30 dakikalık süreyi içerir. İstemcilerin bağlantı/deep-link/UI entegrasyonu bu backend göreviyle uygulanmış sayılmaz. Kuyruk sınırlı ve bellektedir; yeniden başlatma/teslim hatasında yeniden gönderim gerekir. Kalıcı teslim/üretim e-posta sağlayıcısı kararı açıktır.
+
+### Onaylı giriş ve JWT sözleşmesi — 27.10.2026
+
+Kullanıcı bu görevde JWT + 15 dakika kararını, ayrıca aşağıdaki istek/yanıt ve ortak `401` davranışını açıkça onaylamıştır. `13`teki opaque token/alternatif yanıt önerileri bu giriş sözleşmesi yerine kullanılmaz.
+
+| İşlem | Request | Başarı / hata |
+|---|---|---|
+| `POST /api/v1/auth/login` | `LoginUserRequest`: `{ "email": "synthetic@example.test", "password": "<parola>" }`. İki alan zorunlu string; rol/kimlik veya başka alan alınmaz | `200` `LoginUserResponse`: `{ "accessToken": "<JWT>", "tokenType": "Bearer", "expiresAt": "<UTC ISO 8601>", "refreshToken": "<opak token>", "refreshTokenExpiresAt": "<UTC ISO 8601>" }`. Refresh alanları 31.10.2026 görevinde eklendi. Bulunmayan hesap, yanlış parola, doğrulanmamış e-posta ve Admin için aynı genel `401 unauthenticated`. Şekil/eksik/boş girdi, geçersiz e-posta veya ek alan `400 invalid_request`; hız sınırı `429 rate_limited` |
+
+- Login mevcut Identity normalizer ile e-postayı kırpar/normalleştirir ve Identity PasswordHasher ile parolayı doğrular. Parola aynen korunur; girişte yeni kayıt karmaşıklığı/minimumu yeniden uygulanmaz. Hesap bulunmadığında da Identity parola hash doğrulaması yapılır; sahte User/oturum oluşturulmaz. Başarısızlık yanıtları hesap/doğrulama/MFA ayrımı veya gizli veri içermez.
+- Başarı yalnız `client`/`dietitian` ve `isEmailVerified = true` hesaplar içindir. Admin'e token verilmez; middleware imzası geçerli olsa dahi `admin` rolünü kabul etmez. Diyetisyen rolü tek başına uzman doğrulaması veya sağlık kaydı yetkisi değildir; ilgili kaynaklarda `05/11` kontrolleri ayrıca gerekir.
+- JWT **15 dakika** geçerlidir. `sub: string` mevcut User UUID'si, `role: string` kanonik roldür; 02.11.2026 itibarıyla `credentialsVersion` özel claim’i ve ayrıca `iss`, `aud`, `iat`, `nbf`, `exp` standart claim'leri vardır. E-posta, ad, profil/sağlık verisi, hash veya secret claim'i yoktur. `expiresAt`, tokenın imzalı `exp` değeriyle aynı UTC anıdır; istemci claim çözümleyerek yetki vermez.
+- Token `HS256` ile imzalanır, türü `at+jwt`dir. İmzalama anahtarı (Base64, en az 32 kriptografik rastgele byte), issuer ve audience environment/User Secrets'tan alınır; eksik/hatalı yapılandırmada API başlamaz. Token/API yanıtı loglanmaz. Access token DB'ye yazılmaz.
+- ASP.NET Core JWT authentication/authorization middleware imza, izinli algoritma/tür, tam issuer/audience, zorunlu expiry ve zaman aralığını doğrular. `ClockSkew = 0`; varsayılan ek beş dakika tanınmaz. Yetkili kaynaklar `[Authorize]`/uygun kaynak politikalarını uygular. Kimlik `sub`dan alınır; User UUID'si ClientProfile UUID'si sayılmaz.
+- Yetki isteyen bir kaynağa eksik/geçersiz/süresi dolmuş token `401 unauthenticated`, geçerli kimlikle eksik rol/kaynak yetkisi `403 forbidden` olur. `WWW-Authenticate: Bearer` iç doğrulama ayrıntısı taşımaz; ortak hata zarfı korunur. Login ve auth hata yanıtları `Cache-Control: no-store` kullanır. Kimlik/rol deneme yolları yalnız test host'undadır; yeni genel API kaynağı eklenmez.
+- Login varsayılan limiti doğrudan bağlantı IP'si başına **dakikada 10 istek**tir (`Auth:Login:RequestsPerMinute`); hesap varlığından bağımsız ve API süreci içinde uygulanır. Çok örnekli ortak limit/proxy ve hesap bazlı saldırı kontrolleri ayrıca değerlendirilir; kalıcı hesap kilidi bu görevde eklenmez. Gövde sınırı 4096 byte: `413 payload_too_large`; yanlış içerik türü `415 unsupported_media_type`; beklenmeyen hata `500 internal_error`.
+- 27.10 JWT diliminde refresh/logout yoktu; 31.10.2026 görevi aşağıdaki hash rotasyonunu ekler. Bu tarihli dilimde genel anlık access JWT iptali ve parola sıfırlama yoktu; 02.11.2026 P4/reset bölümü bu durumu günceller. Mobil MFA ayrı kalır. Mevcut JWT, geçerli imza ve süresi boyunca kullanılabilir; kendi hesap okumasındaki aşağıdaki DB kontrolü tüm API için oturum iptali sayılmaz.
+
+### Mobil refresh rotasyonu ve çıkış — 31.10.2026
+
+Bu bölüm kullanıcının backend refresh/iptal göreviyle eklenmiştir. Login isteği,
+HS256/at+jwt/issuer/audience/sıfır clock skew ve 15 dakika korunur; 02.11.2026 P4 ile credentialsVersion claim'i eklenmiştir.
+Login yanıtına iki alan eklenmesi **mevcut Flutter'ın tam üç alan bekleyen
+ayrıştırıcısı için uyumsuzdur**. Mobil/web kodu bu görevde değiştirilmez;
+Flutter entegrasyonu aynı sözleşme sürümüyle ayrıca güncellenmeden eski giriş
+akışı bu yanıtı kabul etmez. Web cookie/Admin MFA yanıtları etkilenmez.
+
+| İşlem | İstek | Başarı / hata |
+|---|---|---|
+| `POST /api/v1/auth/refresh` | `RefreshTokenRequest`: yalnız `{ "refreshToken": "<opak token>" }`; oturumsuz JSON, Authorization/cookie/query yok | `200` yukarıdaki beş alanlı `LoginUserResponse`. Bulunmayan/yanlış biçimli/süresi dolmuş/iptal edilmiş/tüketilmiş token veya uygun olmayan hesap aynı `401 unauthenticated` |
+| `POST /api/v1/auth/logout` | Aynı `RefreshTokenRequest`; Authorization/cookie/query yok | Boş `204`. Bilinen tokenın tüm ailesi iptal edilir; tüketilmiş eski aile tokenı da iptal için kullanılabilir. Bilinmeyen/yanlış biçimli/önceden iptal edilmiş tokenla da aynı idempotent `204`; bu bir yenileme/giriş başarısı değildir |
+
+- Refresh CSPRNG ile 32 byte (256 bit), 43 karakter Base64URL üretilir. Sır
+  yalnız login/refresh yanıtında ve geçici işlem belleğindedir; DB'ye yalnız
+  SHA-256 hash ve `05`teki metadata yazılır. Gövde/yanıt/Authorization/token
+  loglanmaz. Tokenın içinden User/rol veya aile bilgisi türetilmez.
+- Aile başına mutlak süre `Auth:RefreshTokens:LifetimeDays` ile 1–365 gün,
+  varsayılan **30 gün**dür. Her rotasyonda yeni refresh token üretilir; ailenin
+  `refreshTokenExpiresAt` değeri uzamaz. Tam bitiş anı geçersizdir.
+- Login, güncel parola hash/rol/e-posta durumunu User satır kilidinde yeniden
+  kontrol eder. Refresh de aynı kilidi alıp güncel doğrulanmış client/dietitian
+  ve giriş rolünü denetler; Admin veya rol/doğrulama değişiminde aileyi iptal eder.
+  Tüketme, yeni hash ve commit atomiktir; DB hatasında eski tüketim de geri alınır.
+- Tüketilmiş herhangi bir ata tokenın tekrar kullanımı aynı ailedeki tüm
+  refresh tokenları iptal eder; bağımsız girişler etkilenmez. Çalıntı tokenın
+  ilk kullanımını meşru kullanımdan ayırt etmek mümkün değildir; iki tarafın
+  yeniden kullanımıyla ihlal saptanır. Sessiz grace/replay kabulü yoktur.
+- Flutter yenilemeyi **tek eşzamanlı işlem** olarak yürütmeli ve access/refresh
+  çiftini birlikte değiştirmelidir. Eşzamanlı aynı-token yenilemesinde en fazla
+  biri `200` alır, diğeri replay sayılıp kazananın ailesini de iptal eder.
+  Kaybolan başarılı yanıtı eski tokenla otomatik tekrarlamak aynı sonuca yol açar;
+  böyle bir belirsizlikte yeniden giriş gerekir.
+- Logout/refresh aynı kilitle serileştirilir; logout döndükten sonra aileden
+  yeni yenileme yapılamaz. Önceden üretilmiş **access JWT anında iptal edilmez**;
+  en fazla kalan 15 dakikası boyunca JWT kabul eden kaynaklarda kullanılabilir.
+  JWT denylist/sid veya web cookie iptali eklenmemiştir.
+- Eksik/null/boş alan, bozuk JSON/yanlış tip/ek alan veya auth/cookie/query
+  `400 invalid_request`; JSON olmayan içerik `415`; 4096 byte üstü `413`;
+  ayrı bağlantı IP sayaçlarında refresh/logout için varsayılan 30/dakika
+  (`Auth:RefreshTokens:RequestsPerMinute`) aşımı `429`; altyapı hatası `500`.
+  Ortak hata zarfı ve tüm yanıtlarda `no-store` korunur. Sayaçlar süreç içidir;
+  çok örnekli dağıtım/güvenilir proxy koruması ayrıca hazırlanır.
+- Yalnız mutlak süresi bitmiş hash geçmişi on dakikada bir temizlenir. Süresi
+  dolmayan tüketilmiş/iptal edilmiş aile geçmişi replay tespiti için korunur.
+  Güvenli mobil saklama, istemci yenileme koordinasyonu ve gelecekteki parola
+  değişikliklerinde tüm ailelerin iptali sonraki entegrasyon sorumluluklarıdır.
+
+### Onaylı kendi hesap endpointi — 27.10.2026
+
+| İşlem | Request | Response / hata |
+|---|---|---|
+| `GET /api/v1/auth/me` | Geçerli JWT bearer veya W2 web cookie. Gövde/query parametresi yok; `userId` alınmaz | `200 CurrentUserResponse`: yalnız `id: uuid`, `displayName: string?`, `email: string`, `role: UserRole`, `isEmailVerified: boolean`. Anahtarların beşi de daima vardır. Desteklenmeyen query/gövde `400 invalid_request`; eksik/geçersiz/süresi dolmuş token veya geçersiz mevcut hesap `401 unauthenticated`; beklenmeyen sunucu/DB hatası `500 internal_error` |
+
+- Endpoint JWT bearer veya aşağıdaki onaylı web cookie authentication ile erişilir. Kimlik, middleware'in doğruladığı tek `sub` claim'indeki User UUID'sidir; istemci kimliği, özel başlık, profil UUID'si veya URL'deki başka ID ile seçilmez. İki kimlik birlikte gönderilmez.
+- User ve varsa kendi ClientProfile'ı yalnız gerekli alanlarla salt okunur sorgulanır. `displayName` profil yoksa açık `null` olur; `client`/`dietitian` için aynı yanıt kullanılır. E-posta ve ad tokena eklenmez, DB'den güncel alınır. User/ClientProfile entity'si, hash, token, güvenlik metadata'sı, `createdAt`/`updatedAt`, sağlık verisi veya iç içe profil dönmez.
+- Süre bitmemiş olsa dahi User DB'de yoksa, e-posta doğrulaması kalkmışsa veya güncel rol kimliğin izinli rolüyle eşleşmiyorsa aynı genel `401` döner; JWT modunda `WWW-Authenticate: Bearer` korunur. Hesap durumu hata metnine eklenmez. Admin MFA engeli değişmez.
+- Yanıt `Cache-Control: no-store` kullanır. User/profil/parola/token alanları değişmez; W2 cookie modunda yalnız başarılı isteğin AuthSession idle süresi ilerler. Bu eski /me dilimi tek başına genel JWT iptali sağlamaz; 02.11.2026 P4 kontrolü artık bütün bearer doğrulamalarına uygulanır. Kayıt/JWT giriş yanıtları değişmez; profil düzenleme/uzman profili açıktır.
+
+### Onaylı parola sıfırlama — P1–P7, 02.11.2026
+
+Kullanıcının açık onayıyla aşağıdaki reset ve P4 kuralları uygulanır.
+Önceki stateless JWT/açık reset notları bu alt kapsam için tarihseldir.
+
+| İşlem | İstek | Sonuç |
+|---|---|---|
+| `POST /api/v1/auth/password-reset-requests` | PasswordResetRequest: yalnız zorunlu geçerli `email: string` | Gövdesiz `202`; olmayan, doğrulanmamış hesap, cooldown ve kuyruk doluluğunda da aynı sonuç. Admin dahil hesap uygunluğu açıklanmaz. Bozuk/eksik/null/ek alan `400 invalid_request`; IP limiti `429 rate_limited` |
+| `POST /api/v1/auth/reset-password` | ResetPasswordRequest: yalnız zorunlu string `token`, `password` | Commit sonrası gövdesiz `204`. Boş/geçersiz/süresi dolmuş/tüketilmiş/önceki token veya parola politikası ihlali aynı `422 validation_failed`; eksik/null/yanlış JSON tipi/ek alan `400`; IP limiti `429` |
+
+- İki işlem oturumsuzdur. Hesap yalnız reset tokenından seçilir; varsa cookie/bearer
+  kimliği dikkate alınmaz. İstemciler bu kimlikleri göndermez. Query `400`,
+  application/json dışında `415`, 4096 byte üstü `413`; altyapı hatası genel `500`.
+  Ortak hata zarfı ve no-store korunur; başarı kimlik/cookie/Location üretmez.
+- 20.11.2026 U5 kullanıcı onayıyla e-postası doğrulanmış client/dietitian/Admin
+  hesapları uygundur. Bu dar kapsam genişlemesi önceki Admin istisnasını kaldırır;
+  reset e-posta/rol/MFA doğrulaması sağlamaz. Admin TOTP sırrı, kullanılmış adım ve
+  kurtarma kodu hash'leri korunur; yeni parola da mevcut Admin MFA girişini gerektirir.
+- Token CSPRNG 256 bit/43 Base64URL, 30 dakika ve tek kullanımlıktır; tam bitiş
+  anı geçersizdir. Yalnız amaç önekli SHA-256 hash'i saklanır (`05`). Yeni kod
+  eskiyi geçersiz kılar. Doğrulama/CSRF/access/refresh tokenları reset yetkisi vermez.
+- Mevcut 8–128 Unicode kod noktası politikası ve Identity PasswordHasher kullanılır;
+  parola kırpılmaz/normalize edilmez, politika hatasında kod tüketilmez.
+- User satır kilidi altında token/expiry/uygunluk tekrar kontrol edilir. Parola,
+  updatedAt, checked credentialsVersion +1, reset hash/expiry tüketimi, bütün web
+  oturumları ve bütün refresh ailelerinin iptali tek transaction'dadır. Hata/taşma
+  tamamını geri alır; iki eşzamanlı resetten biri 204, diğeri 422 alır.
+- Login (JWT ve web), refresh ve reset aynı User kilidi sırasını kullanır.
+  Reset kazandığında önceden doğrulanmış eski parolayla yeni kimlik oluşturulmaz.
+  Identity rehash sürümü artırmaz. Refresh hash geçmişi normal mutlak expiry'ye
+  kadar korunur; bağımsız giriş aileleri dahil tamamı resetle iptal edilir.
+- Login ve refresh JWT'leri `credentialsVersion` string claim'i taşır. Her bearer
+  doğrulamasında imza/süre kontrollerinden sonra güncel User id/rol/doğrulanmışlık/
+  sürüm DB'den kontrol edilir. Eksik, tekrarlı, string olmayan, negatif, işaretli,
+  başında sıfır olan, taşan veya eşleşmeyen sürüm aynı 401'dir. DB hatası 500 ve
+  kapalı erişimdir; olumlu sonuç cache'lenmez. Kaynak yetkisi kontrolleri korunur.
+- Reset commit'inden sonra başlayan doğrulamalarda eski JWT anında reddedilir;
+  kalan 15 dakika beklenmez. Önceden yetkilendirilmiş istek tamamlanabilir.
+  Normal logout yalnız refresh ailesini iptal etmeye devam eder; sürümü artırmaz,
+  access JWT'nin kalan süresi normal logout için geçerlidir. Cookie biçimi değişmez.
+- Talep IP başına 5/dakika, tüketim 10/dakika; hesap gönderim aralığı 60 saniye.
+  `Auth:PasswordReset` altında RequestsPerMinute, ConsumeRequestsPerMinute,
+  ResendCooldownSeconds ve QueueCapacity (100) merkezi yapılandırılır; hepsi pozitiftir.
+  Sayaçlar API sürecindedir; güvenilir proxy/ortak limit üretim önkoşuludur.
+- HTTP talebi hesap sorgusu/SMTP beklemeden sınırlı bellek kuyruğuna yazılır.
+  Kuyruk/SMTP hatasında 202 teslim garantisi değildir. Mevcut yerel Mailpit/SMTP
+  kullanılır; üretim sağlayıcısı/kalıcı kuyruk eklenmez. Başarıdan sonra sır/parola
+  içermeyen bildirim kuyruğa alınır; teslim hatası commit'i geri almaz.
+- Süresi biten hash/expiry 10 dakikalık temizlikte silinir; 24 saati geçmiş
+  lastSentAt yalnız canlı kod yoksa temizlenir. Hesap/veri silinmez.
+- U5 web bağlantısı, mevcut güvenilir `Auth:WebSession:Origin` yapılandırılmışsa
+  `<https-origin>/sifremi-unuttum#token=<43-karakter-kod>` biçimindedir. İstek Host'u
+  kullanılmaz, yeni API/rota alias'ı yoktur. Kod e-postada ayrı satırda da kalır;
+  web yapılandırılmamış mobil/JWT ortamında yalnız kod gönderilir. Fragment HTTP
+  isteğine gitmez; React tokenı yalnız geçici belleğe alıp URL/history girdisini
+  `replace` ile temizler. Query/tekrarlı/bozuk token kabul edilmez ve URL temizlenir.
+  Token router state/depolama/analitik/loga taşınmaz; no-referrer kullanılır.
+  Temiz URL yenilenirse e-posta bağlantısı yeniden açılır veya yeni kod istenir.
+  Reset POST'u otomatik tekrarlanmaz, otomatik giriş yapılmaz. Mobil mevcut tek
+  refresh koordinasyonunu korur; iptal edilmiş refresh'in 401'i oturumu temizler.
+- Dağıtım: önce yedekli additive migration, ardından bütün API örneklerinin aynı
+  sürüme geçirilmesi gerekir. Claim'siz eski JWT 401 alır; geçerli mevcut refresh
+  yeni sürümlü JWT üretebilir. Resetle iptal edilmiş aile yeniden giriş gerektirir.
+  Karma eski/yeni middleware ile reset açılmaz. Beş alanlı login/me ve ekranlar değişmez.
+
+### Onaylı web cookie oturumu — W2-C1–C7 (27.10.2026)
+
+Kullanıcı iki tarafın ortak onayını teyit etmiştir. Mevcut JWT login yolu,
+15 dakikalık süresi korunur; 02.11.2026 P4 ile credentialsVersion eklenir. Login yanıtı 31.10.2026'da yukarıdaki
+refresh alanlarıyla genişletildi. JWT login cookie üretmez.
+Web akışı ayrı kaynak kullanır; JWT login'i çağırmaz, refresh token üretmez.
+
+| Method + route | İstek | Yanıt |
+|---|---|---|
+| `GET /api/v1/auth/csrf` | Gövde/query yok; mevcut geçerli cookie veya anonim bağlam | `200 CsrfTokenResponse { requestToken: string }`; framework CSRF cookie'si hazırlanır, hesap/oturum ID'si dönmez |
+| `POST /api/v1/auth/web-session` | Mevcut `LoginUserRequest { email, password }`; JSON; query yok; CSRF cookie + `X-CSRF-TOKEN`, tam Origin | Auth istisnası `200 CurrentUserResponse`: yalnız id/displayName/email/role/isEmailVerified; oturum commit'inden sonra korumalı cookie; Location/JWT/refresh/sid yok |
+| `GET /api/v1/auth/me` | Gövde/query yok; JWT veya web cookie | Mevcut beş alanlı `200 CurrentUserResponse` aynen korunur; opsiyonel profil adı null olabilir |
+| `DELETE /api/v1/auth/web-session` | Gövde/query yok; CSRF cookie + `X-CSRF-TOKEN`, tam Origin; yalnız mevcut cookie | DB iptalinden sonra boş `204`; auth ve CSRF cookie'leri temizlenir. Olmayan/bozuk/bitmiş/iptal edilmiş oturumda da geçerli CSRF/Origin ile `204`; başka oturum etkilenmez |
+
+- Yeni web yollarında Authorization kabul edilmez (`400`). Hesap okumasında
+  Authorization ve auth cookie birlikteyse `400`; başarısız kimlikten diğerine
+  düşülmez. Geçerli web oturumuyla yeniden login `409 conflict`tir. Bozuk cookie
+  kimlik sayılmaz; anonim CSRF ile yeniden giriş yapılabilir. Olmayan hesap,
+  yanlış parola, doğrulanmamış e-posta, Admin ve diyetisyen profili bulunmayan
+  danışan aynı genel `401`i alır. Bekleyen başvurusu olan hesap başvuru takibine
+  erişebilir. Web çalışma alanı işlemleri onaylı uzman profili gerektirir. Çift
+  profilli hesabın web hesap özetindeki `displayName` diyetisyen profilinden gelir.
+- Web/API aynı HTTPS origin'dedir. Cookie'ler Secure/HttpOnly/SameSite=Strict,
+  Path=/, Domain'sizdir: `__Host-smart-nutrition-session` ve
+  `__Host-smart-nutrition-csrf`. Auth cookie tarayıcı oturum cookie'sidir;
+  Expires/Max-Age ve beni hatırla yoktur. Bilet ASP.NET Core AddCookie/Data
+  Protection ile korunur; yalnız tek sub(User UUID), role, sid(AuthSession UUID)
+  ve framework zamanlarını taşır. Anahtarlar Git dışında kalıcı/şifreli depoda,
+  aynı uygulama adıyla yönetilir; eksik/geçersiz ayar web erişimini kapatır.
+- CSRF `IAntiforgery` ile kullanıcıya ve oturum sid'sine bağlanır; aynı User'ın
+  yeni oturumu da eski tokenı geçersiz kılar. Girişten sonra yeni token alınır.
+  Login/logout ve ileride cookie yetkisi kazanan yazmalar iş kuralından önce
+  CSRF ister. Yazmada Origin tek yapılandırılmış HTTPS scheme/host/port ile tam
+  eşleşir; eksik/null/farklı Origin `403`. CSRF GET'inde varsa Origin aynı kurala
+  uyar; Sec-Fetch-Site cross-site `403`. Geçersiz/eksik CSRF `400`; ham ayrıntı
+  dönmez. Credential CORS açılmaz. Mevcut diğer API yolları cookie yetkisi kazanmaz.
+- Her cookie isteği DB'de revokedAt=null, now<idleExpiresAt, now<absoluteExpiresAt,
+  doğru User/FK, güncel doğrulanmış e-posta ve aynı client/dietitian rolünü denetler.
+  Admin kabul edilmez. DB hatası genel `500`, erişim kapalıdır; olumlu sonuç önbelleği yoktur.
+  Başlangıç idle 30 dakika, mutlak süre 8 saattir. Başarılı yetkili hesap okuması
+  idle'ı min(now+30 dakika,absoluteExpiresAt) sınırında atomik ilerletir; CSRF,
+  statik dosya, sağlık kontrolü, başarısız istek veya keepalive polling'i uzatmaz.
+  Bilet mutlak sınıra kadar geçerlidir; DB idle kontrolü her istekte zorunludur.
+- Logout iptalini eski uzatma silemez. Login doğruladığı User hash/rol/doğrulama
+  durumunu aynı User satır kilidinde yeniden denetler; yarışta `401`, cookie yoktur.
+  Gelecekteki güvenlik yazmaları aynı kilit/transaction içinde tüm web oturumlarını
+  iptal eder. Rehash gerçek parola değişikliği sayılmaz. İptalden önce yetkili
+  istek tamamlanabilir. Web çıkışı mevcut stateless JWT'yi iptal etmez; mobil
+  mobil refresh/iptal 31.10.2026 bölümündedir; mobil MFA ayrı açık kapsamdır.
+- Tüm yanıtlar no-store ve ortak hata zarfını kullanır; HTML/302 yönlendirmesi yoktur.
+  Yanlış JSON içerik `415`; ek/eksik/boş alan veya query/gövde ihlali `400`;
+  4096 byte login aşımı `413`; IP aşımı `429`; altyapı hatası `500`dür.
+  Web/JWT login aynı IP başına dakikada 10 istek sayacını paylaşır; CSRF GET
+  ayrı dakikada 30 istek sınırını kullanır; ikisi yapılandırılabilir.
+  Proxy başlığı keyfî güvenilir sayılmaz; çok örnekli ortak sayaç yayın kapısıdır.
+- Web credentials=same-origin kullanır; hesap özeti/CSRF yalnız geçici sayfa
+  belleğinde tutulur. Hesap ekranı yenilenince CSRF ve GET me ile yeniden okunur;
+  token/hesap cookie'si JS depolama/URL/loga yazılmaz. 401 ve çıkış hassas UI'yi
+  temizler; geç yanıtlar eski hesabı geri getiremez. CSRF/hesap değişiminde yazma
+  otomatik tekrarlanmaz. Çıkış yalnız 204 ile doğrulanır; ağ/500 hatasında
+  “Çıkış sunucuda doğrulanamadı; tekrar deneyin” gösterilir. E-posta işlemleri
+  oturum oluşturmaz/uzatmaz; mobil bearer'a CSRF eklenmez.
+
+## Örnek 1 — manuel öğün oluşturma
+```http
+POST /api/v1/meal-logs
+Authorization: Bearer <access-token>
+Content-Type: application/json
+```
+```json
+{
+  "mealType": "lunch",
+  "consumedAt": "2026-10-15T12:30:00Z",
+  "note": "Öğle öğünü",
+  "source": "manual",
+  "items": [
+    {
+      "foodItemId": null,
+      "displayName": "Mercimek çorbası",
+      "quantityGrams": 250,
+      "caloriesKcal": 180,
+      "proteinGrams": 9,
+      "carbsGrams": 25,
+      "fatGrams": 5,
+      "isEstimated": true
+    }
+  ]
+}
+```
+Başarılı yanıt `201 Created`: `{ "id": "<uuid>", "clientId": "<uuid>", "mealType": "lunch", "consumedAt": "2026-10-15T12:30:00Z", "source": "manual", "items": [ ... ] }` (kısaltılmış gösterim; tam alanlar günlük kayıt tablosunda). `clientId` auth öznesinden türetilir, istemciden gelen başka kullanıcı ID'sine güvenilmez. Mevcut örnek korunur; tarif kullanılıyorsa opsiyonel `recipeId` aynı item'a eklenebilir.
+
+## Örnek 2 — su ekleme
+```json
+{ "amountMl": 250, "consumedAt": "2026-10-15T15:00:00Z", "source": "manual" }
+```
+`POST /api/v1/water-logs`; negatif/sıfır miktar reddedilir. Dönen yanıt `id`, `clientId`, `amountMl`, `consumedAt`, `source` içerir.
+
+## Örnek 3 — görsel analiz / ayrık onay
+- `POST /api/v1/food-analyses`: `multipart/form-data` içindeki **`image`** dosyası; `202 Accepted` → `{ "id": "<uuid>", "status": "pending" }`.
+- `GET /api/v1/food-analyses/{analysisId}` → `{ "id": "<uuid>", "status": "completed", "modelVersion": "...", "suggestions": [ { "displayName": "...", "quantityGrams": null, "caloriesKcal": null, "proteinGrams": null, "carbsGrams": null, "fatGrams": null, "confidence": 0.72 } ], "limitations": ["Porsiyon doğrulanmadı"] }`.
+- Tahminler kaloriye dair kesinlik iddia etmez; kullanıcı düzeltip ayrı `POST /api/v1/meal-logs` gönderir (`source: "ai_assisted"`, opsiyonel `foodAnalysisId`).
+
+Dosya tür/boyut/güvenlik ve aktarım izinleri sunucuda kontrol edilir; limit/sağlayıcı ayrıntıları açık kalır. GET yalnız analizin danışanına açıktır; `status` mevcut `pending/processing/completed/failed` değerlerini kullanır. `05`teki `clientId`, `createdAt`, nullable `completedAt` ve güvenli `errorCode` aynı ad/tiplerle yanıt metadata'sı olabilir. Başarısız analiz öğün oluşturmaz; manuel giriş devam eder.
+
+Öneride `confidence` decimal 0–1; porsiyon gram, enerji kcal, makrolar gram ve bilinmiyorsa null'dır. Mevcut HTTP yerleşimi korunur: `limitations` analiz kökünde `list<string>`dir; her önerinin altına sessizce taşınmaz. `05`te saklama/üretim ayrımı ve `10`daki iç içelik anlatımı ayrıca uyarlanmalıdır. Analiz başlatmak, sonucu görüntülemek veya sunucuda completed olması kullanıcı onayı değildir; ek bir otomatik kayıt/confirm endpointi üretilmez.
+
+## Örnek 4 — laboratuvar verisi
+```json
+{
+  "collectedAt": "2026-10-15T08:00:00Z",
+  "labName": "Örnek laboratuvar",
+  "results": [
+    { "testName": "Örnek analit", "testCode": null, "value": 12.3, "unit": "unit", "referenceLow": null, "referenceHigh": null }
+  ]
+}
+```
+Sunucu `flag` hesaplar; referanslar yoksa `unknown`. Birimler normalizasyonu **kontrol edilmeden** karşılaştırma yapılmaz. `LabInsight` tıbbi tanı içeremez.
+
+## Eşzamanlı çalışma güvenlik listesi
+
+- Başka geliştirici API'yi uygulamadan istemci kendi endpointini üretmez; `API_CONTRACT`'a uyar ve mock'ları aynı şemayla hazırlar.
+- Endpoint/alan değişikliği → 04 + 05 + 06 + OpenAPI/istemci tipleri için onaylı tek değişiklik.
+- API `contract test`, rol/ilişki yetki testi ve karşılıklı parse testleri yapılmadan entegrasyon tamamlandı sayılmaz.
+- Tek aktif ilişki/program yarışları, kişisel programa diyetisyen bağlanmadan erişim, atanmış programı danışanın değiştirememesi, kategori/tahlil onayı geri çekme ve başka danışana ait alt kayıt referansları test edilmelidir.
+- Örnek senaryolar: geçersiz JSON `400`; negatif su veya boş ölçüm `422`; ikinci aktif ilişki/program `409`; başka danışanın özel kaydı tutarlı `403/404`; tahlil açık onayı olmadan diyetisyenin analiz isteği reddedilir; AI/OCR sonucu onaysız kalıcı sağlık kaydına dönüşmez. Bunlar test gereksinimleridir, çalıştırılmış test sonucu değildir.
+
+## Kalan açık kararlar ve belge uyumu
+
+- Tarif bileşenleri/görünürlük/geçmişi ve henüz onaylanmamış kategori kodları açık kalır. Görev durum/geçiş/son tarih/tercih ve client_tasks U1 ile kapanmıştır; hatırlatma teslimi ayrıca geliştirilir. N1–N3 program sürüm/alternatif DTO'su da kapanmıştır.
+- Genel atomik program replace/geçişi, programsız kişisel hedefler, makro hedef alanları, program uyum hesabı ve yerel gün/saat dilimi politikası açıktır. N1–N3 arşivleme ve aktif ilişki bitişinde atanmışı arşivleme onaylıdır.
+- OCR dosya kabul limitleri, taslak/iş kimliği ve onay kanıtı; LabInsight method/limitations biçimi ve değişen tahlilde eski analizlerin gösterimi açıktır. FoodAnalysis HTTP limitations kökte korunmuştur; `05/10` açıklamaları bu yerleşimle eşitlenmelidir.
+- Cihaz sync request/response, provider/durum kodları, adım/nabız/aktif enerji modelleri, kararlı kimliği olmayan kaynak, manuel/cihaz örtüşmesi, yeniden aktarım ve kullanıcı düzeltmesinin önceliği açıktır; yeni genel ölçüm veya AI job modeli türetilmez.
+- Mobil güvenli saklama/istemci refresh entegrasyonu ve mobil MFA, profil düzenleme/uzman profili ve sıfırlama açık kalır. Backend mobil refresh/iptal 31.10.2026 bölümünde uygulanmıştır; kayıt/e-posta doğrulama, JWT giriş/hesap özeti ve W2 web cookie/CSRF/iptal korunur. Başvuru, web Admin MFA, ilişki/davet ve programlar için üstteki tarihli ortak sözleşmeler geçerlidir.
+- İlk sürüm yorum/cevap bildirimleri ve diyetisyen PDF raporları onaylı kapsamdır; bildirim/rapor DTO, teslim/dosya yetkilendirmesi ve moderasyon ayrıntıları açık olduğundan bu görevde tahminî yollar açılmaz. İzin dışı veri export edilmez. KVKK, silme, saklama ve audit için `11` kapısı korunur.
+- Sayısal hassasiyet/yuvarlama, metin/dosya/pagination limitleri, tekrar denemelerde idempotency ve güvenli silme ayrıntıları ortak onay bekler. Mevcut enumlar ve model adları değişmez.
+
+Kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti ayrıntıları `04/05/11/12` ile eşgüdümlüdür. Diğer açık şema parçaları iki geliştiricinin onayıyla `04/05/06` ve OpenAPI/istemci tiplerinde birlikte tamamlanmalıdır; bu görev mobil/web entegrasyonu içermez.

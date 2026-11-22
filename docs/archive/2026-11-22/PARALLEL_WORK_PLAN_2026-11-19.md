@@ -1,6 +1,8 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
 # Smart Nutrition Platform — Mert & Uğur Paralel Geliştirme Koordinasyonu
 
-> **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`  
+> **Dosyanın repo içindeki konumu:** `docs/PARALLEL_WORK_PLAN_2026-11-19.md`
 > **Sürüm:** 1.6 · **Hazırlanma:** 18.11.2026 · **U6 güncelleme:** 20.11.2026 · **Bitirme toplantısı:** 19.11.2026
 > **Kapsam:** Mevcut Smart Nutrition Platform. İptal edilmiş fitness/Trainer/openGym projesi bu planın parçası değildir.
 
@@ -343,7 +345,7 @@ false korunur. U3 başlatılmadı, uygulama DB migration'ı yapılmadı.
 
 ## 9. Her iki Codex için zorunlu başlangıç talimatı
 
-> **Her yeni görevin ilk satırında kullanılabilir:**  
+> **Her yeni görevin ilk satırında kullanılabilir:**
 > `Önce AGENTS.md, docs/PARALLEL_WORK_PLAN_2026-11-19.md, ilgili güncel docs sözleşmeleri ve mevcut Git/kod durumunu incele. Bu plandaki bana ait görev ID'si ve dosya sahipliği sınırlarına uy. Başkasının dosyalarına dokunma, tamamlanmış işleri yeniden yazma; API/migration çakışmasında durup farkları raporla. Yalnız istenen tek görevi uygula. Computer Use, git pull/commit/push/merge yapma. Testleri çalıştır, kısa Türkçe rapor ve Türkçe commit mesajı öner; commit atma.`
 
 **Mert'in Codex'i** için her promptta görev ID'si `M1`–`M6`; **Uğur'un Codex'i** için `U1`–`U6` açıkça yazılmalıdır. İstenen iş listede yoksa **önce bu belge üzerindeki sorumluluk paylaşımı kararlaştırılmalıdır**.

@@ -1,417 +1,77 @@
-# 11 — Güvenlik, KVKK, kalite ve gerçek yayın hazırlığı
-
-## 19.11.2026 — U4 bağımsız su paylaşımı
-
-Kullanıcının U4 onayıyla water_logs ayrı, eksik/false durumda kapalı kategoridir.
-Hiçbir otomatik grant/backfill yoktur; diğer izinler suya erişim vermez. Yeni
-izin yazma açılımı WaterLogsEnabled=false kalır; M4'ün beş kategori ayrıştırıcısı
-ve sayfalaması doğrulanmadan açılmaz. Kapalı ayar mevcut izni geri çekmeyi
-engellemez, satırları gizlemez. Uzman veya Admin danışan adına izin veremez.
-
-Diyetisyen su liste/toplam/geçmiş yolları güncel doğrulanmış uzman, kendi active
-ilişkisi ve o ilişkide açık water_logs iznini her istekte verilerle aynı
-RepeatableRead snapshot'ında denetler. Başlamış yetkili okuma tamamlanabilir;
-geri çekme/ilişki sonu/doğrulama kaybı sonrası yeni istek reddedilir. Sayı/toplam
-izinsiz yanıta çıkmaz; hata sıfır değildir. Cookie/JWT/CSRF, no-store ve sağlık
-değerlerini loglamama korunur. Kendi danışan su CRUD'u ilişkiden bağımsızdır.
-
-Kişisel su hedefi paylaşılmaz; program hedefi ayrı nutrition_plans yetkisi ister.
-U4 su görünümü hedef istemez; izinli tüketim program erişiminden bağımsızdır.
-React öğrenilen 403/404'te su içeriğini/sayıları/grafiği kaldırır; danışan, oturum,
-tarih değişimi ve gizli sekmede eski veri gizlenir, geç yanıtlar elenir. Kalıcı
-sağlık cache'i/yeni üçüncü taraf yoktur. History en çok 31 yerel gün ve 100'lük
-sayfa sınırındadır; IANA gün sınırları doğrulanır, atlanan/belirsiz gece yarısı
-tahmin edilmez. Salt kategori check migration'ı eski verileri korur; false dahil
-su izin satırı varken Down reddedilir. Uygulama DB'sine uygulanmaz; yalnız
-sentetik/ayrı PostgreSQL testleri. Genel KVKK/retention/yayın kapıları geçerlidir.
-
-## 19.11.2026 — U3 kendi sağlık verisi ve aktarım iptali
-
-Kullanıcı U3 birim/tarih/kaynak/izin kararlarını uygulama yetkisiyle onayladı.
-HealthData yolları yalnız doğrulanmış client JWT ve kendi ClientProfile bağlamını
-kullanır. Başka danışan 404, diyetisyen/Admin veya web cookie erişimi kapalıdır.
-userId/clientId kabul edilmez; kaynak/bağlantı sahipliği composite FK ile korunur.
-Hiçbir yeni DataSharingPermission kategorisi veya diyetisyen sağlık yolu açılmaz.
-
-OS iznini mobil okumadan önce/sonra denetler; reddedilmiş okuma/bekleyen aktarım
-gönderilmez. Sunucu OS iznini doğrulayamaz; active/revoked yalnız uygulamaya
-aktarım tercihidir. İptal User→ClientProfile kilit sırasıyla sync ile serileşir;
-iptalden sonra yeni sync 403 sync_disabled, eski geçmiş okunabilir. Yeniden POST
-iptali kaldırmaz; güncel sürümlü açık active PATCH gerekir. iOS belirsiz/boş
-okuma izin kanıtı veya silme değildir. Kaynak beyanı cihaz attestation'ı değildir.
-
-100 kaynak/1000 örnek/512 KiB sınırı, stable kaynak ID'si, ham birim/metadatanın
-korunması, sürüm kontrolü ve kalıcı batch hash/receipt tekrar ve yarışları korur.
-Tümü tek transaction; kısmi sağlık yazımı yok. Boş/eksik batch silmez; açık kayıt/
-nabız nokta silmesi tombstone'dur. Başarısız istek lastSyncedAt ilerletmez;
-altyapı/JSON/auth hatasında attempt metadata'sı yazılamayabilir. Başarı HTTP/receipt
-ile doğrulanır. Sağlık değerleri/sırları hata/loga taşınmaz, yanıtlar no-store.
-
-Deterministik conservative_overlap_v1 ham veriyi birleştirmez/silmez; örtüşme ve
-dağıtılamayan aralıkları işaretler, bilinmeyeni sıfıra çevirmez. Sonuç tıbbi tanı,
-tedavi veya otomatik beslenme hedefi girdisi değildir. Genel saklama/silme, hesap
-silme ve yedek/retention/yayın kapıları geçerlidir; tombstone süresiz saklama kararı
-değildir. API testleri yalnız sentetik, ayrı PostgreSQL ortamındadır; fiziksel
-Android/iOS Health Connect/HealthKit doğrulaması değildir. M3 sözleşmesi [20](20_HEALTH_DATA_SYNC_CONTRACT.md).
-
-## 18–19.11.2026 — U1 görev erişimi, geçmiş ve izin iptali
-
-Kullanıcının U1 uygulama onayıyla client_tasks bağımsız paylaşım kategorisidir;
-eksik izin kapalıdır, nutrition_plans/meal_logs/body_measurements yetki vermez.
-Yalnız danışan kendi aktif ilişkisinin iznini açar/geri alır. Yeni izin yazması
-Relationships:Sharing:ClientTasksEnabled=false ile kapalıdır; M2 çoklu kategori/
-sayfalama uyumu doğrulanmadan ortak ortamda açılmaz. Ayar eski satırı gizlemez,
-mevcut izni geri çekmeyi veya danışanın kendi görevlerini okumayı engellemez.
-
-Diyetisyen her görev okuma/yazma/geçmiş işleminde güncel doğrulanmış uzman,
-atayan sahipliği, görevin özgün active ilişkisi ve açık izni denetler. Başka
-danışan/atayan/bitmiş ilişki 404; aktif ilişkide eksik/geri çekilmiş izin 403.
-Yeni ilişki eski görevleri açmaz. Danışanın kendi okuması ilişkisizdir; ilişki
-sonu açık görevleri aynı transaction'da iptal eder ve sürüm geçmişi ekler.
-Admin MFA görev verisi erişimi vermez. Aktör User UUID'si geçmişte dahili
-saklanır; yanıt, hata ve uygulama logunda görev içeriği/kimlik bilgisi sızmaz.
-
-User→ClientProfile kilit sırası izin geri çekme/ilişki sonu/görev yazmasında
-ortaktır; beklemeden sonra ilişki/izin yeniden kontrol edilir. Görev kilidinde
-sürüm karşılaştırılır; eski sürüm 409. Görev ve immutable snapshot tek transaction;
-geçmiş hatası görevi/ilişkiyi kısmen değiştiremez. Yetki ve okuma sayıları aynı
-RepeatableRead snapshot'ındadır; başlamış yetkili okuma tamamlanabilir, iptal
-sonrası yeni istek reddedilir. Yanıtlar no-store, cookie işlemleri CSRF/Origin
-korumalıdır; JWT/birleşik kimlik ve çift profil sınırları korunur.
-
-Migration yalnız yeni görev/geçmiş tabloları, ilişki üçlüsü tekilliği ve kategori
-check genişletmesi ekler; mevcut veri/izinleri değiştirmez. Veri bulunan Down
-reddedilir. Uygulama DB'sine uygulanmaz; ayrı geçici PostgreSQL üzerinde sentetik
-test yapılır. Bildirim tercihi saklamak teslim/worker/üretim yayını değildir;
-genel saklama/silme/KVKK/yayın kapıları geçerlidir.
-
-## 18.11.2026 — Birleştirilen ölçüm paylaşımı kuralları
-
-Kullanıcı kararıyla BodyMeasurementsEnabled yalnız Development'ta true
-etkili olacak şekilde sınırlandırıldı; varsayılan false korunur. Production/
-Staging override'ı yeni izin satırı veya PATCH true açmaz. Aktif ilişkide mevcut
-izni geri çeken PATCH false mümkündür; ayar satır gizlemez/silmez ve verilmiş
-iznin yerine geçmez. Eski mobil kategori/sayfalama uyarlanmadan ortak ortamda
-açılmaz. Uğur'un web görünümü ve ortak migration'ı korunur; tek migration
-kullanılır. Yetki snapshot'ı ve kronolojik okuma için ek regresyonlar korunur.
-
-## 18.11.2026 — Bağımsız ölçüm paylaşımı, M1–M4
-
-Kullanıcının `18` uygulama onayıyla body_measurements ayrı izin kategorisidir.
-Eksik izin kapalıdır; program/öğün izninden türetilmez ve otomatik verilmez.
-Ölçüm okumasında güncel onaylı uzman, aktif ilişki ve aynı ilişkide açık ölçüm
-izni sayı/satırlarla aynı DB snapshot'ında denetlenir. Admin sağlık erişimi
-kazanmaz. Not dahil yanıtlar no-store; hata/loglarda sağlık değerleri yoktur.
-
-BodyMeasurementsEnabled varsayılan false kalır. Mert'in mobil kategori/sayfalama
-uyarlaması ortak main'e gelmeden izin yazması açılmaz. Kapalı ayar mevcut satırı
-geri çekmeyi veya okumayı gizlemez; danışan onayının yerine geçmez. Migration
-yalnız kategori check'ini genişletir; veri/backfill/purge yoktur, kayıplı rollback
-zorlanmaz. Kendi ölçüm CRUD, MFA/cookie/JWT ve genel yayın kapıları korunur.
-
-## 07.11.2026 — G1 öğün paylaşım izin altyapısı
-
-`17` ortak onayıyla yalnız G1 uygulanır. meal_logs izni program izninden
-bağımsızdır; kategori eklenmesi sağlık kaydı erişimini kendiliğinden açmaz.
-Yalnız danışan kendi aktif ilişkisinde mevcut W2 CSRF/Origin veya JWT
-kurallarıyla izin yazar; Admin/diyetisyen danışan adına izin veremez.
-Migration yalnız check kısıtını genişletir; izin backfill'i/veri silme yoktur.
-
-`Relationships:Sharing:MealLogsEnabled` varsayılan false'tur. Eski mobil
-ayrıştırıcı ikinci kategori satırını reddettiğinden Mert'in uyarlaması ve
-regresyonu ortak main'e gelmeden ortak ortamda açılmaz. Kapalı ayar mevcut
-satırı geri çekmeyi engellemez; satır gizlemez veya silmez. meal_logs satırı
-varken eski mobil sürüme dönüş ve migration Down ayrıca değerlendirilir;
-başarısız rollback veri silinerek zorlanmaz. Genel yayın kapıları devam eder.
-
-
-## 03.11.2026 — Yalnız yerel Mailpit Admin kodu
-
-Kullanıcı Development/Mailpit alternatifini açıkça onayladı (`06`). Bu üretim
-MFA kararı değildir: Mailpit geliştirme kutusu gerçek bağımsız ikinci faktör
-güvencesi sunmaz. Production/Staging'de endpoint ve e-posta kodu tüketimi kapalıdır;
-yerel e-posta ile açılmış mevcut cookie de her istekte bu sınırla reddedilir.
-Flag ve Development yanında SMTP loopback/1025 koşulu aranır. Mevcut TOTP ve
-kurtarma kodu kurulumu/adımı değişmez; Admin bearer yasağı sürer.
-
-6 hane/5 dakika/tek kullanım; 60 saniye aralık, IP başına 5 talep/dakika,
-kod başına 5 başarısız deneme. Yalnız salt+hash süreç belleğinde tutulur; kodlar,
-parolalar, MFA sırları ve SMTP hata içerikleri loglanmaz. Bilinmeyen hesap,
-yanlış parola ve uygun olmayan hesap aynı genel `401` yanıtını alır. Kabul edilen
-isteğin boş `202` yanıtı teslim durumunu açıklamaz. HTTPS/Origin/CSRF ve açık
-oturum çakışması korunur.
-Üretim e-posta MFA/kurtarma sistemi bu değişiklikten türetilmez.
-
-## 02.11.2026 — Çift profil yetki ayrımı
-
-17.11.2026 itibarıyla mevcut doğrulanmış danışanın uzman başvurusu mobil JWT
-üzerinden kendi User'ına bağlanır. Sunucu kimliği ve kimlik bilgisi sürümünü
-işlem sırasında tekrar denetler. Pending
-profil yetki vermez. Admin MFA onayı sonrası temel rol/token/cookie değişmez;
-uzman kaynakları güncel onaylı profili, aktif ilişkiyi ve gerekli kategori iznini
-sunucuda denetler. Ortak uçların X-Profile-Context başlığı yalnız işlem bağlamını
-seçer. Web oturumu yalnız uzman bağlamına izin verir. Mobil JWT ile açık profil
-bağlamı ve işlem yetkisi birlikte denetlenir.
-Kendi iki profili arasında ilişki kurulamaz. Admin'in sağlık erişimi açılmaz;
-mevcut danışan verileri, ilişkileri, JWT sürüm kontrolü ve oturum iptali korunur.
-
-## 02.11.2026 onaylı parola sıfırlama ve JWT güvenlik sürümü
-
-P1–P7 kullanıcı tarafından onaylandı; normatif HTTP/şema `04/05/06`dadır.
-Reset tokenı amaç önekli hash olarak saklanır, 30 dakika/tek kullanımdır; yalnız
-doğrulanmış client/dietitian hesaplara gönderilir; 20.11.2026 U5 onayı aynı
-mekanizmayı doğrulanmış Admin'e de açar. Genel 202, asenkron SMTP ve 60 sn
-cooldown hesap varlığını gizler; IP limitleri talepte 5/dakika, tüketimde 10/dakikadır.
-Parola değişimi, checked güvenlik sürümü artışı, kod tüketimi, bütün web oturumları
-ve refresh ailelerinin iptali atomiktir. Başarılı reset eski JWT'leri kalan 15 dakika
-beklemeden reddeder: her bearer doğrulaması DB'deki credentialsVersion'ı kontrol eder.
-DB kesintisinde genel 500 ve kapalı erişim; cache ile iptal penceresi açılmaz.
-Normal logout sürüm artırmaz; onun mevcut access JWT kalan-süre sınırı korunur.
-Claim'siz eski JWT reddedilir; geçerli refresh yeni claim'li JWT alabilir. Önce
-yedekli migration ve tüm API örneklerinin uyarlanması, sonra reset kullanımı gerekir.
-Mailpit teslimi geliştirme içindir; üretim kalıcı teslim/ortak rate-limit ve MFA
-kaybında Admin kurtarma işleri tamamlanmış sayılmaz. Token/parola/ham SMTP exception'ı loglanmaz.
-
-### 20.11.2026 — U5 web bağlantısı ve Admin MFA sınırı
-
-SMTP reset e-postası yalnız mevcut yapılandırılmış HTTPS WebSession Origin'inden
-`/sifremi-unuttum#token=...` bağlantısı üretir; Host/istemci dönüş adresi kullanılmaz.
-Standalone kod mobil uyumluluk için korunur. Web Origin boşsa eski yalnız-kod
-davranışı sürer. Fragment sunucu request URL'sine gitmez; React URL/history'den
-replace ile temizler, tokenı yalnız monte edilmiş sayfada tutar. Router state,
-localStorage/sessionStorage, log, analitik ve hata metinlerine yazmaz. HTML ve
-reset fetch referrer politikası no-referrer'dır; istekler credentials omit/no-store
-kullanır ve ham hata gövdesi gösterilmez. Temiz URL yenilenince kod tekrar istenir.
-Gizli alanlar gönderimde/ayrılmada temizlenir; geç yanıt yeni bağlantıyı etkileyemez.
-
-Başarılı reset sonrası istemci girişe yönlenir, otomatik oturum açılmaz. Mevcut
-hesap/çalışma alanı önbelleği route bileşenlerindedir ve sayfadan ayrılmada kalkar;
-kalıcı Auth cache yoktur. Sunucu mevcut transaction içinde bütün web/refresh
-oturumlarını iptal eder ve credentialsVersion ile eski access JWT'yi reddeder.
-Admin'in rolü, e-posta doğrulaması, TOTP sırrı, son kullanılmış TOTP adımı ve
-kurtarma hash'leri aynen korunur; parola yenileme MFA kurtarma/yeniden kurulum
-değildir. Admin yeni parolayla da geçerli MFA sunmadan oturum alamaz.
-
-## 31.10.2026 mobil refresh/iptal güncellemesi
-
-Kullanıcının backend göreviyle JWT login yanıtına refresh token ve mutlak
-refresh bitişi eklendi. Önceki mobil refresh/iptal açık notları bu alt kapsam
-için tarihseldir; güvenli mobil saklama/istemci entegrasyonu halen ayrıdır.
-Web `AuthSession`, cookie/CSRF ve Admin MFA akışları değiştirilmez.
-
-- 256 bit opak refresh tokenın yalnız SHA-256 hash'i PostgreSQL'dedir; ham sır,
-  access JWT veya parola DB/log/audit'e yazılmaz. Yanıtlar no-store'dur.
-- Varsayılan 30 gün mutlak aile süresi merkezi yapılandırılır; rotasyon aileyi
-  uzatmaz. User satır kilidi ve transaction, tüketim+yeni hash üretimini,
-  eşzamanlı tekrar ve logout yarışlarını korur. Bir aktif aile tokenı DB unique
-  indeksiyle de sınırlıdır. Hata rollback'i eski tokenı tüketilmiş bırakmaz.
-- Tüketilmiş ata token tekrarında bütün aile iptal edilir; bağımsız girişler
-  korunur. Meşru ve çalıntı tokenın ilk kullanımını ayırma garantisi yoktur.
-  İstemci refresh'i tek işlemde koordine etmeli; kayıp yanıtı eski tokenla
-  otomatik tekrarlamamalıdır. Grace/replay kabulü bulunmaz.
-- Her refresh güncel e-posta/rolü kontrol eder. Admin'e login/refresh ile
-  bearer verilmez; rol/doğrulama değişimi aileyi kapatır. Gelecekte parola ve
-  güvenlik yazmaları aynı User kilidi/transaction'ında refresh ailelerini de
-  iptal etmelidir; parola sıfırlama bu görevle uygulanmış sayılmaz.
-- Logout refresh ailesini sunucuda iptal eder; **stateless access JWT'nin
-  anlık iptali yoktur**. Daha önce verilen JWT kalan en fazla 15 dakikası
-  boyunca geçerli olabilir; web session iptali veya JWT denylist'i türetilmez.
-- Süresi dolmayan hash geçmişi silinmez; yalnız mutlak süresi bitmiş aile
-  kayıtları periyodik temizlenir. Çok örnekli IP limiti/güvenilir proxy,
-  anahtar işletimi, mobil güvenli saklama ve genel yayın kapıları açıktır.
-
-## 29.10.2026 N1–N3 program erişimi ve geçmişi
-
-`16` ortak onayıyla program API'sinde her işlemde User→profil, e-posta/rol,
-uzman doğrulaması ve kaynak sahipliği kontrol edilir. Danışanın kendi
-program/geçmiş okuması ilişkisizdir; atanmış programı yazamaz. Diyetisyen
-aktif ilişki + açık nutrition_plans izniyle okur, yalnız kendi programını
-yazar. Admin sağlık erişimi kazanmaz. Başka danışan veya başka programa ait
-sürüm varlığı 404 ile gizlenir; izin kapalıysa 403. Yanıtlar no-store.
-
-Yazma, izin geri çekme ve ilişki bitişi aynı ClientProfile kilidiyle
-serileştirilir; program güncel içerik ve yeni snapshot tek transaction'dır.
-Eski snapshot değişmez, recordedByUserId HTTP'de açılmaz. Aktif ilişki bitince
-yalnız o uzmanın active atanmış programı aynı işlemde arşivlenir; rollback
-testi hem ilişkiyi hem programı korur. Tek active DB indeksiyle de korunur.
-Cookie yazması CSRF/Origin ister; istemci yazmayı otomatik tekrarlamaz.
-
-Webde izin/yetki kaybında program içerikleri/form/geçmiş kaldırılır; temel
-danışan kimliği ayrı kalabilir. Sayfa/istek değişiminde eski sağlık verisi
-gizlenir, geç yanıt ve iptal edilmiş yazma başarı göstermez. Program hedefi
-otomatik doldurulmaz; alternatifler gerçek tüketim/toplam değildir.
-POST/PATCH 128 KiB; sırlar ve program gövdeleri uygulama loguna yazılmaz.
-
-250 backend testi gerçek geçici PostgreSQL/Mailpit'te atlamasız, 128 web testi
-başarılıdır. Bu doğrulama kalıcı sağlık verisi kullanma veya yayın onayı
-değildir. Tam erişim/izin audit'i, saklama/silme/aktarım politikası ve diğer
-sağlık kategorilerinin rıza gereksinimleri aşağıdaki yayın kapısında kalır.
-
-## 29.10.2026 R1–R3 erişim güncellemesi
-
-`15` ortak onayıyla doğrulanmış uzman/aktif ilişki/ilk kategori için backend
-denetimi uygulanır. Invitation code, oturum veya veri erişimi değildir;
-tek kullanımlık pending talep başlatır. Ham kod yalnız üretim yanıtında ve
-geçici web belleğindedir. Hash/expiry sunucuda; rotasyon/tüketim/expiry ve
-rollback test edilir. Hesap + bağlantı IP limitleri süreç içindedir.
-
-JWT/cookie kaynakları karıştırılmaz; cookie yazması W2 CSRF/Origin ister.
-User/profil kimlikleri ayrıdır ve her istekte güncel DB rol/doğrulama kontrol
-edilir. Kabul/sonlandırma/izin mutasyonları ClientProfile kilidiyle yarışları
-serileştirir; tek active/pending çift DB indeksleriyle de korunur.
-
-nutrition_plans izni otomatik verilmez; yalnız danışan açıp kapatır.
-Tahlil ve diğer sağlık kategorileri bu onayla açılmaz. ConsentRecord hukuki
-metin/tür/politika kanıtı, tam izin audit'i ve saklama/silme/yayın kapıları
-açık kalır. Temel danışan listesi/detayı yalnız aktif ilişkiyle id/ad taşır;
-sağlık değeri, toplam veya varsayılan sıfır sunmaz. Admin kaynaklara erişmez.
-
-## 29.10.2026 B1–B3 güvenlik güncellemesi
-
-Kullanıcı ortak onayıyla uzman başvurusu ve Admin MFA/onay dilimi açılmıştır.
-Eski MFA/başvuru açık notları yalnız bu dilim için tarihsel durumdur; üretim
-kapıları, sağlık paylaşımı, ret/geri alma ve diğer açıklar korunur.
-
-- Admin JWT veya normal web girişiyle kabul edilmez. Yeni MFA cookie'si,
-  User satır kilidi altında TOTP/recovery tüketimi + AuthSession commit'iyle
-  verilir. Her okumada DB'de isMfaVerified ve güncel rol/doğrulama/süre/iptal
-  kontrol edilir. CSRF/Origin/HTTPS ve W2 cookie korumaları aynıdır.
-- TOTP için Otp.NET 1.4.1 kullanılır; 6 hane/30 saniye/±1 adım, tek kullanım.
-  Secret User UUID'sine bağlı Data Protection ile korunur. Kurtarma kodları
-  128 bit kriptografik rastgele, yalnız SHA-256 hash, atomik tek kullanımdır.
-- Yerel ilk Admin/MFA yenilemesi HTTP açmadan çalışır. Girdi parolası ve
-  tek seferlik enrollment/kurtarma dosyası Git dışında tutulur. Çıktı mevcut
-  dosyanın üzerine yazılmaz; Windows'ta yalnız mevcut kullanıcı ACL'i,
-  Unix'te 0600 kullanılır. Sırlar console/log/API'ye yazılmaz. Dosyalar
-  güvenli aktarımdan sonra işletmen tarafından kaldırılır. Key ring yedeği ve
-  üretim rotasyon/kurtarma operasyonu yayın kapısının parçasıdır.
-- licenseInfo özel mesleki açıklamadır; public arama/auth/me'ye açılmaz.
-  Başvuru e-posta doğrulaması veya Admin uzman doğrulaması değildir.
-- Onay ve secret/sağlık değeri içermeyen AuditEvent tek transaction'dadır;
-  audit yazılamazsa onay da geri alınır. Admin sağlık içeriklerine erişmez.
-- Manuel kurulum, standart uzmanın klinik yeterliliğini otomatik doğrulamaz;
-  onayı yetkili Admin verir. Gerçek kullanıcı/yayın için bu belge geçerlidir.
-
-**Bu doküman hukuki görüş değildir.** Gerçek kullanıcı verisi işlemeye ve Türkiye/Google Play dağıtımına geçmeden önce yetkin hukuk, sağlık ve mağaza politikası incelemesi gerekir. Laboratuvar ve sağlık verisi özel nitelikli kişisel veri olabilir.
-
-## Veri koruma tasarım ilkeleri
-- Veri envanteri: hangi veriler (beslenme, tahlil, ölçüm, cihaz), amaç, hukuki dayanak, saklama süresi, erişen rol, üçüncü taraf, yurt dışı aktarım.
-- Aydınlatma metni ile **açık rıza gerekebilen işlemleri** birbirinden ayır; rıza gerekip gerekmediği hukuken değerlendirilir, tüm süreçleri tek checkbox ile çözme.
-- **Varsayılan gizlilik:** doğrulanmış diyetisyen yalnız aktif ilişkili ve kategori bazında izinli danışan verisini görür; tahliller ayrıca geri çekilmemiş açık onay gerektirir. Admin sağlık içeriğini varsayılan göremez. Danışanın kendi verisine erişimi diyetisyen ilişkisine bağlı değildir.
-- Rıza/izin geçmişi (`ConsentRecord`), kategori erişimi (`DataSharingPermission`) ve cihaz/OS izni birbirinin yerine geçmez. İlişki/izin/onay geri çekilince cache, analiz, dosya ve PDF dahil diyetisyenin yeni erişimi kesilir; kendi verisini okuyan danışan engellenmez.
-- Hesap silme, veri indirme / silme talepleri, yedekten silme ve saklama süreleri yayından önce netleşir.
-- Kullanıcı fotoğrafı/tahlili AI/üçüncü tarafa aktarılıyorsa sağlayıcı, yer, sözleşme, retention ve yasal dayanak incelenir.
-- Sırlar `.env` vb. yerel konfigürasyonda; git'e secret, gerçek laboratuvar sonucu veya gerçek hesap dökümü eklenmez.
-
-## Teknik güvenlik kontrolü
-| Kontrol | Kabul yönü |
-|---|---|
-| Kimlik | E-posta/şifre, e-posta doğrulama, şifre sıfırlama, güçlü parola hash, güvenli oturum/iptal ve rate limit; Admin MFA zorunlu. E-posta tokenı, 15 dakikalık JWT ve W2 web cookie/CSRF/iptal onaylı; mobil refresh/iptal ve MFA açık |
-| Yetki | Her endpointin kendi rol/kaynak kuralı; danışan kendi kaydı, diyetisyen doğrulanmış uzman + aktif ilişki + kategori izni ve tahlilde ayrı açık onay. Kişisel program için ilişki aranmaz |
-| Sağlık verisi | TLS, aktarım/depoda güvenlik, en az ayrıcalık, audit |
-| İstemci | güvenli token saklama; ekran/log/cache ile veri sızıntısını sınırlama |
-| Dosyalar | MIME/limit/zararlı içerik taraması, private storage, süreli erişim |
-| Hata/log | PII/sağlık değeri/token sızmaması, request ID |
-| AI/OCR | Amaçla uyumlu aktarım izni, minimum veri, model sınırı; tahmin/OCR tamamlanması kullanıcı onayı sayılmaz, onaysız kalıcı sağlık kaydı oluşmaz |
-| Cihaz API'leri | açık izin, veri kapsamı, geri çekme, dedup |
-
-Özel sağlık verisi sunan rol, listelerin totalCount/özetleri ve rapor dosyaları dahil kaynak kapsamını kontrol eder. Sahiplik/flag/rol gibi sunucu alanları istemci girdisiyle değiştirilemez. Başvuru/rol seçimi uzman doğrulaması değildir; Admin MFA tamamlanmadan yönetim oturumu verilmez. Gizli doğrulama/MFA/refresh bilgileri profil yanıtına veya audit metadata'sına konmaz.
-
-### Kayıt ve e-posta doğrulama güvenliği — 27.10.2026
-
-- Onaylı kayıt: yalnız danışan, zorunlu `email`/`password`/`displayName`, `201 { id }`; User/ClientProfile atomik oluşturulur. Başlangıçta e-posta doğrulanmamıştır; otomatik giriş/token/cookie verilmez. İlk sürüm parola politikası 8–128 Unicode kod noktası, boşluk destekli ve karakter türü zorunluluğu olmadan merkezi yapılandırılır. Parola kırpılmaz/normalize edilmez; Identity PasswordHasher kullanılır.
-- E-posta tokenı kriptografik rastgele 256 bittir; 30 dakika geçerlidir ve tek kullanımlıktır. Yalnız SHA-256 hash'i DB'de tutulur. Ham token yalnız geçici işlem belleğinde ve SMTP ile iletilen e-posta içeriğinde bulunur; API yanıtına, request-body loguna, SMTP protokol loguna, audit'e veya DB hata ayrıntısına yazılmaz. İstek DTO'ları loglarda destructure edilmez; EF hassas veri loglaması/Npgsql hata detayı kapalı tutulur.
-- Doğrulama ve tüketme tek atomik DB güncellemesidir; eşzamanlı tekrar, geçersiz, süresi dolmuş veya önceki gönderimden kalan token aynı `422` olur. Yeni gönderim eski tokenı geçersiz kılar. Bu akış parola sıfırlama veya oturum açma yetkisi vermez.
-- Yeniden gönderim geçerli e-posta için hesap varlığı/doğrulanmışlık/gönderim aralığından bağımsız gövdesiz `202` döner. Hesap sorgusu ve SMTP arka plandadır. Varsayılan hesap başına 60 saniye DB kontrolü ve bağlantı IP'si başına 5 istek/dakika HTTP sınırı uygulanır; IP aşımında `429`. SMTP hata mesajı veya alıcı bilgisi loglanmaz. Kayıttaki mevcut mükerrer e-posta `409` sözleşmesi korunur; yeniden gönderim kuralıyla karıştırılmaz.
-- SMTP host/port/gönderen ve kimlik bilgileri environment/User Secrets üzerinden yönetilir. TLS zorunludur (`StartTls`/`SslOnConnect`); `None` yalnız Development + loopback SMTP için kabul edilir. Yerel Mailpit SMTP/UI portları yalnız localhost'a açılır, dış iletim yapılandırılmaz; sentetik test e-postaları kullanılır. Üretim sağlayıcısı ve TLS/secret dağıtımı ayrıca hazırlanır.
-- Mevcut sınırlı bellek kuyruğu kalıcı teslim sağlamaz. SMTP hatası/kuyruk doluluğu/yeniden başlatma durumunda hesap doğrulanmamış kalır; yeniden gönderim gerekir. Üretim teslim dayanıklılığı, çok API örneğinde ortak IP limitleri ve güvenilir proxy ayarları yayın öncesi ayrıca değerlendirilir. Mobil/web doğrulama ekranı/deep-link akışı bu backend adımında uygulanmamıştır.
-
-## Geliştirme ve gerçek veri kapıları
-### Onaylı web cookie güvenliği — 27.10.2026
-
-Kullanıcı W2-C1–C7 ortak onayını teyit etti. `06`daki ayrı web oturumu
-ASP.NET Core Cookie Authentication/Data Protection, HttpOnly/Secure/Strict
-host cookie, oturuma bağlı antiforgery ve tam HTTPS Origin kontrolü kullanır.
-Korunan bilet yalnız User/rol/oturum referansı taşır; JWT/refresh/PII taşımaz.
-30 dakika hareketsizlik ve 8 saat mutlak sınır DB'de her istekte doğrulanır;
-başarılı hesap okuması dışında oturum uzatılmaz. DB kesintisi kapalı erişimdir.
-Çıkış DB iptalinden sonra 204'tür; istemci ağ hatasını tamamlanmış çıkış saymaz.
-Parola ve CSRF yalnız geçici bellektedir; cookie/Authorization/CSRF/ham yanıt
-loglanmaz. Yeni oturum aynı hesapta da önceki CSRF'yi geçersiz kılar.
-
-`Auth:WebSession:Origin` ve Git dışındaki `KeyRingPath` yapılandırılır.
-Windows'ta anahtarlar uygulama Windows hesabının DPAPI korumasını kullanır;
-diğer ortamlarda özel anahtarı bulunan koruma sertifikası gerekir. Kalıcı dizin
-uygulama kimliğine kısıtlanır. Çok API örneği aynı uygulama adı/anahtar halkasını
-kullanmalıdır. Web ayarı yoksa JWT altyapısı çalışabilir, web oturumu açılamaz;
-yanlış HTTPS/anahtar ayarı başlangıçta reddedilir. Dev sertifikası kontrolü atlanmaz.
-Üretim anahtar dağıtımı/koruma/rotasyon, ortak rate limit/güvenilir proxy,
-audit kalıcı şema/teslim ve kesinti sonrası temizlik izleme yayın kapılarıdır.
-Mevcut AuditEvent için önerilen web oturum olayları, audit şeması açık olduğu
-için tamamlanmış üretim audit'i olarak sunulmaz. Web oturum satırı en geç
-24 saatte temizlenir; sağlık/audit saklaması ayrı kalır. Yeni parola/rol/doğrulama
-yazmaları User kilidi + aynı transaction'da bütün web oturumlarını iptal etmelidir.
-Web çıkışı stateless JWT'yi iptal etmez; mobil refresh/iptal ve Admin MFA açıktır.
-
-
-**Giriş/JWT güncellemesi — 27.10.2026:** `06`daki onaylı giriş yanıtı yalnız
-`accessToken`, sabit `tokenType: Bearer` ve UTC `expiresAt` içerir. Mevcut Identity
-hash'i doğrulanır; bulunmayan hesapta da eşdeğer parola doğrulama işi yapılır.
-Yanlış parola, olmayan kullanıcı, doğrulanmamış e-posta ve MFA'sız Admin aynı
-genel `401` yanıtını alır. Admin'e token üretimi ve Admin claim'inin middleware'de
-kabulü kapalıdır. Başarılı hesapta `SuccessRehashNeeded` güvenle güncellenir.
-
-JWT imzası `HS256`, anahtar en az 32 kriptografik rastgele byte'ın Base64
-karşılığıdır; anahtar/issuer/audience yalnız environment/User Secrets'tan alınır.
-Eksik/hatalı ayar fail-closed başlangıç hatasıdır. Middleware imza/algoritma/tür,
-issuer/audience ve zamanı doğrular; sıfır clock skew ile 15 dakikalık süre uzamaz.
-Token yalnız User UUID'si/rol ve gerekli standart claim'leri taşır; sağlık verisi,
-ad/e-posta, hash ve secret içermez. Parola, ham token, Authorization başlığı ve
-giriş yanıtı loglanmaz; JWT framework hata ayrıntıları yanıta/loga taşınmaz.
-
-Login varsayılan IP sınırı dakikada 10 istek ve gövde sınırı 4096 byte'tır.
-Üretimde HTTPS, güvenilir proxy, ortak çok örnekli limit ve anahtar saklama/rotasyonu
-ayrıca yapılandırılır. Mevcut access token stateless'tir; anlık iptal/refresh/logout,
-mobil istemci saklama, MFA ve sıfırlama henüz sağlanmaz. Web cookie/CSRF/iptal
-ayrı W2 dilimidir. Bu sınırlar korunmadan
-tam güvenli oturum/yayın tamamlandı denmez; rol tek başına sağlık kaydı yetkisi değildir.
-
-**Kendi hesap okuması — 27.10.2026:** `GET /api/v1/auth/me` doğrulanmış
-JWT bearer veya W2 web cookie ile erişilir; ikisi birlikte kabul edilmez.
-User UUID'si tek `sub` claim'inden çözülür; istemciden
-userId alınmaz. Güncel User ve opsiyonel kendi ClientProfile'ından yalnız `id`,
-nullable `displayName`, `email`, `role`, `isEmailVerified` seçilir; entity/hash/token
-ve diğer profil/sağlık verileri serileştirilmez. Profil yoksa ad null'dır. Yanıt
-`Cache-Control: no-store` kullanır; yanıt içeriği veya hassas hesap verisi loglanmaz.
-Silinmiş hesap, artık doğrulanmamış e-posta veya tokenla uyuşmayan güncel rol için
-ortak `401` kullanılır; Admin MFA engeli korunur. Bu hesap projeksiyonu User/profil verisi
-yazmaz; W2 cookie modunda yalnız AuthSession idle süresi uzar. Diğer kaynaklar için anlık JWT iptali anlamına gelmez.
-
-Ürün/teknoloji kararları onaylıdır; Auth/profil ve kategori/onay DTO'ları dahil teknik bağımlılıklar `12`nin hazırlık tablosundadır. İlgili şema kapanmadan gerçek yetki/oturum entegrasyonu tamamlandı sayılmaz. Sentetik tasarım/bağımsız altyapı çalışması gerçek sağlık verisi toplama veya yayın izni değildir.
-
-Silme/retention, yedekten silme, rıza kanıtı, üçüncü taraf aktarımı, dosya erişimi ve istisnai Admin erişiminin uygulama ayrıntıları açıktır; süre, sağlayıcı, izin kodu veya hukuki dayanak bu belgeyle kendiliğinden seçilmez. Gerçek veri/yayın için aşağıdaki kapılar ayrıca tamamlanır.
-
-## Test stratejisi
-1. Domain unit test: kalori toplamı/bilinmeyen ölçüm, birimler, referans aralığı, tek aktif ilişki/program, alternatif/sürüm ve kişisel/atanmış düzenleme kuralları.
-2. API integration/contract test: `04/05/06` sözleşmesi, 401/403/404, izole danışan verisi, giriş/çıkış.
-3. Mobil/web E2E: danışan diyetisyensiz manuel öğün/su ve kişisel program → karşılıklı onay/kategori paylaşımı → diyetisyen izinli kaydı görür → kendi programını atar → mobil salt okunur görür. İlk sürüm yorum/cevap/bildirim akışı da doğrulanır; açık durum geçişi uydurulmaz.
-4. AI/OCR: model versiyonu, hata/belirsizlik, kontrol/düzeltme/onay, manuel fallback ve onaysız kaydın oluşmaması; provider seçilmeden performans sonucu bildirilmez.
-5. Güvenlik: farklı client ID/FK denemeleri, aktif ilişki/kategori/tahlil onayı geri çekme, cache/PDF erişim kesilmesi, yetkisiz liste sayıları, Admin MFA ve varsayılan sağlık erişiminin yokluğu; dosya sınırları/rate limit. İki eşzamanlı ilişki kabulü/program aktivasyonunda tekillik ve `409` kontrol edilir.
-6. UX: her iki tema, erişilebilirlik, küçük ekran, zayıf internet, izin reddi ve çevrimdışı hata yönetimi; kişisel/atanmış düzenleme farkı, unknown/boş/izin kapalı durumları.
-7. Cihaz/veri geçmişi: tekrar aktarım ve manuel/cihaz örtüşmesi çift sayılmaz; kaynak/bağlantı aynı danışana aittir. Tarif/katalog değişikliği eski tüketimi, program revizyonu eski sürümü değiştirmez. İlgili veri politikası önce onaylanır.
-
-Bu liste test gereksinimidir; gerçekleşmiş sonuç değildir. Dokümantasyon görevinde uygulama test/build/lint yoksa çalıştırılmadığı açık raporlanır; dosya/bağlantı ve `git diff --check` doğrulaması uygulama testinin yerine geçmez.
-
-## Yayın öncesi kalite kapıları
-- [ ] Gerçek veri işleme ve pazara çıkış için KVKK/veri sorumlusu/yurt dışı aktarım değerlendirmesi tamam.
-- [ ] Kullanıcı sözleşmeleri, gizlilik/aydınlatma, izinler ve gerekli açık rıza akışları hazır.
-- [ ] Play Console sağlık politikaları, veri güvenliği beyanı ve izin gerekçeleri kontrol edildi.
-- [ ] Uygulamanın sağlık iddiaları ve olası tıbbi cihaz mevzuatı riski uzmanla değerlendirildi.
-- [ ] Erişim kontrolü, hesap silme, veri saklama, audit ve hata izleme test edildi.
-- [ ] E-posta doğrulama/sıfırlama ve oturum iptali; zorunlu Admin MFA; kategori/tahlil onayı geri çekme ve PDF/cache erişimi gerçek ortamda doğrulandı.
-- [ ] AI sonuçları kesinlik iddiası taşımıyor; açıklama ve onay akışları doğru.
-- [ ] İmzalı release, paket kimliği, ikon, mağaza görselleri, çökme izleme ve destek kanalı hazır.
-- [ ] İstemci/servis dağıtımı için gerçek ortam konfigürasyonu, secret yönetimi, yedekleme/geri yükleme ve izleme hazır.
-- [ ] Açık/koyu tema, erişilebilirlik, salt okunur atanmış program ve onay/izin reddi durumları doğrulandı; seçilen platform/mağaza kapsamı ve desteklenen cihazlar açıkça belirlendi.
-
-**MVP demo ile canlı yayın farklı aşamalardır.** Demo için sentetik veri kullanılabilir; gerçek kullanıcıya açma ancak bu kapılar tamamlandıktan sonra düşünülür.
+# 11 — Yetkilendirme, mahremiyet ve yayın gereksinimleri
+
+Bu belge güvenlik ve gerçek veri/yayın kapılarının ana kaynağıdır. HTTP kimlik taşıma, DTO/hata ve süre/limit değerleri [06](06_API_CONTRACT.md), kalıcı şema [05](05_DATA_DICTIONARY.md), sağlık kaynak/tekilleştirme politikası [20](20_HEALTH_DATA_SYNC_CONTRACT.md)'dedir. Kaynakta kontrol bulunması üretim uygunluğu veya bu görevde test edildiği anlamına gelmez.
+
+## Erişim matrisi
+
+| Kaynak/işlem | Danışan | Diyetisyen | Admin |
+|---|---|---|---|
+| Kendi günlük beslenme/su/ölçüm ve kişisel hedefler | Kendi ClientProfile kapsamında; ilişki gerekmez | Danışan adına yazamaz | Varsayılan erişim yok |
+| Paylaşılmış öğün/su/ölçüm | Kendi verisi | Güncel onaylı uzman + kendi aktif ilişkisi + ilgili bağımsız açık izin; salt okunur | MFA sağlık yetkisi vermez |
+| Program ve sürümler | Kendi programlarını okur, yalnız kişisel olanı yazar | İzinli danışanın programını okur; yalnız kendi atadığını yazar | Erişim yok |
+| Program–tüketim karşılaştırması | Kendi verisi | Hem nutrition_plans hem meal_logs gerekir | Erişim yok |
+| Yorum/cevap | Kendi öğününde | Aktif ilişkide meal_logs izniyle | Erişim yok |
+| Görev ve geçmiş | Kendi görevini okur; izinli durum/tercih değişikliği | Özgün aktif ilişki + client_tasks + atayan sahipliği | Erişim yok |
+| Kategori izinleri | Kendi aktif ilişkisinde verir/geri çeker | Kendi ilişkisinin izin durumunu okur, danışan adına değiştiremez | Danışan adına açamaz |
+| Sağlık bağlantısı/örnek/aktivite | Yalnız client JWT ve kendi profil bağlamı | U3 yolları paylaşım kategorisiyle açılmaz | Erişim yok |
+| Uzman incelemesi/onayı | Kendi başvuru durumu | Kendi başvuru durumu | Yalnız MFA web oturumu |
+| Laboratuvar/ConsentRecord | Planlanan kendi erişimi | Planlanan kategori izni + ayrıca uygun ve geri çekilmemiş açık onay | Varsayılan erişim yok |
+
+Tek User.role ile ClientProfile/DietitianProfile yetkisi farklıdır. X-Profile-Context başlığı kimlik veya uzman onayı üretmez. Pending/ended ilişki sağlık verisi açmaz; uzman doğrulaması kaybı yeni uzman erişimini kapatır.
+
+Yetki kontrolü satırlar kadar totalCount, toplam, grafik, analiz ve gelecekteki cache/PDF/dosya bağlantılarını da kapsar. Eksik izin “boş veri” diye gizlenmez. Okuma snapshot'ı iptal commit'inden önce başlamışsa tamamlanabilir; sonraki yeni okuma kapanmalıdır. Önceden sunulmuş veriyi uzaktan geri silme garantisi verilmez.
+
+## Bağımsız izin ve geri çekme
+
+Beş mevcut kategori birbirini açmaz; eksik/false satır kapalıdır. Otomatik izin, geçmiş grant kopyası veya backfill yoktur. Genel açılım bayrağı danışan onayı değildir; kapatılması mevcut izin satırını silmez/gizlemez ve yeni tüm okumaları kendiliğinden iptal etmez.
+
+water_logs yalnız su tüketimi okumasıdır; kişisel hedef, başka kategori, yazma veya genel sağlık paylaşımı vermez. İzin geri çekilince su kayıt/toplam/geçmişi yeni okumada kapanır, diğer kategoriler korunur. Su DTO ve gün sınırlarının tek kaynağı [06](06_API_CONTRACT.md)'dır.
+
+Mevcut beş kategoride consentRecordId null'dır; ConsentRecord/tahlil açık onay uygulaması henüz yoktur. Kategori izni, hukuki işleme şartı/açık rıza, AI'ya aktarım amacı ve OS sağlık izni birbirinin yerine geçmez.
+
+## Kimlik, oturum ve sırlar
+
+Parola Identity PasswordHasher ile saklanır; e-posta harf duyarsız unique'dir. Token/secret, hash/MFA metadata'sı veya sağlık değeri API hesabına, hata/log/audit'e taşınmaz. EF sensitive logging ve Npgsql ayrıntılı hata içeriği açılmaz.
+
+JWT her doğrulamada güncel User/rol/e-posta/credentialsVersion kontrolü yapar; başarılı sonuç cache'lenmez, DB kesintisi kapalı erişimdir. Normal logout yalnız refresh ailesini iptal eder; access JWT kalan süre içinde geçebilir. Parola reseti sürüm artırıp bütün web oturumlarını/refresh ailelerini atomik iptal eder; eski JWT yeni doğrulamada reddedilir.
+
+Web cookie/CSRF, tam HTTPS Origin ve Data Protection birlikte kullanılır; credential CORS açılmaz. Windows key ring uygulama hesabına bağlı DPAPI, diğer ortamlarda koruma sertifikasıyla korunur. Çok API örneği aynı uygulama adı/kalıcı korumalı anahtar halkasını kullanmalıdır. Üretim anahtar dağıtımı, rotasyon ve dizin yetkileri ayrıca hazırlanır.
+
+Admin yalnız MFA ile ayrı web oturumu açar; genel login/refresh Admin erişimi vermez. TOTP sırları korunur, kurtarma kodları hash olarak tek kullanımlıdır. Parola reseti TOTP/kurtarma kurulumunu kaldırmaz. İlk kurulum ve MFA yeniden kurulum yerel yönetim komutudur; genel public kurtarma API'si yoktur.
+
+Development e-posta giriş kodu yalnız loopback/Mailpit içindir; üretim MFA alternatifi değildir. Bu oturum kanıtı üretimde reddedilir. Üretim SMTP TLS gerektirir; None yalnız Development loopback SMTP'de geçerlidir. Bellek e-posta/reset kuyruğu teslim dayanıklılığı garantisi vermez.
+
+Mobil access/hesap bellekte, refresh platformun güvenli deposundadır. Web sırları JS kalıcı depolarına yazılmaz; tema tercihi de mevcut kodda yalnız bellektedir. Harici web bağlantısı mobil JWT/refresh veya kullanıcı kimliği taşımaz. Reset fragment temizleme ve mobil manuel kod davranışı [07](07_MOBILE_SPEC.md)/[08](08_WEB_SPEC.md)'dedir.
+
+## Kalıcı veri ve audit
+
+Tek aktif ilişki/program, kaynak kimlikleri, sürümler ve ilişkisel sahiplik DB kısıtlarıyla korunur. Yazmalarda aktör/ClientProfile kilidi altında izin yeniden denetlenir; istemci kimliği veya stale izinle yazma yapılmaz. İlişki bitişinde atanmış aktif program arşivlenir, açık görevler snapshot geçmişiyle iptal edilir.
+
+Mevcut öğün/su/ölçüm soft delete'i veya sağlık tombstone'u KVKK kapsamında kalıcı silme talebinin tamamlandığı anlamına gelmez. Veri koruyan migration Down korumaları atlanmaz; yedek ve uygulama DB değişikliği ayrıca yetkilendirilir. Bu görevde DB'ye bağlanılmamıştır.
+
+AuditEvent uzman onayını aynı transaction'da dietitian_verified/DietitianProfile kimlikleriyle kaydeder; zaten doğrulanmış profilde ikinci olay oluşmaz. Mesleki açıklama/parola/sağlık içeriği metadata'ya konmaz. Geniş oturum/sağlık/silme audit'i ve Admin audit ekranı tamamlanmış sayılmaz.
+
+## Gerçek veri için açık mahremiyet kararları
+
+Veri envanteri her veri türünün amacı, hukuki dayanağı, saklama süresi, erişen rolü ve üçüncü taraf/yurt dışı aktarımını içermelidir. Aydınlatma ve gerekli açık rıza işlemleri ayrılır; tüm amaçlar tek checkbox ile çözülmez. Hukuki gereklilikler gerçek yayından önce ayrıca değerlendirilir; burada yeni süre veya hukuki dayanak seçilmez.
+
+Hesap silme, veri indirme/silme talebi, yedekten silme, retention/anonimleştirme, onay politika sürümü/kanıtı ve istisnai destek erişimi açık kararlardır. İstisnai Admin sağlık erişimi varsa gerekçeli, sınırlı ve audit'li tasarlanmalıdır; mevcut varsayılan engel kaldırılmaz.
+
+Fotoğraf/PDF/OCR için MIME + gerçek içerik kontrolü, boyut, zararlı içerik taraması, private storage, yetkili süreli dosya erişimi ve silme politikası gereklidir. Sağlayıcı/retention/yurt dışı aktarım ayrıca onaylanır. AI veri minimizasyonu ve kullanıcı onayı [10](10_AI_SPEC.md)'dadır.
+
+## Doğrulama ve yayın kapıları
+
+Kabul testleri: rol/kaynak/FK izolasyonu; kategori matrisi/geri çekme; tek aktif ilişki/program yarışları; snapshot/sürüm/rollback; reset–login–refresh ve MFA tekrar kullanımı; CSRF/Origin; istemci geç yanıt/hassas görünüm temizliği; kaynak/birim/örtüşme; gerçek Android/iOS OS izinleri; planlanan AI/OCR/dosya onayı ve PDF yetkisi.
+
+Bu liste test gereksinimidir. Sentetik API/DB testi fiziksel sensör/cihaz, React DOM testi tarayıcı, tarayıcı testi Flutter doğrulaması sayılmaz. Mevcut test kanıtları ve açık eksikler [12](12_TEAM_PLAN_AND_DECISIONS.md)'dedir.
+
+- [ ] Veri sorumlusu/KVKK, üçüncü taraf/yurt dışı aktarım ve olası sağlık/tıbbi cihaz iddiaları uzman değerlendirmesi.
+- [ ] Kullanıcı sözleşmesi, aydınlatma, amaç bazlı izin/onay ve veri hakları/saklama/silme.
+- [ ] Play Console/App Store sağlık politikaları, veri güvenliği ve izin gerekçeleri; desteklenen cihaz/OS kapsamı.
+- [ ] Gerçek dağıtım HTTPS/secret/anahtar, güvenilir proxy ve çok örnekli ortak hız limiti.
+- [ ] Üretim e-posta teslimi, yedek/geri yükleme, izleme/çökme/hata/audit ve kesinti temizliği.
+- [ ] Gerçek ortam oturum/reset/Admin MFA, kategori/tahlil geri çekme ve dosya/cache/PDF erişim kontrolü.
+- [ ] AI/OCR onayı, belirsizlik ve manuel devam; bilimsel iddia olmaması.
+- [ ] İmzalı release, paket kimliği, ikon/görseller, destek kanalı; erişilebilirlik ve iki tema doğrulaması.
+
+Sentetik demo, gerçek kullanıcıya açılış ve mağaza yayını ayrı aşamalardır; bu belge güncellemesi hiçbir yayın kapısını tamamlamaz.

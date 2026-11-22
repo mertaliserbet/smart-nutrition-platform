@@ -1,407 +1,165 @@
 # Smart Nutrition — Mobil
 
-## Emülatörde Türkçe karakter girişi
+## 1. Amaç ve güncel özellikler
 
-Metin alanları Unicode kabul eder; `adb shell input text` Türkçe/Unicode IME
-girişini temsil etmez. Emülatörde Gboard > Languages > Add keyboard altında
-Türkçe (Türkiye), Türkçe-Q ekleyip dil tuşuyla seçin. Settings > System > Keyboard >
-Physical keyboard altında hem AT Translated Set 2 keyboard hem qwerty2 düzeni
-Turkish olmalıdır. Fiziksel klavye takılıyken ekran klavyesini gösterme seçeneği
-açılabilir. Ayarlar mevcut AVD'de kalıcıdır; uygulama veya başlatıcı bunları
-sıfırlamaz. Diyetisyen aramasının IME composition ve API testleri Türkçe harflerin
-değişmeden korunmasını doğrular; gerçek giriş testi Gboard/fiziksel klavyeyle yapılır.
+Flutter uygulaması danışanın kişisel beslenme takibi ve izinli diyetisyen ilişkisi içindir. Kaynak inceleme tabanı **22.11.2026 / `4f160b3`**; bu belge güncellemesinde Flutter/cihaz/test çalıştırılmadı.
 
-Flutter/Dart başlangıç uygulaması; Android ve iOS proje dosyaları içerir.
-Ana Sayfa'da örnek verili Dashboard; Beslenme'de gerçek aktif program görünümü
-ve manuel öğün formu; İlerleme ve Profil'de başlangıç ekranları bulunur.
-Giriş/kayıt, şifre sıfırlama ve e-posta doğrulama ekranları içerir.
-Kayıt formu gerçek `POST /api/v1/auth/register` endpointini kullanır.
-E-posta doğrulama ve yeniden gönderim mevcut Auth API'sine bağlıdır.
-Giriş ve kendi hesap doğrulaması mevcut JWT API'sine bağlıdır. Parola sıfırlama
-ve sağlık kayıtları henüz API'ye bağlı değildir; kayıt/e-posta doğrulaması
-tek başına oturum oluşturmaz.
+| Alan | Aktif uygulama |
+|---|---|
+| Auth | Gerçek kayıt, e-posta doğrulama/yeniden gönderim, JWT login/me, güvenli refresh saklama/rotasyon ve çıkış |
+| Parola sıfırlama (M5) | Email talebi, e-postadaki standalone kod, yeni parola/tekrar ve başarı sonrası girişe dönüş |
+| Öğün/su | Manuel CRUD, geçmiş/detay, nullable enerji/makro ve gerçek günlük su toplamı |
+| Hedef/ölçüm | Beş kişisel günlük hedef, kilo/bel/kalça/göğüs/yağ kayıtları ve grafik |
+| Program/yorum | Aktif kişisel/atanmış programı salt okunur görme, seçilen sürümle günlük tüketim karşılaştırması, öğün yorumu/tek düzey cevap |
+| İlişki/paylaşım (M4) | Uzman arama, istek/ilişki sonlandırma, beş bağımsız kategori izni ve sayfalama |
+| Görev (M2) | Liste/detay/geçmiş, danışanın izinli durum değişikliği ve hatırlatma tercihi |
+| Sağlık (M1/M3) | Health Connect/HealthKit uygunluk/izin/okuma, ayrı açık ön plan HTTP aktarımı, bağlantı durumu ve backend gün özeti |
+| Mobil kontrol (M6) | Unit/widget ve live/device probe kaynakları; varlıkları başarılı koşu/cihaz kanıtı değildir |
 
-## Beslenme Programım — salt okunur aktif program
+MainShell sekmeleri Ana Sayfa, Beslenme, İlerleme ve Profil'dir. Dashboard öğün/su/hedef/program için gerçek API okur. Hızlı işlemlerde **Öğün ekle/Su ekle gerçek**, **Aktivite ekle/Tahlil ekle önizlemedir**; bu iki önizleme kayıt oluşturmaz. Manuel aktivite API'sinin bulunması mobil formun tamamlandığı anlamına gelmez.
 
-Beslenme sekmesi `GET /api/v1/nutrition-plans/active` kullanır. Mevcut doğrulanmış
-JWT, `X-Profile-Context: client` ve merkezi API_BASE_URL/HTTPS ayarları korunur;
-clientId/query/gövde/cookie gönderilmez. Diyetisyenin atadığı program açıkça
-etiketlenir. Kişisel aktif program da ayrı etiketle salt okunur gösterilir.
-Programı oluşturma, düzenleme, etkinleştirme veya arşivleme eylemi eklenmemiştir.
+Beş kategori `nutrition_plans`, `meal_logs`, `body_measurements`, `client_tasks`, `water_logs` olarak ayrı yönetilir; biri diğerini açmaz. Uzman/Admin danışan adına izin veremez. Backend açılım bayrağı ile danışanın açık izni farklıdır; kapalı rollout'ta yeni izin yazması reddedilebilir.
 
-Gün (null=her gün, 1–7 ISO), öğün türü, description, recommendedQuantity,
-alternatif grupları, tarih ve varsa hedefler sözleşmeden okunur. Ayrı foods veya
-besin/kalori ayrıntısı uydurulmaz; miktar yoksa “Belirtilmemiş” gösterilir.
-Alternatifler birlikte tüketilecek ayrı öğünler gibi sunulmaz. Sürüm kimliği ve
-numarası korunur; geçmiş/sürüm ekranı bu kapsamda değildir.
+Tam kişisel program editörü, profil düzenleme, AI/katalog/tarif/tahlil/OCR, bildirim/hatırlatma teslimi ve PDF mobil teslimi henüz yoktur. Atanmış program/hedef salt okunurdur. Kayıt yok, bilinmeyen değer, sıfır, erişim kapalı ve ağ hatası farklı gösterilir.
 
-404 uygun boş durumdur. 401 mevcut tek refresh akışını kullanır; 403, ağ, TLS,
-sunucu veya bozuk yanıt hatasında önceki içerik gizlenir ve yeniden deneme sunulur.
-Ekranda yenileme düğmesi ve aşağı çekerek yenileme vardır. Sekmeye giriş/yeniden
-seçim, uygulamanın öne dönmesi ve bağlantı/manuel kayıt ekranından dönüşte aktif
-program yeniden okunur. Arka planda veya gizli sekmede içerik tutulmaz/gösterilmez;
-geç/eski hesaba ait yanıtlar reddedilir. Kalıcı program önbelleği ve push/polling yoktur.
-Webdeki değişiklikler bu yenileme noktalarında görünür; anlık bildirim vaat edilmez.
-Danışanın kendi program erişimi paylaşım iznine bağlı değildir. Aktif ilişkinin
-sona ermesi sunucuda atanmış programı arşivler; sonraki aktif okuma 404 olur.
+## 2. Gereksinimler ve kurulum
 
-100 kalemli geçerli programlar küçük Auth yanıt sınırını aşabildiğinden yalnız bu
-okuma en fazla 1 MiB yanıt kabul eder; diğer isteklerde 64 KiB varsayılanı korunur.
-API/widget regresyonları nutrition_plan_api_test.dart ve nutrition_plan_test.dart
-içindedir. İsteğe bağlı `flutter test test/active_plan_live_probe.dart`, geçici
-SNP_PLAN_ORIGIN/CLIENT/EXPERT/EXPERT_ID/PASSWORD ortam girdileriyle web cookie/CSRF
-üzerinden atama → gerçek mobil API okuma → sürüm değişimi → ilişki bitişini sınar.
-Kurulum ve tam UUID ile temizlik çağırana aittir; bu probe cihaz UI testi değildir.
+Komutlar aksi belirtilmedikçe **mobile/** içindedir.
 
-## Çalıştırma ve kontrol
+- Flutter ve Dart; pubspec SDK kısıtı `^3.12.2`dir. Önceki oluşturma ortamı Flutter 3.44.6/Dart 3.12.2 olarak kaydedilmiştir; kurulu SDK bu görevde çalıştırılarak doğrulanmadı.
+- Android SDK/emülatör veya uygun cihaz; Gradle'da Java/Kotlin hedefi 17, minSdk 26'dır. compile/target SDK Flutter ayarından gelir.
+- iOS derleme/çalıştırma için macOS/Xcode, uygun imzalama/provisioning; kaynak deployment target 15.0'dır. Bu değer HealthKit'in her cihazda doğrulandığı anlamına gelmez.
+- Gerçek API/DB/SMTP için [backend kurulumu](../backend/README.md), web yönlendirmesi için [web kurulumu](../apps/web/README.md).
 
-Oluşturma ortamı: Flutter 3.44.6 (stable), Dart 3.12.2.
-Komutları `mobile/` içinde çalıştırın:
-
-```sh
+```powershell
 flutter pub get
-flutter run
+flutter devices
+```
+
+pubspec'te health 13.3.2, flutter_secure_storage ^11.2.0 ve url_launcher ^6.3.3 vardır. Paket/sürüm seçimleri bu README ile değiştirilmez.
+
+### Android/iOS yapılandırması
+
+Android main manifest INTERNET ve yalnız okuma amaçlı adım/mesafe/egzersiz/aktif kalori/nabız izinlerini içerir. HealthPermissionsActivity ve permission-usage alias'ı native izin açıklamasını sağlar. allowBackup/fullBackupContent kapalıdır; data_extraction_rules shared preferences bulut yedek/cihaz transferini dışlar.
+
+Debug network security config yalnız tanımlı loopback/emülatör adreslerine cleartext izni taşır; release ağı HTTPS gerektirir. Ortak geliştirme akışı HTTPS'tir; geçersiz sertifikayı kabul eden callback/TLS atlama kullanılmaz.
+
+iOS Runner.entitlements HealthKit yetkisini, Info.plist NSHealthShareUsageDescription açıklamasını içerir; API sağlık platformuna yazmaz. Xcode HealthKit/signing ve gerçek cihaz yetkileri ayrıca doğrulanmalıdır. iOS boş okuma, okuma izni verildiği/reddedildiği veya kaydın silindiği kanıtı değildir.
+
+## 3. Çalıştırma komutları
+
+### Ortak başlatıcı
+
+Ön koşullar hazırken **repo kökünden**:
+
+```powershell
+.\start.ps1
+```
+
+Betik Docker/API/web ve desteklenen Android emülatörünü/Flutter'ı aynı terminalde yönetir; npm/pub paketlerini, sırları veya migration'ı kurmaz. Uygun çalışan emülatörü seçer; yoksa SDK'da tek AVD'yi soğuk başlatabilir. Birden fazla AVD'de önce istenen emülatör açılır. Kullanıcı verisini silmez, farklı hedefli mevcut adb tünelini değiştirmez. Ctrl+C yalnız kendi süreç/tünel/başlattığı servisleri temizler; önceden çalışan emülatör/servisler korunur.
+
+### API_BASE_URL, WEB_BASE_URL ve HTTPS
+
+| Define | Kaynaktaki anlam |
+|---|---|
+| API_BASE_URL | API origin'i; debug varsayılanı https://localhost:7099; path/query/fragment/kimlik bilgisi kabul edilmez |
+| WEB_BASE_URL | Harici web origin'i; debug varsayılanı https://localhost:5173; yalnız HTTPS |
+| API_DEV_CERT_BASE64 | Yalnız debug'da açık geliştirme sertifikasına ek güven; release'te kullanılmaz |
+
+Release API ve web origin'leri açıkça yapılandırılmalıdır; geliştirme hostu veya üretim URL'si uydurulmaz. Mobil JWT/refresh, web bağlantısına veya dönüş URL'sine eklenmez. Sertifika ek güveni normal chain/hostname/expiry doğrulamasını kapatmaz.
+
+Başlatıcıyı kullanmadan manuel Android emülatör çalıştırmada önce cihazı/tüneli inceleyin:
+
+```powershell
+adb devices
+adb -s emulator-5580 reverse --list
+```
+
+emulator-5580 yerine kendi test cihazı kimliği kullanılır. API tüneli yoksa ve başka işe ait çakışan tünel bulunmuyorsa:
+
+```powershell
+adb -s emulator-5580 reverse tcp:7099 tcp:7099
+$nutritionPublicCert = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:LOCALAPPDATA/SmartNutrition/dev-cert.pem"))
+flutter run -d emulator-5580 --dart-define=API_BASE_URL=https://localhost:7099 --dart-define=WEB_BASE_URL=https://localhost:5173 --dart-define=API_DEV_CERT_BASE64=$nutritionPublicCert
+Remove-Variable nutritionPublicCert
+```
+
+API ve web önceden çalışıyor olmalı, PEM gerçek sunucu sertifikasıyla uyuşmalıdır. Yalnız **açık** sertifika aktarılır; özel anahtar cihaza/git'e taşınmaz. Fiziksel cihazda localhost bilgisayarı göstermez; ona uygun yetkili HTTPS origin ve OS güveni ayrıca hazırlanır.
+
+Release yapılandırma örneği; example.com adresleri gerçek dağıtım origin'leriyle değiştirilir:
+
+```powershell
+flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com --dart-define=WEB_BASE_URL=https://web.example.com
+```
+
+Bu derleme mağaza yayını değildir: mevcut Android release ayarı hâlâ debug signing kullanır; paket kimlikleri/ikonlar ve yayın imzası ayrıca hazırlanmalıdır.
+
+### Android tarayıcı ve Türkçe klavye
+
+Flutter API sertifika güveni Android Chrome'a aktarılmaz. Harici web paneli için [kök README Android HTTPS adımları](../README.md#android-chrome-için-yerel-https) uygulanır. Yalnız test AVD'sinde PowerShell 7.5+ ile kökten `./setup-local-https.ps1 -EmulatorId emulator-5580` kullanılır; yalnız açık CA Android'in standart ekranında kurulur. Windows'a/kişisel cihaza CA ekleme veya sertifika uyarısını atlama yoktur. Yerel CA geçidi, tüneller ve geri alma [03](../docs/03_SYSTEM_ARCHITECTURE.md)'tedir.
+
+Unicode giriş için Gboard → Languages altında Türkçe (Türkiye)/Türkçe-Q ekleyin; fiziksel klavyede AT Translated Set 2 keyboard ve qwerty2 için Turkish seçin. Ekran klavyesi açık olabilir. `adb shell input text` Unicode/IME testi değildir. Başlatıcı bu AVD tercihlerini sıfırlamaz.
+
+## 4. Geliştirme ortamı ve güvenlik
+
+### Auth ve güvenli token
+
+Debug dahil özel ekranlar AuthGate'ten geçer; sahte oturum/giriş atlama yoktur. client rolü danışan MainShell'ini açar; diğer rol web paneline yönlendirilir. JWT claim'i istemcide çözülerek kaynak yetkisi verilmez; login/refresh sonrası geçerli beş alanlı auth/me gerekir.
+
+Access token ve hesap bellektedir; yalnız refresh token, mutlak bitiş ve rotationPending tek güvenli kayıtta saklanır. Kayıt API origin'ine ayrılmıştır; Android/iOS dışı düz metin/web fallback yoktur. iOS unlocked_this_device, synchronizable=false; Android resetOnError/migrateOnAlgorithmChange=false kullanır.
+
+Refresh tek Future ile koordine edilir. İstekten önce rotationPending saklanır; gönderim sonrası yanıt kaybında eski token otomatik tekrar kullanılmaz. Geçici ağ/depo hatası geçerli oturum süresini uzatmaz. Lifecycle/hesap/çıkışta Navigator ve eski yanıtlar yeni oturumu geri getiremez.
+
+Logout refresh ailesini sunucuda iptal etmeye çalışır, yerel bellek/güvenli kayıt temizliğini yönetir; sunucu iptali veya depo temizliği doğrulanamazsa başarı iddia edilmez. Normal logout access JWT'nin kalan süresini tek başına bitirmez; parola reseti credentialsVersion ile eski kimlikleri ayrıca iptal eder. Detay [06](../docs/06_API_CONTRACT.md)'dadır.
+
+### Kayıt, e-posta ve reset
+
+Kayıt displayName/email/password gönderir; parola tekrarı ve rol istemciden API'ye taşınmaz. 201 hesap oluşturmadır, SMTP teslimi veya oturum değildir; doğrulama ekranına geçilir. Parola 8–128 Unicode kod noktasıdır, kırpılmaz/normalize edilmez; girişte yeni kayıt karmaşıklığı uygulanmaz.
+
+E-posta doğrulama standalone kodla yapılır; yalnız 204 başarıdır. Yeniden gönderim 202 hesap varlığını veya teslimi açıklamaz. Yerel cooldown sunucu limitinin yerine geçmez; POST otomatik tekrarlanmaz. Reset de email talebi + elle kod/yeni parola kullanır; tekrar yalnız istemcidedir. Başarılı 204 sonrası girişe dönülür, otomatik login yapılmaz. Mobil reset deep-link tüketimi yoktur.
+
+Parola/token/ham yanıt loglanmaz; cookie/CSRF mobil bearer akışına eklenmez. Ağ kesintisinde işlemin sunucuda başarısız olduğu varsayılmaz. Form/sayfa değişiminde sırlar temizlenir.
+
+### Sağlık aktarımı
+
+Native okuma, açık sunucuya aktarım onayı ve bağlantı active/revoked tercihi ayrıdır. İzin istemek veya ekran açmak tek başına okuma/upload yapmaz. Ön plandaki açık eylem upsert batch'i hazırlar; kalıcı sağlık cache'i/disk kuyruğu/otomatik arka plan sync yoktur.
+
+Hesap, lifecycle veya izin değişiminde bekleyen okuma/aktarım bırakılır. Eksik pencere, boş sonuç veya izin reddi native silme delta'sı sayılmaz. Backend receipt/özet başarısı native fiziksel ölçüm doğruluğunu kanıtlamaz. Birim/kararlı kaynak kimliği/idempotency/örtüşme için [20](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md) esas alınır.
+
+## 5. Testler ve doğrulama
+
+```powershell
 flutter analyze
 flutter test
 ```
 
-`flutter run` için bağlı Android/iOS cihazı veya emülatör gerekir; iOS derleme ve
-çalıştırma için macOS/Xcode gerekir.
+Bu komutlar unit/widget paketini doğrular; ayrı `*_probe.dart` dosyalarının tamamını veya fiziksel cihazı çalıştırmış sayılmaz. Hedefli örnekler:
 
-## Diyetisyen Bul — gerçek API bağlantısı
-
-### Bağlantılarım ve beslenme programı paylaşımı
-
-“Bağlantıları ve paylaşımı yönet” üzerinden aktif/kabul edilen, bekleyen,
-reddedilen ve sonlandırılan ilişkiler sayfalı okunur. Ayrı accepted durumu yoktur:
-danışanın başlattığı pending isteği hedef diyetisyen accept/reject eder.
-Danışan yalnız kendi pending isteğini iptal veya active ilişkisini sonlandırır;
-ikisi de mevcut gövdesiz `POST /dietitian-relationships/{id}/end` kullanır.
-Aktif bağlantı bitince uzman erişimi kapanır; ilgili aktif atanmış program
-sunucudaki mevcut N3 kuralıyla arşivlenir, danışanın kendi geçmişi korunur.
-
-Bağlantı kabulü izin oluşturmaz. Active ilişki için mevcut
-`GET /data-sharing-permissions?relationshipId=...&page=1&pageSize=10` okunur.
-Kayıt yoksa paylaşım kapalıdır; okuma hatası kapalı izin gibi sunulmaz.
-“Paylaşıma İzin Ver” ayrı onay diyaloğundan sonra ilk kayıtta POST ile yalnız
-relationshipId/category=nutrition_plans/isGranted=true gönderir. Mevcut kayıtta
-PATCH yalnız gerçek boolean isGranted gönderir; geri alma false değeridir.
-Kimlik, rol, rıza kaydı veya yeni kategori atanmaz. Tahlil paylaşımı yoktur.
-
-Her işlem JWT ve X-Profile-Context: client kullanır; POST/PATCH, 401 dahil
-otomatik tekrarlanmaz. Yazma sırasında düğmeler kapalıdır. 403/404/409, bozuk
-yanıt veya belirsiz ağ hatasında eski izin/ilişki eylemleri kaldırılır; yeniden
-işlem için kullanıcı “Durumu yenile” seçer. Ekrandan çıkış ve oturum değişimi
-geç yanıtları görünür yapmaz. `/client-connections` doğrudan rotası Auth Gate
-ile korunur. Flutter dışında kod veya ortak sözleşme değişikliği gerekmemiştir.
-
-İlgili API/widget testleri `dietitian_api_test.dart` ve
-`dietitian_finder_test.dart` içindedir. İsteğe bağlı gerçek HTTPS probe'u artık
-uzman kabulü/ret, danışan iptali, izin POST/PATCH, izin öncesi/sonrası uzman
-program erişimi ve ilişki bitişini de sınar. Bu probe cihaz UI testi değildir.
-
-### Arama ve istek gönderme
-
-Üst çubuktaki **Diyetisyen Bul** simgesi veya Profil'deki aynı seçenek,
-Auth Gate ile korunan `/dietitians` ekranını açar. Mevcut açık/koyu tema ve
-alt sekmeler korunur. `GET /api/v1/dietitians?page=1&pageSize=10&query=...`
-yalnız sunucunun onaylı uzman listesini kullanır; arama ve sayfalama desteklenir.
-Public DTO yalnız `id/displayName` içerdiğinden profil görünümü ad ve onay
-bilgisiyle sınırlıdır; biyografi, belge, iletişim bilgisi veya puan uydurulmaz.
-
-`GET /api/v1/dietitian-relationships` ile active ve pending ayrı okunur;
-bekleyenler sayfalanır. `POST` gövdesi yalnız `{dietitianId}` veya
-`{invitationCode}` olur. Kod 16 Base32 karakteridir; kırpılır/büyük harfe çevrilir.
-İlişki çağrıları mevcut doğrulanmış JWT ve `X-Profile-Context: client` kullanır;
-clientId/userId/rol gönderilmez, cookie eklenmez. Başarı yalnız geçerli `201`
-pending yanıtıdır; uzman kabulü ve veri paylaşım izni ayrı işlemlerdir.
-İlişki DTO'sunda uzman adı yoktur; ekranda adı mevcut arama sonuçlarından
-biliniyorsa gösterilir, bilinmiyorsa genel bağlantı durumu kullanılır.
-
-Aktif ilişki veya bilinen aynı pending istek yeniden gönderilemez. Sunucudaki
-409/422/429, ağ, TLS ve sunucu hataları Türkçe gösterilir. POST otomatik
-tekrarlanmaz; belirsiz sonuç/çatışma sonrası bağlantıları yenilemek gerekir.
-429 için Retry-After (yoksa bir dakika) beklenir ve kullanıcı yeniden kontrol
-eder. GET 401 sonrası mevcut tek refresh akışıyla en fazla bir kez okunur;
-geçersiz oturum Auth Gate'i kapatır. Çıkış/değişen hesap eski yanıtları reddeder.
-Mevcut API_BASE_URL ve geliştirme sertifikası yapılandırması aynen kullanılır.
-
-`flutter test` içindeki `dietitian_api_test.dart` gerçek loopback HTTP taşımasını,
-`dietitian_finder_test.dart` ekran davranışlarını doğrular. İsteğe bağlı
-`flutter test test/dietitian_live_probe.dart`, yalnız önceden hazırlanmış geçici
-hesaplarla gerçek HTTPS akışını çalıştırır. Girdiler `SNP_LIVE_` önekli ORIGIN,
-PASSWORD, CLIENT_A, CLIENT_B, QUERY, EXPERT_ID, EXPERT_EMAIL, INVITATION ortam
-değişkenleridir; kurulum/temizlik çağırana aittir. Bu test cihaz UI testi değildir.
-
-## Diyetisyen başvurusu ve danışan yönetimi
-
-Danışan, **Profil → Diyetisyen Profili ve Başvuru** üzerinden mevcut hesabıyla
-başvuru yapabilir ve onayı takip edebilir. Onaylı diyetisyen aktif danışanları
-listeleyebilir, bağlantıları yönetebilir ve davet kodu oluşturabilir.
-
-Giriş ekranındaki **Diyetisyen hesabı için başvur** yeni hesap başvurusunu açar.
-**Web Sitesine Git**, `url_launcher` ile `/uzman-basvurusu` adresini varsayılan
-tarayıcıda açar. **Adresi Kopyala** aynı adresi panoya yazar. Tarayıcı kendi web
-oturumunu kullanır.
-
-Origin `lib/core/network/web_config.dart` içinde `WEB_BASE_URL` ile yönetilir.
-Yalnız HTTPS scheme/host/port kabul edilir; path, query, fragment veya kimlik
-bilgisi eklenemez. `/uzman-basvurusu` yolu kod tarafından sabit eklenir.
-Debug varsayılanı mevcut Vite adresi `https://localhost:5173`dür. Release/profile
-için gerçek web origin'i açıkça verilmelidir; eksik/hatalı adreste eylemler kapalıdır:
-
-```sh
-flutter run --dart-define=WEB_BASE_URL=https://localhost:5173
-# Dağıtımda gerçek origin ile değiştirilecek örnek:
-flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com --dart-define=WEB_BASE_URL=https://web.example.com
+```powershell
+flutter test test/password_reset_api_test.dart test/password_reset_widget_test.dart
+flutter test test/device_health_reader_test.dart test/health_data_api_test.dart test/health_sync_service_test.dart test/health_sync_widget_test.dart
 ```
 
-Android emülatöründe localhost için `adb reverse tcp:5173 tcp:5173` gerekir.
-Mevcut `start.ps1` API için 7099 ve web için 5173 tünellerini kurar.
-Android Chrome güveni için kök README'deki
-[yerel HTTPS kurulumu](../README.md#android-chrome-için-yerel-https) uygulanır;
-bu modda cihazın 5173 portu yalnız host'taki 5174 HTTPS geçidine bağlanır,
-`WEB_BASE_URL` yine `https://localhost:5173` kalır. Windows güveni değişmez.
-Alternatif `10.0.2.2` host'u seçilirse sertifikanın
-o host/IP ile de eşleşmesi gerekir; localhost sertifikasını IP'ye yönlendirmek yetmez.
-Vite mevcut HTTPS sertifikası ve backend proxy ayarlarıyla çalışmalıdır.
-Harici tarayıcı, Dart `API_DEV_CERT_BASE64`/SecurityContext güvenini kullanmaz;
-geliştirme HTTPS sertifikası tarayıcı tarafından güvenilmeli ve host adıyla eşleşmelidir.
-Sertifika doğrulaması devre dışı bırakılmaz. Fiziksel cihazda localhost emülatör
-tüneli yerine cihazdan erişilebilir, güvenilir sertifikalı HTTPS origin'i gerekir.
+| Kaynak | Gerçek kapsam / koşul |
+|---|---|
+| auth/session/refresh, kayıt/doğrulama/reset, öğün/su/hedef/ölçüm/program/yorum/görev testleri | Unit/widget/DTO; native platform veya çalışan API kanıtı değildir |
+| health_sync_live_probe.dart | M3 sentetik HTTP/HTTPS/izole DB; SNP_HEALTH_LIVE ve kendine özgü m3_verify_… ortamı; fiziksel health okuma testi değildir |
+| password_reset_live_probe.dart | SNP_RESET_LIVE ve m5_verify_… test DB'si; Mailpit/API oturum iptali |
+| client_task_live_probe.dart | SNP_TASK_LIVE ve m6_verify_… test DB'si; görev API provası |
+| device_health_live_probe.dart, mobile_quality_device_probe.dart | Ayrı cihaz hedefi/define/hesap/ortam gerektirir; dosya veya commit başlığı başarılı koşu değildir |
 
-Widget testleri tarayıcı çağrısının dış modda, headersız ve sır içermeyen tam
-adrese yapıldığını, pano davranışını, hata/çift gönderim/ayrılma durumlarını ve
-çıkışta ekranın kaldırılmasını platform kanalı üzerinden denetler. Bu testler
-gerçek cihazda varsayılan tarayıcı veya sertifika davranışı doğrulaması değildir.
+Live probe'ların sabit port, konteyner ve test DB kontrolleri kendi kaynaklarından okunur; uygulama DB'siyle veya U6 web ortamıyla doğrudan aynı olduğu varsayılmaz. Ortam hazır değilse opt-in açılmaz; komut/başarılı sonuç uydurulmaz. Yalnız sentetik hesap kullanılır.
 
-## Kayıt API bağlantısı
+Fiziksel Android sağlık aktarımı ve iOS/HealthKit bu görevde doğrulanmadı. Gerçek sensör/native ID/izin/OS, Keychain/Keystore, iki tema, küçük ekran/klavye ve yayın imzalama ayrıca test edilmelidir. Geçmiş sonuçlar [12](../docs/12_TEAM_PLAN_AND_DECISIONS.md)'de tarih/kapsamla ayrılır; burada yeni başarı/sayım verilmez.
 
-API origin'i `lib/core/network/api_config.dart` üzerinden merkezî olarak seçilir.
-`API_BASE_URL` yalnız scheme/host/port içerir; `/api/v1`, query veya kimlik bilgisi
-eklenmez. Endpoint yolu mevcut sözleşmeye göre istemci tarafından eklenir.
+## 6. Bilinen sınırlamalar
 
-Debug varsayılanı `https://localhost:7099`dur. Backend HTTP 5052 isteklerini
-HTTPS'e yönlendirir; `10.0.2.2:5052` kayıt için uygun varsayılan değildir.
-Kökteki `start.ps1`, açık Android emülatörünü bulduğunda `adb reverse`
-ile 7099 portunu host'a bağlar ve mevcut açık geliştirme sertifikasını yalnız
-debug derlemesine `API_DEV_CERT_BASE64` olarak aktarır. Özel anahtar aktarılmaz.
-Sertifika zinciri, süre ve host adı doğrulamaları korunur; sertifika Git'e konmaz.
-Backend, PostgreSQL ve SMTP ortamı backend README'sine göre ayrıca çalışmalıdır.
-Gerçek cihazlarda erişilebilir ve sertifikası güvenilir HTTPS origin'i verilir.
+**Mevcut danışanla uzman başvurusu erişimi tamamlanmış değildir.** DietitianApi.applyExisting ve DietitianAccountPage vardır; AuthGate /dietitian-account yolunu WebPanelPage'e yönlendirir, ProfilePage'de başvuru bağlantısı yoktur. Eski widget/API'nin varlığı erişilebilir kullanıcı akışı değildir. Web formundaki “mobil Profil'den başvur” metni bu engeli gidermiyor; kod düzeltmesi ayrı görevdir.
 
-Release/profile için `API_BASE_URL` açıkça verilmelidir ve HTTPS zorunludur:
+Tam profil/gizlilik düzenleme, kişisel program editörü, manuel aktivite formu, AI/tahlil/OCR ve bildirim teslimi tamamlanmış değildir. HealthKit fiziksel testi, gerçek Android aktarımı, nihai marka/erişilebilirlik ve mağaza kimliği/ikon/release signing açık kalır. Bunlar onaylı kapsamdan çıkarılmamıştır.
 
-```sh
-flutter run --release --dart-define=API_BASE_URL=https://api.example.com
-```
+## 7. İlgili güncel dokümantasyon
 
-HTTP yalnız debug'da localhost/loopback ve Android emülatör alias'ına açıktır.
-Android ağ güvenlik istisnası yalnız debug manifestindedir; diğer HTTP hostları
-ve release HTTP kullanımı reddedilir. HTTPS sertifika/host doğrulaması kapatılmaz;
-yerel HTTPS sertifikası cihaz tarafından güvenilmeli ve host adıyla eşleşmelidir.
-`API_DEV_CERT_BASE64` yalnız debug'da, bu açık sertifikaya uygulama kapsamında
-güven ekler; release/profile derlemeleri bu parametreyi kullanmaz.
-Yeni ağ paketi yoktur; Dart `HttpClient` kullanılır.
+[Kök kurulum](../README.md) · [Ürün](../docs/01_PROJECT_SCOPE.md) · [Adlar](../docs/04_NAMING_CONVENTIONS.md) · [Veri](../docs/05_DATA_DICTIONARY.md) · [HTTP/DTO](../docs/06_API_CONTRACT.md) · [Mobil ekranlar](../docs/07_MOBILE_SPEC.md) · [Tasarım](../docs/09_DESIGN_SYSTEM.md) · [Güvenlik](../docs/11_SECURITY_AND_RELEASE.md) · [Durum/açık kararlar](../docs/12_TEAM_PLAN_AND_DECISIONS.md) · [Sağlık aktarımı](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md)
 
-## Giriş ve kalıcı mobil oturum
-
-`POST /api/v1/auth/login` yalnız `{ email, password }` gönderir. E-posta kırpılır;
-parola Unicode/boşluklarıyla korunur, kayıt parola politikası girişe uygulanmaz.
-Yalnız `200 { accessToken, tokenType: "Bearer", expiresAt, refreshToken,
-refreshTokenExpiresAt }` kabul edilir.
-JWT claim'leri çözümlenerek yetki verilmez; token ile gövdesiz/query'siz
-`GET /api/v1/auth/me` çağrılır. Beş alanlı geçerli `200 CurrentUserResponse`,
-doğrulanmış e-posta ve izinli `client`/`dietitian` rolü olmadan Auth Gate açılmaz.
-Admin bearer ile kabul edilmez; MFA destekli web girişi gerekir.
-
-Access token ve hesap özeti yalnız `AuthSession` belleğindedir. Refresh token,
-mutlak bitişi ve rotasyon durum işareti tek güvenli kayıtta tutulur. Oturum saklamada
-[flutter_secure_storage 11.2.0](https://pub.dev/packages/flutter_secure_storage)
-Android Keystore ile korunan RSA OAEP/AES-GCM ve iOS Keychain kullanır.
-iOS kaydı `unlocked_this_device`, iCloud eşitlemesi kapalıdır. Android bulut
-yedekleme ve cihaz aktarımına güvenli pref dosyalarının dahil edilmesi engellenir.
-Kayıt API origin'ine göre ayrılır; geliştirme tokenı başka origin'e gönderilmez.
-Android/iOS dışında bu depoda düz metin veya web fallback'i bulunmaz.
-Token/parola/ham yanıt loglanmaz. Cookie/CSRF veya sahte giriş eklenmez. İstek sırasında alanlar,
-gönderim ve geri dönüş kilitlenir; parola istek başlarken formdan temizlenir.
-Yanlış parola/olmayan hesap/doğrulanmamış e-posta/Admin aynı `401` olduğu için
-istemci kesin hata nedeni veya hesap varlığı iddia etmez.
-
-Başlangıçta bekleme ekranı gösterilir; güvenli depodaki refresh ile
-`POST /api/v1/auth/refresh` çağrılır, alınan yeni refresh kaydı saklanır ve
-`/auth/me` doğrulandıktan sonra Dashboard açılır. `/me` geçici olarak başarısız
-olursa alınan yeni token saklanır; erişim açılmaz, aynı access token ile yalnız
-`/me` yeniden denenir. Token çiftinin kalıcı kısmı refresh'tir; access disk'e yazılmaz.
-
-Yenileme tüm çağrılar için tek Future'da birleştirilir. Normal 15 dakikalık
-access süresinin bitimine 30 saniye kala yenileme denenir; uygulamaya dönüşte
-süre ve `/me` kontrol edilir. Access süresi dolduğunda veya `/me` `401` verdiğinde
-korumalı UI kapatılır; refresh + yeni `/me` doğrulaması olmadan açılmaz.
-Geçici ağ hatası geçerli access süresini uzatmaz. Oturum geçişlerinde Navigator
-geçmişi yenilenir; çıkış sonrası geri/rota argümanıyla korumalı ekran açılamaz.
-Eski login/refresh/me/401 yanıtları yeni oturumu veya çıkışı geri alamaz.
-
-Refresh/logout yalnız `{ refreshToken }` gönderir; Authorization/cookie/query
-eklenmez. Refresh gönderilmeden önce güvenli kayıtta `rotationPending` işaretlenir.
-İstek gönderilmeden bağlantı kesildiği biliniyorsa veya açık `400/429` yanıtı
-alındıysa bu işaret kaldırılır, kayıt silinmeden kullanıcı tekrar deneyebilir.
-Gönderim sonrası bağlantı/yanıt kaybı veya belirsiz sunucu hatasında eski token
-otomatik tekrar kullanılmaz; kayıt karantinada tutulur ve yeniden giriş gerekir.
-Yenileme sırasında uygulamanın kapanması da aynı güvenli davranışı izler.
-Bu, backend'in tekrar kullanımda tüm aileyi iptal etme sözleşmesi gereğidir.
-Geçersiz/süresi dolmuş refresh `401`i veya geçersiz `/me` yanıtı yerel kaydı temizler.
-
-AppBar'daki **Çıkış yap**, `/auth/logout` ile aile iptalini ister; sunucu/ağ
-başarısız olsa da yerel bellek ve güvenli kayıt temizlenir. Sunucu çıkışı
-doğrulanamadıysa bu bilgi giriş ekranında gösterilir. Güvenli native kayıt
-silinmeden önce oturum kapalı işaretiyle üzerine yazılır; iki yöntem
-de başarısızsa başarı iddia edilmez, depo temizlenene kadar erişim kapalı kalır.
-Depo erişimi/kilit hatalarında kimlik verisi düz metin yedeğe taşınmaz.
-Mevcut stateless access JWT sunucuda kendi kalan 15 dakikası boyunca geçerli
-kalabilir. Yeni yetkili API işlemleri aynı oturum yenileme/401 akışını kullanmalıdır;
-mevcut yetkili mobil okuma `/auth/me`dir. Korunan sağlık ekranlarının verileri
-henüz API entegrasyonu değildir; mevcut demo/boş durum tasarımları korunur.
-
-## E-posta doğrulama
-
-Mevcut backend e-postası URL yerine 30 dakika geçerli, tek kullanımlık
-43 karakterlik Base64URL kod içerir. Webde olduğu gibi mobilde de bu kod girilir;
-tanımlı App Link/deep-link/callback sözleşmesi olmadığından URL yakalama eklenmez.
-Kayıttan aktarılan e-posta ekranda görünür. Doğrudan açılışta yeniden gönderim
-için e-posta girilebilir; kodun hangi hesaba ait olduğunu sunucu belirler.
-
-`POST /api/v1/auth/verify-email` yalnız `{ token }` gönderir; yalnız boş `204`
-doğrulamayı tamamlar. Kod istek başlarken alandan temizlenir, saklanmaz/loglanmaz.
-Başarıdan sonra girişe dönüş navigasyon geçmişini temizler; oturum oluşturmaz.
-Webde doğrulama yapan kullanıcı da girişe dönebilir; istemci doğrulama durumunu
-varsaymaz ve oturum açılmış kabul etmez.
-
-`POST /api/v1/auth/resend-verification` yalnız `{ email }` gönderir. Boş `202`,
-hesap varlığı veya SMTP teslimi kanıtı değildir; genel bilgilendirme gösterilir.
-İstek sürerken eşzamanlı doğrulama/yeniden gönderim ve geri dönüş engellenir.
-Kayıt sonrası ve `202` sonrası yerel 60 saniye beklenir; sunucunun hesap/IP
-sınırları her zaman geçerlidir. `429 rate_limited` yanıtında varsa `Retry-After`
-(saniye veya HTTP tarihi) kullanılır; mevcut backend bu başlığı göndermediği
-için yokluğunda 60 saniye beklenir. Yeniden gönderim otomatik tekrarlanmaz.
-Geçersiz/süresi dolmuş/kullanılmış kod, bağlantı ve sunucu hataları güvenli
-Türkçe mesajlarla gösterilir. Bağlantı kaybında sunucudaki sonuç varsayılmaz.
-
-## Yapı
-
-- `lib/main.dart`: giriş noktası.
-- `lib/app.dart`: uygulama kökü ve tema bağlantısı.
-- `lib/core/theme/`: başlangıç tokenları ve Material 3 açık/koyu temalar.
-- `lib/core/network/api_config.dart`: API origin'i ve geliştirme/HTTPS sınırları.
-- `lib/core/network/json_api.dart`: sınırlı JSON POST ve yetkili GET taşıması;
-  bearer yalnız aynı API origin'ine gider, yönlendirme/cookie/otomatik tekrar yoktur.
-- `lib/core/widgets/empty_state.dart`: sekmelerin ortak, duyarlı boş durum görünümü.
-- `lib/features/navigation/`: Material 3 alt navigasyon ve sekme durumunu koruyan ana yapı.
-- `lib/features/auth/`: kimlik ekranları, temel form doğrulaması ve ortak form görünümleri.
-  `auth_gate.dart`, yalnız API ile doğrulanmış bellek oturumunda korumalı
-  ekranları açar; oturumsuz korumalı yollar girişe döner.
-  `registration_api.dart`, kayıt JSON'unu ve güvenli API hata eşlemesini yönetir.
-  `email_verification_api.dart`, doğrulama/yeniden gönderim sözleşmesini yönetir.
-  `login_api.dart`, login/refresh/logout/me sözleşmesini; `auth_session.dart`,
-  geri yükleme/tek yenileme/expiry/401/çıkışı yönetir. `refresh_token_store.dart`
-  yalnız refresh kaydını güvenli tutar; `session_status_page.dart` bekleme/kurtarma ekranıdır.
-- `lib/features/home/`: Dashboard düzeni, günlük göstergeler, program/öğün kartları
-  ve merkezi `dashboard_demo_data.dart` örnekleri.
-- `lib/features/nutrition/`, `progress/`, `profile/`: diğer sekmelerin ekran iskeletleri.
-- `test/auth_gate_test.dart`: girişsiz açılış, korumalı başlangıç/yönlendirme
-  istekleri ve API doğrulaması olmadan oturum açılmaması testleri.
-- `test/login_api_test.dart`: loopback HTTP ile login/me JSON ve bearer
-  sözleşmesi, bozuk yanıtlar, Admin engeli, güvenli hata ve bağlantı testleri.
-- `test/login_test.dart`: login+me sırası, loading/tekrar engeli, expiry/resume,
-  çıkış/401/navigasyon temizliği, geç yanıt ve yeniden başlatma testleri.
-- `test/auth_session_test.dart`: geri yükleme/rotasyon, tek yenileme, ağ kesintisi,
-  güvenli depo hataları, iptal/çıkış yarışları ve geç yanıt regresyonları.
-- `test/refresh_token_store_test.dart`: kayıt biçimi/origin ayrımı, bozuk kayıt,
-  native silme hatalarında güvenli davranış ve desteklenmeyen platform kontrolleri.
-  Native Keystore/Keychain testlerde paketin mock platformuyla temsil edilir;
-  bu testler fiziksel cihaz güvenli depolama veya iOS imzalı derleme testi değildir.
-- `test/app_test.dart`: ana navigasyonun bağımsız widget olarak tema, sekme
-  geçişleri, geri tuşu ve büyük metin testleri.
-- `test/dashboard_test.dart`: demo işaretleri, hedef göstergeleri, diyetisyen
-  bağlantısı olan/olmayan örnekler, erişilebilirlik etiketleri ve duyarlı Dashboard testleri.
-- `test/auth_test.dart`: form doğrulama, şifre görünürlüğü, ekran geçişleri,
-  yüklenme/hata durumları ve klavye/büyük metin kontrolleri.
-- `test/registration_api_test.dart`: ayrı loopback HTTP sunucusuyla gövde/status,
-  hata zarfı, bağlantı kesintisi, timeout ve yönlendirme kontrolleri. Bu test
-  sunucusu gerçek ASP.NET Core/PostgreSQL entegrasyonu yerine geçmez.
-- `test/registration_test.dart`: bekleme/tekrar gönderim engeli, başarılı kayıt,
-  hata ve geç yanıtların widget testleri. Kontrollü yanıtlar yalnız testtedir.
-- `test/email_verification_api_test.dart`: gerçek loopback HTTP ile istek alanları,
-  kesin durum kodları, güvenli hatalar, Retry-After, timeout ve bağlantı kontrolleri.
-- `test/email_verification_test.dart`: kod/e-posta doğrulama, bekleme ve istek
-  engelleri, güvenli girişe dönüş, hata, tema ve küçük ekran widget testleri.
-- `test/device_registration_probe.dart`: isteğe bağlı terminal cihaz kontrolü;
-  mevcut `LiveWidgetController` ile gerçek uygulama/UI ve HTTP istemcisini
-  Android'de çalıştırır. Yeni paket kullanmaz, `flutter test` ile otomatik
-  çalışmaz. `flutter run -t test/device_registration_probe.dart -d <cihaz>` için
-  `API_BASE_URL`, açık sertifikanın `API_DEV_CERT_BASE64` değeri ve benzersiz
-  `E2E_EMAIL=e2e-<rastgele>@example.test` verilir. Gerçek test hesabı/e-posta
-  oluşturur; kayıt, mükerrer e-posta, geçersiz form ve bağlantı kesintisini
-  denetler. Parolayı bellekte üretir; yalnız güvenli `E2E_RESULT` özeti yazar.
-
-Flutter SDK ve güvenli depolama paketi kullanılır; test ve analiz için standart `flutter_test` ve
-`flutter_lints` bulunur. Yeni özellik klasörleri ihtiyaç olduğunda eklenir.
-
-## Açık tasarım ve yayın kararları
-
-`docs/09` ve `docs/12` uyarınca renk, font ve kesin token değerleri henüz onaylı
-değildir. `AppTokens` başlangıç değerlerini tek yerde tutar; marka rengi, boşluk
-ve köşe değerleri nihai ortak tasarım kararı sayılmaz. Yüzey/metin renkleri ve
-tipografi Material 3 `ColorScheme` / `TextTheme` rollerini kullanır. Mobil/web
-eşlemesi tasarım onayında yapılmalıdır; web kodu bu görevde değiştirilmemiştir.
-
-Sekmeler arasında geçişte ekranlar korunur; geri tuşu diğer sekmelerden Ana Sayfa'ya
-döner. Ana Sayfa'daki yönlendirme Beslenme sekmesini açar; kayıt işlemi başlatmaz.
-Dashboard'daki değerler, hedefler ve sabit örnek gün gerçek kullanıcı verisi veya
-kişisel öneri değildir. Hızlı işlemler yalnız kapatılabilir demo önizlemeleri açar;
-kayıt veya sayaç değişikliği yapmaz. Demo yapıları API DTO'su veya açık şemalar
-için kesin mock değildir; veri sözleşmesi yerine kullanılmaz.
-
-Debug dahil tüm derlemeler Auth Gate üzerinden açılır. Dashboard ve diğer
-korumalı ekranlar yalnız gerçek login + `/auth/me` doğrulamasından sonra açılır.
-Önizleme/giriş atlama düğmesi yoktur. Kontrollü API yanıtları yalnız testlerde
-kullanılır; üretim koduna sahte oturum veya giriş atlama seçeneği eklenmemiştir.
-Geçerli kayıt formu yalnız `displayName`, `email`, `password` gönderir;
-şifre tekrarı veya rol gönderilmez. İstek sürerken alanlar, gönderim ve geri
-dönüş kilitlenir. Yalnız `201 { id: UUID }` sonrasında kayıt rotası e-posta
-doğrulama ekranıyla değiştirilir; girilen e-posta aktarılır, şifreler temizlenir.
-Bu yanıt hesap oluşturmayı doğrular; SMTP teslimi veya oturum açma kanıtı değildir.
-Kayıttan doğrulamaya bağımsız önizleme kısayolu kaldırılmıştır; giriş ekranındaki
-genel doğrulama bilgisi oturumsuz erişilebilir kalır.
-
-Kayıt formu Ad Soyad (`displayName`), e-posta, şifre ve şifre tekrarı içerir.
-Zorunlu alanlar, e-posta biçimi ve şifre eşleşmesi yerel olarak kontrol edilir;
-kayıt parolası onaylı `06` sözleşmesine göre 8–128 Unicode kod noktasıdır.
-Boşluklar korunur; karakter türü zorunluluğu eklenmez. Giriş formuna kayıt
-parola sınırı uygulanmaz. Şifreler kırpılmaz, saklanmaz veya loglanmaz.
-KVKK aydınlatma alanı, onaylı metin/URL henüz bulunmadığını açıkça belirtir;
-zorunlu hukuki onay veya rıza kaydı oluşturmaz.
-API `error.code` ve `requestId` zarfı okunur; sunucu mesajı/details veya
-istisna ayrıntıları kullanıcıya ya da loga taşınmaz. 409/400/422/429/5xx ve
-bağlantı hataları Türkçe gösterilir. İstek toplam 20 saniyede sonlandırılır;
-yönlendirme veya otomatik tekrar yoktur. Bağlantı kesintisinde sonucun
-doğrulanamadığı belirtilir; kayıt oluşmadığı varsayılmaz.
-`isLoading` ve `errorMessage` sunum girdileri korunur; gerçek istek durumu
-ekran tarafından yönetilir. Sahte kayıt veya giriş simülasyonu yoktur. Şifre alanları
-sayfa kapandığında serbest bırakılır; başka kimlik ekranına giderken temizlenir.
-
-Uygulama sistem temasını izler; kullanıcı tema tercihinin kalıcı
-saklanması henüz uygulanmamıştır. Android/iOS `com.example` kimlikleri ve standart
-ikonlar geliştirme yer tutucularıdır; mağaza kimliği, ikon ve yayın imzası ayrıca
-kesinleştirilmelidir. Ortak veri/API sözleşmelerinden açık şema uygulanmamıştır.
-## W2 web oturumu entegrasyon notu — 27.10.2026
-
-Kullanıcının teyit ettiği Uğur–Mert ortak onayıyla web cookie/CSRF/iptal
-sözleşmesi `docs/04/05/06/11/12`ye işlendi. Mobil `POST /auth/login` isteği,
-15 dakikalık JWT yanıtı ve bearer `GET /auth/me` beş alanı değişmedi. Mobil
-isteklere cookie/CSRF/Origin eklenmez; yeni web yollarından mobil refresh DTO'su
-türetilmez. Mobil refresh/iptal/saklama hâlâ açık karardır. Mobil kaynak kodu
-bu dilimde değişmedi; Mert entegrasyondan önce ortak main'i eşitlemelidir.
-
-Bu 27.10.2026 notu W2 tesliminin tarihsel durumudur. Mobil refresh/iptal ve
-güvenli saklama, yukarıdaki güncel kalıcı oturum bölümünde uygulanmıştır.
+Önceki M/U görevleri tarihsel kimliklerdir; güncel işlem/yazma yetkisi [AGENTS.md](../AGENTS.md)'dedir. Eski teslim bilgileri [mevcut arşivde](../docs/archive/README.md) korunur.

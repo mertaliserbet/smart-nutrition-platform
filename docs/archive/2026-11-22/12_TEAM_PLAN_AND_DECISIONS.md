@@ -1,0 +1,595 @@
+> **TARİHSEL ARŞİV — 22.11.2026 öncesindeki metin korunmuştur.** Bu dosyadaki durumlar, test sayıları, teklifler, Git/sahiplik talimatları ve açık kararlar güncel teknik sözleşme değildir. Güncel kaynaklar [aktif belge dizininde](../../../README.md) ve [12](../../12_TEAM_PLAN_AND_DECISIONS.md) içindedir. Aşağıdaki gövde yalnız tarihsel kayıttır; yerel bağlantı yolları arşiv konumuna uyarlanmıştır.
+
+# 12 — Ekip görevleri, ortak çalışma, yol haritası ve kararlar
+
+## 20.11.2026 — U6 web/backend regresyon kapanışı
+
+Kullanıcı U6 test/hata düzeltme kararlarını onayladı; ayrıca eksik gerçek HTTPS
+tarayıcı altyapısı için yalnız apps/web altında Playwright test bağımlılığına
+açık onay verdi. Başlangıçtaki U5 değişiklikleri korundu; Git dalı/geçmişi
+değişmedi. Yeni özellik, ürün refactor'u, migration veya gevşetilmiş güvenlik yok.
+
+Güncel yerel kodda tam backend 484/484, React DOM 349 başarılı/3 mevcut opt-in
+atlandı, gerçek Edge HTTPS 4/4. Program/sürüm/tek aktif, öğün/yorum/yanıt,
+karşılaştırma/eksik besin/tarih, ölçüm/grafik, görev, su, sağlık sync, yetki,
+Admin MFA, reset ve migration koruma testleri yeniden çalıştırıldı. Beş izin
+kategorisinin 5×5 bağımsızlık matrisi ve uzman onayının kaldırılmasında toplu
+erişim kapanışı eklendi. Gerçek UI senaryoları ve komutlar koordinasyon kaydında;
+tekrar kurulum web README'sindedir. Geçmiş raporlar yeni sonuç yerine kullanılmadı.
+
+U6, `04/05/06`yu veya mobil sözleşmeyi değiştirmez; U5'in tarihli Admin reset ve
+web fragment bağlantısı kararı korunur. Mert M2/M4/M5 aynı kanonik API'yi kullanır;
+bu provada danışan işlemleri API ile yapıldı, Flutter/cihaz doğrulanmadı.
+U1–U5 mevcut checkout'ta doğrulandı, U6 web/backend kapsamı kapandı. Ortak main'in
+uzak güncelliği fetch yasağı nedeniyle doğrulanmadı; yayın/mağaza onayı değildir.
+Sonraki tek adım U5/U6 değişikliklerini ortak main hedefli PR ile incelemeye sunmaktır;
+bu görevde commit/push/PR yapılmaz.
+
+## 20.11.2026 — U5 React parola sıfırlama ve M5 etkisi
+
+Kullanıcı U5 ortak izin/ürün/teknik kararlarını uygulama yetkisiyle onayladı.
+Mevcut `/sifremi-unuttum` ekranı kanonik PasswordResetRequest `{ email }` ve
+ResetPasswordRequest `{ token, password }` ile gerçek backend'e bağlandı;
+tekrar alanı yalnız istemcidedir. İkinci endpoint/entity/token akışı eklenmedi.
+
+İncelemede SMTP yalnız kod gönderiyor ve 02.11 P1 Admin'i dışlıyordu. U5'in açık
+Admin reset/MFA doğrulama gereğiyle aynı mekanizma doğrulanmış Admin'e açıldı;
+MFA sırrı/adımı/kurtarma hash'leri değişmez ve yeni parola MFA yerine geçmez.
+Bu tarihli dar onay eski client/dietitian sınırlamasını ve web için URL yasağını
+günceller; diğer açık kararları kapatmaz. `05/06/11` uygulanan davranışı tanımlar;
+`04` adları ve DTO zorunlu alanları değişmedi. Yeni migration gerekmiyor.
+
+Mevcut güvenilir WebSession Origin yapılandırılmışsa SMTP e-postası aynı kodu
+`/sifremi-unuttum#token=...` bağlantısında da verir. Standalone 43 karakter kod
+korunur; Mert M5 mevcut API/manuel kod akışını kullanabilir. Flutter/deep-link
+entegrasyonu bu görevde yapılmadı. React URL'yi replace ile temizler, tokenı
+yalnız bellekte tutar; yenilemede bağlantıyı yeniden açma yolu gösterilir.
+204 sonrası girişe yönlenir; eski cookie/access/refresh backend'de reddedilir.
+Gerçek Mailpit/PostgreSQL ve ayrı React DOM testleri koordinasyon kaydındadır;
+fiziksel tarayıcı/Flutter testi yapılmış sayılmaz. U6 kapsam dışıdır.
+
+## 19.11.2026 — U4 su paylaşımı API/React ve M4 teslimi
+
+Kullanıcı U4 ürün/teknik/izin kararlarının tamamını uygulama yetkisiyle onayladı.
+U3 `99611a4` ile bu main'de, başlangıç snapshot kontrolü temizdi. Bağımsız
+water_logs kategorisi, aynı WaterLog DTO'suyla uzman liste/günlük toplam/tarih
+geçmişi ve gerçek React su bölümü eklendi. Gün/UTC/IANA/DST/pagination/hata
+kuralları `04/05/06/08/11` ve [21 M4 tesliminde](21_WATER_LOG_SHARING_CONTRACT.md).
+Kişisel hedef paylaşılmadı; uzman/Admin su yazması veya otomatik izin yoktur.
+
+Migration `20261118230136_AddWaterLogSharingCategory` yalnız kategori check'ini
+genişletir; mevcut veri/izin, tablo/index ve su CRUD'u korunur. Uygulama DB'sine
+uygulanmadı. Eski mobil ayrıştırıcı water_logs satırını/beşinci kategoriyi
+reddettiğinden WaterLogsEnabled varsayılan false; M4 ortak main'e gelip kategori/
+sayfalama/geri alma doğrulanınca ortamda açılır. M4'ün Flutter alanına dokunulmadı.
+U4 doğrulama komutları/gerçek sonuçları koordinasyon kaydındadır; U5 başlatılmaz.
+
+## 19.11.2026 — U3 sağlık API / PostgreSQL ve M3 sözleşmesi
+
+Kullanıcı tüm U3 ortak izin/ürün/teknik kararlarını uygulama yetkisiyle onayladı.
+Kanonik ActivityLog/WearableConnection korundu; WearableRecord kaynak başlığı,
+kontrollü HealthMetricSample ve WearableSyncBatch receipt eklendi. M1'in gerçek
+rawType/rawUnit/sourceId/externalRecordId ve çok noktalı nabız yapısı incelendi;
+mobil/web dosyası değiştirilmedi. Yalnız kendi doğrulanmış client JWT'si erişir;
+uzman/Admin/kategori paylaşımı açılmadı. Aktarım tercihi OS izni değildir.
+
+UTC/birim, sürüm/idempotency, explicit delta silme, transaction/limit ve
+conservative_overlap_v1 günlük hesap kuralları `04/05/06` ve somut
+[M3 entegrasyon notunda](20_HEALTH_DATA_SYNC_CONTRACT.md) kapandı. Gün aşan skaler
+ölçüm oranlanmaz, eksiklik işaretlenir. Hiçbir değer otomatik hedef/teşhis üretmez.
+Migration `20261118222117_AddHealthDataSync`, birleştirilmiş U1 sonrası eklendi;
+eski migration silinmedi/yeniden adlandırılmadı, uygulama DB'sine uygulanmadı.
+Gerçek PostgreSQL doğrulaması ve cihaz/M3 teslim sınırları koordinasyon kaydındadır.
+M3 ayrı görevdir; bu oturum M3 veya U4'ü başlatmaz.
+
+## 19.11.2026 — U2 React görev atama ve takip teslimi
+
+Kullanıcı U2 için gerekli ortak izin/ürün/teknik kararları onaylı kabul ederek
+uygulamayı istedi. U1, PR #14 ile ortak main'e alınmış ve checkout 4a1cab4 ile
+eşitlenmişti. Bu görevde Git fetch/pull/commit/push/dal değişikliği yapılmadı.
+
+Mevcut gerçek danışan çalışma alanına ClientTaskPanel, U1 DTO doğrulayıcısı,
+yerel son tarihli atama/düzenleme formu, iptal onayı ve sayfalı snapshot geçmişi
+eklendi. 409 taslağı korur, güncel sürümü getirir ve açık yeniden başlatma ister;
+403/404 görev içeriği/formunu kaldırır. Görünür sekmede 30 sn/fokus/elle yenileme
+danışan durum değişikliklerini okur. Varsayılan kapalı görev izin ayarı ve diğer
+kategoriler korunur; uzman danışan adına izin açmaz veya görev tamamlamaz.
+
+`04/05/06` değişmedi; backend üretim kodu/model/migration değişmedi. Yalnız ek
+PostgreSQL entegrasyon testi web cookie atama→danışan bearer tamamlama→uzman
+güncel okuma/geçmiş/izin iptalini doğrular. Flutter/kök dosyaları değişmedi.
+U3 başlatılmadı. Ekran davranışı `08`, tekrar koşma notları web README'dedir.
+
+**Doğrulama:** 29 görev React/DTO testi dahil tam web koşusu 282 başarılı,
+3 opt-in canlı test atlandı. Yeni canlı görev testi ayrıca gerçek HTTPS API ve
+ayrı PostgreSQL 17.11'de çalıştırılıp geçti. Build ve lint başarılı,
+lint uyarısı yok. İlgili görev/izin/ilişki API testleri 49/49; backend build
+0 uyarı/hata. Uygulama DB'sine migration uygulanmadı.
+
+**Sınır:** Canlı web doğrulaması gerçek ağ/API/DB kullanan React DOM testidir;
+tarayıcı görsel provası değildir. U2 doğrulaması sırasında Flutter M2 henüz
+checkout'ta bulunmuyordu. PR hazırlığında ortak main'in yalnız mobil M2 içeren
+d14576f sürümü taban alındı; Flutter üzerinden görev tamamlama denenmedi. Mobil uyum
+doğrulanmadan ortak ortamın ClientTasksEnabled ayarı açılmaz.
+
+## 18–19.11.2026 — U1 görev sistemi uygulama onayı ve teslim
+
+Kullanıcı U1 için gerekli ürün/teknik kararların onaylı kabul edilmesini,
+kalan ayrıntılarda mevcut mimariye göre ilerlenmesini ve tekrar onay aşamasında
+durulmadan backend/sözleşme/migration/testlerin uygulanmasını açıkça istedi.
+Önceki U1-1–U1-6 karar paketi bu kapsamda uygulanmıştır; bağımsız client_tasks,
+özgün ilişkiye bağlı görev, pending/in_progress/completed/cancelled, nullable
+kesin dueAt, danışana ait varsayılan false hatırlatma tercihi, sürümlü değişmez
+geçmiş ve expectedVersionNumber önkoşulu `04/05/06`ya işlendi. Bildirim teslimi
+bu dilim değildir. Önceki hazırlık tablosunun görev şeması açıkları kapanır;
+diğer modüllere onay çıkarılmaz.
+
+Uğur yalnız backend ve ilgili docs dosyalarını değiştirdi. Uygulama mevcut
+main checkout'unda kullanıcı talimatıyla dal/geçmiş değiştirilmeden hazırlandı;
+Git fetch/pull/commit/push/merge/rebase yapılmadı. Flutter/React/kök dosyaları
+değişmedi. U2/U3 başlatılmadı. Yeni migration:
+`20261118204842_AddClientTasks`; uygulama veritabanına uygulanmadı.
+
+Mert'in M2 entegrasyonu, kodun geliştiricilerce ortak main'e alınması ve aynı
+sözleşme sürümünün paylaşılmasından sonra yapılır. M2, client_tasks izin
+satırını, çoklu kategori sayfalamasını, sürümlü PATCH ve görev geçmişini destekler;
+uyum doğrulanmadan Relationships:Sharing:ClientTasksEnabled false kalır.
+Danışanın clientId göndermediği GET liste/detay/geçmiş ve yalnız yetkili durum/
+tercih PATCH'i kullanılır. 409 sonrası güncel kayıt okunur; otomatik overwrite
+yapılmaz. Koordinasyon belgesindeki U1 teslim kaydı ve `06` kesin kaynaktır.
+
+**Doğrulama:** Son backend build 0 uyarı/0 hata; ayrı geçici PostgreSQL 17.11
+üzerinde tam paket **447 başarılı, 2 atlanan, 0 başarısız** (449 toplam).
+19 ClientTask API testi bu koşuya dahildir. Atlananlar yalnız opt-in Mailpit
+SMTP testleridir. EF has-pending-model-changes temiz; git diff --check geçti.
+İzin/ilişki yarışları, snapshot tutarlılığı, eşzamanlı sürüm çatışması, rol/CSRF,
+geç tamamlama, FK/check/unique kısıtları, veri koruyan Up ve kayıplı Down reddi
+gerçek PostgreSQL'de sınandı. Uygulama DB'si ve mobil/web canlı prova yapılmadı.
+
+## 18.11.2026 — İkinci Uğur adımı, K1–K4 ortak kullanıcı onayı
+
+Fork ve yerel main, ortak main `0678c3c` ile fast-forward eşitlendi; ilk
+ölçüm geliştirmesi #12 PR'da bağımsız korunuyor. Kullanıcı `19` önerisine
+"K1–K4'ü onaylıyorum, backend ve webi uygula" yanıtını verdi. Açık gün/sürüm,
+iki bağımsız izin, eksik değerleri koruyan günlük/öğün agregasyonu ve React
+görünümü `04/05/06`ya işlendi. Uğur backend/React lideridir; Flutter ekranı
+Mert'indir. Yeni tablo/migration/izin kategorisi eklenmedi.
+
+Bu dilim seçilen içerik sürümüyle karşılaştırmadır. Genel uyum yüzdesi,
+geçmiş aktivasyon zaman çizelgesi, su veya kişisel hedef paylaşımı, yorum ve
+görevler için yeni toplu onay sayılmaz. Önceki tarihli açık karar listelerinin
+yalnız K1–K4 alt kapsamı kapanır. Diğer checkout, entegrasyondan önce bu
+sözleşmenin ortak main sürümüyle eşitlenmelidir.
+
+**Teslim:** `feature/program-meal-comparison` dalında yeni salt okunur API ve
+program kartından açılan gerçek React karşılaştırması hazırdır. Kullanıcı
+18.11.2026'da ayrı PR olarak gönderilmesini istedi. PR hazırlığında yalnız
+Flutter dosyalarını değiştiren yeni ortak main `47cd9e3` fast-forward alındı;
+backend/web doğrulanan içerikleri değişmedi. Başka açık PR birleştirilmedi.
+
+**Değişen alanlar:** Backend NutritionPlans altında karşılaştırma DTO,
+controller/service ve Program.cs DI kaydı; yeni
+NutritionPlanMealComparisonApiTests ve OpenAPI rota beklentisi; React
+nutritionPlans altında MealComparisonPanel, mealComparisonApi, testleri,
+program kartındaki açma düğmesi, ortak sürüm ayrıştırıcısı ve CSS. Kanonik
+04/05/06, web 08, karar 12/19 ve backend/web README dosyaları birlikte güncel.
+Flutter, migration, veritabanı modeli ve kişisel hedef API'si değişmedi.
+
+**Doğrulamalar:**
+
+- `dotnet build SmartNutrition.Backend.slnx --no-restore`: 0 uyarı/hata.
+- Yeni karşılaştırma testleri gerçek PostgreSQL 17.11 ile **10/10** geçti.
+- `dotnet test SmartNutrition.Backend.slnx --no-restore`: **384 başarılı,
+  2 atlanan, 0 başarısız**; atlananlar opt-in Mailpit SMTP testleridir.
+- `npm test` ilk tam çalıştırmada 186 test geçti. Son ek doğrulamadan sonra
+  varsayılan paralellikte mevcut ekran testlerinin 16'sı zaman aşımı/ona
+  bağlı bekleme hatası verdi. Test beklentileri veya süreleri değiştirilmeden
+  `node node_modules/vitest/vitest.mjs run --maxWorkers=2` ile son sürümde
+  **15 dosya / 187 test** geçti; karşılaştırma testleri **30/30**.
+- Son `npm run build`, `npm run lint` ve EF
+  `migrations has-pending-model-changes --no-build` başarılı; model farkı yok.
+- Tarayıcıda yalnız sentetik bileşen önizlemesiyle 1280 px açık / 390 px
+  koyu tema görsel kontrolü yapıldı, yatay taşma görülmedi. Bu kontrol tam
+  oturumlu mobil–web canlı prova değildir. Geçici önizleme dosyaları kaldırıldı.
+- PostgreSQL testleri uygulama veritabanından ayrı geçici sunucu/şemalarda
+  sentetik verilerle çalıştı; görev sunucusu durdurulup dizini temizlendi.
+  Uygulama veritabanına migration uygulanmadı.
+
+**Sonraki tek adım:** Bu backend/React ve ortak sözleşme diliminin Mert'in
+main'ini hedefleyen ayrı PR'ını incelemek; mobil entegrasyondan önce iki
+checkout'un birleştirilmiş onaylı main sürümüyle eşitlenmesi gerekir.
+
+## 18.11.2026 — İlk Uğur ölçüm adımı, M1–M4 uygulama onayı
+
+Kullanıcı `18` önerisinin tamamını onaylı varsayarak kodlamaya devam edilmesini
+istedi. Mert'in `d234ae3` ölçüm saklama/kendi CRUD teslimi ve öneri PR #11 ortak
+main'e alındı (`0678c3c`); hipCm/chestCm/note dahil güncel şema kullanılır.
+Uğur mevcut izin modeline bağımsız body_measurements, veri koruyan kategori
+migration'ı, aynı snapshot'ta yetkili diyetisyen okuması ve gerçek React ölçüm
+bölümünü ekler. `04/05/06/08/11/18` bu dilimle eşgüdümlüdür.
+
+Bu onay yorum/görev/uyum hesaplarının açık sözleşmelerini kapatmaz; listedeki
+ilk adımdır. Mert'in ölçüm entity/CRUD/migration ve Flutter kayıt alanları
+devralınmaz. Mobil kategori/sayfalama uyarlaması Mert'te kalır; bu doğrulanana
+kadar BodyMeasurementsEnabled varsayılan false'tur. Yeni izin otomatik verilmez.
+
+**Doğrulama:** Ayrı geçici PostgreSQL 17.11'de genel backend koşusu 388 başarılı,
+2 Mailpit testi atlandı; ek izin bağımsızlığı HTTP kontrolü başarılı. 180 web
+testi, web production build/lint ve backend build geçti (0 uyarı/0 hata).
+EF has-pending-model-changes temiz. Ölçüm liste bileşeni sentetik önizlemede
+açık/koyu tema ve 390/1280 px genişliklerde görsel olarak kontrol edildi;
+oturumlu canlı mobil–web tarayıcı provası ve mobil izin uyarlaması bekler.
+Mevcut uygulama DB'sine migration uygulanmadı; Flutter kaynakları değişmedi.
+
+## 18.11.2026 — Mobil danışan girişi ve web paneli bağlantısı
+
+Kullanıcı şimdilik mobilde normal danışan girişini; giriş ekranında diyetisyeni
+web paneline götüren açık adres bağlantısını istedi. Web diyetisyen/Admin
+kullanımında kalır. 17.11'de eklenen mobil uzman ekranları silinmeden girişleri
+ertelenir; Profil danışan bilgilerini ve Diyetisyen Bul eylemini korur.
+Çift profilli client hesap mobilde danışandır; dietitian rolü web yönlendirmesi
+görür. JWT/refresh, web cookie/CSRF ve Admin MFA backend davranışı değişmez.
+Bu, mobil görünürlük/navigasyon kararıdır; `04/05/06`ya yeni endpoint, alan
+veya rol eklenmez. Güncel mobil deneyim `07`dedir; aşağıdaki 17.11 mobil uzman
+paneli ifadesinin yerini bu geçici kapsam kararı alır.
+
+## 17.11.2026 — Web ve mobil rol ayrımı
+
+Kullanıcı danışan işlemlerini mobil uygulamaya ayırdı. Web oturumu diyetisyen
+profili olan hesaplara ve MFA ile giriş yapan yöneticilere açıktır. Bekleyen
+uzman profili başvuru takibine, onaylı profil aktif danışan işlemlerine erişir.
+Çift profilli hesap webde uzman bağlamını, mobilde her iki profilini kullanır.
+Mevcut danışanın aynı hesapla uzman başvurusu mobil JWT ile yapılır (`06`).
+
+Web panelinde avatar menüsü hesap bilgilerine ve doğrudan çıkışa erişim sağlar.
+Mobil diyetisyen ekranı başvuru durumunu, aktif danışanları, bağlantıları ve
+davet kodlarını gösterir. Mobil yönetici paneli kullanıcı talimatıyla ertelendi.
+Bir danışan için tek aktif diyetisyen kuralı sürer. İkinci bağlantı denemesi
+mevcut `active_relationship_conflict` hata kodunu kullanır.
+
+## 07.11.2026 — 12 Kasım aşaması, yalnız G1 ortak onayı
+
+Kullanıcı ön rapordaki “Beslenme, Ölçüm ve Aktivite Modülleri (12.11.2026)”
+aşamasında Uğur'un görevlerini tek tek yapmayı istedi. İlk özellik `17`de
+salt okunur diyetisyen öğün günlüğü olarak somutlaştırıldı. Kullanıcı
+“Ortak onay var; yalnız G1’i uygula” diyerek ortak onayı teyit etti.
+Bu görev yalnız G1 izin altyapısıdır; G2–G3 sonraki adımlardır.
+
+Uğur mevcut izin yapısına bağımsız meal_logs kategorisi, veri koruyan check
+migration'ı, varsayılan kapalı kullanım ayarı ve yetki/regresyon testleri
+ekler. `04/05/06/11` bu kapsamda eşitlenir. Mevcut nutrition_plans ve
+program/MFA/cookie/JWT davranışları korunur. Öğün EF/yazma API'si, Flutter,
+su/ölçüm/aktivite, yorum/görev ve cihaz senkronizasyonu bu görevin dışındadır.
+
+**Mert entegrasyon notu:** Mobil dietitian_api.dart yalnız nutrition_plans
+ve ilişki başına tek izin bekliyor. Çoklu kategori/sayfalama ve kategoriye
+göre ayrı açma/geri çekme uyarlanmadan Relationships:Sharing:MealLogsEnabled
+true yapılmaz. Eksik izin kapalıdır; program izni öğün izni değildir.
+Mevcut satırlar flag kapanınca gizlenmez. Ortak sözleşme main üzerinden
+eşitlenmeden entegrasyon yapılmaz; modül liderlikleri korunur.
+
+**G1 doğrulaması:** Geçici PostgreSQL 17.11'de 40 hedefli testin tamamı ve
+genel backend paketinde 307 test geçti; Mailpit olmadan iki SMTP testi atlandı.
+Build 0 uyarı/0 hata, EF has-pending-model-changes temiz. Mevcut uygulama
+DB'sine migration uygulanmadı; test sunucusu durdurulup geçici küme temizlendi.
+Web ve Flutter kaynakları değişmedi. Sonraki bağımlılık Mert'in mobil çoklu
+kategori/sayfalama uyarlamasıdır; kullanım ayarı bu doğrulanana kadar false kalır.
+
+
+## 03.11.2026 — Yerel sunum için Admin Mailpit kodu onayı
+
+Kullanıcı “Evet, yalnız yerel Development/Mailpit için ekle” yanıtıyla
+`POST /auth/admin-email-code`, e-posta/şifre+CSRF, 6 hane/5 dakika/tek kullanım,
+60 saniye gönderim aralığı ve 5 yanlış deneme sınırını onayladı. TOTP/kurtarma
+korunur; üretimde e-posta alternatifi açılmaz. `04/05/06/11` bu alt kapsamda
+güncellenir; mevcut Admin hesapları/MFA sırları döndürülmez veya sıfırlanmaz.
+Yeni migration yoktur. Web geliştirme ekranı ve HTTPS proxy yeni yolu kullanır;
+üretim build'inde e-posta seçeneği gösterilmez. Diğer geliştirici bu sözleşme
+sürümünü ortak akışla entegre etmelidir; bu görev commit/push izni değildir.
+
+## 02.11.2026 — Aynı hesapta danışan ve uzman profili onayı
+
+Kullanıcı 1. seçeneği onayladı: doğrulanmış danışan mevcut web hesabıyla başvurur;
+Admin onayından sonra aynı hesapla danışan ve diyetisyen özelliklerini kullanır.
+ClientProfile, geçmiş ve ilişkiler korunur; Pending başvuru yetki vermez.
+En küçük çözüm tek User.role/JWT/cookie biçimini korur; ek uzman yetkisini
+güncel onaylı DietitianProfile sağlar. Ortak ilişki/paylaşım/program isteklerinde
+`X-Profile-Context` iki profilin sahiplik bağlamını ayırır; sunucu profili/izni
+yeniden denetler. Admin MFA ve mevcut refresh/credentialsVersion değişmez.
+`04/05/06/11/14` bu alt kapsam için güncellenmiştir; mobil kaynakları korunur.
+Yeni rol sistemi veya migration yoktur. Diğer geliştirici uzman bağlamını
+kullanmadan önce bu ortak sözleşme sürümünü entegre etmelidir.
+
+## 02.11.2026 — P1–P7 parola sıfırlama kullanıcı onayı
+
+Kullanıcı P1–P7'yi mevcut refresh altyapısına uyarlanmış haliyle onayladı:
+yalnız doğrulanmış client/dietitian; 256 bit/30 dakika tek kullanımlık hash token;
+60 sn cooldown ve IP başına talep 5/dakika, tüketim 10/dakika limiti; Mailpit/SMTP.
+P3 artık tüm web oturumları ve tüm refresh ailelerini aynı transaction'da iptal eder.
+P4 onaylıdır: credentialsVersion, login+refresh JWT claim'i, her bearer isteğinde
+DB kontrolü, eski/claim'siz JWT reddi ve DB hatasında kapalı erişim. P6 mevcut mobil
+tek refresh davranışını korur; reset POST'u tekrarlanmaz, otomatik giriş yoktur.
+Bu görev backend/migration/test ve `04/05/06/11/13` güncellemesini yetkilendirir;
+mobil/web ekranlarını veya Admin MFA/kurtarma akışını genişletmez. Mevcut mobil
+bekleyen değişiklikler korunur. Başka açık ürün kararları bu onayla kapanmaz.
+
+## 31.10.2026 backend mobil refresh/iptal görevi
+
+Kullanıcının açık backend göreviyle mevcut JWT login yanıtına `refreshToken`
+ve `refreshTokenExpiresAt`, mevcut taslak `/auth/refresh` ve `/auth/logout`
+yollarına gerçek hash rotasyonu/aile iptali eklendi. 256 bit opak token,
+SHA-256 hash saklama, varsayılan 30 gün mutlak aile süresi, atomik tüketim,
+replay'de aile iptali ve güvenlik/yarış testleri bu alt kapsamdadır.
+`04/05/06/11` bu talep doğrultusunda güncellendi; eski mobil refresh/iptal
+açık notları backend alt kapsamı için tarihseldir.
+
+15 dakikalık JWT ve web cookie/Admin MFA davranışı korunur; access JWT anlık
+iptali yoktur. Flutter'ın üç alanlı login ayrıştırıcısı beş alana geçmelidir;
+mobil/web kaynakları bu görevde değiştirilmez. Güvenli mobil saklama,
+istemci refresh koordinasyonu ve gelecekteki parola değişiminde tüm ailelerin
+iptali ayrı entegrasyon/yayın işleridir. Sözleşme ortak main'de paylaşılmadan
+diğer checkout bu sürümü entegre edilmiş varsaymamalıdır.
+
+## 29.10.2026 N1–N3 ortak onayı ve Uğur teslim durumu
+
+Kullanıcı “N1–N3 için ortak onay var; uygula.” yanıtıyla `16` paketini
+teyit etti. Lider Uğur; backend ve web birlikte uygulandı. Kişisel/atanmış
+NutritionPlan, gün/miktar/alternatifler, değişmeyen sürümler, tek active DB
+kuralı, web taslak oluşturma/düzenleme ve açık etkinleştirme/arşivleme hazırdır.
+Aktif ilişki bitince o uzmanın active atanmış programı atomik arşivlenir;
+danışan geçmiş okuması sürer. `04/05/06/11` aynı uygulama commit'indedir.
+
+**Uğur'un 29 Ekim dilimi:** B1–B3 başvuru/Admin, R1–R3 ilişki/davet/izinli
+temel danışan görünümü ve N1–N3 program oluşturma/atama tamamlandı.
+Bu teslim tüm mobil aşamasının veya gerçek yayının tamamlandığı anlamına
+gelmez. Flutter kaynakları değiştirilmedi; mobil kabul/izin ve atanmış
+program ekranları Mert'in entegrasyonuyla ayrıca doğrulanmalıdır.
+
+**Mert entegrasyon notu:** ortak main'i çek; program yanıtında yeni
+versionId/versionNumber, item'da dayOfWeek/recommendedQuantity/
+alternativeGroupId alanlarını karşıla. Nullable anahtarlar açık null kalır.
+Client create'te clientId/dietitianId gönderme; item kimliklerini request'e
+koyma. GET active ve versions/archive yolları, 403/404/409 davranışı `06`da.
+Danışan yalnız kişisel programını yazar; atanmış programı salt okunur okur.
+Mevcut danışan register/JWT/Auth gövdeleri değişmedi. Flutter'a bu görevde
+uyarlama yapılmadı; aynı sözleşmeden bağımsız model/yol üretilmemelidir.
+
+**Doğrulama:** geçici PostgreSQL + Mailpit'te 250 backend testi, 0 atlama;
+128 web testi, typecheck/lint ve production build başarılı. Sürüm rollback,
+DB tek aktif yarışı, izin geri çekme, ilişki/program atomik arşivi ve web
+salt okunurluk/açık atama/409/iptal davranışı test edildi. Tarayıcıda tam
+canlı mobil–web uçtan uca prova yapılmadı.
+
+**Sonraki tek adım:** Mert'in güncel ortak sözleşmeyle mobil bağlantı/izin ve
+atanmış program okumasını bağlayıp sentetik hesaplarla ortak sunum provası.
+Tarif/yorum/görev/OCR/diğer kategori ve yayın kapıları açık kalır.
+
+## 29.10.2026 R1–R3 ortak onayı
+
+Kullanıcı “R1–R3 için ortak onay var; uygula.” yanıtıyla `15` paketini
+teyit etti. Lider Uğur; gerçek web çalışma alanı, ilişkiler/davet ve ilk
+nutrition_plans izni backend'i. Flutter kaynakları değişmez. Bu onay
+program öğe/sürüm/geçiş sözleşmesinin veya diğer sağlık kategorilerinin
+onayı değildir; önceki açık notlar yalnız bu dilim için kapanmıştır.
+
+Mert, yeni relation/permission API'lerini kullanmadan ortak main'i çeker.
+Mevcut danışan register/JWT şekli korunur. ClientProfile/DietitianProfile
+UUID'leri User UUID'si değildir. Davet kodu pending talep oluşturur; danışan
+izni olmadan program erişimi açılmaz. Tam HTTP/veri kaynağı `04/05/06`dır.
+
+Bu R1–R3 kaydından sonra `16` N1–N3 ayrıca onaylandı ve uygulandı;
+güncel program durumu yukarıdaki N1–N3 bölümündedir.
+
+## 29.10.2026 B1–B3 ortak onayı ve kapsam
+
+Kullanıcı, `14_OCTOBER_PRESENTATION_CONTRACT_PROPOSAL.md` B1–B3 paketi için
+“Ortak onay var devam et.” dedi; Uğur–Mert ortak onayı bu açık teyitle kaydedilir.
+Lider Uğur; web, Auth ve ilgili backend. Kullanıcının kapsam düzeltmesiyle
+Flutter/Mert kaynaklarına yazılmaz. `04/05/06/11` ve backend/web aynı
+uygulama değişikliğinde güncellenir; mobil etkisi aşağıdaki entegrasyon notudur.
+
+Kapananlar: bu dilimde tek rol, ayrı uzman başvurusu ve mesleki açıklama
+şeması, TOTP/kurtarma ile ayrı Admin cookie girişi, yerel Admin kurulumu,
+başvuru durumu, Admin inceleme/onay ve atomik onay audit'i. Aşağıdaki eski
+başvuru/MFA açık notları bu dilim için tarihsel durumdur. Profil düzenleme,
+mobil refresh/iptal/saklama, parola sıfırlama; ret/yeniden başvuru/geri alma,
+ilişki/davet/paylaşım ve program öğe/sürüm/geçiş sözleşmeleri açık kalır.
+
+**Mert entegrasyon notu:** mevcut danışan register, verify/resend, 15 dakikalık
+JWT login ve auth/me anahtarları değişmedi. Uzman başvurusu yeni ayrı yoldur;
+auth/me'de diyetisyen displayName artık DietitianProfile'dan gelebilir. Admin
+rolü yalnız MFA web cookie ile açılır; mobil bearer Admin'e kapalı kalır.
+MFA alanları mobil DTO değildir. Mert ortak main'in bu sürümünü çekmeden
+yeni uzman başvuru/başvuru durumu entegrasyonuna başlamaz.
+
+**Sonraki tek modül:** 29 Ekim ilişki/paylaşım paketinin somut sözleşmesini
+hazırlayıp ortak onaya sunmak; bu onay program/davet ayrıntılarına yayılmaz.
+
+**Repo:** `smart-nutrition-platform` · **Başlangıç:** 15.10.2026 · **Doküman sürümü:** `DOCS-V1` · **Karar güncellemesi:** 22.10.2026 · **Tutarlılık incelemesi:** 24.10.2026 · **Auth sözleşme güncellemesi:** 27.10.2026 · **Git akışı güncellemesi:** 28.10.2026 kullanıcı onayı · **Durum:** aşağıdaki 22 ürün, teknoloji ve çalışma kararı onaylı; ayrıntılı teknik kararların açık parçaları aşağıdadır.
+
+Bu güncelleme mevcut temel ilkeleri korur; önceki açık kararların kesinleşen kısımlarını onaylı duruma taşır. Ürün kararının onaylanması, henüz uyarlanmamış veri şeması veya API tasarımının da onaylandığı anlamına gelmez. `04/05/06` kanonik ad, alan ve endpoint otoritesi olmaya devam eder; bu kararlarla çelişen veya eksik kalan sözleşmeler uygulama öncesinde ortak onayla güncellenmelidir. Bu dosya yeni entity, JSON alanı veya endpoint tanımlamaz.
+
+## Görev dağılımı — onaylı sorumluluklar
+
+| Geliştirici | Ana sorumluluk | Sahiplik sınırı |
+|---|---|---|
+| **Mert Ali** | **Mobil uygulama**, kamera/görsel işleme entegrasyonu ve ilgili API'ler | Danışan mobil akışları, mobil diyetisyen başvurusu, mobil ekran/servisler ve ilgili danışan endpointleri; mobil auth UI/entegrasyonu |
+| **Uğur Çetin** | **Web uygulaması**, diyetisyen/admin paneli, **Auth** ve ilgili API'ler | Web ekran/servisleri; kimlik ve güvenli oturum backend'i; diyetisyen/plan/admin iş akışları ve ilgili endpointler |
+| **Ortak** | Gıda görüntü analizi, kalori/porsiyon modeli, kan/vitamin-laboratuvar AI/ML, ortak sözleşmeler, entegrasyon ve güvenlik | Her ortak modül için tek değişiklik lideri atanır; paralel çakışan kod yazılmaz |
+
+**Onaylı sınır:** Auth backend lideri Uğur, mobil auth UI/entegrasyonu Mert'tir; görev bazlı açık kullanıcı talimatı mevcut Auth üzerinden çalışmaya izin verir ve genel sahiplik sınırını değiştirmez. JWT access kararı aşağıda kapanmıştır; diğer oturum ayrıntıları ayrıca kararlaştırılır. Mevcut ayrıntılı modül paylaşımı önerisi korunur: `meal-logs`, `water-logs`, `activity-logs` backend liderliği Mert; `dietitian-relationships` ve `nutrition-plans` backend liderliği Uğur. Bu önerinin görev bazlı sınırları, özellikle kişisel program gibi iki tarafı etkileyen akışlar, sprint planında teyit edilir. Ortak AI endpointlerinin lideri her sprintte belirlenir. İkisi aynı C# dosyalarını paralel düzenlemez.
+
+## Kritik: aynı isimler için ekip protokolü
+
+1. `docs/04_NAMING_CONVENTIONS.md` → tek kavram ve ad sözlüğü.
+2. `docs/05_DATA_DICTIONARY.md` → entity/alan/tip sözleşmesi.
+3. `docs/06_API_CONTRACT.md` → URI/DTO/JSON sözleşmesi.
+4. **Contract owner = iki kişi birlikte**; hiçbir Codex tek başına bir adı değiştirip diğerinin kullandığını geçersiz kılamaz.
+5. Yeni isim/alan/endpoint teklifi: **proposal → iki kişi onayı → 04+05+06 ve mevcut backend/istemci etkileri onaylı tek commit → görev branch'inden PR → yetkili onayla ortak main'e birleştirme → ikisi de güncel main'i çeker → entegrasyon**. Henüz kod olmayan bir alanda sözleşme önce tamamlanır; onaylı sözleşmeye göre ilk uygulama sonra yapılır. Böylece mevcut kodu etkileyen değişiklikte belge/kod birbirinden kopuk yayımlanmaz.
+6. Doküman uyuşmazlığında **ilgili çelişkili alan için kod/DTO üretimini durdur ve raporla**. Yetki verilen diğer belge düzeltmeleri sürdürülebilir; “çalışsın diye farklı endpoint ekleme” yasak. Korunan sözleşme dosyası kendiliğinden değiştirilmez.
+7. Commit açıklamasında ve görev raporunda açık alan: `Contract changed? Yes/No`; Yes ise kimin onayladığı ve etkilenen istemciler.
+8. Aşağıdaki onaylı kararlar için yeni kavram/alan/endpoint gerekiyorsa önce mevcut `04/05/06` ile çakışma ve istemci etkisi raporlanır; ayrıntılı sözleşme iki tarafça onaylanmadan alternatif isim veya rota üretilmez.
+
+## Git ve ortak çalışma akışı
+
+**28.10.2026 kullanıcı kararı:** Yeni işler tekrar ayrı görev/feature branch'inde geliştirilir ve PR oluşturulur. Ortak uzak depo **`https://github.com/mertaliserbet/smart-nutrition-platform.git`**, entegrasyon dalı **`main`**dir. Bu karar 27.10.2026 doğrudan `main` akışının yerine geçer; kullanıcı açıkça istemedikçe `main`e doğrudan push yapılmaz. PR oluşturma, PR'ları birleştirme/kapatma veya eski dalları silme yetkisi vermez; bu işlemler ayrıca açık kullanıcı talimatı gerektirir.
+
+- Her geliştirici kendi yerel checkout'unda güncel ortak `main`den açılan görev/feature branch'inde çalışır. Aynı fiziksel checkout'a iki oturum eşzamanlı yazmaz; ayrı checkout'larda aynı dosyaya dokunan işlerde tek dosya/değişiklik lideri belirlenir. Geniş refactor/taşıma ayrı onaylı görevdir.
+- Görev başında `git status`, etkin dal ve `git remote -v` kontrol edilir. `origin` adı ortak depo anlamına gelmez; URL yukarıdaki depoyla eşleşmelidir. Uğur'un mevcut checkout'unda ortak uzak depo `upstream`, kişisel fork `origin`dir; fork'un `main` dalı ortak kaynak sayılmaz.
+- Çalışma ağacı temizken yerel `main`, `git pull --ff-only <ortak-uzak-adı> main` ile güncellenir ve yeni görev branch'i buradan açılır. Devam eden branch'in commitleri ve uzak durumu ayrıca kontrol edilir. Kaydedilmemiş kullanıcı değişiklikleri otomatik stash/reset ile kaldırılmaz. Önceden açılmış bir dalda bulunmak o dalın commitlerini `main`e taşıma veya mevcut PR'ı birleştirme izni değildir.
+- Görev küçük ve test edilebilir tutulur; kapsam, ilgili belgeler ve dosya sahipliği kontrol edilir. Değişiklikler küçük, görev kapsamlı commitlere ayrılır; ilgili build/test/statik analiz tamamlanır ve contract etkisi raporlanır. Ortak sözleşmelerde iki tarafın onayı zorunludur.
+- Push/PR öncesi ortak `main` yeniden kontrol edilir. Uzak dal ilerlemişse yalnız henüz paylaşılmamış kendi commitleri güncel ortak `main` üzerine alınır; paylaşılmış görev branch'i geçmişi yeniden yazmadan güncellenir ve ilgili kontroller tekrarlanır. Bu checkout'ta görev branch'i `origin`e push edilir; PR `mertaliserbet/smart-nutrition-platform:main` hedefler. Push reddini force push ile aşma; başkasının commitini silme veya uzak geçmişi yeniden yazma. Beklenmeyen dosya sahipliği/karar çakışması raporlanır.
+- Dal, commit başlığı, PR başlığı, dosya, klasör ve modül adlarında `codex` veya kullanılan geliştirme aracının adı kullanılmaz; adlar değişikliğin amacını ve proje kavramlarını anlatır.
+
+## Önerilen geliştirme sırası (onaylı kararlar doğrultusunda)
+
+Aşağıdaki sıra bir uygulama önerisidir; teslim tarihi veya tüm özelliklerin aynı MVP'ye sığacağı taahhüdü değildir. Karar 2 ve 7'deki ilk sürüm koşulları korunur; diğer onaylı özelliklerin sprint/yayın takvimi ayrıca planlanır.
+
+1. **Sözleşme ve tasarım uyumlaması:** mevcut `04/05/06` uyarlamalarının doğrulanması; aşağıdaki hazırlık tablosundaki açık teknik parçaların iki tarafça onayı, onaylı DTO'larla mock örnekleri ve açık/koyu tema tasarım yönü. Eksik alan/enum için hayalî mock hazırlanmaz.
+2. **Temel altyapı:** onaylı teknolojilerle ayrı uygulama iskeletleri, backend DB bağlantısı; e-posta doğrulama, şifre sıfırlama, güvenli oturum, Admin MFA ve rol testleri; diyetisyen başvuru/doğrulama akışı.
+3. **Ana ürün döngüsü:** manuel öğün/su → API → izinli diyetisyen görünümü → plan atama → mobil plan ekranı; arama/davet kodu ve karşılıklı onay; kişisel hedef/program, tek aktif program, öğün alternatifleri ve sürüm geçmişi. İlk sürüm öğün yorumları, cevaplar ve bildirimleri bu akışla birlikte tamamlanır.
+4. **Gelişim ve diyetisyen takibi:** ölçüm/aktivite kayıtları, kaynak ve geçmiş, grafikler; hedef/tüketim karşılaştırması, program uyumu, görev/son tarih/durum ve isteğe bağlı hatırlatmalar; izinli PDF raporları.
+5. **AI fotoğraf:** görüntü upload → tahmin → kullanıcı düzeltmesi → öğün kaydı; kalori belirsizliği ve test raporu.
+6. **Lab:** manuel veri girişi ve referans bazlı kurallar → rapor görünümü → kullanıcı onaylı PDF/fotoğraf OCR; yeterli veri ve doğrulama varsa opsiyonel ML araştırma prototipi.
+7. **Entegrasyon:** Health Connect/HealthKit üzerinden onaylı veri türleri, ayrı izinler, manuel girişle tekilleştirme ve platform/cihaz testleri. Bildirimlerin teslim kanalı ve hatırlatma altyapısı teknik karara göre uygulanır; ilk sürüm bildirim gereksinimi ertelenmez.
+8. **Kalite/yayın:** E2E, güvenlik, KVKK, performans, mağaza hazırlığı. Gerçek yayın ayrı kontrol kapısından geçer.
+
+## Karar defteri
+
+### Korunan temel kararlar
+
+| Karar | Mevcut durum | Onay / sonraki işlem |
+|---|---|---|
+| Yeni repo/klasör adı `smart-nutrition-platform` | **ONAYLI** | Değiştirme |
+| Eski fitness kod/dokümanlarının kullanılmaması | **ONAYLI** | Sıfırdan geliştirme |
+| Ürün yönü: diyetisyen odaklı; mobil danışan + web uzman + backend | **ONAYLI** | Mobil diyetisyen başvurusu da desteklenir; ilk sürüm yönetim paneli webdedir. Aktivite kaydı beslenmeye destek içindir; antrenör/egzersiz programı kapsamı yoktur |
+| Belgelerin `docs/` içinde, `AGENTS.md`/`README.md` kökte olması | **ONAYLI** | 12+2 belge |
+| Codex ortak naming/data/API sözleşmesi | **ONAYLI PRENSİP** | Mevcut kanonik adlar korunur; bu güncelleme taslak şemaların tamamını onaylamaz. Uyarlamalar iki tarafın onayıyla yapılır |
+| Gerçek kullanıcıya açılış/yayın | **KAPI** | `11_SECURITY_AND_RELEASE.md` tamamlanmalı |
+
+### Kesinleşmiş 22 karar
+
+Aşağıdaki kararların tamamı **ONAYLI**dır. “Program” mevcut kanonik kavram olan `NutritionPlan` anlamında kullanılır. Teknik ayrıntıların açık olması bu ürün kararlarını yeniden öneri durumuna düşürmez.
+
+#### Kullanıcı ve diyetisyen sistemi (1–8)
+
+| No | Onaylı karar | Uygulama kuralı |
+|---|---|---|
+| 1 | En fazla bir aktif diyetisyen; ilişki geçmişi korunur | Eşzamanlı birden çok aktif ilişkiye izin verilmez. İlişki sona erdiğinde diyetisyenin yeni sağlık verisi erişimi kesilir; geçmişin saklanması erişim hakkı vermez |
+| 2 | Diyetisyen mobil veya web üzerinden başvurur; Admin doğrular | İlk sürüm diyetisyen/admin yönetim paneli webdedir. Başvuru ve doğrulama, danışan verisine erişim yetkisinden ayrı denetlenir |
+| 3 | Diyetisyen arama ve davet koduyla bağlantı; karşılıklı onay | İki yöntem de desteklenir. Kodun kullanılması tek başına aktif ilişki veya sağlık verisi erişimi oluşturmaz |
+| 4 | En fazla bir aktif beslenme programı; öğün alternatifleri ve sürüm geçmişi | Kişisel ve diyetisyen programları toplamında tek aktif program sınırı uygulanır. Önceki sürümler korunur; alternatif öğünler program içinde sunulur |
+| 5 | Diyetisyensiz kullanıcı kendi hedef ve programını oluşturabilir | Kişisel program oluşturmak için diyetisyen ilişkisi gerekmez. `05`te nullable `dietitianId`, `06`da kişisel program yetkileri tanımlıdır; açık hedef/öğe/sürüm DTO ayrıntıları ayrıca tamamlanır |
+| 6 | Diyetisyen programını yalnızca yetkili diyetisyen düzenler | Danışan atanmış programı değiştiremez; gerçek tüketimini serbestçe kaydeder. Planlanan ve tüketilen veriler karşılaştırılır; tüketim kaydı planı değiştirmez |
+| 7 | İlk sürümde öğün yorumları, cevaplar ve bildirimler | İlişki ve paylaşım yetkileri bu işlemlerde de geçerlidir. Ayrı sohbet özelliği sonraki sürümdedir; bildirim kanalları ayrıca kararlaştırılır |
+| 8 | Kategori bazlı paylaşım izinleri; tahliller için ayrıca açık onay | Aktif ilişki tek başına tüm verilere erişim sağlamaz. Sunucu ilgili kategori iznini ve tahliller için ayrı açık onayı denetler; geri çekilen izinle yeni erişim verilmez |
+
+#### Beslenme, AI ve takip (9–17)
+
+| No | Onaylı karar | Uygulama kuralı |
+|---|---|---|
+| 9 | Fotoğraf/galeri ile yemek tanıma; kullanıcı onaylı kalori ve makro tahmini | `FoodAnalysis` otomatik `MealLog` oluşturmaz. Kullanıcı besin ve miktarı kontrol edip düzeltir, tahmini onaylar; sürekli kamera analizi sonraki sürümdedir |
+| 10 | Hibrit besin veritabanı, uygun hazır modeller/API'ler ve özel tarifler | Besin/model kaynakları, lisanslar ve sürümler izlenir. Belirli sağlayıcı veya özel model eğitimi zorunluluğu bu kararla seçilmiş değildir |
+| 11 | Önce manuel tahlil girişi; ardından PDF/fotoğraf OCR | OCR çıktıları kullanıcı tarafından kontrol edilip onaylanmadan değerlendirmeye alınmaz. Tarih, ölçüm, birim ve laboratuvar referansı korunur |
+| 12 | Referans aralığı değerlendirmesi; doğrulanabilir ML opsiyonel | Birim/aralık geçerliyse karşılaştırma yapılır; eksik veya uyumsuzsa `unknown`. ML ancak yeterli veri ve bilimsel doğrulamayla kullanılır; tanı, reçete veya tedavi önerilmez |
+| 13 | Health Connect/HealthKit; adım, mesafe, egzersiz, süre, aktif kalori ve nabız | Desteklenen platform ve izinler kapsamında aktarım yapılır. Manuel giriş korunur; kaynak gösterilir, yeniden aktarım ve manuel/cihaz örtüşmeleri çift sayılmaz. Egzersiz verisi takiptir, antrenman programı değildir |
+| 14 | Kişisel kalori/makro/su önerileri düzenlenebilir; diyetisyen hedefleri danışana salt okunur | Kişisel öneri ile diyetisyen hedefinin kaynağı ayırt edilir. Hesaplama yöntemi ayrıca doğrulanır; danışan kişisel düzenlemeyle diyetisyen hedefini değiştiremez |
+| 15 | Kilo ve vücut ölçümleri; kaynak, geçmiş ve grafikler | Ölçümlerin kaynağı ve zamanı görünür olur; geçmiş ve gelişim grafikleri sunulur. İsteğe bağlı ölçümler gereksiz yere zorunlu tutulmaz |
+| 16 | Diyetisyen görev atayabilir; son tarih, durum ve isteğe bağlı hatırlatmalar | Görevler yetkili danışana atanır; son tarih ve durum izlenir. Hatırlatma tercihi desteklenir; durum değerleri ve geçişleri sözleşmede ayrıca tanımlanır |
+| 17 | Diyetisyen analizleri, grafikler, program uyumu ve PDF raporları | Analiz ve dışa aktarma yalnız yetkili kayıtları kapsar; kategori izinleri ve tahlil onayı geçerlidir. Uyum hesaplama yöntemi ayrıca belirlenir |
+
+#### Yönetim ve mimari (18–22)
+
+| No | Onaylı karar | Uygulama kuralı |
+|---|---|---|
+| 18 | Admin: doğrulama, kullanıcılar, şikâyetler, besin kataloğu, Audit Log ve sistem durumu | Özel sağlık verilerine varsayılan erişim yoktur. İstisnai erişim gerekçe, sınırlı yetki ve denetim izi gerektirir; mevcut `AuditEvent` kavramı korunur |
+| 19 | E-posta/şifre, e-posta doğrulama, şifre sıfırlama ve güvenli oturum; Admin MFA zorunlu | Kimlik ve oturum kontrolleri sunucuda uygulanır. JWT access 15 dakika ve W2 web cookie/CSRF/iptal onaylıdır; MFA ve mobil refresh/iptal/saklama açık kalır |
+| 20 | Flutter/Dart, React/TypeScript, ASP.NET Core/C# ve PostgreSQL | AI ihtiyacı olduğunda Python/FastAPI kullanılır. Mobil/web aynı versiyonlu backend API'yi kullanır; iş kuralları ve yetkilendirme backend'dedir, istemciler DB'ye doğrudan bağlanmaz |
+| 21 | Mert mobil ve ilgili API'ler; Uğur web, Auth ve ilgili API'ler; AI ortak | Yukarıdaki sahiplik sınırları geçerlidir. 28.10.2026 kullanıcı kararıyla her geliştiricinin kendi checkout'unda güncel ortak `main`den görev/feature branch'i açılır ve ortak `main`e PR oluşturulur. Ortak modülde tek değişiklik lideri ve ortak sözleşmelerde iki tarafın onayı zorunludur |
+| 22 | Premium UI/UX, ortak tasarım tokenları ve açık/koyu tema | Mobil ve webde iki tema desteklenir; görsel dil tutarlıdır. Flutter/React kodu paylaşılmaz; token karşılıkları eşdeğer tutulur. Renk, font ve kesin token değerleri henüz seçilmemiştir |
+
+### Açık kararlar ve teknik ayrıntılar
+
+**Web oturumu ortak onayı — 27.10.2026:** Kullanıcı W2-C1–C7 ayrıntılarına
+“İki tarafın ortak onayı var; uygula” yanıtını verdi; Uğur–Mert ortak onayı bu
+teyitle kaydedilmiştir. AuthSession/CsrfTokenResponse, ayrı csrf/web-session
+yolları, mevcut me'nin cookie kabulü, HttpOnly/Secure/Strict cookie, CSRF/Origin,
+30 dakika idle/8 saat mutlak süre, transaction/iptal ve 24 saatlik oturum satırı
+temizliği `04/05/06/11`e işlenir. Uğur web/Auth dosyalarının değişiklik lideridir.
+Mevcut JWT login/me gövdeleri ve mobil bearer korunur; mobilde yeni DTO veya
+cookie/CSRF gereği yoktur. Mert entegrasyon öncesi bu ortak `main` sürümünü çeker.
+Profil düzenleme/uzman başvurusu, mobil refresh/iptal, sıfırlama, MFA, üretim
+anahtar/audit/proxy/teslim ve sağlık paylaşım sözleşmeleri açık kalır.
+
+**Kapanan Auth kararları — 27.10.2026:** Kullanıcının önceki onayıyla danışan kaydında zorunlu düz `displayName`, başlangıçta doğrulanmamış User ve `201 { id }` minimal yanıt kesinleşti. Bu görev onayıyla 8–128 Unicode/boşluk destekli kayıt politikası, 30 dakikalık kriptografik tek kullanımlık e-posta tokenı, yalnız hash saklama, `verify-email` için `204` ve varlık açıklamayan `resend-verification` için `202` sözleşmeleri `04/05/06/11`e işlendi. Varsayılan yapılandırılabilir yeniden gönderim sınırları hesap başına 60 saniye ve IP başına dakikada 5 istektir. Yerel test SMTP'si Mailpit'tir; üretim sağlayıcısı/kalıcı teslim ve istemci entegrasyonu açık kalır. Bu kararlar giriş, JWT, MFA veya şifre sıfırlama uygulandığı anlamına gelmez.
+
+**Sonraki giriş görevinin açık onayı — 27.10.2026:** Kullanıcı güvenli giriş ve
+15 dakikalık JWT access token istedi; ayrıca `{ email, password }` →
+`200 { accessToken, tokenType: "Bearer", expiresAt }` şemasını ve olmayan hesap,
+yanlış parola, doğrulanmamış e-posta ile Admin için aynı `401 unauthenticated`
+yanıtını açıkça onayladı. Bu JWT dilimi `04/05/06/11`e işlendi. IP başına dakikada
+10 istek yapılandırılabilir başlangıç limitidir. User/ClientProfile ve e-posta
+doğrulama alanları korunur; yeni tablo/migration eklenmez. `13`teki opaque token,
+doğrulanmamış hesap için ayrı `403` ve alternatif oturum yanıtı bu dilimde geçerli
+değildir. Bu kayıt, `13`ün tamamının veya Uğur'un ayrıca onay verdiğinin kaydı değildir.
+Bu giriş görevi sonunda refresh/logout/iptal, kendi hesap okuması, MFA, sıfırlama ve istemci cookie/saklama entegrasyonu açık kalmıştı; hesap okuması aşağıdaki sonraki görevde kapanmıştır.
+
+**Kendi hesap görevi — 27.10.2026:** Kullanıcı açıkça `GET /api/v1/auth/me` ve
+yalnız `id`, `displayName`, `email`, `role`, `isEmailVerified` alanlarından oluşan
+düz yanıtı istedi. Eski uygulanmamış `GET /api/v1/me` taslağı bu talimatla
+değiştirilmiştir; ikinci GET yolu eklenmez. Yanıt adı `CurrentUserResponse`;
+kimlik JWT `sub` → User UUID, ad opsiyonel ClientProfile'dan gelir ve profil
+yoksa null'dır. Kullanıcı DB'de yoksa veya güncel doğrulama/rolü uygun değilse
+ortak `401` uygulanır; Admin MFA engeli korunur. `04/05/06/11` eşitlenir; yeni
+kalıcı model/migration gerekmez. Bu yalnız hesap özetidir; profil düzenleme,
+uzman profili, refresh/logout/iptal, MFA ve sıfırlama açık kalır. `13`ün tüm
+önerileri veya diğer geliştiricinin ayrıca onayı bu kullanıcı talimatından çıkarılmaz.
+
+Aşağıdaki konular **AÇIK**tır; onaylı kapsamı değiştirmeden ayrıca kararlaştırılmalıdır. Geçmiş verinin korunması, süresiz saklama kararı değildir; silme ve saklama kuralları yayın kapısının parçasıdır.
+
+| Alan | Açık ayrıntı / sonraki işlem |
+|---|---|
+| Ortak sözleşmeler | `05`te kişisel program için `dietitianId` nullable, `06`da kişisel/atanmış yetkiler ve yeni kaynak yolları tanımlıdır. U1 görev DTO/durum/geçmiş ve client_tasks izni kapanmıştır. Kalan tarif, bildirim teslimi ve onaylanmamış kategori ayrıntıları ile tarihsel kontrol notları ilgili özellik kapsamında ele alınır; kritik bağımlılıklar aşağıdaki hazırlık tablosundadır |
+| Rol ve uzman doğrulama | Kullanıcının birden çok rol/profil taşıyıp taşıyamayacağı; başvuru belgeleri, doğrulama ölçütleri, ret/yeniden başvuru ve doğrulama geri alma süreci. Doğrulayan tarafın Admin olması kesinleşmiştir |
+| İlişki ve paylaşım | Davet kodu üretimi, ömrü ve kötüye kullanım kontrolleri; kategori listesi, varsayılan izinler, tahlil açık onayının kapsamı ve geri çekme akışı; geçmiş paylaşımın sınırları |
+| Program ve hedefler | Kişisel programdan diyetisyen programına geçiş ve ilişkinin bitişindeki aktif program davranışı; sürüm saklama/gösterim yöntemi, öğün alternatiflerinin yapısı, tüketim eşleştirme ve uyum hesabı; güvenli kişisel öneri hesaplama yöntemi |
+| Yorum, görev ve bildirim | Görev alan/durum/geçiş/son tarih/tercih U1 ile kapandı; ayrı görev türü/tekrar sistemi eklenmedi. Yorum/cevap düzenleme-silme/moderasyon, bildirim kanalı ve teslim altyapısı açık. İlk sürüm yorum/cevap/bildirim kapsamı korunur |
+| Besin ve AI kaynakları | Hibrit kataloğun kaynakları, birleştirme/öncelik kuralları ve lisansları; tarif hesaplama ve görünürlük; hazır model/API seçimi, veri seti ve değerlendirme ölçütleri. Fotoğraf saklama ve anonimleştirme ayrıca kararlaştırılır |
+| Laboratuvar | Test kod standardı, birim dönüşümleri, referans doğrulama kuralları, OCR sağlayıcısı ve hata kontrolü; opsiyonel ML için izinli veri ve bilimsel validasyon. OCR'nin manuel girişten sonra gelmesi ve kullanıcı onayı zorunluluğu kesindir |
+| Sağlık platformları | U3 beş veri türünün şema/birim/zaman/kaynak/tekrar/izin ve örtüşme sözleşmesini kapattı (04/05/06/20). M3 mobil HTTP aktarımı, fiziksel Android/iOS doğrulaması ve üretim cihaz/OS kapsamı ayrı teslimdir; tüm saatlerin doğrudan desteği garanti değildir |
+| Auth ve ortam | Mobil refresh/iptal/saklama, şifre sıfırlama, üretim e-posta sağlayıcısı/kalıcı teslim, Admin MFA yöntemi/kurtarma ve üretim anahtar/audit/proxy; dağıtım sağlayıcısı, altyapı ve maliyet. Kayıt, e-posta doğrulama, JWT ve W2 web oturumu yukarıda kapanmıştır; yerel Mailpit üretim sağlayıcısı kararı değildir |
+| Tasarım ve kullanıcı kapsamı | Renk paleti, font, token değerleri, navigasyon ve 2–3 mobil ekran/web dashboard tasarım onayı; ülke/dil kapsamı, doğum tarihi zorunluluğu ve ücretli model. Açık/koyu tema desteği artık seçim beklemiyor |
+| Veri koruma ve yayın | Sağlık verisi, fotoğraf/OCR dosyaları ve PDF raporları için saklama, silme ve yedek politikaları; üçüncü taraf/yurt dışı aktarım, audit kapsamı ve istisnai Admin erişimi. `11_SECURITY_AND_RELEASE.md` yayın kapısı korunur |
+| Sprint ve modül liderliği | Ayrıntılı backend dosya/modül sınırları, ortak AI işlerinin tek değişiklik lideri ve teslim sırası; ilk sürüm koşulları korunarak kapasite planı. Öğün kayıtlarının sürümleme ihtiyacı açıktır; program sürüm geçmişi ise onaylıdır |
+
+## Geliştirmeye hazırlık ve sözleşme bulguları
+
+**Durum: kısmen hazır.** Ürün, teknoloji, roller ve sahiplik sınırları belirli; bağımsız altyapı ve onaylı alanlara dayanan sentetik UI çalışmaları ayrı görevlerde başlayabilir. Ancak Auth, paylaşım ve program akışlarını kapsayan tam mobil–web–backend geliştirme/entegrasyonu henüz hazır değildir. Aşağıdaki açıklar ilgili özellikten önce iki geliştirici tarafından kapatılmalıdır; belgeyi güncellemek uygulama/test/yayın onayı değildir.
+
+`04` adları, `05` alan/tip/ilişkileri, `06` method/route/payload ve hata kurallarını belirler. Geçerliliğini yitirmiş bir kontrol notu, güncel normatif alan tanımının yerine kullanılmaz; tereddütte yeni DTO/alias üretmek yerine çakışma kaydı ve ortak onay gerekir. 27.10.2026 Auth görevlerinde yalnız onaylanan kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti parçaları bu ortak sözleşmelere işlenmiştir.
+
+| Alan | Bulgu / gerekli ortak karar | Geliştirmeye etkisi |
+|---|---|---|
+| Auth ve profil | Register/verify/resend, JWT login, hesap özeti, W2 web cookie/CSRF/iptal ve 31.10.2026 backend mobil refresh/aile iptali kapanmıştır. Profil düzenleme/uzman profili, mobil güvenli saklama/istemci yenileme, sıfırlama ve mobil MFA açıktır | Login yanıtı refresh alanlarıyla beş alana genişledi; Flutter ayrıştırıcısı/saklama/tek eşzamanlı yenileme ayrıca entegre edilmelidir. Access JWT anlık iptali sağlanmaz |
+| Paylaşım ve tahlil onayı | Kategori listesi, endpoint–kategori eşlemesi, rıza tür/kapsam/politika kanıtı açık; pending/ended ilişkide izin düzenleme ayrıntıları belirsiz | Diyetisyene sağlık verisi açmadan önce kapanmalı; kategori eksikliği varsayılan tüm erişimle giderilemez |
+| Erişim ifadesinin kapsamı | U3 uygulama onayıyla 06'daki active şartı diyetisyen paylaşımı olarak düzeltildi; danışan kendi verisi ilişkisizdir | U3 hiçbir sağlık paylaşım yolu/kategorisi açmaz; kendi client JWT'siyle okuma korunur |
+| Program sürümü ve geçiş | N1–N3 ile gün/miktar/alternatif/snapshot/DTO, archive ve ilişki bitişinde active atanmışı arşivleme kapandı. Genel atomik replace, programsız/makro hedef ve uyum hesabı açık | Onaylı backend/web uygulandı; mobil aynı main'e göre entegre olur. Başka aktif program sahibinin açık durdurması gerekir; iki aktif veya sahiplik silme yok |
+| Tarif, görev ve yorum | Görev DTO/durum/geçiş/son tarih/tercih ve bağımsız client_tasks U1 ile kapandı; tarif/moderasyon/bildirim teslimi açık | U1 backend/migration/test teslimidir; M2/U2 ortak main entegrasyonundan sonra başlar. Bildirim teslimi uygulanmış sayılmaz |
+| OCR, lab ve cihaz | Cihaz U3 DTO/birim/kaynak/tekilleştirme/örtüşme kapandı; OCR taslak/onay kanıtı, LabInsight method/limitations ve tahlil geçmişi açık | M3 bu U3 sözleşmesini kullanır, cihaz doğrulaması ayrıca raporlanır. Lab/OCR kendi açık kararlarına bağlıdır |
+| Eski sözleşme kontrol notları | `04`, `05`teki tek aktif kuralları/nullable dietitianId ve yeni kaynakları hâlâ eksik sayıyor, ConsentRecord endpoint kararı yok diyor; `05`, güncel `06`daki kişisel program, kaynak yolları, PATCH ve makro alanlarını eski halleriyle anlatıyor | `04/05/06` için ayrı, iki tarafça onaylı düzeltme gerekir. Bu inceleme bu üç dosyada değişiklik yapma onayı değildir |
+| Sürüm kapsamı ifadesi | `06`nın sonundaki ilk sürüm bildirimleri ve PDF raporlarını aynı cümlede anması takvimi belirsizleştiriyor | Karar 2/7 ilk sürüm web paneli ve yorum/cevap/bildirim şartıdır; karar 17 PDF kapsamını onaylar, yayın tarihini sabitlemez. `01`deki aşama ayrımı esas alınır; `06` ifadesi ortak onayla netleştirilmeli |
+| Tasarım, kaynak ve yayın | Renk/font/token değerleri, katalog lisans/sağlayıcısı, model verisi/validasyon, hassasiyet/saat dilimi, saklama/silme/dağıtım açık | Tasarımın nihai onayı ilgili ekran kodundan; sağlayıcı/veri kararı ilgili entegrasyondan önce alınır. Gerçek veri/yayın için `11` kapısı ayrıca tamamlanır |
+
+Her kapatılan karar için iki tarafın onayı, etkilenen belgeler/istemciler ve doğrulama sonucu kaydedilir. Bu tablonun eski B/R açıkları için üstteki 29.10 kayıtları günceldir; Uğur 29 Ekim teslimi sonrası tek adım mobil entegrasyonla ortak sentetik sunum provasıdır. Kalan özellikler ayrı sözleşme/onay dilimidir.
+
+## İlk Codex görevi (kod yazdırmadan — başlangıç incelemesi)
+
+> `AGENTS.md`, `README.md` ve `docs/` altındaki 12 dosyayı oku. `04_NAMING_CONVENTIONS.md`, `05_DATA_DICTIONARY.md`, `06_API_CONTRACT.md` arasındaki isim/alan/rota uyuşmazlıklarını ve `12_TEAM_PLAN_AND_DECISIONS.md` içindeki açık kararları raporla. Kod yazma, dosya oluşturma veya değiştirme. Sadece kısa, somut rapor ver.
+
+## Definition of Done — her feature için
+
+- İş akışı ve istek kapsamı karşılandı; alakasız dosya değişmedi.
+- Kanonik adlar ve API sözleşmesiyle uyumlu; contract etkisi açık raporlandı.
+- İlgili lint/build/test çalıştırıldı; başarısızlık gizlenmedi.
+- Yetki, veri sahipliği, tıbbi belirsizlik ve kişisel veri kuralları kontrol edildi.
+- Mobil/web karşılıklı etkilendiğinde diğer geliştiriciye entegrasyon notu verildi.

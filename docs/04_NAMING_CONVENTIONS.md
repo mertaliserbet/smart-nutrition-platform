@@ -1,393 +1,61 @@
-# 04 — KANONİK İSİMLENDİRME SÖZLEŞMESİ
+# 04 — Kanonik isimler ve terminoloji
 
-## 19.11.2026 — U4 bağımsız su paylaşımı
+Bu belge yalnız adlandırma kaynağıdır. Kalıcı alan/tip/ilişkiler [05](05_DATA_DICTIONARY.md), method/route/DTO/yetki [06](06_API_CONTRACT.md) içindedir. Bir kavramın burada bulunması uygulanmış tablo veya endpoint olduğu anlamına gelmez.
 
-Kullanıcı U4 uygulama onayıyla kategori kodu `water_logs` olur. Kanonik
-`WaterLog` ve mevcut `WaterLogDailyTotalResponse` korunur; yeni su entity'si
-yoktur. Diyetisyen salt okunur yolları `/dietitian/clients/{clientId}/water-logs`,
-`/daily-total`, `/daily-history`; tarih geçmişi aynı günlük DTO'yu sayfalar.
-JSON `amountMl`, `consumedAt`, `source`, `from`, `to`, `totalAmountMl` aynı kalır;
-çok günlük sorguda IANA `timeZone` kullanılır. Ayrıntı `05/06` ve [M4 teslimi](21_WATER_LOG_SHARING_CONTRACT.md).
+## Uygulanan kavramlar
 
-## 18.11.2026 — U1 görev sistemi uygulama onayı
-
-Kullanıcı U1 ürün/teknik kararlarını onaylı kabul ederek backend uygulamasını
-yetkilendirdi. Görevin tek kanonik adı `ClientTask`, değişmez geçmişi
-`ClientTaskVersion`, durum tipi `ClientTaskStatus` olur. JSON durumları yalnız
-`pending`, `in_progress`, `completed`, `cancelled` değerleridir.
-
-- `CreateClientTaskRequest`, `PatchClientTaskRequest`, `ClientTaskResponse`,
-  `ClientTaskVersionResponse` aynı kökü kullanır. PATCH önkoşulu
-  `expectedVersionNumber`; sunucunun sürümü `versionNumber`dır.
-- Mevcut kimlik/açıklama/durum/createdAt korunur; `relationshipId`, `dueAt`,
-  `isReminderEnabled`, `updatedAt`, `versionNumber` eklenir. Profil UUID'leri
-  User UUID'si değildir. İlişki/atayan/hedef kimlikleri sonradan değişmez.
-- Bağımsız paylaşım kodu `client_tasks`; program/öğün/ölçüm izni yerine geçmez.
-  PostgreSQL tabloları `client_tasks`, `client_task_versions` olur.
-- İsteğe bağlı `dueAt` kesin UTC zamandır; takvim günü değildir.
-  `isReminderEnabled` yalnız görev bazında danışan tercihidir; teslim sistemi
-  veya yeni notification modeli ifade etmez. Tam davranış `05/06`dadır.
-- Flutter ve React bu teslimde değişmez; M2/U2 aynı sözleşmeyi tüketir.
-  Aşağıdaki tarihsel görev şeması açık notları U1 için geçerli değildir.
-
-## 18.11.2026 — Onaylı öğün yorumları ve danışan yanıtları
-
-Kullanıcı bu dar kapsamı açıkça onayladı. Tek model `MealLogComment`, tablo
-`meal_log_comments`; yanıt da aynı modelde nullable `parentCommentId` ile tutulur.
-DTO'lar `CreateMealLogCommentRequest` ve `MealLogCommentResponse` olur.
-JSON: id/mealLogId/authorUserId/text/createdAt/parentCommentId. Kök yorumu
-yetkili diyetisyen, tek seviyeli yanıtı öğünün sahibi danışan yazar.
-`GET/POST /api/v1/meal-logs/{mealLogId}/comments` ortak kaynaktır; ayrı reply,
-detay, düzenleme/silme rotası veya sohbet modeli yoktur. Alanlar ve yetki `05/06`dadır.
-Önceki yorum model adı/DTO onay bekliyor notları bu kapsam için kapanmıştır;
-bildirim, moderasyon ve düzenleme/silme kararları bu onaya dahil değildir.
-
-## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
-
-Kullanıcı `19` K1–K4'ü ortak sözleşme kararı olarak açıkça onayladı.
-Mevcut NutritionPlan/Version/Item, MealLog/Item ve MealType korunur.
-Yeni kalıcı entity, tablo, izin kategorisi veya enum yoktur.
-
-- `NutritionPlanMealComparisonResponse`: clientId/nutritionPlanVersion/date/
-  from/to/actual/caloriesDifferenceKcal/meals.
-- `NutritionPlanMealComparison`: mealType/plannedItems/actual.
-- `MealLogNutritionSummary`: mealLogCount/itemCount/estimatedItemCount ve
-  caloriesKcal/proteinGrams/carbsGrams/fatGrams.
-- `NutritionValueSummary`: knownTotal/missingItemCount.
-- `/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison`:
-  seçilen değişmeyen sürüm ve açık günlük sınırlarla salt okunur hesap.
-
-nutritionPlanVersion mevcut NutritionPlanVersionResponse, plannedItems mevcut
-NutritionPlanItem şeklidir. JSON camelCase; C#/Dart/TS aynı kavramları kullanır.
-Alan ve hesap kuralları `05`, HTTP ve profil/izin kontrolleri `06`dadır.
-Bu adım bir uyum yüzdesi veya tarihsel aktivasyon modeli tanımlamaz.
-
-## 18.11.2026 — Ortak ölçüm geliştirmelerinin birleştirilmesi
-
-Kullanıcı kararıyla Uğur'un web ölçüm ekranı/ortak migration'ı ve Mert'in
-kronolojik okuma/Development sınırı birlikte korunur. Mevcut GET yolunda
-sortOrder=asc/desc desteklenir; kategori/DTO alan adları değişmez. Tek
-paylaşım migration'ı `20261118122704_AddBodyMeasurementSharingCategory`dir;
-aynı işi yapan ikinci migration kullanılmaz. BodyMeasurementsEnabled yalnız
-Development'ta açılabilir; mobil kategori uyarlamasına kadar varsayılan kapalıdır.
-
-## 18.11.2026 — M1–M4 diyetisyen ölçüm görünümü onayı
-
-Kullanıcı `18` önerisinin tamamını onaylı varsayarak uygulamaya devam edilmesini
-istedi. `BodyMeasurement` ve mevcut hipCm/chestCm/note dahil alanlar korunur.
-Ek paylaşım kategorisi `body_measurements`; yalnız diyetisyen ölçüm okumasını açar.
-Mevcut yol `GET /api/v1/dietitian/clients/{clientId}/body-measurements` kullanılır;
-yeni model, rota alias'ı veya diyetisyen yazma yetkisi yoktur. `05/06/18` eşgüdümlüdür.
-
-## 18.11.2026 — Danışanın vücut ölçümleri
-
-Kullanıcının doğrudan göreviyle mevcut `BodyMeasurement` genişletildi:
-ek nullable alanlar `hipCm` (kalça), `chestCm` (göğüs), `note`.
-Mevcut `weightKg`, `waistCm`, `bodyFatPercent`, `measuredAt`, `source`
-adları korunur. Tablo `body_measurements`; DTO kökü `BodyMeasurement` ve
-kanonik rota `/api/v1/body-measurements` değişmez. Diyetisyen erişimi açılmaz.
-
-## 17.11.2026 — Kişisel günlük beslenme hedefleri
-
-Kullanıcının doğrudan backend göreviyle programsız kişisel hedef saklama ve
-makro alan adları bu dilimde tanımlandı. Yeni model `PersonalNutritionTarget`,
-tablo `personal_nutrition_targets`; bir danışanın günler boyunca geçerli tek
-güncel kişisel hedef kümesidir. Günlük tüketim veya NutritionPlan değildir.
-`PersonalNutritionTargetResponse` ve `PatchPersonalNutritionTargetRequest`
-alanları: `dailyCaloriesTargetKcal`, `dailyProteinTargetGrams`,
-`dailyCarbsTargetGrams`, `dailyFatTargetGrams`, `dailyWaterTargetMl`.
-Yanıtta ayrıca salt okunur `source: "personal"` bulunur. Tek kendi kaynak
-yolu `GET/PATCH /api/v1/personal-nutrition-targets` olur; alias veya
-diyetisyen okuma yolu eklenmez. Mevcut NutritionPlan/ClientProfile/MealLog/
-WaterLog adları ve alanları değişmez. Ayrıntılar ve gösterim önceliği `05/06`dadır.
-Aşağıdaki programsız/makro hedeflere ilişkin tarihsel AÇIK notları bu saklama
-ve adlandırma dilimi için geçersizdir; otomatik öneri hesabı hâlâ kapsam dışıdır.
-
-## 16.11.2026 — Su kayıt backend dilimi
-
-Kullanıcının doğrudan su kayıt API'si görevi mevcut `WaterLog`, `amountMl`,
-`consumedAt`, `source` ve `/water-logs` adlarını korur. Yeni günlük toplam
-yolu `/water-logs/daily-total`, DTO adı `WaterLogDailyTotalResponse` ve düz
-yanıt alanları `from`, `to`, `totalAmountMl`'dir. Toplam mL cinsindedir;
-su hedefi veya yeni bir özet/saklama entity'si değildir. Ayrıntılar `05/06`dadır.
-
-## G1 — Öğün paylaşım kategorisi, 07.11.2026 ortak onayı
-
-Kullanıcı `17` için “Ortak onay var; yalnız G1’i uygula” dedi.
-`DataSharingPermission.category` string kalır; onaylı kodlar mevcut
-`nutrition_plans` ve ek `meal_logs` olur. Yeni entity/rol/rota yoktur.
-İki kategori bağımsızdır; program izni öğün izni vermez. G1 izin altyapısıdır;
-öğün okuma API'si ve web günlüğü sonraki G2–G3 adımlarıdır.
-Varsayılan kapalı kullanım ve mobil geçiş koşulları `06/17`dedir.
-
-
-## Yerel Admin e-posta kodu — 03.11.2026 kullanıcı onayı
-
-Yalnız Development/Mailpit için `POST /api/v1/auth/admin-email-code` eklenir.
-İstek mevcut `LoginUserRequest { email, password }` kullanır. Kabul edilen isteğe boş
-`202`, geçersiz giriş bilgilerine ortak hata zarfıyla `401` yanıtı verilir.
-Mevcut `AdminLoginRequest.mfaCode` yerel e-posta kodunu da kabul eder; JSON
-alanları ve üretim TOTP/kurtarma sözleşmesi değişmez. İmzalı web cookie'sindeki
-yalnız sunucuya ait `developmentAdminEmailCode` claim'i bu yerel oturumu ayırır;
-hesap yanıtına, JWT'ye veya kullanıcı girdisine eklenmez. Ayrıntılar `05/06/11`dedir.
-
-## Aynı hesapta danışan ve diyetisyen profili — 02.11.2026 onayı
-
-`UserRole` ve tek `User.role` korunur; rol dizisi veya yeni rol değeri eklenmez.
-Mevcut danışanın başvuru ve Admin onayında `role=client` değişmez. Uzman yetkisi
-güncel `DietitianProfile.isVerified` üzerinden ayrıca doğrulanır.
-`ExistingDietitianApplicationRequest` yalnız `displayName` ve `licenseInfo` taşır.
-`POST /api/v1/dietitians/me/application` hesabı mobil JWT oturumundan alır (17.11.2026).
-Ortak ilişki/paylaşım/program uçlarında `X-Profile-Context: client|dietitian`
-isteğin profil bağlamını seçer; kimlik veya yetki vermez. Ayrıntılar `05/06`dadır.
-
-## Onaylı parola sıfırlama adları — 02.11.2026
-
-Kullanıcının P1–P7 onayıyla `PasswordResetRequest { email }` ve
-`ResetPasswordRequest { token, password }` kesinleşti. Yollar mevcut
-`POST /api/v1/auth/password-reset-requests` ve `POST /api/v1/auth/reset-password`.
-Şifre tekrarı yalnız istemcidedir; yanıt DTO'su, reset entity'si veya rota alias'ı yoktur.
-Sunucu içi User alanları `PasswordResetTokenHash`, `PasswordResetExpiresAt`,
-`PasswordResetLastSentAt`, `CredentialsVersion`; PostgreSQL karşılıkları
-`password_reset_token_hash`, `password_reset_expires_at`, `password_reset_last_sent_at`,
-`credentials_version` olur. HTTP çıktısına eklenmezler. JWT özel claim adı
-`credentialsVersion`dır: negatif olmayan longun kanonik ondalık string gösterimi.
-Mevcut beş alanlı LoginUserResponse ve web cookie claim biçimi korunur.
-
-## 29.10.2026 N1–N3 ortak onay güncellemesi
-
-Kullanıcı `16` için “N1–N3 için ortak onay var; uygula.” dedi. Aşağıdaki
-program ad/şeması artık onaylıdır; programla ilgili eski açık notların yerini alır.
-`NutritionPlan` ve `NutritionPlanItem`, mevcut `MealType` ve
-`NutritionPlanStatus` değerleri korunur. Ayrı PersonalPlan/AssignedPlan yoktur.
-
-- Yeni kanonik kalıcı model `NutritionPlanVersion`; tablo
-  `nutrition_plan_versions`. Her programın değişmeyen içerik sürümleridir.
-- `NutritionPlanSnapshot`: title/startDate/endDate/dailyCaloriesTargetKcal/
-  dailyWaterTargetMl/items. Sahiplik veya güncel status geçmiş içeriğe eklenmez.
-- `NutritionPlanResponse`: mevcut alanlar + `versionId`, `versionNumber`.
-  `NutritionPlanVersionInfo`: id/nutritionPlanId/versionNumber/createdAt;
-  `NutritionPlanVersionResponse`: aynı metadata + snapshot.
-- `CreateNutritionPlanRequest`, `PatchNutritionPlanRequest`,
-  `NutritionPlanItemRequest` ortak JSON adlarını kullanır. Item'a nullable
-  `alternativeGroupId` eklenir; ayrı alternatif entity'si yaratılmaz.
-- `recordedByUserId` yalnız sunucudadır; istemci DTO'suna taşınmaz.
-  Tam alan/tip ve HTTP davranışı `05/06`dadır. Flutter kaynakları değişmez.
-
-## 29.10.2026 R1–R3 ortak onay güncellemesi
-
-Kullanıcı `15` için “R1–R3 için ortak onay var; uygula.” yanıtını verdi.
-Mevcut DietitianClientRelationship/RelationshipStatus ve DataSharingPermission
-adları korunur. RelationshipRequest yalnız dietitianId veya invitationCode'dan
-birini alır; RelationshipResponse mevcut ilişki alanlarıdır. InvitationCodeResponse
-yalnız invitationCode/expiresAt döndürür. İlişki için ikinci eşanlamlı model yoktur.
-
-DietitianProfile.invitationCodeHash/invitationCodeExpiresAt yalnız sunucudadır;
-ham davet kodu profil/directory/başvuru yanıtına eklenmez. İlk paylaşım kodu
-`nutrition_plans`; diğer kategoriler/tahlil onayı açık ve kapalı erişimde kalır.
-ClientListItem id/displayName, ClientDashboardResponse clientId/displayName
-olarak sınırlıdır. CreateDataSharingPermissionRequest ve
-UpdateDataSharingPermissionRequest aynı mevcut alan adlarını kullanır.
-Bu bölüm eski davet/kategori açık notlarının yalnız R1–R3 dilimini kapatır.
-
-## 29.10.2026 B1–B3 ortak onay güncellemesi
-
-Kullanıcı “Ortak onay var devam et.” ile `14`teki B1–B3 paketini teyit etti.
-Bu dilimde hesap başına tek rol ve role uygun profil kullanılır; mevcut
-danışan hesabı uzmana çevrilmez. Önceki bölümlerde başvuru/MFA'yı açık
-gösteren notlar bu onaylı dilim için tarihsel durumdur; diğer açıklar korunur.
-
-- `DietitianProfile.licenseInfo`: zorunlu mesleki açıklama string'i; yalnız
-  Admin inceleme DTO'sunda açılır. `isVerified` yalnız Admin tarafından atanır.
-- `DietitianApplicationRequest`: email/password/displayName/licenseInfo;
-  başarı mevcut `RegisterUserResponse` (`id` = User UUID).
-- `DietitianStatusResponse`: id/displayName/isVerified (id = DietitianProfile UUID).
-- `DietitianReviewItem`: aynı alanlar + yalnız Admin'e licenseInfo.
-- `DietitianListItem`: public aramada yalnız id/displayName.
-- `AdminLoginRequest`: email/password/mfaCode. Admin için yeni User/entity
-  türetilmez. Başarı aynı beş alanlı `CurrentUserResponse`, role `admin`.
-- `User.totpSecretProtected`, `lastUsedTotpStep`, `mfaRecoveryCodeHashes` ve
-  `AuthSession.isMfaVerified` yalnız sunucuda tutulur. HTTP hesap/model
-  yanıtlarına secret/MFA metadata'sı eklenmez.
-- Admin yalnız `/auth/admin-web-session` MFA cookie'siyle kabul edilir.
-  JWT/bearer ve normal `/auth/web-session` Admin'e kapalı kalır.
-- `AuditEvent` mevcut actorUserId/action/resourceType/resourceId/createdAt/
-  metadata adlarını korur; yeni targetId/occurredAt karşılığı oluşturulmaz.
-- Web TypeScript karşılıkları aynı DTO adlarını kullanır. Flutter kaynakları
-  değişmez; mevcut login JWT ve auth/me JSON anahtarları korunur.
-
-> **TEK KAYNAK (source of truth):** İki Codex'in aynı alanı farklı adlandırmasını engelleyen ortak kurallar. `05_DATA_DICTIONARY.md` alan tiplerini; `06_API_CONTRACT.md` URL ve payloadları belirler. Değişiklik süreci için `AGENTS.md` ve `12_TEAM_PLAN_AND_DECISIONS.md`.
-
-**Karar temeli:** `12_TEAM_PLAN_AND_DECISIONS.md` içindeki 22 onaylı karar. Mevcut kanonik adlar korunur; yeni kavramların aşağıdaki adlandırma karşılıkları alan, tablo, ilişki veya endpoint tasarımı anlamına gelmez. `05/06` uyarlamaları ve iki tarafın ortak sözleşme onayı tamamlanmadan eksik yapılar tahmin edilerek uygulanmaz.
-
-## Kanonik terimler (mevcut veri/API sözleşmeleriyle ortak adlar)
-
-Tip adları C#, Dart ve TypeScript'te `PascalCase` olarak aynıdır. Üçüncü sütun yalnız değişken/alan yazımını gösterir; her yanıtın bu adla sarılmasını veya yeni bir JSON anahtarı eklenmesini gerektirmez. API yolları `/api/v1` tabanına göredir; kesin method/route ve payload kaynağı `06`dır.
-
-| Türkçe kavram | C#/Dart/TypeScript tip adı | Değişken/alan yazımı | Mevcut API karşılığı / sınır |
-|---|---|---|---|
-| Kullanıcı hesabı | `User` | `user` | Kendi hesap özeti: `GET /auth/me`; önceki `/users` admin önerisi `06`da tanımlı değildir |
-| Danışan profili | `ClientProfile` | `clientProfile` | `/dietitian/clients` (diyetisyen görünümü) |
-| Diyetisyen profili | `DietitianProfile` | `dietitianProfile` | `/dietitians` |
-| Diyetisyen–danışan ilişkisi | `DietitianClientRelationship` | `dietitianClientRelationship` | `/dietitian-relationships` |
-| Öğün kaydı | `MealLog` | `mealLog` | `/meal-logs` |
-| Öğün besin kalemi | `MealLogItem` | `mealLogItem` | `MealLog.items` altında |
-| Besin katalog girdisi | `FoodItem` | `foodItem` | `/food-items` |
-| Görsel besin analizi | `FoodAnalysis` | `foodAnalysis` | `/food-analyses` |
-| Su kaydı | `WaterLog` | `waterLog` | `/water-logs` |
-| Beslenme planı / programı | `NutritionPlan` | `nutritionPlan` | `/nutrition-plans`; N1–N3 kişisel/atanmış program sözleşmesi `05/06`da onaylı |
-| Plan öğesi | `NutritionPlanItem` | `nutritionPlanItem` | `NutritionPlan.items` altında |
-| Program içerik sürümü | `NutritionPlanVersion` | `nutritionPlanVersion` | `/nutrition-plans/{nutritionPlanId}/versions`; salt okunur geçmiş |
-| Vücut ölçümü | `BodyMeasurement` | `bodyMeasurement` | `/body-measurements` |
-| Aktivite kaydı | `ActivityLog` | `activityLog` | `/activity-logs` |
-| Tahlil raporu | `LabReport` | `labReport` | `/lab-reports` |
-| Tahlil değeri | `LabResult` | `labResult` | `LabReport.results` altında |
-| Tahlil açıklayıcı analizi | `LabInsight` | `labInsight` | `/lab-reports/{labReportId}/insights` |
-| Cihaz bağlantısı | `WearableConnection` | `wearableConnection` | `/wearable-connections` |
-| Native sağlık kaynak kaydı | `WearableRecord` | `wearableRecord` | `/wearable-connections/{wearableConnectionId}/records` |
-| Skaler sağlık/nabız örneği | `HealthMetricSample` | `healthMetricSample` | `/health-metric-samples`; exercise aynı `ActivityLog`dur |
-| Atomik aktarım makbuzu | `WearableSyncBatch` | `wearableSyncBatch` | `/wearable-connections/sync` işlem sonucu; ayrı yazma kaynağı değildir |
-| İzin/rıza kaydı | `ConsentRecord` | `consentRecord` | henüz endpoint kararı yok |
-| Denetim olayı | `AuditEvent` | `auditEvent` | yalnız backend/admin; endpoint kararı yok |
-
-**Yasak eşanlamlı entity örnekleri:** `FoodRecord`/`MealEntry`/`Meal` yerine `MealLog`; `DietPlan`/`MealPlan` yerine `NutritionPlan`; `BloodTest`/`MedicalReport` yerine `LabReport`; `Coach`/`Trainer` yerine `Dietitian`. `FoodAnalysis` ile `MealLog` farklı kavramlardır.
-
-### 22 karardan doğan ortak kavram adları
-
-Bu bölüm yalnız kavram adlarını netleştirir; yeni entity/tablo zorunluluğu, JSON alanı, enum veya endpoint oluşturmaz. Yeni adların `05/06` karşılıkları henüz tanımlı değildir; ayrıntılı sözleşme önerisi iki geliştiricinin onayına sunulmalıdır.
-
-| Kavram | Ortak ad | Anlam / sınır |
-|---|---|---|
-| Kişisel beslenme programı | `NutritionPlan` | Diyetisyensiz danışanın oluşturduğu program da aynı kavramdır. `PersonalPlan`, `PersonalNutritionPlan` veya `ClientPlan` adlı eşanlamlı model üretilmez; N1–N3 sahiplik ve düzenleme kuralları `05/06`dadır |
-| Özel tarif | `Recipe` | Tarif kavramıdır; katalog besini `FoodItem` ve gerçek tüketim kalemi `MealLogItem` ile karıştırılmaz. İçerik, porsiyon, hesaplama ve katalog bağlantısının yapısı ayrıca kararlaştırılır |
-| Diyetisyenin danışana atadığı görev | `ClientTask` | Danışan görevidir; C# asenkron `Task` tipi veya yalnız bildirim değildir. U1 alan/durum/geçmiş sözleşmesi `05/06`dadır |
-| Kategori bazlı veri paylaşım izni | `DataSharingPermission` | Danışanın hangi veri kategorisini hangi diyetisyenle paylaşabildiği kavramıdır. Mevcut `ConsentRecord` izin/rıza geçmişini ifade eder; erişim izni ile rıza kaydı eşanlamlı değildir. Aralarındaki ilişki ve kategori listesi açıktır |
-
-`FoodRecipe`/`CustomRecipe` ile `Recipe`, `DietitianTask`/`NutritionTask` ile `ClientTask`, `SharingPermission`/`DataAccessPermission` ile `DataSharingPermission` için paralel eşanlamlı modeller oluşturulmaz. Adlandırma karşılığı seçilmesi bu kavramların ayrı saklama modelleri olacağını kesinleştirmez.
-
-### Kavram sınırları ve onaylı kurallar
-
-- **Rol, hesap ve profil:** `Client`, `Dietitian`, `Admin` rol kavramlarıdır; JSON rol değerleri `client`, `dietitian`, `admin`dir. Hesap `User`, danışan profili `ClientProfile`, diyetisyen profili `DietitianProfile`dır. Ayrı bir `Client`/`Dietitian` entity'si veya `AdminUser` modeli türetilmez. Çoklu rol/profil kuralı açıktır; mobil/web üzerinden başvuru yeni kullanıcı rolü oluşturmaz.
-- **Kimlikler ve ilişki:** `userId` hesap kimliğidir; `clientId` → `ClientProfile.id`, `dietitianId` → `DietitianProfile.id`. Birbirlerinin yerine kullanılmaz. `DietitianClientRelationship` arama/davet kodu ve karşılıklı onayla kurulan ilişkiyi temsil eder; danışanın en fazla bir aktif diyetisyeni olur, geçmiş korunur. Davet kodunun teknik yapısı açık kalır.
-- **Program, plan ve tüketim:** Ürün metnindeki “plan/program” aynı `NutritionPlan` kavramıdır. Kişisel ve diyetisyen programları toplamında en fazla bir aktif program vardır; öğün alternatifleri ve sürüm geçmişi desteklenir. `NutritionPlanItem` tavsiye, `MealLog` gerçek tüketim, `MealLogItem` tüketilen kalemdir. Danışan diyetisyen programını/hedeflerini değiştiremez; gerçek tüketimi serbestçe kaydeder. N1–N3 sahiplik, gün/miktar/alternatif ve sürüm yapıları `05/06`da onaylıdır; programsız/makro hedefler açıktır.
-- **Besin, tarif ve AI:** `FoodItem` hibrit kataloğun besin girdisidir; sağlayıcı değişince eşanlamlı entity adı oluşturulmaz. `Recipe` tarif, `FoodAnalysis` fotoğraf/galeri analizidir. Tahmini kalori/makro ve porsiyon kullanıcı onayından geçer; analiz otomatik tüketim kaydı değildir. Sürekli kamera analizi sonraki aşamadır.
-- **Tahlil ve açıklama:** Manuel giriş ve daha sonra kullanıcı onaylı PDF/fotoğraf OCR aynı `LabReport`/`LabResult` kavramlarını kullanır; giriş yöntemi ayrı rapor entity'si oluşturmaz. `LabInsight` açıklayıcı değerlendirmedir; tanı/tedavi değildir. Geçerli birim/aralık yoksa `LabResult.flag` değeri `unknown` olur; ML opsiyoneldir. PDF dışa aktarma raporu ile laboratuvar raporu aynı kavram sayılmaz.
-- **Aktivite ve ölçüm — U3 / 19.11.2026:** `ActivityLog` manuel/cihaz egzersizidir, `BodyMeasurement` değişmez. `WearableConnection` provider'ı `health_connect/health_kit`, aktarım durumu `active/revoked`dur. `WearableRecord` native kaynak başlığı, `HealthMetricSample` yalnız `steps/distance/active_energy/heart_rate` örneği; `exercise` aynı ActivityLog'a bağlanır. Birimler `count/km/kcal/bpm`, süre `minutes`; caloriesKcal yalnız aktif enerjidir. `WearableSyncBatch` tekrar güvenli atomik aktarım makbuzudur. OS izni paylaşım izni değildir; U3 yalnız kendi danışan verisidir. Tam eşleme ve kaynak kuralları [M3 teslim notunda](20_HEALTH_DATA_SYNC_CONTRACT.md) tanımlıdır.
-- **Paylaşım, rıza ve yetki:** Aktif ilişki tek başına kategori erişimi vermez; tahliller için ayrıca açık onay gerekir. `DataSharingPermission`, `ConsentRecord`, rol yetkisi ve cihaz/işletim sistemi izni birbirinin yerine kullanılmaz. Geri çekilen izinle yeni erişim verilmez. `Admin` özel sağlık verilerini varsayılan göremez; Audit Log mevcut `AuditEvent` kavramıdır.
-
-## Dil ve dosya kuralları
-
-Kod tanımlayıcıları İngilizce ve ASCII yazılır; Türkçe kullanıcı arayüzü etiketleri yeni domain adı veya JSON anahtarı üretmez. Aynı kavramın adı platform değişince çevrilmez ya da kısaltılmaz.
-
-| Konum | Kural | Örnek |
-|---|---|---|
-| C# class/entity/DTO | `PascalCase` | `MealLog`, `CreateMealLogRequest` |
-| C# property | `PascalCase` | `ConsumedAt`, `ClientId` |
-| C# local/param | `camelCase` | `mealLogId` |
-| Dart class/model/enum tipi | `PascalCase` | `MealLog`, `MealType` |
-| TypeScript type/component | `PascalCase` | `MealLog`, `MealLogCard` |
-| C#/TS/Dart metot/işlev | C# `PascalCase`; TS/Dart `camelCase` | `CreateMealLog` / `createMealLog` (yalnız adlandırma örneği) |
-| TS/Dart variable/field/param | `camelCase` | `caloriesKcal`, `consumedAt` |
-| Flutter file | `snake_case.dart` | `meal_log_page.dart` |
-| Web TSX file | isim tutarlı; component `PascalCase.tsx`, helper `camelCase.ts` | `MealLogCard.tsx` |
-| Backend dosya | C# type ile `PascalCase.cs` | `MealLogService.cs` |
-| PostgreSQL tablo/sütun | İngilizce, küçük `snake_case`; tablo çoğul, sütun alan adı | `meal_logs`, `client_id`, `consumed_at` |
-| REST kaynak adı | `/api/v1/` + çoğul `kebab-case`; yalnız `06`da tanımlı yollar | `/api/v1/meal-logs`; `/auth/me`, `/auth`, `/dietitian` ve açık profil düzenleme yolu `06`ya göre kullanılır |
-| JSON fields | **her yerde `camelCase`** | `clientId`, `caloriesKcal` |
-| Git dalı | Güncel ortak `main`den görev/feature branch'i açılır ve ortak `main`e PR oluşturulur (`12`, 28.10.2026 kullanıcı kararı) | `feature/web-registration`; dal adında geliştirme aracının adı kullanılmaz |
-
-**Platformlar arası eşleme:** C# `MealLog.ClientId` ↔ Dart/TypeScript `MealLog.clientId` ↔ JSON `clientId` ↔ PostgreSQL `meal_logs.client_id`. C# property yazımı JSON'a taşınmaz; Dart/TypeScript alanları backend'deki PascalCase ile gönderilmez. PostgreSQL adları JSON'a taşınmaz. Serileştirme ve DB eşlemesi bu dönüşümü açıkça korumalıdır.
-
-DTO'lar aynı kanonik kökü kullanır (`CreateMealLogRequest` gibi); DTO, domain modeli ve ekran modeli ayrımı aynı kavramı yeniden adlandırma gerekçesi değildir. Alan listesi, zorunluluk, null kabulü ve yanıt iç içeliği yalnız `05/06`dan alınır; bir tip adından tablo veya endpoint otomatik türetilmez.
-
-## Alan ve birim isimleri
-
-- Kimlik: `id`; ilişki alanları `clientId`, `dietitianId`, `mealLogId` gibi `...Id`. `05/06` gereği tüm kayıt kimlikleri UUID, JSON karşılığı stringdir; `Id` yerine `ID` veya eşanlamlı `clientUserId` kullanılmaz.
-- Zaman: olay zamanı `...At` (UTC ISO 8601; ör. `2026-10-15T12:30:00Z`), takvim günü `...Date` (`YYYY-MM-DD`). Yerel gösterim ve günlük toplamların saat dilimi politikası ayrı konudur; yeni tarih alanları varsayılmaz.
-- Enerji: `caloriesKcal` (kcal); besin makroları `proteinGrams`, `carbsGrams`, `fatGrams` (gram); su `amountMl` (mL); vücut ağırlığı `weightKg`, boy `heightCm`; porsiyon `quantityGrams` (gram).
-- Değer+birim ayrılmaz: laboratuvar `value`, `unit`, `referenceLow`, `referenceHigh`; rapordaki laboratuvar aralığı saklanır.
-- Yeni boolean adlarında `is...`/`has...` tercih edilir; ör. `isVerified`, `isEstimated`. Mevcut sözleşmedeki `ConsentRecord.granted` korunur; genel kural gerekçesiyle `isGranted` olarak değiştirilmez.
-- İşleme durumu `status`; sabit string enumlar **lowercase** ve gerektiğinde `snake_case`.
-- `RecordSource` manuel/cihaz/AI destekli kaynağı, `FoodItem.dataSource` besin veri kaynağını, `WearableConnection.provider` platform sağlayıcısını ifade eder; eşanlamlı değildir. U3 kaynak anahtarı danışan+provider+sourceId+rawType+externalRecordId; nabız alt örneği normalize UTC başlangıcıdır. Bağlantı ID'si yeniden POST'ta değişmez; hash veya sahte UUID dış kaynak ID'sinin yerine geçmez.
-- Adet/gram dönüşümü, nabız/adım alanları, aktif kalori ayrımı, görev son tarihi, paylaşım kategorileri ve kişisel makro hedefleri için yeni alan veya birim anahtarı bu belgede üretilmez. `null` bilinmeyen, `0` gerçek sıfırdır; eksik değerler yeni ad veya sahte sıfırla gizlenmez.
-
-### Onaylı kayıt ve e-posta doğrulama adları — 27.10.2026
-
-- Kayıt DTO'ları `RegisterUserRequest` / `RegisterUserResponse`; zorunlu düz `displayName`, `ClientProfile.displayName` alanına aittir. Başarıdaki `id`, `User.id` değeridir; `clientId` değildir. Tam şema `06`dadır.
-- `User.isEmailVerified` e-posta sahipliğidir; `DietitianProfile.isVerified` Admin'in uzman doğrulamasıdır. Bu iki alan eşanlamlı değildir; `emailConfirmed` / `isVerified` adıyla ikinci bir hesap alanı oluşturulmaz.
-- Doğrulama girdisi `VerifyEmailRequest.token`, yeniden gönderim girdisi `ResendVerificationRequest.email` olur. `token` yalnız bu işlemin girdisidir; oturum/access/refresh tokenı değildir ve yeni bir token entity'si oluşturulmaz.
-- Sunucu içi alanlar C# `EmailVerificationTokenHash`, `EmailVerificationExpiresAt`, `EmailVerificationLastSentAt`; PostgreSQL karşılıkları `email_verification_token_hash`, `email_verification_expires_at`, `email_verification_last_sent_at` olur. Sözlükteki camelCase gösterimleri HTTP yanıt alanı ilanı değildir: üç token metadata alanı yanıtlara çıkmaz. `isEmailVerified` yalnız aşağıdaki onaylı kendi hesap DTO'sunda açılır; entity JSON'u/kayıt/giriş yanıtı değişmez. Tip ve bütünlük `05`te, işlem yolları `06`dadır.
-- Ham token için `User.token`, `verificationCode` veya saklanan düz metin alternatif alan üretilmez. E-posta metnindeki “doğrulama kodu” API'deki `token` ile aynı değerdir; mobil/web ayrı ad veya şema üretmez.
-
-### Onaylı giriş ve JWT adları — 27.10.2026
-
-- Giriş `LoginUserRequest` / `LoginUserResponse` adlarını kullanır: istek `email`, `password`; yanıt `accessToken`, `tokenType`, `expiresAt`, `refreshToken`, `refreshTokenExpiresAt`. Paralel `SignIn`/`Authenticate` DTO'su veya farklı istemci yanıt kökü üretilmez. 31.10.2026 kullanıcı göreviyle refresh alanları eklendi; tam HTTP sözleşmesi `06`dadır.
-- JWT `sub` claim'i `User.id` değeridir; `clientId` veya `ClientProfile.id` değildir. `role` claim'i mevcut `client` / `dietitian` değerini taşır. `admin`, MFA hazır olana kadar token üretiminde ve kabulünde kapalıdır.
-- `accessToken` 15 dakikalık JWT'dir; e-posta doğrulama girdisi `token` ile karıştırılmaz. `tokenType` tam `Bearer`, `expiresAt` UTC instant'tır. JWT ve `expiresAt` yeni User sütunları değildir. JWT'nin standart `iss`, `aud`, `iat`, `nbf`, `exp` claim adları JSON/domain alanı diye yeniden adlandırılmaz.
-
-### Mobil refresh adları — 31.10.2026
-
-Kullanıcının backend refresh/iptal göreviyle `RefreshToken` → `refresh_tokens`
-sunucu içi hash/rotasyon geçmişi eklendi. `familyId` aynı girişten türeyen
-tokenları gruplar; ayrı User/profil kimliği veya web `AuthSession` değildir.
-`POST /api/v1/auth/refresh` ve `POST /api/v1/auth/logout` aynı
-`RefreshTokenRequest { refreshToken }` girdisini kullanır. Yenileme yanıtı
-genişletilmiş `LoginUserResponse` olur; `refreshTokenExpiresAt` ailenin mutlak
-UTC bitişidir. Ham refresh token JSON'da yalnız giriş/yenileme yanıtındadır;
-DB alanı `tokenHash`tır. DTO/rota alias'ı, mobil cookie veya web değişikliği yoktur.
-Flutter'ın eski üç alanlı katı login ayrıştırıcısı ayrıca güncellenmelidir.
-
-### Onaylı kendi hesap özeti — 27.10.2026
-
-- Kanonik işlem `GET /api/v1/auth/me`, yanıt DTO'su `CurrentUserResponse` olur; yeni `CurrentUser` entity'si/tablosu oluşturulmaz. Eski uygulanmamış `GET /api/v1/me` taslağı bu görevde kullanıcının açık yol talimatıyla değiştirilmiştir; ikinci GET alias'ı oluşturulmaz. `PATCH /api/v1/me` ayrı, henüz uygulanmamış profil düzenleme taslağıdır.
-- Yanıt düz kökte tam beş alan taşır: `id`, `displayName`, `email`, `role`, `isEmailVerified`. `id`, JWT `sub` ile seçilen `User.id`; `displayName`, varsa o User'a ait `ClientProfile.displayName`, yoksa açık `null`dır. `user`/`clientProfile` sarmalayıcısı veya farklı rol için alternatif yanıt kökü üretilmez. Birim/nullability ve erişim kuralları `05/06`dadır.
-
-### Onaylı web oturumu adları — 27.10.2026
-
-Kullanıcı W2-C1–C7 için Uğur–Mert ortak onayını açıkça teyit etti.
-`AuthSession` yalnız sunucuda tutulan web cookie oturumudur; PostgreSQL tablosu
-`auth_sessions`tir. User/profil veya JWT/refresh token entity'si değildir ve
-istemciye serileştirilmez. Alanları `05`, HTTP sözleşmesi `06`dadır.
-`CsrfTokenResponse` yalnız `{ requestToken }` yanıt DTO'sudur; entity/tablo değildir.
-Web oluşturma mevcut `LoginUserRequest` ve beş alanlı `CurrentUserResponse`
-adlarını kullanır. `sid`, yalnız korumalı cookie biletindeki AuthSession UUID'sidir;
-JWT claim/yanıtı değişmez. `requestToken` yetkilendirme veya e-posta tokenı değildir.
-Cookie adları `__Host-smart-nutrition-session` ve `__Host-smart-nutrition-csrf`,
-istek başlığı `X-CSRF-TOKEN` olur. Mobil JWT girişine cookie/CSRF şartı eklenmez.
-
-## Başlangıç enum sözlüğü
-
-| Enum | JSON değerleri |
+| Kavram | Kanonik ad |
 |---|---|
-| `UserRole` | `client`, `dietitian`, `admin` |
-| `MealType` | `breakfast`, `lunch`, `dinner`, `snack`, `other` |
-| `RelationshipStatus` | `pending`, `active`, `rejected`, `ended` |
-| `NutritionPlanStatus` | `draft`, `active`, `archived` |
-| `FoodAnalysisStatus` | `pending`, `processing`, `completed`, `failed` |
-| `LabFlag` | `low`, `normal`, `high`, `unknown` |
-| `RecordSource` | `manual`, `wearable`, `ai_assisted` |
+| Hesap / danışan / uzman profili | User, ClientProfile, DietitianProfile |
+| Web oturumu / mobil refresh geçmişi | AuthSession, RefreshToken |
+| Diyetisyen–danışan ilişkisi / kategori paylaşımı | DietitianClientRelationship, DataSharingPermission |
+| Beslenme programı / içerik sürümü / program kalemi | NutritionPlan, NutritionPlanVersion, NutritionPlanItem |
+| Seçili sürümle günlük karşılaştırma | NutritionPlanMealComparisonResponse, NutritionPlanMealComparison, MealLogNutritionSummary, NutritionValueSummary |
+| Gerçek tüketim / tüketilen kalem / yorum | MealLog, MealLogItem, MealLogComment |
+| Su / günlük toplam DTO'su | WaterLog, WaterLogDailyTotalResponse |
+| Programsız kişisel hedefler | PersonalNutritionTarget |
+| Vücut ölçümü | BodyMeasurement |
+| Danışan görevi / değişmez görev sürümü | ClientTask, ClientTaskVersion |
+| Aktarım bağlantısı / native kaynak başlığı | WearableConnection, WearableRecord |
+| Normalize sağlık örneği / aktivite / aktarım makbuzu | HealthMetricSample, ActivityLog, WearableSyncBatch |
+| Denetim olayı | AuditEvent |
 
-Enum tipi ve JSON değeri ayrıdır: C# üyeleri `PascalCase`, Dart üyeleri `camelCase` olabilir; API'deki sabit değerler aynen korunur (ör. `AiAssisted` / `aiAssisted` → `ai_assisted`). TypeScript temsil seçimi de JSON değerini değiştirmez. `status`, `source`, `flag` gibi mevcut alanlar keyfî olarak yeniden adlandırılmaz. Görev durumları U1 ClientTaskStatus değerlerini kullanır; henüz onaylanmamış kategori/sağlayıcı değerleri bu kuralla kendiliğinden kesinleşmez.
+NutritionPlanItem ayrı EF tablosu değildir; program/snapshot içindeki kalemdir. “Plan/program” aynı kavramdır. MealLog gerçek tüketim, NutritionPlanItem tavsiyedir. ClientTask C# asenkron Task tipi veya bildirimle eşanlamlı değildir.
 
-## İki Codex için aynı kavramı kullanma ve modülerlik
+## Korunan gelecek kapsamı
 
-- Her görevde önce bu sözlük, ilgili `05/06` bölümü ve `12` kararı eşleştirilir. Mevcut kavram bulunduğunda aynı kök ad kullanılır; mobil/web, kişisel/diyetisyen veya manuel/AI/cihaz ayrımı tek başına eşanlamlı entity üretmez.
-- Her platform kendi diline uygun modeli tutar; kavram, JSON anahtarları, enum değerleri ve kimlik anlamları ortak kalır. Aynı platformda aynı sözleşmenin kopya modelleri veya farklı alan adlarıyla paralel sürümleri üretilmez.
-- Feature-based yapı ve tek sorumluluk ilkesi korunur. Her küçük metot/widget için dosya, her model için gereksiz service/repository/arayüz katmanı veya derin klasör açılması bu sözlüğün gereği değildir. Ortak bileşen/servis gerçek tekrar, sorumluluk veya test ihtiyacı olduğunda çıkarılır.
-- Bildirim ve PDF raporu gibi kalan özelliklerin ayrı entity gerektirip gerektirmediği bu adlandırma güncellemesiyle belirlenmez. B/R/N ortak onayları başvuru/davet ve program sürüm/alternatif yapısını kapatmıştır; sözlükte olmayan diğer ad/alias için teklif ve ortak onay gerekir.
+FoodItem (hibrit besin kataloğu), Recipe (özel tarif), FoodAnalysis (görsel tahmin), LabReport/LabResult (rapor/değer), LabInsight (açıklayıcı değerlendirme), ConsentRecord (onay kanıtı) adları korunur. Bunların mevcut EF kaydı/servisi yoktur. Bildirim/PDF için kesinleşmemiş yeni entity, enum veya DTO adı türetilmez. Alan adayları [05](05_DATA_DICTIONARY.md), gereksinimler [10](10_AI_SPEC.md) içindedir.
 
-## Değişiklik yönetimi — kritik
+## Kimlik ve dil kuralları
 
-1. Yeni kavram gerekiyorsa mevcut terimin karşılığı mı, gerçek yeni domain kavramı mı kontrol et.
-2. Aynı kavramsa **mevcut adı yeniden kullan**. Yeni gerekliyse ad önerisini ekip onayına sun.
-3. Onay sonrası **önce bu sözlüğü**, sonra `05`, `06`, etkilenen UI/AI belgelerini **aynı commit** içinde güncelle.
-4. API breaking change ise sürüm/taşıma/istemci etkisini yaz ve iki geliştiriciden onay al.
-5. İki geliştirici de aynı commit'i çektikten sonra ilgili kod değişikliğine başlasın; diğer Codex'e çelişkili isim üretme görevi verme.
+- userId User.id, clientId ClientProfile.id, dietitianId DietitianProfile.id anlamındadır; birbirlerinin yerine kullanılamaz. Dış kaynağın externalRecordId değeri string'dir, UUID olması gerekmez.
+- C# tip/property PascalCase, Dart/TypeScript property camelCase; aynı kavram ve JSON anahtarı korunur. JSON camelCase, PostgreSQL tablo/sütun adları snake_case, tablolar çoğuldur.
+- C# dosyaları PascalCase.cs, Dart dosyaları snake_case.dart; React bileşenleri PascalCase.tsx, yardımcılar camelCase.ts; mevcut feature düzeni korunur. HTTP kaynakları çoğul kebab-case ve `/api/v1` altındadır.
+- MealLog yerine FoodRecord, aynı login için SignIn/Authenticate veya farklı istemciye ikinci yanıt modeli üretilmez. Aynı platformda sözleşme modelleri gereksiz kopyalanmaz.
+- Birim adları açıktır: Kcal, Grams, Ml, Kg, Cm, Percent, Minutes, Km, Bpm. `...At` instant, `...Date` takvim günüdür. DayOfWeek ISO 1=Pazartesi…7=Pazar; null tüm günlerdir.
+- Yeni boolean'larda is/has kullanımı tercih edilir; mevcut ConsentRecord.granted sırf bu nedenle isGranted yapılmaz.
+- Dal, commit/PR başlığı, dosya, klasör ve modül adlarında geliştirme aracı adı kullanılmaz; proje amacı esas alınır. İşlem/yazma izinleri [AGENTS.md](../AGENTS.md) içindedir.
 
-## `05/06` uyum kontrolü ve açık konular
+## Uygulanan enum ve kodlar
 
-- Mevcut ortak model adları ve enum değerleri korunmuştur. `/users` yalnız eski bir admin önerisidir; `06`da endpoint olarak tanımlı değildir. Bu dosyadaki kaynak adları method, payload veya erişim yetkisi onayı yerine geçmez.
-- Tek aktif ilişki/program kuralları onaylıdır; R/N dilimleri DB unique indeksleriyle uygular. Birden fazla aktif diyetisyen veya program gelecekte yeni ürün/sözleşme onayı gerektirir.
-- NutritionPlan.dietitianId nullable ve kişisel/atanmış sahiplik N1–N3 ile `05/06`da eşitlendi. Ayrı PersonalPlan modeli üretilmez.
-- ClientTask/ClientTaskVersion U1 ile, DataSharingPermission onaylı kategorileri ilgili tarihli bölümlerle tanımlıdır. Recipe ve kalan kategori/ConsentRecord ayrıntıları ayrıca onay gerektirir.
-- Bildirim teslimi, U3 dışındaki sağlık türleri, laboratuvar test kodları/birim dönüşümleri ve hibrit katalog kaynağı/lisansı açıktır. Program alternatif/sürümleri N1–N3, davet/başvuru B/R ile; ActivityLog sağlayıcı/birim/kaynak eşlemesi U3 ile kapandı.
+| Tip/kod grubu | JSON değerleri |
+|---|---|
+| UserRole | client, dietitian, admin |
+| MealType | breakfast, lunch, dinner, snack, other |
+| RelationshipStatus | pending, active, rejected, ended |
+| NutritionPlanStatus | draft, active, archived |
+| RecordSource | manual, wearable, ai_assisted |
+| ClientTaskStatus | pending, in_progress, completed, cancelled |
+| DataSharingPermission.category | nutrition_plans, meal_logs, body_measurements, client_tasks, water_logs |
+| WearableConnection.provider | health_connect, health_kit |
+| WearableConnection.status / lastSyncStatus | active, revoked / never, succeeded, failed |
+| Health metric | steps, distance, exercise, active_energy, heart_rate |
+| Sync operation / hesaplama politikası | upsert, delete / conservative_overlap_v1 |
+
+Enum'un sözlükte bulunması her endpointin bütün değerleri kabul ettiği anlamına gelmez. Örneğin manuel öğün/su/ölçüm POST'u yalnız manual kabul eder. integer enum kabul edilmez. C# AiAssisted/Dart aiAssisted farklı yazılsa da JSON ai_assisted kalır.
+
+FoodAnalysisStatus için pending/processing/completed/failed ve LabFlag için low/normal/high/unknown gelecekteki sözlük değerleridir; henüz çalışan enum/endpoint değildir. Bunlar OCR veya LabInsight iş durumlarına otomatik uygulanmaz.
+
+## Değişiklik kuralı
+
+Önce mevcut ad, alan ve route'u ara. Ortak sözleşme değişikliği iki geliştiricinin açık onayını gerektirir; güncel kullanıcı teyidi yeterlidir. Kod–belge çelişkisi yeni alias veya sessiz sözleşme değişikliğiyle giderilmez; somut fark [12](12_TEAM_PLAN_AND_DECISIONS.md)'de izlenir. Belge yazma ve Git izinleri sözleşme onayından ayrı olarak AGENTS.md'ye tabidir.

@@ -1,567 +1,78 @@
 # Smart Nutrition — Ortak Backend
 
-## 20.11.2026 — U5 reset bağlantısı / Admin MFA regresyonu
+## 1. Amaç ve güncel özellikler
 
-Mevcut reset servisi/tokenı/transaction/oturum iptali kullanılır; yeni endpoint,
-entity veya migration yoktur. `Auth:WebSession:Origin` yapılandırılmışsa SMTP
-aynı 43 karakter kodu `<HTTPS-origin>/sifremi-unuttum#token=<kod>` bağlantısıyla
-da gönderir; Host başlığından adres türetilmez. Origin boşken yalnız kod
-davranışı korunur. Mobil M5 DTO veya standalone kod ayrıştırıcısı değişmez.
+Mobil ve webin kullandığı ortak `/api/v1` API'si, PostgreSQL verisi ve sunucu iş/yetki kuralları bu modüldedir. Kaynak inceleme tabanı **22.11.2026 / `4f160b3`**; aşağıdaki komutlar bu belge görevi sırasında çalıştırılmamıştır.
 
-U5 kullanıcı onayıyla doğrulanmış Admin de mevcut reset mekanizmasına uygundur;
-bu, eski P1 Admin istisnasını kaldırır. Rol/email/TOTP/kurtarma kodları değişmez;
-Admin yeni parolayla da mevcut MFA girişini kullanır. DTO/başarı/hata/rate-limit
-kuralları aynı kalır (`docs/06`). React no-referrer/URL temizleme ayrıntıları web
-README'sindedir. Önceki tarihli Admin/reset istemci sınırları bu kayda göre okunur.
+| Alan | Kaynakta mevcut |
+|---|---|
+| Auth | Danışan kaydı/e-posta doğrulama, JWT login/me, dönen refresh token ve aile iptali, W2 cookie/CSRF, Admin MFA |
+| Parola sıfırlama | Genel talep ve tek kullanımlık reset; credentialsVersion ile eski JWT, bütün web oturumları ve refresh ailelerinin iptali; Admin MFA korunur |
+| Uzman/ilişki | Yeni/mevcut hesap başvurusu, Admin onayı/audit, uzman arama, davet, kabul/red/sonlandırma ve tek aktif ilişki |
+| Program | Kişisel/atanmış program, alternatifler, değişmeyen içerik sürümleri, açık aktivasyon/arşiv ve tek aktif program |
+| Kayıt/takip | Manuel MealLog/MealLogItem, su ve ölçüm CRUD; kişisel hedefler; izinli uzman okumaları, su geçmişi ve günlük program–tüketim karşılaştırması |
+| İletişim/görev | Öğün yorumu/tek düzey cevap; sürümlü görev atama, durum/tercih/geçmiş ve ilişki sonunda iptal |
+| Sağlık | Manuel aktivite, bağlantı/kaynak/örnek/receipt, atomik sync ve conservative_overlap_v1 günlük özet |
 
-Testler: ayrı sentetik PostgreSQL için `SMART_NUTRITION_TEST_CONNECTION_STRING`,
-Mailpit HTTP için `SMART_NUTRITION_TEST_MAILPIT_URL`, SMTP için
-`SMART_NUTRITION_TEST_SMTP_HOST`, `SMART_NUTRITION_TEST_SMTP_PORT` ve
-`SMART_NUTRITION_TEST_SMTP_FROM` ayarlanır. `dotnet test
-SmartNutrition.Backend.slnx --no-build --no-restore --filter
-FullyQualifiedName~PasswordResetTests` gerçek e-posta bağlantısı, tek kullanım,
-eski cookie/JWT/refresh reddi ve MFA korunmasını da çalıştırır. U5 test DB'si
-`127.0.0.1:55585/nutrition_u5_test`, Mailpit HTTP 58027/SMTP 51027'dir;
-uygulama DB'si veya mevcut hesaplar kullanılmaz. Fiziksel tarayıcı/Flutter testi değildir.
+MealLog/MealLogItem artık EF'e bağlıdır ve migration/API'si vardır. Mobil refresh, reset ve görev/sağlık API'leri “henüz yok” değildir. Katalog/tarif, yemek AI, tahlil/OCR, bildirim teslimi, PDF ve kapsamlı Admin operasyonları onaylı fakat henüz tamamlanmamış kapsamdadır.
 
-## 19.11.2026 — U4 diyetisyen su okuması / M4
+Tam endpoint/DTO ve yetki kaynağı [06](../docs/06_API_CONTRACT.md), kalıcı şema [05](../docs/05_DATA_DICTIONARY.md), sağlık aktarımı [20](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md)'dir. README yeni sözleşme tanımlamaz. Backend sorumluluğu kişi adına göre değil [AGENTS.md](../AGENTS.md)'deki güncel göreve göre belirlenir.
 
-Kendi WaterLog CRUD/toplam ve kişisel hedef davranışı korunur. Uzman için
-`/api/v1/dietitian/clients/{clientId}/water-logs` GET liste, `/daily-total`
-ve `/daily-history` eklendi; güncel doğrulanmış uzman + kendi active ilişkisi +
-bağımsız açık water_logs izni aynı snapshot'ta denetlenir. Salt okunurdur.
-Tüketim hedef paylaşımı içermez. Tarih, DTO ve M4 izin örnekleri
-[21_WATER_LOG_SHARING_CONTRACT.md](../docs/21_WATER_LOG_SHARING_CONTRACT.md).
+## 2. Gereksinimler ve kurulum
 
-`Relationships:Sharing:WaterLogsEnabled=false` varsayılanı korunur. M4 beş kategori
-ayrıştırıcısı/sayfalaması ve geri alma doğrulanmadan ortamda açılmaz. İzin satırı
-varsayılan oluşturulmaz; ayar kapalıyken mevcut izin geri çekilebilir.
-Migration `20261118230136_AddWaterLogSharingCategory` U3 sonrası yalnız check
-genişletir; yeni tablo/index/backfill yok. Su izin satırı varken Down reddedilir.
-Uygulama DB'sine uygulanmadı; ayrı test PostgreSQL'i kullanılır.
+Komutlar aksi belirtilmedikçe **backend/** içindedir. PowerShell örnekleri PowerShell 7 içindir.
 
-## 19.11.2026 — U3 sağlık aktarımı / M3 entegrasyonu
-
-`Features/HealthData`: kanonik ActivityLog/WearableConnection; native kaynak
-başlığı, skaler/nabız örnekleri ve atomik batch receipt. Yalnız kendi client JWT'si,
-uzman/Admin/cookie erişimi yok. Endpoint/DTO/örnek, birim, gün/UTC, kaynak kimliği,
-tekrar/güncelleme/silme, izin ve hata kodları [M3 teslim notunda](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md).
-
-Migration `20261118222117_AddHealthDataSync` U1 sonrasındadır; beş yeni tablo,
-unique kaynak/batch indeksleri, composite sahiplik FK'leri ve değer/aralık check'leri.
-Mevcut veri değiştirilmez, veri varken Down reddedilir. Uygulama DB'sine uygulanmadı.
-Test bağlantısı yalnız `SMART_NUTRITION_TEST_CONNECTION_STRING` ile ayrı sentetik
-PostgreSQL ortamına verilmelidir. Eski AuthPostgres testleri temel şema bekler;
-yalnız test DB'sini migration ile hazırlayıp tüm solution testleri çalıştırılır.
-Fiziksel Health Connect/HealthKit ve M3 mobil HTTP senkronizasyonu bu backend
-doğrulamasından çıkarılmaz; mobil dosya değişmedi.
-
-## 18–19.11.2026 — U1 görev sistemi / M2 entegrasyonu
-
-Kullanıcının U1 uygulama onayıyla ClientTask API/PostgreSQL/geçmiş hazırdır.
-React U2 ve Flutter M2 bu teslimde uygulanmaz; kesin sözleşme `docs/04/05/06`.
-
-- `GET /api/v1/client-tasks?page=1&pageSize=20`: danışanın kendi görevleri.
-  Diyetisyen ayrıca `clientId=<ClientProfile UUID>` gönderir. Gövdeler/sayılar
-  aynı yetkili snapshot'tan, yalnız atayanın özgün active ilişkisindendir.
-- `GET /api/v1/client-tasks/{clientTaskId}`: tam 11 alanlı ClientTaskResponse.
-- `POST /api/v1/client-tasks`: `{ "clientId": "<profil UUID>",
-  "description": "Sentetik görev", "dueAt": null }`. Onaylı atayan ve ilişki
-  sunucudan; 201 + Location; pending, versionNumber=1, reminder=false.
-- `PATCH /api/v1/client-tasks/{clientTaskId}`: danışan örneği
-  `{ "expectedVersionNumber": 1, "status": "completed" }`. Danışan yalnız
-  pending→in_progress/completed veya in_progress→completed ve hatırlatma
-  tercihini yazar. Diyetisyen açık görevin description/dueAt'ini değiştirir
-  veya cancelled yapar. Terminal görev değişmez. Eski sürüm 409; otomatik
-  tekrar/overwrite yoktur, GET ile güncel kayıt okunur.
-- `GET /api/v1/client-tasks/{clientTaskId}/versions?page=1&pageSize=20`:
-  `{ items, totalCount }`; her item id/clientTaskId/versionNumber/createdAt/
-  snapshot taşır. Tamamlama zamanı completed snapshot'ın createdAt'idir;
-  recordedByUserId yalnız sunucudadır. Liste/geçmiş sayfaları zorunlu,
-  pageSize en çok 100; listede createdAt DESC/id ASC, geçmişte sürüm DESC.
-
-ClientTaskResponse: id/clientId/dietitianId/relationshipId/description/status/
-dueAt/isReminderEnabled/createdAt/updatedAt/versionNumber. Nullable dueAt
-anahtarı null olarak kalır; kesin zaman açık offset ister ve UTC saklanır.
-Oluşturma/değiştirmede gelecekte olmalı; geç tamamlama mümkündür. Açıklama
-1–2000 Unicode kod noktasıdır. isReminderEnabled yalnız danışan tercihidir,
-varsayılan false; dueAt yoksa true reddedilir, tarih kaldırılırsa false olur.
-Bildirim worker'ı, zamanlama veya teslim garantisi **yoktur**.
-
-JWT ve W2 cookie aynı kaynakları kullanır; çift profilde X-Profile-Context,
-web yazmasında CSRF/Origin zorunludur. Yanıtlar/hatalar no-store'dur.
-Doğrulanmış uzman + atayan sahipliği + özgün active ilişki + bağımsız
-client_tasks izni gerekir. Diğer izinlerden görev erişimi türetilmez. İzin
-geri çekilince diyetisyene 403, ilişki bitince 404; danışanın kendi geçmişi
-korunur. İlişki sonu yalnız açık görevleri atomik cancelled yapıp snapshot
-ekler; yeni ilişki eski görevleri uzmana açmaz. Admin görev erişimi kazanmaz.
-
-M2 önce ortak main'e alınmış bu API'yle eşitlenir; mevcut izin POST/PATCH'inde
-category=client_tasks, consentRecordId=null destekler. Çoklu kategori/sayfalama
-uyumu doğrulanana kadar `Relationships:Sharing:ClientTasksEnabled=false` kalır.
-Bu ayar yeni izin satırını/true yapmayı kapatır; mevcut izni geri çekmeyi veya
-okumayı gizlemez. Kullanıcı açıkça izin vermeden erişim açılmaz.
-
-Migration `20261118204842_AddClientTasks`: yeni görev/geçmiş tabloları, özgün
-ilişki üçlüsü FK/unique ve izin check genişletmesi. Mevcut veri/izinler değişmez;
-görev/geçmiş/client_tasks izin satırı varken Down reddedilir. Uygulama DB'sine
-bu görevde uygulanmadı. Testler yalnız ayrı geçici PostgreSQL üzerinde sentetik
-veri kullanır. Görev test filtresi `FullyQualifiedName~ClientTaskApiTests`.
-
-Son doğrulama (19.11.2026): `dotnet build SmartNutrition.Backend.slnx --no-restore`
-0 uyarı/hata; `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`
-ayrı PostgreSQL 17.11'de 447 başarılı / 2 opt-in Mailpit atlandı / 0 başarısız
-(19 görev testi dahil). `dotnet ef migrations has-pending-model-changes
---project src/SmartNutrition.Api --no-build` fark bulmadı; `git diff --check` geçti.
-
-## 18.11.2026 — K1–K4 günlük program–tüketim karşılaştırması
-
-`GET /api/v1/nutrition-plans/{nutritionPlanId}/versions/{versionId}/meal-comparison`
-zorunlu `from`/`to` açık offsetli yerel gece yarısı sınırlarıyla çalışır.
-Örnek query: `from=2026-11-18T00%3A00%3A00%2B03%3A00&to=2026-11-19T00%3A00%3A00%2B03%3A00`.
-Seçilen gün snapshot tarih aralığında olmalıdır. Beş öğün türünün plan
-öğeleri, sayfalama bağımsız SQL agregasyonları, bilinen değer/eksik sayıları
-ve koşullu günlük kalori farkı döner. Tam DTO ve kurallar `04/05/06` ile
-onaylı `19` K1–K4'tedir; uyum yüzdesi veya otomatik tarihsel aktif sürüm seçimi
-yapılmaz. Yeni tablo/migration veya açılım bayrağı yoktur.
-
-Danışan kendi verisini ilişkisiz okuyabilir; doğrulanmış diyetisyen için
-aktif ilişkinin hem `nutrition_plans` hem `meal_logs` açık izni gerekir.
-Mevcut izin açılım bayrağı yalnız izin yazmayı yönetir, karşılaştırma için
-var olan açık izin kontrolünü kaldırmaz. Actor/iki izin/snapshot/tüketim aynı
-repeatable-read transaction'ındadır. Admin sağlık erişimi yoktur.
-
-## 18.11.2026 — Diyetisyenin gerçek ölçüm okuması
-
-`GET /api/v1/dietitian/clients/{clientId}/body-measurements` mevcut ölçüm
-kaydını cookie/JWT ile, güncel onaylı uzman + aktif ilişki + body_measurements
-izniyle salt okunur döndürür. Zorunlu page/pageSize (1–100), opsiyonel açık
-UTC/ofsetli from/to ve sortOrder=asc/desc; varsayılan measuredAt azalan/id
-artan, from dahil/to hariçtir. sortOrder=asc kronolojik grafik okumaları içindir.
-Not ve nullable ölçümler kendi CRUD yanıtıyla aynıdır. Normatif ayrıntı docs/06'dadır.
-
-`AddBodyMeasurementSharingCategory` yalnız izin kategori check'ini genişletir;
-ölçüm tablosuna/izin satırlarına veri yazmaz. Yeni kategori satırı varken Down
-veri silmek yerine durur. Mevcut uygulama DB'sine bu görev otomatik migration uygulamaz.
-`Relationships:Sharing:BodyMeasurementsEnabled` varsayılan false; ortam değişkeni
-`Relationships__Sharing__BodyMeasurementsEnabled`. Mobil yeni kategori/sayfalama
-uyarlaması doğrulanmadan açılmaz. Yalnız Development'ta true etkili olur;
-Production/Staging override'ı yeni izin yazmasını açmaz. Mevcut iznin okunması
-ve geri çekilmesi korunur.
-
-## 07.11.2026 — G1 öğün paylaşım izin altyapısı
-
-Kullanıcı ortak onayıyla mevcut DataSharingPermission kategorilerine
-`meal_logs` eklendi. `nutrition_plans` bağımsız kalır. Mevcut izin yolları
-ve JSON alanları korunur; satır oluşturma/güncelleme yalnız danışanın kendi
-aktif ilişkisindedir. Yeni kategori öğün API'sini veya sağlık erişimini
-kendiliğinden açmaz; bu teslim yalnız G1'dir (`docs/17`).
-
-`AddMealLogSharingCategory` migration'ı yalnız kategori check kısıtını
-genişletir; eski izinleri, unique indeksi ve tablo alanlarını korur. Yeni
-izin satırı veya otomatik onay oluşturmaz. Normal deployment migration'ı
-`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
-ile uygulanır; bu görev mevcut uygulama veritabanına migration uygulamaz.
-Down, meal_logs satırı varken veri silmek yerine check ihlaliyle geri alınır.
-
-`Relationships:Sharing:MealLogsEnabled` varsayılan false'tur; ortam değişkeni
-`Relationships__Sharing__MealLogsEnabled`. Kapalıyken yeni meal_logs satırı
-ve mevcut satıra true yazması 422; yetkili false geri çekmesi 200 olur.
-GET liste/detay eski satırları gizlemez. Bu bayrak danışan adına izin vermez.
-
-**Mert'e geçiş notu:** Mobil izin ayrıştırıcısı çoklu kategori/sayfalamayı
-destekleyip öğün iznini ayrı ve açık bir danışan işlemiyle yönetmeden ortak
-ortamda bayrak true yapılmaz. Mevcut meal_logs satırları varsa bayrağı
-kapatmak eski mobil sürüme güvenli dönüş sağlamaz. `04/05/06` ve mobil
-uyarlama ortak main üzerinden eşitlenmelidir. Flutter bu görevde değişmez.
-
-**G1 doğrulaması:** `dotnet build SmartNutrition.Backend.slnx --no-restore`
-0 uyarı/0 hata; `dotnet tool run dotnet-ef migrations has-pending-model-changes
---project src/SmartNutrition.Api --no-build` temiz. Geçici PostgreSQL 17.11'de
-DataSharingPermissionTests/RelationshipApiTests/InfrastructureTests filtresiyle
-40 test geçti; `dotnet test SmartNutrition.Backend.slnx --no-build --no-restore`
-genel koşusunda 307 geçti, 2 Mailpit SMTP testi atlandı. Docker açılış hatası
-nedeniyle testler [resmi Windows taşınabilir PostgreSQL dağıtımı](https://www.postgresql.org/download/windows/)
-ile, ayrı geçici küme/DB'de çalıştı. Test sunucusu ve kümesi temizlendi.
-
-## 02.11.2026 — Mevcut danışanla uzman başvurusu
-
-Doğrulanmış danışan cookie/CSRF ile `POST /api/v1/dietitians/me/application`
-üzerinden yalnız displayName/licenseInfo gönderir. Pending profil aynı User'a
-eklenir; Admin MFA onayı sonrası temel rol client kalır. ClientProfile, geçmiş,
-ilişkiler ve mevcut JWT/cookie korunur. Yeni migration veya paket yoktur.
-Ortak ilişki/paylaşım/program uçlarında X-Profile-Context: dietitian uzman
-bağlamını seçer; sunucu güncel onay, sahiplik, aktif ilişki ve izni denetler.
-Başlıksız danışan çağrıları eski davranışı korur. Normatif ayrıntılar docs/06'dadır.
-
-## 02.11.2026 — P1–P7 parola sıfırlama ve JWT sürüm kontrolü
-
-`AddPasswordReset` additive migration'ı User'a üç gizli reset metadata alanı ve
-varsayılan 0 credentials_version ekler. Mevcut verileri silmez. Yerel/üretim
-uygulama DB'sine uygulamadan önce yedek alın; testler ayrı geçici DB/şemalarda çalışır.
-Bu görev otomatik olarak mevcut uygulama DB'sine migration uygulamaz.
-
-- POST /api/v1/auth/password-reset-requests yalnız {email}: genel boş 202.
-- POST /api/v1/auth/reset-password yalnız {token,password}: atomik başarı boş 204;
-  geçersiz/süresi dolmuş/kullanılmış kod veya parola politikası 422. Ortak hata zarfı,
-  4096 byte JSON ve no-store korunur; tam kurallar docs/06'dadır.
-- Yalnız doğrulanmış client/dietitian; U5 20.11 onayıyla Admin de uygundur.
-  Admin MFA/kurtarma kodları ve cookie biçimi korunur.
-- 256 bit kod, 30 dakika, amaç önekli hash. Mevcut SMTP/Mailpit kullanılır; kod elle
-  yapıştırılabilir veya U5 web bağlantısı açılır. Reset ve başarı bildirimi sınırlı
-  bellek kuyruğundadır; teslim garantisi yok.
-- Auth:PasswordReset: ResendCooldownSeconds=60, RequestsPerMinute=5,
-  ConsumeRequestsPerMinute=10, QueueCapacity=100. Süre TokenLifetime=30 dakika;
-  eski metadata 10 dakikalık temizlikle kaldırılır. Üretim ortak limit/teslim ayrı kalır.
-- Reset parola+kod tüketimi+sürüm artışı+tüm cookie/refresh ailelerini tek transaction'da
-  değiştirir. Login/refresh credentialsVersion claim'i verir, her bearer doğrulaması
-  DB'den güncel sürümü kontrol eder; DB hatasında erişim açılmaz. Eski claim'siz JWT
-  reddedilir. Mevcut login yanıtı tam beş alanlıdır; access JWT 15 dakika korunur.
-- Normal logout sürüm artırmaz; onun access JWT kalan süre sınırı değişmedi. Reset
-  sonrası eski JWT için 15 dakika penceresi yoktur; önceden yetkilendirilen istek bitebilir.
-- Dağıtım: önce yedekli migration, tüm API örneklerinde yeni middleware, ardından reset
-  kullanımı. Geçerli eski refresh yeni sürümlü JWT verebilir; resetle iptal edilenler
-  normal giriş gerektirir. Mobil/web reset ekran entegrasyonları bu görevden ayrıdır.
-
-Aşağıdaki eski tarihli reset/stateless açık notları bu alt kapsam için tarihseldir.
-
-## Mobil refresh token ve sunucuda çıkış — 31.10.2026
-
-`AddRefreshTokens` migration'ı yalnız `refresh_tokens` hash geçmişini ve
-indekslerini ekler; mevcut User/profil/web session tablolarını değiştirmez.
-Backend içinde `dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
-ile normal dağıtım migration'ı uygulanmalıdır. Bu görevde mevcut uygulama DB'si
-yerine geçici test veritabanında migration ve regresyonlar doğrulandı.
-
-JWT login isteği `{ email, password }` ve 15 dakikalık JWT güvenliği korunur.
-Login/refresh yanıtı artık beş alandır:
-
-```json
-{
-  "accessToken": "<JWT>",
-  "tokenType": "Bearer",
-  "expiresAt": "<UTC ISO 8601>",
-  "refreshToken": "<256 bit opak token>",
-  "refreshTokenExpiresAt": "<UTC ISO 8601>"
-}
-```
-
-`POST /api/v1/auth/refresh` ve `POST /api/v1/auth/logout` yalnız
-`{ "refreshToken": "<token>" }` JSON'u alır; Authorization/cookie/query gönderilmez.
-Refresh `200` ile yeni çifti verir; logout idempotent boş `204` ile yalnız
-ilgili aileyi iptal eder. Geçersiz/expired/revoked/replay refresh aynı `401`dir.
-Eksik/bozuk/ek alan `400`, içerik `415`, 4096 byte sınırı `413`, IP limiti `429`,
-altyapı `500`; ortak hata zarfı/no-store kullanılır.
-
-`Auth__RefreshTokens__LifetimeDays` varsayılan 30 (1–365),
-`Auth__RefreshTokens__RequestsPerMinute` varsayılan 30 (>0) olarak yapılandırılır.
-İkinci ayar refresh/logout için ayrı süreç içi IP sayaçlarını sınırlar; web
-login/cookie/CSRF/Admin MFA davranışını değiştirmez.
-
-Ham token yalnız geçici yanıt belleğindedir; DB'de SHA-256 hash vardır.
-User satır kilidi altında tüketim/yeni hash/commit atomiktir. Aile mutlak
-süresi rotasyonda uzamaz; PostgreSQL mikrosaniye hassasiyetiyle ilk ve sonraki
-yanıtın aynı bitişi taşıması korunur. Herhangi bir tüketilmiş ata tekrarında
-tüm aile iptal edilir. Aktif geçmiş silinmez; yalnız mutlak süresi bitmiş
-hash'ler on dakikada bir temizlenir. Gizli değerler loglanmaz.
-
-**Flutter geçişi:** Mevcut katı üç alanlı login ayrıştırıcısı beş alana
-güncellenmeden login yanıtını reddeder. İstemci token çiftini güvenli biçimde
-birlikte saklamalı, refresh'i tek eşzamanlı işlemde yürütmeli ve kayıp başarılı
-yanıtı eski tokenla otomatik tekrarlamamalıdır. Eski tokenın paralel/yeniden
-kullanımı kazanan tokenı da iptal edebilir; bu durumda yeniden giriş gerekir.
-Mobil/web kaynakları bu backend görevinde değiştirilmemiştir.
-
-**Sınır:** Logout/tekrar kullanım refresh ailesini kapatır; önceden verilmiş
-stateless access JWT anında iptal edilmez ve kalan en fazla 15 dakikası boyunca
-kullanılabilir. Gelecekteki parola/güvenlik yazmaları aynı User kilidi altında
-refresh ailelerini de iptal etmelidir; genel access denylist/sid/sıfırlama yoktur.
-
-Doğrulama: `dotnet build` 0 uyarı/hata; geçici gerçek PostgreSQL ve Mailpit ile
-`dotnet test` **263 başarılı, 0 atlandı**. Rotasyon/replay, paralel refresh ve
-logout yarışı, rollback, mutlak süre/temizlik ve veri koruyan migration test edildi.
-Geçici veritabanları temizlendi; mevcut uygulama DB'sine migration uygulanmadı.
-
-## Program oluşturma, atama ve sürümler — N1–N3
-
-`docs/16` ortak onayıyla `Features/NutritionPlans/` eklendi. Backend dizininde
-`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
-komutu `AddNutritionPlansAndVersions` migration'ını uygular. Program ve
-değişmeyen sürüm tabloları, nullable uzman FK'si, tek active client indeksi,
-sürüm numarası unique ve alan check'leri eklenir; mevcut tablolar silinmez.
-
-Danışan kendi kişisel programını oluşturur/yazar; atanmış programı salt okunur
-okur. Doğrulanmış uzman aktif ilişki + nutrition_plans izniyle okur ve yalnız
-kendi programını oluşturur/düzenler/etkinleştirir/arşivler. POST draft döner;
-atama açık activate çağrısıdır. Başka active program 409 verir; gizli geçiş
-yoktur. Her geçerli PATCH yeni snapshot ve item UUID'leri oluşturur; status
-değişimi içerik sürümünü artırmaz. Aktif ilişki bitişinde o uzmanın active
-programı aynı transaction'da arşivlenir, danışan geçmiş erişimi sürer.
-
-Tam yollar/payload ve mobil null/kimlik kuralları `docs/04/05/06`dadır.
-Gün/miktar/alternatifler desteklenir; recipeId bu dilimde yalnız null.
-Klinik hedefler otomatik hesaplanmaz. Cookie yazmaları W2 CSRF/Origin ister.
-Program yazması, izin geri çekme ve ilişki bitişi ortak ClientProfile kilidi
-altında güncel yetkiyle yürür; sunucu kaydeden kimliğini yanıta açmaz.
-
-Doğrulama: geçici PostgreSQL/Mailpit ile **250 test geçti, 0 atlandı**.
-Yeni dilimde sahiplik, değişmeyen snapshot, alt kayıt erişimi, tek active
-yarışı/DB indeksi, atomik rollback, izin geri çekme ve CSRF test edildi.
-Test verileri sentetik ve geçicidir. Flutter entegrasyonu bu görevde yapılmadı.
-
-## İlişki/davet ve ilk paylaşım kategorisi — R1–R3
-
-`docs/15` ortak onayıyla `Features/Relationships/` eklenmiştir. Yeni migration
-`AddRelationshipsAndSharingPermissions`, mevcut veriyi silmeden ilişki/izin
-tablolarını, tek aktif ve pending çift indekslerini ve uzman davet hash/expiry
-alanlarını ekler. Normal `dotnet-ef database update` komutu uygulanır.
-
-Doğrulanmış uzman `/dietitians/me/invitation-code` ile 24 saatlik/tek kullanımlık
-kod üretir. Danışan `/dietitian-relationships` ile dietitianId veya bu koddan
-tam biriyle pending talep açar; yalnız hedef uzman kabul/red verir. Her iki
-taraf kendi pending/active ilişkisini sonlandırabilir. Aktif ilişki yarışı
-ClientProfile kilidi ve DB unique indeksiyle korunur; geçmiş silinmez.
-
-İlk kategori `nutrition_plans` varsayılan kapalıdır. Danışan aktif ilişkide
-`/data-sharing-permissions` ile izin oluşturur, PATCH ile geri çeker.
-Başka kategori ve dolu consentRecordId reddedilir; tahlil onayı veya diğer
-sağlık kategorileri açılmaz. Kullanıcı/profil kimliği ve güncel rol/doğrulama
-her istekte DB'den kontrol edilir. Cookie yazmaları W2 CSRF/Origin ister;
-JWT taşıyan mobil istemciye cookie/CSRF şartı eklenmez.
-
-Gerçek `/dietitian/clients` listesi yalnız id/displayName; dashboard yalnız
-clientId/displayName döndürür. Aktif ilişki ve doğrulanmış uzman gerekir;
-sağlık özeti veya varsayılan sıfır yoktur. Liste page/pageSize ister; query ve
-sortOrder asc/desc destekler. İlişki listesi ayrıca mevcut status filtresi alır.
-
-Talep/kod üretimi hem hesap hem doğrudan IP için 5/dakika; ayrı ayarlar
-`Relationships__Limits__RequestsPerMinute` ve `InvitationCodesPerMinute`.
-Sayaçlar süreç içidir; çok örnekli dağıtım/proxy, tam izin audit'i ve gerçek
-yayın için `docs/11` kapısı korunur. Program içerik/sürüm/atama sonraki N1–N3 diliminde eklendi.
-
-Doğrulama: PostgreSQL/Mailpit ile 240 backend testi geçti, 0 atlandı; kod
-rotasyonu/expiry/tek kullanım ve rollback, kabul yarışı, ham DB indeksi,
-izin geri çekme/sonlandırma ve cookie CSRF kontrol edildi. Test fabrikası
-yalnız kendine ait geçici şema bağlantı havuzunu kapatır; ortak havuza dokunmaz.
-
-## Uzman başvurusu ve Admin MFA — B1–B3 (29.10.2026)
-
-**03.11.2026 yerel sunum istisnası:** Development'da
-`Auth:AdminEmailCode:Enabled=true` ve loopback SMTP:1025 ile yönetici giriş
-ekranındaki **E-posta ile kod gönder** mevcut Mailpit'e kod yollar. Önce
-e-posta/şifre girilir; sonra Mailpit'teki 6 haneli kodla aynı formdan giriş yapılır.
-Kod 5 dakika/tek kullanım, gönderim aralığı 60 saniye, hatalı deneme sınırı 5'tir.
-Genel 202 teslim veya oturum garantisi değildir. Yeni yol ve korumalar `06`dadır.
-TOTP/kurtarma kodları değişmez; Production/Staging bu alternatifi ve onun
-cookie'lerini reddeder. Migration, Admin yeniden kurma veya MFA sıfırlama gerekmez.
-
-`docs/14` ortak onayıyla `Features/Dietitians/` ve Admin MFA eklenmiştir.
-`dotnet tool run dotnet-ef database update --project src/SmartNutrition.Api`
-komutu yeni uzman/audit tablolarını ve sunucu MFA alanlarını ekler. Mevcut
-hesaplara varsayılan uzman doğrulaması veya MFA yetkisi verilmez.
-
-Webden `/uzman-basvurusu` → e-posta doğrulama → normal giriş →
-`/uzman/basvuru-durumu` akışı kullanılır. Admin `/yonetici-giris` üzerinden
-TOTP/kurtarma koduyla giriş yapar; `/yonetim/uzmanlar` özel mesleki açıklamayı
-listeler ve e-postası doğrulanmış uzmanı onaylar. Onay aynı transaction'da
-AuditEvent üretir. Sağlık, ilişki ve program API'leri bu dilimde açılmaz.
-
-İlk Admin ve MFA yenilemesi HTTP endpointi değildir. Backend dizininden,
-API ile **aynı DB ve W2 Origin/kalıcı korumalı key ring yapılandırmasıyla**:
+- .NET 10 SDK: `global.json` 10.0.100 tabanından kararlı latestFeature sürümüne izin verir. Solution `SmartNutrition.Backend.slnx`, API projesi `src/SmartNutrition.Api`dır.
+- EF Core/yerel dotnet-ef 10.0.12, Npgsql sağlayıcısı 10.0.3; gerçek bağımlılıklar csproj/araç manifestindedir.
+- PostgreSQL 17 ve ICU collation desteği. Yerel Docker kurulumu için Docker Desktop Linux motoru gerekir.
+- SMTP için yerel Mailpit; web/Admin için güvenilir HTTPS ve korumalı Data Protection key ring.
 
 ```powershell
-dotnet run --no-launch-profile --project src/SmartNutrition.Api -- --initialize-admin <ozel-girdi-json-yolu> <yeni-enrollment-json-yolu>
+dotnet restore
+dotnet tool restore
+dotnet build SmartNutrition.Backend.slnx --no-restore
 ```
 
-Girdi Git dışında, yalnız işletmen hesabının okuyabildiği bir dosyadır;
-yalnız `email` ve `password` string alanlarını içerir. Parola mevcut 8–128
-Unicode politikasına uyar. Parolayı komut satırı argümanına, terminal çıktısına
-veya depoya koymayın. Çıktı yolu da Git dışında olmalı ve mevcut olmamalıdır.
-Çıktı yalnız `manualKey`, `otpAuthUri`, `recoveryCodes` içerir; uygulama Windows
-dosya ACL'ini yalnız çalıştıran hesaba, Unix modunu 0600'a ayarlar. Yerel
-işletmen, anahtarı kendi doğrulayıcısına aktarır ve 10 kurtarma kodunu güvenli
-yerde tutar; girdi ve enrollment dosyalarını işlemden sonra kaldırır.
+### PostgreSQL ve User Secrets
 
-Başarı çıkış kodu 0, başarısızlık 1'dir; sırlı içerik/hata ayrıntısı yazdırılmaz.
-Mevcut çıktı üzerine yazılmaz ve başka role ait hesap Admin'e dönüştürülmez.
-Mevcut Admin için aynı komut güncel parolayı doğrular, MFA'yı yeniler ve tüm
-web oturumlarını aynı transaction'da iptal eder. Eski TOTP/kurtarma kodları
-geçersizleşir. Yanlış parola, yapılandırma veya dosya hatası DB değişikliğini
-geri alır. İlk kurulum işletmeninin sunucuya yerel erişimi güven sınırıdır.
+`compose.yaml` yalnız PostgreSQL ve Mailpit'i başlatır; API hostta çalışır.
 
-MFA Otp.NET 1.4.1 kullanır: [resmî kaynak](https://github.com/kspearrin/Otp.NET).
-6 hane/30 saniye/±1 adım ve kullanılmış adımın DB'de tekrar reddi uygulanır.
-Kurtarma kodu 128 bit/32 büyük hex hane; yalnız hash saklanır. Mevcut JWT ve
-normal W2 login Admin'e kapalı kalır. Admin cookie'si DB'deki MFA kanıtı ve
-güncel rol/doğrulama/süre/iptal ile her istekte kontrol edilir.
+| Kaynak | Yerel değer |
+|---|---|
+| Compose projesi | smart-nutrition-platform |
+| PostgreSQL servis/konteyner | postgres / smart-nutrition-postgres |
+| Host / DB / kullanıcı | 127.0.0.1:5433 / smart_nutrition / smart_nutrition |
+| Kalıcı volume | smart-nutrition-postgres-data |
+| Mailpit servis/konteyner | mailpit / smart-nutrition-mailpit |
+| Mailpit SMTP/UI | 127.0.0.1:1025 / http://127.0.0.1:8025 |
 
-Başvuru limiti `Dietitians__Application__RequestsPerMinute` (varsayılan 5/IP/dk).
-Admin login mevcut JWT/web login sayacını paylaşır. Liste endpointleri açık
-varsayılan seçmemek için page/pageSize'ı zorunlu alır; web pageSize=10 gönderir.
-Public arama licenseInfo/e-posta/MFA metadata'sını göstermez.
+**Yalnız ilk yerel kurulumda**, mevcut .env yoksa parolayı konsola yazmadan oluşturun. Var olan .env veya volume için bu bloğu yeniden kullanmayın:
 
-Ret, yeniden başvuru, uzman doğrulamasını geri alma, mobil refresh/iptal ve
-parola sıfırlama bu dilimde açık kalır. Gerçek yayın `docs/11` kapısına bağlıdır.
-
-Tek ASP.NET Core Web API projesi ve bir xUnit test projesi. Hedef .NET 10;
-oluşturma ortamı SDK 10.0.401. `global.json`, kararlı .NET 10 SDK feature band'lerini
-kabul eder. EF Core/araçlar 10.0.12, Npgsql sağlayıcısı 10.0.3 olarak sabitlendi.
-
-`POST /api/v1/auth/register` ile User ve ClientProfile PostgreSQL'e kaydedilir;
-doğrulama e-postası SMTP üzerinden arka planda gönderilir. `verify-email` ve
-`resend-verification` uçları hazırdır. `login`, doğrulanmış Admin olmayan hesaplara
-15 dakikalık JWT access token verir. `GET /api/v1/auth/me` yalnız oturum sahibinin
-kendi hesap özetini döndürür. W2 web çıkışı ve B1–B3 Admin MFA/onayı vardır;
-mobil refresh/iptal ve parola sıfırlama açık kalır. `MealLog` ve
-`MealLogItem` doğrulanan C# modelleri olarak hazırdır; DbContext'e bağlanmamıştır.
-Kayıt/e-posta doğrulama/JWT giriş/kendi hesap özeti şemaları ortak `04/05/06/11/12` belgeleriyle eşgüdümlüdür.
-
-## Yapı
-
-- `src/SmartNutrition.Api/Program.cs`: servisler, JSON/hata kuralları ve HTTP pipeline.
-- `Data/AppDbContext.cs`: User/ClientProfile eşlemeleri bulunan Npgsql bağlamı.
-- `Data/Migrations/`: Auth tabloları ve e-postada harf duyarsız benzersizlik migration'ları.
-- `Health/PostgresHealthCheck.cs`: veritabanı erişimini değiştirmeden kontrol eder.
-- `Infrastructure/ApiErrors.cs`: `error: { code, message }, requestId` hata zarfı.
-- `tests/SmartNutrition.Api.Tests/`: gerçek uygulama host'u ile altyapı testleri.
-- `.config/dotnet-tools.json`: projeye özel `dotnet-ef`; global kurulum gerekmez.
-- `compose.yaml`: yalnız yerel geliştirme için PostgreSQL 17 ve Mailpit SMTP.
-- `Features/MealLogs/`: MealLog/MealLogItem alanları, yerel bütünlük kuralları ve MealType.
-- `Features/Auth/`: User/ClientProfile, EF eşlemeleri, kayıt/e-posta doğrulama/giriş servisleri ve JWT yapılandırması.
-- `Models/UserRole.cs`: mevcut `client`, `dietitian`, `admin` değerleri.
-- `Models/RecordSource.cs`: ortak kaynak değerleri; AI/cihaz entegrasyonunu etkinleştirmez.
-
-MealLog modelleri UUID, zorunlu alan, UTC an, en az bir kalem, kalem–öğün bağı,
-pozitif gram ve negatif olamayan kalori/makro kurallarını uygular. Bilinmeyen
-miktar/besin değerleri nullable `decimal` olarak korunur; yuvarlama, porsiyon
-dönüşümü, klinik sınır veya günlük saat dilimi politikası seçilmemiştir.
-Constructor parametreleri sunucu içi model verileridir, HTTP oluşturma DTO'su değildir.
-MealLog modelleri bu görevde de EF modeline eklenmemiştir; MealLog migration'ı yoktur.
-Auth entegrasyonunda User → ClientProfile kimlik çözümleme, kaynak sahipliği ve
-besin/tarif/analiz referans yetkileri tamamlanmalı; analiz için uygun tamamlanma ve
-kullanıcı onayı doğrulanmalıdır. Bunlar yerel model doğrulamasıyla sağlanmış sayılmaz.
-
-Gelecek iş modülleri ihtiyaç oldukça feature klasörlerinde oluşturulur. Ayrı
-Domain/Application/Infrastructure projeleri, genel repository veya ek servisler yoktur.
-
-## Auth kullanıcı ve profil temeli
-
-User hesabının UUID'si ile ClientProfile UUID'si ayrı kimliklerdir. Profilin zorunlu
-`user_id` FK'si ve benzersiz indeksi, bir hesabın en fazla bir danışan profiline
-bağlanmasını sağlar. User'ın profili olmayabilir; rol–profil ve çoklu rol politikası
-bu temel tarafından kesinleştirilmez. Profil oluşturulurken User nesnesinden alınan
-kimlik kullanılır. JWT middleware `sub` claim'ini güvenilir User UUID'si olarak
-doğrular; ilgili iş modülü bunu User → ClientProfile üzerinden danışana çözmelidir.
-Kaynak/ilişki/kategori yetkileri bu Auth temelinin yerine geçmez.
-
-`IPasswordHasher<User>` DI üzerinden ASP.NET Core Identity `PasswordHasher<User>`
-olarak sunulur; özel hash/salt algoritması veya ek Identity tablo takımı yoktur.
-User oluşturulurken yalnız hash saklanır; düz parola modelde tutulmaz ve kırpılmaz.
-Entity'nin hash, e-posta doğrulama durumu/token metadata'sı ve hesap–profil gezinme özellikleri JSON'a çıkmaz.
-`isEmailVerified` yalnız aşağıdaki onaylı `CurrentUserResponse` içinde ayrıca sunulur.
-Entity'ler HTTP kayıt/me DTO'su değildir; kayıt yalnız aşağıdaki DTO'larla çalışır.
-Girişte `SuccessRehashNeeded`, yalnız doğrulanmış ve girişe uygun hesabın hash'ini
-önceki hash/rol/doğrulama koşuluyla günceller; eşzamanlı parola değişikliğini ezmez.
-
-E-posta alanı harf duyarsız, aksanları ayırt eden ICU collation ve benzersiz indeks
-kullanır. `normalizedEmail` gibi yeni bir sözleşme alanı eklenmemiştir. Metin uzunluğu ve
-boy hassasiyeti/ölçeği seçilmemiştir; boy `numeric`, doğum tarihi nullable `date`tir.
-Zorunlu metin, rol ve pozitif/sonlu boy kısıtları DB'de de korunur. FK otomatik
-silme yapmaz (`NO ACTION`); bu, nihai hesap silme/saklama politikasının yerine geçmez.
-
-## Kayıt API'si
-
-- `RegisterUserRequest`: zorunlu `email`, `password`, `displayName`; isteğe bağlı `role`.
-  Rol gönderilmezse danışan oluşturulur; yalnız `client` kabul edilir, Admin/Diyetisyen
-  ve tanımsız roller reddedilir. Kimlik, hash, doğrulama bayrağı veya iç içe profil alanı gönderilemez.
-  E-posta, parola ve görünen ad girdileri JSON'a geri yazılmaz; DTO bir `record` değildir ve
-  varsayılan `ToString` girdileri dökmez. İstek nesneleri loglarda destructure edilmez.
-- `UserRegistrationService.ValidateAsync`: temel DTO ve parola doğrulamasından sonra
-  e-posta benzersizliğini DB'de kontrol eder. E-posta dış boşlukları kırpılır ve
-  Identity `UpperInvariantLookupNormalizer` ile Unicode/invariant normalizasyonu yapılır.
-- `PrepareAsync`: sunucunun ürettiği kimlik/zamanla, daima `UserRole.Client` ve Identity
-  hash'i içeren, EF tarafından izlenmeyen User hazırlayan mevcut yardımcıdır.
-- `RegisterAsync`: doğrulamadan sonra User ve ClientProfile nesnelerini oluşturur;
-  ikisini tek `SaveChangesAsync` transaction'ında kaydeder. Herhangi bir ekleme
-  başarısızsa ikisi de geri alınır. Ön kontrolde veya `ux_users_email` indeksinde
-  yakalanan mükerrer/yarışan kayıt `409 conflict` olur; DB hata ayrıntısı dönmez.
-
-`POST /api/v1/auth/register` JSON alır. Örnek alan biçimi (sentetik örnek):
-
-```json
-{ "email": "synthetic@example.test", "password": "sentetik parola", "displayName": "Örnek danışan" }
+```powershell
+if (Test-Path -LiteralPath .env) { throw 'Mevcut .env korunuyor; yeniden parola üretmeyin.' }
+$nutritionBytes = [System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32)
+$nutritionPassword = [Convert]::ToHexString($nutritionBytes).ToLowerInvariant()
+Set-Content -LiteralPath .env -Encoding ascii -Value "SMART_NUTRITION_POSTGRES_PASSWORD=$nutritionPassword"
+$nutritionConnection = "Host=127.0.0.1;Port=5433;Database=smart_nutrition;Username=smart_nutrition;Password=$nutritionPassword;Timeout=3;Command Timeout=3"
+@{ 'ConnectionStrings:DefaultConnection' = $nutritionConnection } | ConvertTo-Json -Compress | dotnet user-secrets set --project src/SmartNutrition.Api
+Remove-Variable nutritionPassword, nutritionConnection, nutritionBytes
 ```
 
-Başarı `201 { "id": "<User UUID>" }` döner. ClientProfile kimliği ayrı UUID'dir;
-doğum tarihi/boy toplanmaz ve nullable kalır. User'ın `is_email_verified` değeri
-başlangıçta `false`tur; istemci bunu atayamaz. Oturum tokenı, cookie veya otomatik giriş
-üretilmez. DB commit'inden sonra doğrulama e-postası kuyruğa alınır; ham doğrulama
-tokenı API yanıtına çıkmaz. Kayıt `Location` başlığı üretmez; yetkili `/auth/me`
-hesap özeti, oluşturulan kayıt kaynağı için ayrı GET detay yolu sayılmaz.
-Girdi/JSON/rol hataları `400 invalid_request`, parola politikası hataları
-`422 validation_failed`, desteklenmeyen içerik `415 unsupported_media_type`,
-beklenmeyen kayıt hataları `500 internal_error` olur. Tümü ortak
-`error: { code, message }, requestId` zarfını kullanır.
+.env Git tarafından dışlanır; gerçek değerleri depoya/mesaja/loga eklemeyin. Environment değişkeni .env'den önceliklidir. Mevcut volume varken .env parolasını değiştirmek PostgreSQL parolasını değiştirmez.
 
-Parola politikası `Auth:RegistrationPasswordPolicy` bölümünden options ile bağlanır.
-İlk sürüm `appsettings.json` değerleri: 8–128 Unicode karakteri (kod noktası),
-karakter türü zorunluluğu yok, boşluklar desteklenir. `RequiredUniqueChars = 1`
-ek bir farklı karakter zorunluluğu getirmez. Ortam/User Secrets ayarları merkezi
-değerleri değiştirebilir; örnek anahtar `Auth__RegistrationPasswordPolicy__RequiredLength`.
-Eksik/hatalı politika kullanıcı doğrulama hatası sayılmaz; `InvalidOperationException`
-olarak güvenli sunucu hatasına gider. Eski karmaşıklık testleri yalnız
-yapılandırılabilirlik senaryolarıdır, ilk sürüm politikasını değiştirmez.
+```powershell
+docker compose config --quiet
+docker compose up -d --wait --wait-timeout 60
+docker compose ps
+```
 
-Parola kırpılmaz/normalize edilmez veya loglanmaz; Unicode geçerliliği ve uzunluk
-sınırları hash'ten önce denetlenir. İstek doğrulama mesajları denenen değerleri
-içermez. EF hassas veri loglaması ve Npgsql hata detayları API bağlantısında kapalıdır.
-Onaylanan düz `displayName` girdisi, saklanan `isEmailVerified` alanı ve minimal
-`201 { id }` yanıtı ortak belgelere işlenmiştir. Diyetisyen başvurusu/çoklu rol,
-Profil düzenleme/uzman profili ve güvenli mobil saklama/istemci yenileme entegrasyonu açık kalır. Backend refresh/logout 31.10.2026 bölümünde uygulanmıştır.
+Başka yetkili PostgreSQL kullanılıyorsa `ConnectionStrings:DefaultConnection` User Secrets veya `ConnectionStrings__DefaultConnection` environment değişkeniyle sağlanır. Ortam değişkeni User Secrets'ı geçersiz kılar. User Secrets geliştirme deposudur; şifreli üretim secret deposu değildir. `docker compose stop` veriyi silmez; volume silme/parola rotasyonu bu kurulumun parçası değildir.
 
-## Giriş ve JWT access token
+### JWT
 
-`POST /api/v1/auth/login`, `application/json` ile zorunlu `email` ve `password`
-alır. Başarı `200` yanıtı `accessToken`, `tokenType: "Bearer"`, `expiresAt`,
-`refreshToken`, `refreshTokenExpiresAt` alanlarını taşır (31.10.2026 bölümü).
-Token yalnız bu onaylı başarı yanıtında verilir; kayıt/e-posta doğrulama yanıtlarına
-eklenmez. JWT login cookie veya profil yanıtı üretmez; refresh token yalnız
-login/refresh yanıtındadır.
+Auth:Jwt:Issuer, Audience ve SigningKeyBase64 zorunludur. Eksik/geçersiz ayarda API kimlik doğrulamayı açmaz. Anahtar Base64 kodlu en az 32 rastgele byte'tır; mevcut anahtarı rutin kurulumda yeniden üretmek mevcut JWT'leri geçersiz kılar.
 
-E-posta mevcut Identity normalizer ile kırpılır/normalleştirilir; parola aynen
-Identity PasswordHasher'a verilir. Olmayan hesapta da aynı altyapıyla dummy hash
-doğrulaması yapılır; dummy User/oturum/DB kaydı yoktur. Yanlış parola, olmayan
-hesap, doğrulanmamış e-posta ve Admin aynı `401 unauthenticated` hatasını alır.
-Admin hem token üretiminde hem bearer kabulünde kapalıdır; ayrı MFA web girişi korunur.
-
-JWT süresi 15 dakikadır; claim'ler yalnız `sub` (User UUID), `role` ve standart
-`iss`, `aud`, `iat`, `nbf`, `exp` değerleridir. ClientProfile UUID'si, e-posta, ad,
-hash veya sağlık verisi taşınmaz. `expiresAt`, imzalı `exp` ile aynıdır.
-`Authorization: Bearer <access-token>` kullanılır; token/parola/Authorization
-başlığı veya giriş yanıtı loglanmaz. DTO `ToString` tokenı dökmez.
-
-`JwtAuthentication` ASP.NET Core JWT bearer ve authorization middleware'ini kurar.
-`HS256` imza, `at+jwt` türü, tam issuer/audience ve lifetime zorunludur;
-`ClockSkew = 0` ile fazladan beş dakika tanınmaz. `[Authorize]` isteyen kaynaklar
-geçersiz token için ortak `401`, eksik rol/yetki için ortak `403` döndürür.
-Gelecek endpointler kendi `[Authorize]` ve kaynak politikalarını açıkça uygulamalıdır.
-Genel kimlik deneme endpointi eklenmemiştir; middleware test controller'ı yalnız test host'unda yüklenir.
-
-Varsayılan login limiti bağlantı IP'si başına dakikada 10 istektir:
-`Auth:Login:RequestsPerMinute` / `Auth__Login__RequestsPerMinute`.
-Sayaç API sürecindedir, hesap varlığından bağımsızdır ve aşım `429 rate_limited`
-olur. Gövde sınırı 4096 byte (`413`), şekil/ek alan hataları `400`, yanlış içerik
-`415`tir. Auth yanıtları `Cache-Control: no-store` kullanır ve ortak hata zarfı korunur.
-
-### JWT ayarları
-
-`Auth:Jwt:Issuer`, `Auth:Jwt:Audience`, `Auth:Jwt:SigningKeyBase64` zorunludur.
-Anahtar Base64 ile kodlanan en az 32 kriptografik rastgele byte olmalıdır;
-örnek kurulum 64 byte üretir. Gerçek anahtar repo/appsettings veya komut
-geçmişine yazılmaz. Eksik/hatalı JWT ayarı varsa API istek sunmadan başlamayı reddeder.
-
-`backend/` içinde yalnız ilk kurulumda aşağıdakini çalıştırın. Mevcut anahtarı
-yeniden üretmeyin; değiştirmek mevcut JWT'lerin doğrulamasını bozar.
+Aşağıdaki **yalnız ilk kurulum** örneği 64 byte üretir; anahtar terminal çıktısına veya komut geçmişine düz değer olarak girilmez:
 
 ```powershell
 $nutritionJwtKey = [Convert]::ToBase64String([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(64))
@@ -573,87 +84,11 @@ $nutritionJwtKey = [Convert]::ToBase64String([System.Security.Cryptography.Rando
 Remove-Variable nutritionJwtKey
 ```
 
-Development, User Secrets'ı okur. Üretimde karşılıklar `Auth__Jwt__Issuer`,
-`Auth__Jwt__Audience`, `Auth__Jwt__SigningKeyBase64`; yetkili secret deposu/ortamdan
-sağlanmalıdır. Yerel issuer/audience üretim ortamı kararı değildir. Üretim HTTPS,
-güvenilir proxy, çok örnekli limit ve anahtar rotasyonu ayrıca yapılandırılır.
+Üretim karşılıkları Auth__Jwt__Issuer/Audience/SigningKeyBase64'tür; yerel issuer/audience üretim kararı değildir.
 
-Bu dilim stateless access token sağlar; yeni tablo veya migration gerekmez.
-Anlık iptal, refresh/logout, cookie/istemci saklama, MFA ve parola sıfırlama
-henüz yoktur. İmzalı token süresi boyunca geçerli kalabilir; tam oturum iptali
-uygulanmış sayılmaz. Diyetisyen rolü tek başına sağlık verisine erişim sağlamaz.
+### Mailpit / SMTP
 
-## Kendi hesap bilgileri
-
-`GET /api/v1/auth/me` JWT bearer veya W2 web cookie authentication ile
-erişilir. İstek gövdesi ve query parametresi yoktur; `userId` kabul edilmez.
-Kimlik, middleware'in doğruladığı tek `sub` claim'indeki **User UUID'sidir**;
-ClientProfile kimliği veya özel istemci başlıkları hesap seçemez.
-
-Başarı `200`, `Cache-Control: no-store` ve yalnız şu beş alanı döndürür:
-
-```json
-{
-  "id": "<User UUID>",
-  "displayName": "Örnek danışan",
-  "email": "SYNTHETIC@EXAMPLE.TEST",
-  "role": "client",
-  "isEmailVerified": true
-}
-```
-
-`CurrentUserService`, User ve varsa ona ait ClientProfile'ı salt okunur tek
-projeksiyonla sorgular; yalnız onaylı alanları seçer. `displayName` profil yoksa
-açık null'dır; profilsiz client/dietitian için aynı DTO kullanılır. Yeni profil,
-DietitianProfile veya varsayılan ad oluşturulmaz. Email/ad/rol DB'den güncel alınır.
-Entity, parola hash'i, tokenlar, güvenlik metadata'sı ve diğer profil/sağlık alanları
-dönmez; hesap yanıtı loglanmaz. Okuma kayıtları veya `updatedAt`yi değiştirmez.
-
-Eksik/geçersiz/süresi dolmuş token ortak `401 unauthenticated` alır. Süresi
-bitmemiş tokenla da User silinmişse, e-posta doğrulaması kalkmışsa veya güncel rol
-token rolünden farklıysa aynı `401` döner. Admin MFA engeli korunur. İstemciden
-query/gövde gönderimi `400 invalid_request`, beklenmeyen DB/sunucu hatası ortak
-`500 internal_error` olur. Mevcut hata zarfı ve `WWW-Authenticate: Bearer` korunur.
-Bu endpointin DB kontrolü tüm kaynaklar için anlık oturum iptali değildir.
-
-Bu görevde açıkça istenen yol `/api/v1/auth/me`dir; eski uygulanmamış
-`GET /api/v1/me` taslağına alias eklenmedi. Profil düzenleme (`PATCH /api/v1/me`)
-ayrı açık taslaktır. Kayıt/giriş, User/ClientProfile alanları ve EF modeli değişmedi;
-yeni tablo, paket veya migration gerekmedi.
-
-## E-posta doğrulama ve SMTP
-
-- `POST /api/v1/auth/verify-email`: `{ "token": "<e-postadaki-token>" }`.
-  Başarı gövdesiz `204`; geçersiz/süresi dolmuş/kullanılmış/eski token `422 validation_failed`.
-- `POST /api/v1/auth/resend-verification`: `{ "email": "synthetic@example.test" }`.
-  Geçerli e-posta için hesap yoksa, doğrulanmışsa veya gönderim aralığındaysa da aynı
-  gövdesiz `202` döner. Eksik/bozuk JSON veya geçersiz e-posta `400 invalid_request`.
-- İki uçta 4096 byte istek sınırı vardır; fazla gövde `413`, yanlış içerik türü `415`.
-  Hatalar ortak `error: { code, message }, requestId` zarfındadır. Auth yanıtları
-  `Cache-Control: no-store` kullanır; ham token yanıta/loga yazılmaz.
-
-Token kriptografik 32 byte'tan üretilir (43 Base64URL karakteri); 30 dakika ve tek
-kullanımlıktır. DB yalnız SHA-256 hash'i ve UTC süre/gönderim metadata'sını saklar.
-Doğrulama tek atomik SQL güncellemesiyle tokenı tüketir; eşzamanlı tekrar reddedilir.
-Yeni gönderim önceki tokenı geçersiz kılar. E-posta metni doğrulama kodunu içerir;
-mobil/web bağlantı ve ekran entegrasyonu henüz yapılmamıştır.
-
-`Auth:EmailVerification` ayarları: `ResendCooldownSeconds = 60` (DB'de hesap başına),
-`ResendRequestsPerMinute = 5` (bağlantı IP'si başına), `QueueCapacity = 100`.
-Ortam karşılıkları ör. `Auth__EmailVerification__ResendCooldownSeconds`.
-IP aşımı `429 rate_limited` olur; sayaç API sürecindedir. Ters proxy ve birden çok
-API örneği için güvenilir proxy/ortak limit dağıtım öncesi ele alınmalıdır.
-
-SMTP HTTP isteğinden bağımsız, sınırlı bellek kuyruğunda işlenir; yeniden gönderim
-isteği hesap sorgulamadan kuyruğa alınır. SMTP hatası veya kuyruk doluluğu `201/202`
-yanıtını değiştirmez ve hesabı doğrulamaz. Kuyruk kalıcı değildir; yeniden başlatma
-veya gönderim hatasında yeniden gönderim gerekir. Son gönderim zamanı SMTP'den
-önce ayrılır; başarısız denemeden sonra da 60 saniyelik aralık geçerlidir. Log yalnız
-genel hata bilgisi içerir; alıcı/token/SMTP istisna içeriği eklenmez.
-
-### Yerel Mailpit kurulumu
-
-PostgreSQL için mevcut `.env` korunarak `backend/` içinde:
+Mevcut .env korunarak yerel SMTP'yi ayarlayın:
 
 ```powershell
 docker compose up -d --wait --wait-timeout 60 mailpit
@@ -665,263 +100,59 @@ docker compose up -d --wait --wait-timeout 60 mailpit
 } | ConvertTo-Json -Compress | dotnet user-secrets set --project src/SmartNutrition.Api
 ```
 
-Servis `mailpit`, konteyner `smart-nutrition-mailpit`, sabit imaj `axllent/mailpit:v1.32.0`.
-SMTP `127.0.0.1:1025`, posta kutusu arayüzü `http://127.0.0.1:8025`.
-Her iki port yalnız loopback'e açıktır. Dış iletim yapılandırılmamıştır; sentetik
-alıcılara yapılan yerel gönderimler Mailpit'te görüntülenir. SMTP protokol logu açılmaz.
-Mailpit kalıcı volume kullanmaz; geliştirme posta kutusu konteyner ömrüyle sınırlıdır.
+Mailpit imajı axllent/mailpit:v1.32.0, portları yalnız loopback'tir. Dış iletim/kalıcı mail volume'u yoktur; sentetik alıcı kullanılır. SMTP Username/Password gerekiyorsa User Secrets veya environment ile sağlanır. None yalnız Development + loopback içindir; üretimde StartTls/SslOnConnect ve gerçek sağlayıcı gerekir.
 
-API Development ortamında başlatılır. SMTP ayarları repoda tutulmaz;
-`Email:Smtp:Host`, `Port`, `FromAddress`, `TlsMode`, gerekiyorsa `Username` ve
-`Password` User Secrets/environment üzerinden sağlanır. Ortam örneği:
-`Email__Smtp__Password`. Gerçek kimlik bilgilerini komut geçmişine veya repoya yazmayın.
-Varsayılan `StartTls` zorunlu TLS kullanır; `SslOnConnect` de desteklenir.
-`None` yalnız Development ortamında loopback sunucu için kabul edilir.
-Üretim SMTP sağlayıcısı, kimlik bilgileri ve kalıcı teslim altyapısı ayrıca hazırlanmalıdır.
+E-posta doğrulama/reset akışları sınırlı bellek kuyruğu kullanır; 201/202 teslim garantisi değildir. Hata/yeniden başlatmada kullanıcı yeniden gönderim isteyebilir. Token/alıcı/SMTP protokolü veya ayrıntılı istisna loglanmaz. Reset e-postası güvenilir WebSession Origin varsa web fragment bağlantısını da içerir; mobil standalone kodu kullanabilir.
 
-Kayıt sonrası Mailpit e-postasındaki token `verify-email` isteğinde kullanılır;
-başarıdan sonra aynı token tekrar `422` dönmelidir. Bu işlem oturum açmaz.
-E-postayı veya tokenı terminal çıktısına/loga dökmeyin. Otomatik gerçek SMTP testi aşağıdadır.
+### EF migration
 
-## Geliştirme ortamı
+Migration dosyasının kodda bulunması, uygulama DB'sine uygulanması değildir. Kaynakta 20 migration vardır; sonuncusu `20261118230136_AddWaterLogSharingCategory`dır. Başlangıçta EnsureCreated/Migrate otomatik çalışmaz.
 
-Komutlar `backend/` içinde çalıştırılır:
-PostgreSQL ve yukarıdaki JWT User Secrets ayarlarını hazırladıktan sonra API'yi başlatın.
-
-```powershell
-dotnet restore
-dotnet tool restore
-dotnet build
-dotnet test
-dotnet run --project src/SmartNutrition.Api --launch-profile http
-```
-
-HTTP adresi `http://localhost:5052`; HTTPS profili `https://localhost:7099` kullanır.
-HTTPS için yerel geliştirme sertifikası gerekir. Üretim HTTPS/host ve proxy ayarları
-dağıtım ortamında ayrıca yapılandırılır.
-
-- `/health/live`: API işlemi çalışıyorsa `200 Healthy`; DB gerektirmez.
-- `/health/ready`: PostgreSQL bağlantısı başarılıysa `200 Healthy`; ayar eksik,
-  hatalı veya erişilemezse `503 Unhealthy`. Bağlantı ayrıntılarını dışarı vermez.
-- `/openapi/v1.json` ve `/swagger`: yalnız `Development` ortamında sunulur.
-
-Health yolları operasyonel altyapı kontrolleridir. Swagger kayıt, giriş, e-posta
-doğrulama, yeniden gönderim ve kendi hesap okumasını gösterir; MealLog endpointi içermez.
-
-## PostgreSQL bağlantısı
-
-Bağlantı dizesi koda veya `appsettings*.json` dosyalarına yazılmaz. Anahtar
-`ConnectionStrings:DefaultConnection`; depodaki değer bilerek boştur.
-API `Development` ortamında User Secrets'ı otomatik okur.
-
-### Yerel Docker kurulumu
-
-Docker Desktop Linux konteynerleriyle çalışmalıdır. Compose kaynakları:
-
-| Kaynak | Ad / adres |
-|---|---|
-| Compose projesi | `smart-nutrition-platform` |
-| Servis / konteyner | `postgres` / `smart-nutrition-postgres` |
-| Kalıcı volume | `smart-nutrition-postgres-data` |
-| Host bağlantısı | `127.0.0.1:5433` |
-| Veritabanı / kullanıcı | `smart_nutrition` / `smart_nutrition` |
-| Yerel SMTP / posta kutusu | `smart-nutrition-mailpit`, `127.0.0.1:1025` / `http://127.0.0.1:8025` |
-
-Host portu yalnız loopback'e açılır. `5432` üzerindeki başka PostgreSQL
-kurulumlarına dokunulmaz. `5433` doluysa Compose portu ile bağlantı dizesindeki
-portu birlikte değiştirin. API host üzerinde çalışır; Docker içine taşınmaz.
-
-İlk kurulumda bir kez aşağıdaki PowerShell komutlarını çalıştırın. Rastgele parola
-Git tarafından dışlanan `backend/.env` içine, API bağlantısı User Secrets'a yazılır;
-parola komut geçmişine veya konsola basılmaz. Mevcut `.env` üzerine yazılmaz.
-
-```powershell
-if (Test-Path -LiteralPath .env) { throw 'Mevcut .env korunuyor; yeniden parola üretmeyin.' }
-$nutritionBytes = New-Object byte[] 32
-$nutritionRng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-try { $nutritionRng.GetBytes($nutritionBytes) } finally { $nutritionRng.Dispose() }
-$nutritionPassword = [BitConverter]::ToString($nutritionBytes).Replace('-', '').ToLowerInvariant()
-Set-Content -LiteralPath .env -Encoding ascii -Value "SMART_NUTRITION_POSTGRES_PASSWORD=$nutritionPassword"
-$nutritionConnection = "Host=127.0.0.1;Port=5433;Database=smart_nutrition;Username=smart_nutrition;Password=$nutritionPassword;Timeout=3;Command Timeout=3"
-@{ 'ConnectionStrings:DefaultConnection' = $nutritionConnection } | ConvertTo-Json -Compress | dotnet user-secrets set --project src/SmartNutrition.Api
-Remove-Variable nutritionPassword, nutritionConnection, nutritionBytes
-```
-
-Ardından veritabanını başlatın; sonraki açılışlarda yalnız bu komutlar gerekir:
-
-```powershell
-docker compose config --quiet
-docker compose up -d --wait --wait-timeout 60
-docker compose ps
-```
-
-Compose `.env` değerini `POSTGRES_PASSWORD` ortam değişkeni olarak konteynere verir.
-Alternatif olarak `SMART_NUTRITION_POSTGRES_PASSWORD` host ortamında tanımlanabilir;
-ortam değişkeni `.env` değerinden önceliklidir ve API parolasıyla aynı olmalıdır.
-Parola boşsa Compose başlamaz. Docker sağlık kontrolü sunucunun hazır olmasını
-izler; API kimlik bilgilerini doğrulayan kontrol `/health/ready` ve aşağıdaki testtir.
-
-`docker compose stop` veritabanını durdurur; `docker compose down` konteyner ve ağı
-kaldırır, volume içindeki veriyi korur. `.env` korunmalıdır: var olan volume'da
-`.env` parolasını değiştirmek PostgreSQL parolasını değiştirmez. Bu görevde volume
-silme veya parola rotasyonu otomatik yapılmaz.
-
-### Mevcut PostgreSQL / alternatif ayar
-
-Projeye ayrılmış başka bir PostgreSQL varsa Compose gerekmez. Yetkili bağlantıyı
-yerel User Secrets'a kaydedin:
-
-```powershell
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<connection-string>" --project src/SmartNutrition.Api
-```
-
-Alternatif olarak mevcut PowerShell oturumunda ortam değişkeni verilebilir:
-
-```powershell
-$env:ConnectionStrings__DefaultConnection = '<connection-string>'
-```
-
-`<connection-string>` yerine yetkili PostgreSQL bağlantınızı kullanın; gerçek
-değeri Git'e veya loglara eklemeyin. User Secrets geliştirme içindir, şifreli
-bir üretim secret deposu değildir. JWT ayarları geçerliyken DB ayarı olmadan API/OpenAPI açılır, hazırlık kontrolü
-`503` döner. Başlangıçta veritabanı/tablo oluşturulmaz; otomatik `EnsureCreated`
-veya `Migrate` çalıştırılmaz.
-
-Compose kullanıcısı PostgreSQL imajının oluşturduğu yerel geliştirme kullanıcısıdır;
-üretim kullanıcı/yetki, TLS, secret deposu ve dağıtım kararları bununla belirlenmez.
-
-## Gerçek bağlantıyı doğrulama
-
-API çalışırken ayrı terminalden:
-
-```powershell
-Invoke-WebRequest http://localhost:5052/health/live
-Invoke-WebRequest http://localhost:5052/health/ready
-```
-
-İkisi de `200` / `Healthy` dönmelidir. Readiness, DI üzerinden çözülen
-`AppDbContext.Database.CanConnectAsync` ile gerçek PostgreSQL bağlantısını açar;
-yalnız connection string varlığını veya Docker durumunu kontrol etmez. DB kapalı,
-parola hatalı veya ayar eksikse readiness `503 Unhealthy`, liveness `200 Healthy`
-döner. Hata yanıtı bağlantı dizesini ve sağlayıcı hata ayrıntılarını içermez.
-
-Varsayılan `dotnet test` DB gerektirmeyen testleri çalıştırır; gerçek PostgreSQL
-ve Mailpit testleri açık gerekçeyle **atlanır**. Docker kurulumuyla PostgreSQL testlerini çalıştırmak için
-`backend/` içinde, `.env` parolasını ekrana yazmadan şu adımları kullanın:
-
-```powershell
-$nutritionPasswordLine = Get-Content -LiteralPath .env | Where-Object { $_.StartsWith('SMART_NUTRITION_POSTGRES_PASSWORD=') } | Select-Object -First 1
-if ([string]::IsNullOrWhiteSpace($nutritionPasswordLine)) { throw '.env içinde PostgreSQL parolası bulunamadı.' }
-$nutritionPassword = $nutritionPasswordLine.Substring('SMART_NUTRITION_POSTGRES_PASSWORD='.Length)
-$env:SMART_NUTRITION_TEST_CONNECTION_STRING = "Host=127.0.0.1;Port=5433;Database=smart_nutrition;Username=smart_nutrition;Password=$nutritionPassword;Timeout=3;Command Timeout=3"
-try { dotnet test } finally {
-    Remove-Item Env:SMART_NUTRITION_TEST_CONNECTION_STRING
-    Remove-Variable nutritionPassword, nutritionPasswordLine
-}
-```
-
-Gerçek SMTP testini de çalıştırmak için yukarıdaki `try { dotnet test }` bloğundan
-önce şu değişkenleri tanımlayın; aynı `finally` bloğunda bu değişkenleri de kaldırın:
-
-```powershell
-$env:SMART_NUTRITION_TEST_MAILPIT_URL = 'http://127.0.0.1:8025'
-$env:SMART_NUTRITION_TEST_SMTP_HOST = '127.0.0.1'
-$env:SMART_NUTRITION_TEST_SMTP_PORT = '1025'
-$env:SMART_NUTRITION_TEST_SMTP_FROM = 'no-reply@smart-nutrition.local'
-# finally bloğuna eklenir:
-# Remove-Item Env:SMART_NUTRITION_TEST_MAILPIT_URL, Env:SMART_NUTRITION_TEST_SMTP_HOST, Env:SMART_NUTRITION_TEST_SMTP_PORT, Env:SMART_NUTRITION_TEST_SMTP_FROM
-```
-
-Bu test gerçek HTTP kayıt → SMTP teslimi → Mailpit'ten token okuma → yeniden gönderim
-→ eski token reddi → doğrulama → tekrar reddi akışını sınar. Tokenı çıktıya yazmaz;
-yalnız kendi rastgele sentetik alıcısına ait Mailpit mesajlarını temizler.
-Diğer doğrulama testleri SMTP yerine kontrollü test göndericisi ve gerçek PostgreSQL
-ile süre sınırı, eşzamanlılık, cooldown, IP limiti ve hassas log davranışını sınar.
-Giriş testleri de aynı izole PostgreSQL şemalarını kullanır. Başarılı kayıt/doğrulama/giriş,
-yanlış parola, doğrulanmamış hesap, Admin engeli, Identity rehash ve IP sınırına ek olarak
-gerçek middleware ile bozuk/yanlış imzalı/süresi dolmuş/yanlış issuer-audience-algoritma-tür
-tokenları ve rol yetkilendirmesi sınanır. Test JWT anahtarları her factory için rastgele
-üretilir; geliştirici User Secrets anahtarı testlere taşınmaz. Eksik JWT ayarlarıyla
-başlangıcın reddi ve Kestrel gövde sınırları ayrıca test edilir.
-Kendi hesap testleri, gerçek login tokenlarıyla `/auth/me` yanıtının beş alanını,
-iki kullanıcının veri izolasyonunu, query/gövde ile kimlik seçiminin reddini,
-profilsiz client/dietitian durumunu, geçersiz/süresi dolmuş tokenı ve silinmiş veya
-güncel rol/doğrulaması değişmiş hesabın `401` almasını sınar. Tüm kalıcı sentetik
-hesaplar yalnız test factory'sinin rastgele şemasındadır; silinmiş hesap senaryosu
-da bu şemayla sınırlıdır. Uygulama tabloları sıfırlanmaz veya silinmez.
-
-Bu değişken `AppDbContext`/`SELECT 1`/readiness testine ek olarak Auth PostgreSQL
-testlerini de açar. Önce aşağıdaki migration uygulanmalıdır. Model testleri sentetik
-verileri transaction içinde geri alır. Gerçek kayıt API testleri yalnız kendilerinin
-oluşturduğu rastgele `registration_api_test_<UUID>` şemasına migration uygular ve
-kayıtları orada commit eder; bitince yalnız bu geçici şemayı temizler. Uygulama
-tabloları sıfırlanmaz veya silinmez. Bu testler için test bağlantısında şema oluşturma
-yetkisi gerekir. Harici PostgreSQL için aynı test değişkenine yetkili test bağlantısını
-verin. Normal test host'ları gerçek geliştirici User Secrets'ına geri dönmez.
-
-## Migration altyapısı
-
-İlk migration `AddAuthFoundation`, User ve ClientProfile alanlarını, e-posta ve
-profil `user_id` benzersizliğini ve FK'yi ekler; mevcut tabloları silmez/değiştirmez.
-`EnforceCaseInsensitiveEmails`, yalnız `users.email` collation'ını değiştirir;
-hesap/profil satırlarını veya e-posta yazımını güncellemez. PostgreSQL'de ICU desteği
-gerekir (mevcut PostgreSQL 17 Docker imajında vardır). Mevcut harf/Unicode farkıyla
-çakışan hesaplar varsa indeks değişikliği transaction içinde başarısız olur; hesaplar
-otomatik birleştirilmez veya silinmez. Çakışmalar ayrı kararla çözülmelidir.
-`AddUserEmailVerificationState`, `users.is_email_verified` boolean alanını `false`
-varsayılanıyla ekler; mevcut hesap/profil verilerini silmez.
-`AddEmailVerificationTokens`, yalnız üç nullable token metadata sütununu, hash unique
-indeksini ve metadata bütünlük kontrolünü ekler; mevcut hesap/profil verisini silmez.
-Başlangıçta otomatik migration veya `EnsureCreated` çalışmaz.
-Veritabanını değiştirmeden bağlamı ve mevcut migration listesini kontrol edin:
+DB'ye bağlanmadan kaynak bağlamı/modeli kontrol etme komutları:
 
 ```powershell
 dotnet ef dbcontext info --project src/SmartNutrition.Api
 dotnet ef migrations list --no-connect --project src/SmartNutrition.Api
-```
-
-Yerel User Secrets bağlantısıyla geliştirme veritabanına uygulamak için:
-
-```powershell
-$env:DOTNET_ENVIRONMENT = 'Development'
-dotnet ef database update AddEmailVerificationTokens --project src/SmartNutrition.Api
 dotnet ef migrations has-pending-model-changes --project src/SmartNutrition.Api
 ```
 
-Domain eşlemelerinde çoğul `snake_case` tablo ve `snake_case` sütun adları açık
-`ToTable`/`HasColumnName` eşlemeleriyle tanımlanır; EF'nin varsayılan PascalCase
-adları kullanılmaz. Araçların tarihçe tablosu `__ef_migrations_history`dir.
-`database drop`, `EnsureDeleted`, sıfıra geri alma veya `compose down -v` bu süreçte
-kullanılmaz. Yeni migration'lar ilgili sözleşme onayıyla hazırlanır; açık alanlar
-ve veri silme politikaları kendiliğinden migration'a eklenmez.
+DB güncellemesi yalnız hedef bağlantı doğrulanmış, kod ile DB geçmişi uyumlu ve mevcut veri için doğrulanabilir yedek alınmış yetkili kurulumda yapılır. Bu koşullarda **eski migration adı vermeden güncel kaynak hedefine**:
 
-DB gerektirmeyen testler eksik/erişilemeyen bağlantıyı, liveness, OpenAPI ortam
-sınırlarını ve hata sözleşmesini doğrular. Yalnız bu testlerin geçmesi gerçek DB
-erişiminin doğrulandığı anlamına gelmez; gerçek bağlantı testi ayrıca etkinleştirilir.
+```powershell
+$env:DOTNET_ENVIRONMENT = 'Development'
+dotnet ef database update --project src/SmartNutrition.Api
+```
 
-Başvuru: [ASP.NET Core health checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0),
-[OpenAPI](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/openapi?view=aspnetcore-10.0),
-[Npgsql](https://www.npgsql.org/efcore/),
-[EF CLI](https://learn.microsoft.com/en-us/ef/core/cli/dotnet),
-[Identity parola altyapısı](https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-10.0),
-[JWT bearer yapılandırması](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0),
-[Mailpit Docker](https://mailpit.axllent.org/docs/install/docker/),
-[MailKit](https://github.com/jstedfast/MailKit),
-[PostgreSQL Docker imajı](https://github.com/docker-library/docs/blob/master/postgres/README.md).
-## W2 web cookie oturumu — 27.10.2026
+Bu komut bağlı DB'yi değiştirir; test ortamı ile uygulama ortamı karıştırılmaz. Daha yeni/başka dalın migration geçmişi görülürse otomatik geri alma veya geçmiş düzeltme yapılmaz. Eski bir migration'ı hedeflemek sonraki migration'ları geri almaya çalışabilir; günlük kurulum talimatı değildir.
 
-W2-C1–C7 ortak onayıyla aynı API'ye `GET /api/v1/auth/csrf` ve
-`POST`/`DELETE /api/v1/auth/web-session` eklendi. `GET /auth/me` artık JWT veya
-web cookie kabul eder; mevcut beş alanlı yanıt değişmez. JWT login gövdesi,
-15 dakikalık token ve diğer API'lerin bearer yetkisi korunur. Admin MFA'sız
-oturum alamaz; bu dilim uzman profili/sağlık/panel yetkisi sağlamaz.
+Geçmiş tablosu `__ef_migrations_history`dir. Yeni modül/kategori migration'larının veri bulunan Down işlemleri korumalıdır. Migration silme/yeniden adlandırma, database drop, EnsureDeleted, sıfıra geri alma veya volume silme normal kurulum değildir.
 
-Yeni `AddWebAuthSessions` migration'ı yalnız `auth_sessions`, FK, zaman
-kısıtları ve indeksleri ekler. Mevcut User/ClientProfile ve sağlık şeması değişmez.
-Yeni migration'ı yerel PostgreSQL'e normal `dotnet ef database update` ile
-uygulayın. Gerçek veri üzerinde otomatik migration/dağıtım yapılmaz.
+## 3. Çalıştırma
 
-Web oturumu için environment/User Secrets:
+Bütün bileşenler için repo kökünden `./start.ps1` kullanılabilir; ayrıntı [kök README](../README.md)'dedir. Betik paket/sır/migration kurmaz.
+
+Yalnız API için, DB/JWT/SMTP hazırken:
+
+```powershell
+dotnet run --project src/SmartNutrition.Api --launch-profile https
+```
+
+HTTPS 7099, aynı profilde HTTP 5052'dir. `--launch-profile http` da kaynakta vardır; web cookie akışı ve ortak mobil/web geliştirme HTTPS gerektirir. HTTP'ye düşerek cookie/TLS güvenliği gevşetilmez.
+
+Güvenilir geliştirme sertifikası hazırken servis kontrolü:
+
+```powershell
+Invoke-WebRequest https://localhost:7099/health/live
+Invoke-WebRequest https://localhost:7099/health/ready
+```
+
+live DB gerektirmez; ready PostgreSQL bağlantısını kontrol eder, başarısızlıkta genel 503 döner. `/openapi/v1.json` ve `/swagger` yalnız Development'tadır; mevcut öğün/görev/sağlık yollarını da içerir. Readiness başarısı bütün migration'ların veya ürün akışlarının doğrulandığı anlamına gelmez.
+
+## 4. Geliştirme ortamı ve güvenlik
+
+### Web oturumu ve HTTPS
+
+Web ile API aynı HTTPS origin sözleşmesini kullanır; geliştirmede Vite API'ye proxy yapar. API'nin bağımsız HTTPS portu 7099, browser origin 5173'tür:
 
 ```powershell
 $env:Auth__WebSession__Origin = 'https://localhost:5173'
@@ -929,50 +160,83 @@ $env:Auth__WebSession__KeyRingPath = "$env:LOCALAPPDATA/SmartNutrition/session-k
 dotnet run --project src/SmartNutrition.Api --launch-profile https
 ```
 
-DB/JWT/SMTP ayarları aşağıdaki mevcut kurulumla birlikte gerekir. Origin tek
-HTTPS authority'dir; son slash/path/query içermez. KeyRingPath mutlak ve Git
-dışında olmalıdır. Özel dizini uygulama Windows hesabına kısıtlayın; Windows'ta
-Data Protection anahtarları o hesabın DPAPI korumasıyla kalıcı saklanır.
-Windows dışı ortamda `Auth__WebSession__KeyProtectionCertificatePath` ve gerekiyorsa
-`Auth__WebSession__KeyProtectionCertificatePassword` ile özel anahtarlı PFX sağlayın;
-sertifika/anahtar Git'e veya loglara girmez. Çok örnekte aynı uygulama adı
-(`SmartNutrition.WebSession.v1`), anahtar halkası ve çözme yetkisi gerekir.
-Origin boşken mevcut JWT kurulumu çalışabilir; web yolları 500 ile kapalıdır.
-Hatalı web anahtar/origin ayarı başlangıçta reddedilir. Üretim koruma/rotasyon
-sağlayıcısı ve izinleri ayrıca yayın kapısında doğrulanır.
+Origin yalnız HTTPS authority, son slash/path/query olmadan tanımlanır. KeyRingPath mutlak, Git dışında ve uygulama hesabına kısıtlı kalıcı dizindir. Windows'ta DPAPI kullanılır. Windows dışında özel anahtarlı PFX için Auth__WebSession__KeyProtectionCertificatePath ve gerekiyorsa KeyProtectionCertificatePassword gerekir. Aynı key ring/uygulama adı bütün API örneklerinde korunur; klasörü rutin çalıştırmada silmeyin. Sertifika kurulumu [web README](../apps/web/README.md#web-oturumu-w2)'dedir.
 
-Web HTTPS proxy/sertifika kurulumu `apps/web/README.md` içindedir; varsayılan
-API HTTPS portu 7099'dur. Secure/SameSite gevşetilmez, TLS doğrulaması kapatılmaz.
-Cookie ve antiforgery yalnız web yolları/hesap okuması için kullanılır;
-Authorization+cookie beraberliği reddedilir. CSRF tokenı kullanıcı ve sid'ye
-bağlıdır. Login yolları aynı IP sayacını paylaşır (10/dakika); CSRF 30/dakikadır.
+Cookie Secure/HttpOnly/SameSite=Strict ve host kapsamlıdır. Cookie yazmaları Origin + CSRF ister; bearer ile cookie birlikte kabul edilmez. Idle 30 dakika, absolute 8 saat; güncel User/AuthSession her istekte kontrol edilir. Normal logout refresh ailesini veya ilgili web oturumunu iptal eder; mevcut access JWT kalan sürede geçebilir. Reset credentialsVersion artırır ve eski JWT/web/refresh'i yeni doğrulamada reddettirir.
 
-Her cookie kimliği güncel User ve AuthSession satırlarını DB'den kontrol eder;
-DB hatasında erişim açılmaz. Idle 30 dakika, mutlak ömür 8 saattir. Başarılı
-hesap okuması idle'ı mutlak sınırı aşmadan ilerletir; CSRF/health/statik dosya
-uzatmaz. Logout iptalini atomik uzatma geri alamaz. Gelecekteki parola/rol/e-posta
-güvenlik yazmaları, aynı transaction'da `WebSessionService.RevokeAllAsync` ile
-User kilidini alıp bütün web oturumlarını iptal ederek User değişimini yapmalıdır.
-Başarılı Identity rehash gerçek parola değişikliği değildir. Temizlik normal
-çalışmada her 10 dakikada, iptal/bitimden 23 saat 50 dakika geçmiş satırları
-siler; kesinti hatası genel logla izlenir. Sağlık/audit satırları etkilenmez.
+### Admin kurulumu ve MFA
 
-`WebSessionApiTests` gerçek PostgreSQL'de cookie/CSRF, süre sınırları, replay,
-Origin/karışık kimlik, ortak limit, DB kesintisi, şifre değişimiyle login yarışı,
-atomik iptal, korumalı kalıcı anahtar/ikinci API örneği ve temizlik testlerini
-içerir. Yalnız sentetik hesaplar ve özel geçici şemalar kullanılır. Gerçek test
-çalıştırma opt-in'i aşağıdaki mevcut `SMART_NUTRITION_TEST_*` ayarlarıdır.
+Genel kayıt/login/refresh Admin erişimi vermez. İlk Admin veya MFA yenilemesi HTTP endpointi değildir; API ile **aynı hedef DB, W2 Origin ve kalıcı korumalı key ring** ile backend/ içinden:
 
-Mobil JWT refresh/iptal, parola sıfırlama ve Admin MFA; üretim audit şeması,
-kalıcı e-posta teslimi, ortak çok örnekli IP sayacı ve proxy yayın kapıları açıktır.
-Web logout mevcut stateless JWT'yi iptal etmez. Aşağıdaki önceki görev notlarında
-cookie'nin açık olduğu ifadeler tarihsel görev kapsamıdır; güncel W2 sözleşmesi
-`docs/04/05/06/11/12`dedir.
+```powershell
+$env:DOTNET_ENVIRONMENT = 'Development'
+dotnet run --no-launch-profile --project src/SmartNutrition.Api -- --initialize-admin '<ozel-girdi-json-yolu>' '<yeni-enrollment-json-yolu>'
+```
 
-Bu değişikliğin doğrulaması: `dotnet build SmartNutrition.Backend.slnx --no-restore`
-başarılı (0 uyarı/hata); geçici PostgreSQL 17 ve Mailpit v1.32.0 ile
-`dotnet test SmartNutrition.Backend.slnx --no-restore` **214 geçti, 0 atlandı**.
-Güvenilir HTTPS Vite proxy/Kestrel üzerinde sentetik kayıt + SMTP doğrulama,
-cookie login, beş alanlı me, logout, logout sonrası 401 ve login boyut sınırının
-413 yanıtı doğrulandı. Tarayıcıda giriş, hesap yenileme, çıkış ve çıkış sonrası
-korunan hesap yolunun girişe dönmesi de doğrulandı.
+Development satırı yerel User Secrets kullanan kurulum içindir; gerçek dağıtımda o ortamın yetkili yapılandırması kullanılır. İki yer tutucu gerçek, Git dışındaki mutlak yollarla değiştirilir. Girdi yalnız email/password string alanlarını içerir; yalnız işletmen okuyabilir. Çıktı mevcut olmamalıdır; manualKey/otpAuthUri/recoveryCodes içerir, Windows ACL işletmene, Unix modu 0600'a kısıtlanır. Parola/TOTP/recovery'yi argümana veya loga koymayın; enrollment güvenli doğrulayıcıya aktarıldıktan sonra geçici özel dosyaları işletmen temizler.
+
+**Mevcut Admin'de bu komut MFA'yı yeniler ve web oturumlarını iptal eder**; her geliştirme açılışında çalıştırılmaz. Mevcut parolayı doğrular, başka roldeki hesabı Admin'e dönüştürmez. Başarı 0/hata 1; dosya/DB hatasında rollback, mevcut çıktı üzerine yazma yoktur.
+
+TOTP 6 hane/30 saniye/±1 adım, kullanılmış adım tekrar reddedilir; 10 adet 128 bit kurtarma kodunun yalnız hash'i tutulur. Parola reseti MFA'yı kaldırmaz. Development + Auth:AdminEmailCode:Enabled + loopback SMTP:1025 koşulunda Mailpit e-posta giriş kodu seçeneği vardır: 5 dakika, tek kullanım, 60 saniye gönderim aralığı ve 5 tüketim denemesi. Production/Staging bu alternatifi ve onun oturum kanıtını kabul etmez.
+
+### Paylaşım ve veri koruma
+
+Mevcut beş kategori bağımsızdır. Genel açılım bayrağı izin değildir; onaylı uzman + aktif ilişki + ilgili açık kategori sunucuda denetlenir. Admin MFA sağlık yetkisi vermez; kendi danışan verisi diyetisyen ilişkisine bağlı değildir.
+
+appsettings.json'da MealLogsEnabled, BodyMeasurementsEnabled, ClientTasksEnabled, WaterLogsEnabled false'tur. Development dosyası yalnız MealLogsEnabled/ClientTasksEnabled değerlerini true yapar. **body_measurements yeni izin yazma/açma işlemi ayrıca Development şartı taşır.** WaterLogsEnabled da bu checkout'ta otomatik açık değildir. Gerçek ortam override'ları ayrıca değerlendirilir; yeni kategori açılımı istemci uyumu ve danışan onayı yerine geçmez.
+
+Sağlık aktarımı yalnız client JWT/kendi profilidir; web/uzman paylaşımı açmaz. Ham sağlık verisi/token/parola/açıklama loglanmaz; sentetik test verisi kullanılır. Soft delete/tombstone, kalıcı KVKK silme değildir. Kalan üretim SMTP/proxy/ortak limit/audit/silme kapıları [11](../docs/11_SECURITY_AND_RELEASE.md)'dedir.
+
+## 5. Testler ve doğrulama
+
+### Ayrı, geçici PostgreSQL/Mailpit ortamı
+
+**Uygulama DB'sini veya 5433 smart_nutrition bağlantısını test değişkenine vermeyin.** Factory test başına geçici schema oluşturur; bu, uygulama DB'sini test hedefi yapmayı güvenli hale getirmez. Testler DDL/migration/sentetik veri yazar ve temizlik yapar.
+
+Aşağıdaki bilinen U6 ortamı backend testleri ve [web E2E rehberi](../apps/web/README.md#u5u6-gerçek-edge-https-testleri) için kullanılabilir. **Yeni, yalnız teste ayrılmış PowerShell terminalinde**, backend/ içinden çalıştırılır. Aynı isimde kaynak zaten varsa sahipliği doğrulanmadan yeniden kullanılmaz/silinmez. PostgreSQL verisi tmpfs'tedir; üretimde trust kullanılmaz.
+
+```powershell
+docker run --rm -d --name nutrition-u6-postgres --label smart-nutrition.test=U6 --tmpfs /var/lib/postgresql/data -p 127.0.0.1:55586:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_USER=nutrition_test -e POSTGRES_DB=nutrition_u6_test postgres:17
+docker run --rm -d --name nutrition-u6-mailpit --label smart-nutrition.test=U6 -p 127.0.0.1:58028:8025 -p 127.0.0.1:51028:1025 axllent/mailpit:v1.32.0
+
+$env:SMART_NUTRITION_TEST_CONNECTION_STRING = 'Host=127.0.0.1;Port=55586;Database=nutrition_u6_test;Username=nutrition_test;Pooling=true'
+$env:SMART_NUTRITION_TEST_MAILPIT_URL = 'http://127.0.0.1:58028'
+$env:SMART_NUTRITION_TEST_SMTP_HOST = '127.0.0.1'
+$env:SMART_NUTRITION_TEST_SMTP_PORT = '51028'
+$env:SMART_NUTRITION_TEST_SMTP_FROM = 'synthetic-u6@example.test'
+$env:ConnectionStrings__DefaultConnection = $env:SMART_NUTRITION_TEST_CONNECTION_STRING
+$env:DOTNET_ENVIRONMENT = 'Development'
+$env:ASPNETCORE_ENVIRONMENT = 'Development'
+$env:Auth__WebSession__Origin = ''
+$env:Auth__Jwt__Issuer = 'synthetic-u6'
+$env:Auth__Jwt__Audience = 'synthetic-u6'
+$env:Auth__Jwt__SigningKeyBase64 = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+
+dotnet build SmartNutrition.Backend.slnx --no-restore
+dotnet ef database update --project src/SmartNutrition.Api --no-build
+dotnet test SmartNutrition.Backend.slnx --no-build --no-restore
+```
+
+Docker sağlıklı/hazır olmadan DB komutlarına geçilmez. EF komutunun hedefi burada **yalnız 55586/nutrition_u6_test**'tir; User Secrets'taki uygulama bağlantısı environment override ile kullanılmaz. Bu test terminalinden uygulama başlatıcısını çalıştırmayın; işlem sonunda terminali kapatarak test bağlantı/anahtar değişkenlerini bırakın. Restore/yerel EF tool kurulumu önceden yapılmış olmalıdır.
+
+PostgresFact ve MailpitFact ortam değişkenleri yoksa ilgili testleri atlar; yeşil bir koşuda skip sayısını da inceleyin. Auth, reset, kategori matrisi, program/görev sürümleri, sağlık tekilleştirme ve migration veri koruması gerçek PostgreSQL testlerini içerir. Bu README'nin güncellenmesi testin çalıştırıldığı anlamına gelmez.
+
+E2E için konteynerler gerekiyorsa açık bırakılır. İşiniz bitince yalnız bu koşuda başlattığınız konteynerlerin ID ve smart-nutrition.test=U6 etiketini `docker inspect` ile doğrulayıp `docker stop nutrition-u6-postgres nutrition-u6-mailpit` kullanın; --rm/tmpfs test verisini kaldırır. Uygulama konteynerlerine/volume'una dokunulmaz.
+
+### Kapsam ve kanıt
+
+Build/unit/API/PostgreSQL/Mailpit testleri, React tarayıcı ve fiziksel sağlık platformu testleri ayrı düzeylerdir. Geçmiş U5/U6 raporlarının tarih/commit/kapsamı [12](../docs/12_TEAM_PLAN_AND_DECISIONS.md)'dedir; eski sayılar güncel sonuç değildir. Bu belge görevinde build/test/servis/DB/migration çalıştırılmadı; komutlar kaynak/manifest üzerinden incelendi.
+
+## 6. Bilinen sınırlamalar
+
+- Migration'ın uygulama DB'sindeki durumu bu kaynak incelemesinde doğrulanmadı.
+- Mevcut danışanın aynı hesapla uzman başvuru API'si vardır; aktif mobil navigasyon bağlantısı eksiktir.
+- Üretimde yeni ölçüm izni açılımı, genel profil/uzman ret/geri alma akışları ve üretim güvenlik/teslim kapıları açık.
+- Sağlık API testi fiziksel Android/Health Connect veya iOS/HealthKit doğrulaması değildir.
+- AI/katalog/tarif/tahlil/OCR, bildirim teslimi, PDF ve genel uyum yöntemi tamamlanmış değildir; kapsamda korunur.
+
+## 7. İlgili güncel dokümantasyon
+
+[Ürün](../docs/01_PROJECT_SCOPE.md) · [Mimari](../docs/03_SYSTEM_ARCHITECTURE.md) · [Adlar](../docs/04_NAMING_CONVENTIONS.md) · [Veri](../docs/05_DATA_DICTIONARY.md) · [HTTP/DTO](../docs/06_API_CONTRACT.md) · [Güvenlik](../docs/11_SECURITY_AND_RELEASE.md) · [Durum/açık kararlar](../docs/12_TEAM_PLAN_AND_DECISIONS.md) · [Sağlık aktarımı](../docs/20_HEALTH_DATA_SYNC_CONTRACT.md)
+
+Su veri/API/güvenlik kuralları 05/06/11 içindedir; eski 21 aktif kaynak değildir. Eski teslim/öneri kayıtları [mevcut arşivde](../docs/archive/README.md) tarihsel olarak bulunur.
