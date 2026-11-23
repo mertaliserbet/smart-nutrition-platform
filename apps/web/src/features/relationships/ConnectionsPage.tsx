@@ -5,6 +5,7 @@ import { changeRelationship, createInvitation, getRelationships } from './relati
 import type { InvitationCodeResponse, RelationshipStatus } from './relationshipApi'
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
+import { ConfirmationDialog } from '../../core/components/ConfirmationDialog'
 
 const labels: Record<RelationshipStatus, string> = { pending: 'Bekleyen', active: 'Aktif', rejected: 'Reddedilen', ended: 'Sonlanan' }
 export function ConnectionsPage() {
@@ -16,6 +17,7 @@ function ConnectionsContent() {
   const [status, setStatus] = useState<RelationshipStatus>('pending'); const [page, setPage] = useState(1)
   const [invitation, setInvitation] = useState<InvitationCodeResponse>(); const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(''); const [notice, setNotice] = useState('')
+  const [endingId, setEndingId] = useState<string>()
   const operation = useRef<AbortController | null>(null)
   const load = useCallback((signal: AbortSignal) => getRelationships(status, page, session.dietitianId, signal), [status, page, session.dietitianId])
   const state = useWorkspaceRead(load)
@@ -52,12 +54,15 @@ function ConnectionsContent() {
       {state.data && <>{state.data.totalCount === 0 && <EmptyState icon="link" title="Bu durumda bağlantı bulunmuyor.">Farklı bir durum seçebilir veya yeni bir davet kodu oluşturabilirsiniz.</EmptyState>}
         <ul className="connection-list" aria-label="Danışan bağlantıları">{state.data.items.map(row => <li key={row.id}><div className="connection-heading"><h3>Danışan adı mevcut değil</h3><span className="neutral-badge">{labels[row.status]}</span></div><p>Talep: <time dateTime={row.requestedAt}>{new Date(row.requestedAt).toLocaleString('tr-TR')}</time></p>
           {row.status === 'pending' && <div className="expert-pagination"><button className="button button-primary" disabled={busy || state.pending} onClick={() => { void mutate('accept', row.id) }}>Kabul et</button><button className="button button-secondary" disabled={busy || state.pending} onClick={() => { void mutate('reject', row.id) }}>Reddet</button></div>}
-          {row.status === 'active' && <button className="button button-secondary" disabled={busy || state.pending} onClick={() => { void mutate('end', row.id) }}>Bağlantıyı sonlandır</button>}
+          {row.status === 'active' && <button className="button button-secondary" disabled={busy || state.pending} onClick={() => setEndingId(row.id)}>Bağlantıyı sonlandır</button>}
         </li>)}</ul>
         <div className="panel-pagination"><button className="button button-secondary" disabled={busy || page <= 1} onClick={() => setPage(value => value - 1)}>Önceki sayfa</button><span>Sayfa {page}</span><button className="button button-secondary" disabled={busy || page * 10 >= state.data.totalCount} onClick={() => setPage(value => value + 1)}>Sonraki sayfa</button></div>
       </>}
       <div className="panel-actions"><button className="button button-secondary" disabled={busy || state.pending} onClick={state.refresh}>Bağlantıları yenile</button></div>
     </section>
+    {endingId && <ConfirmationDialog title="Danışan bağlantısını sonlandır" confirmLabel="Onayla ve sonlandır" destructive onCancel={() => setEndingId(undefined)} onConfirm={() => { const id = endingId; setEndingId(undefined); void mutate('end', id) }}>
+      <p>Bu danışanla bağlantınız sonlandırılacak ve paylaşılan verilere erişiminiz kapanacak. Bu ilişkiye ait aktif atanmış programınız arşivlenecek, açık görevleriniz iptal edilecek. Kayıt geçmişi korunur.</p>
+    </ConfirmationDialog>}
   </>
 }
 

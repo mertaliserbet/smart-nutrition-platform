@@ -6,18 +6,20 @@ import { randomUUID } from 'node:crypto'
 const origin = 'https://localhost:5446', password = 'Synthetic U6 password 🔑', changedPassword = ' New synthetic U6 password 🔒 '
 type Account = { id: string; email: string; displayName: string }
 type Identity = { accessToken: string; refreshToken: string }
-let loginAttempts: number[] = []
-async function paceLogin() {
-  // Respect the real shared 10/minute limit as the browser suite grows.
+const attempts: Record<'login' | 'application', number[]> = { login: [], application: [] }
+async function paceRequests(kind: keyof typeof attempts) {
+  // Keep setup within the real limits; do not weaken the API for browser tests.
+  const limit = kind === 'login' ? 10 : 5
   while (true) {
     const now = Date.now()
-    loginAttempts = loginAttempts.filter(time => now - time < 60_100)
-    if (loginAttempts.length < 10) { loginAttempts.push(now); return }
-    await new Promise(resolve => setTimeout(resolve, Math.min(60_000, 60_100 - (now - loginAttempts[0]!))))
+    attempts[kind] = attempts[kind].filter(time => now - time < 60_100)
+    if (attempts[kind].length < limit) { attempts[kind].push(now); return }
+    await new Promise(resolve => setTimeout(resolve, Math.min(60_000, 60_100 - (now - attempts[kind][0]!))))
   }
 }
 async function api(request: APIRequestContext, path: string, method: string, status: number, data?: object, bearer?: string) {
-  if (path === '/api/v1/auth/login') await paceLogin()
+  if (path === '/api/v1/auth/login') await paceRequests('login')
+  if (path === '/api/v1/dietitians/apply') await paceRequests('application')
   // Mobile-only endpoints are intentionally absent from the web proxy.
   const direct = bearer || /^\/api\/v1\/(?:auth\/(?:login|refresh)|water-logs)(?:[/?]|$)/.test(path)
   const response = await request.fetch(direct ? 'https://localhost:7099' + path : path, { method, data, headers: bearer ? { Authorization: `Bearer ${bearer}`, 'X-Profile-Context': 'client' } : {} })
@@ -55,7 +57,7 @@ async function account(request: APIRequestContext, expert: boolean, approved = t
 async function signIn(page: Page, email: string, value = password) {
   await page.goto('/giris')
   await page.getByLabel('E-posta adresi').fill(email); await page.getByLabel('Şifre', { exact: true }).fill(value)
-  await paceLogin()
+  await paceRequests('login')
   await page.getByRole('button', { name: 'Giriş yap', exact: true }).click()
 }
 async function pair(page: Page, request: APIRequestContext) {
@@ -345,7 +347,7 @@ test('HTTPS UI: reuse own program as an independent draft, weekly editing and ex
   const unchanged = await api(page.request, `/api/v1/nutrition-plans/${source.id}`, 'GET', 200)
   expect(unchanged).toEqual(source)
   // Confirmed native POP discards a later unsaved draft without losing the saved program.
-  await page.getByRole('button', { name: 'Boş taslak' }).click()
+  await page.getByRole('button', { name: 'Yeni program oluştur' }).click()
   await page.getByLabel('Program başlığı').fill('Silinecek sentetik taslak')
   await page.evaluate(() => history.go(-2))
   await page.getByRole('button', { name: 'Değişiklikleri sil' }).click()
@@ -355,4 +357,79 @@ test('HTTPS UI: reuse own program as an independent draft, weekly editing and ex
   await expect(page.getByLabel('Program başlığı')).toHaveCount(0)
   // A successful save clears native beforeunload protection.
   await page.reload(); await expect(page.getByText('Aktif · Sürüm 1')).toBeVisible()
+})
+
+test('HTTPS UI: usable meal controls, editor focus and confirmed relationship ending in both themes and widths', async ({ page, request }, testInfo) => {
+  const { mobile, relation, csrf } = await pair(page, request)
+  for (const category of ['meal_logs', 'nutrition_plans', 'client_tasks'])
+    await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category, isGranted: true }, mobile.accessToken)
+  await api(request, '/api/v1/meal-logs', 'POST', 201, { mealType: 'breakfast', consumedAt: new Date().toISOString(), source: 'manual', items: [{ displayName: 'Sentetik deneme öğünü', isEstimated: false }] }, mobile.accessToken)
+  const headers = { Origin: origin, 'X-CSRF-TOKEN': csrf, 'X-Profile-Context': 'dietitian' }
+  const planResponse = await page.request.post('/api/v1/nutrition-plans', { headers, data: {
+    clientId: relation.clientId, title: 'Sentetik sonlandırma programı', startDate: '2026-11-01', endDate: null,
+    dailyCaloriesTargetKcal: null, dailyWaterTargetMl: null,
+    items: [{ dayOfWeek: null, mealType: 'breakfast', description: 'Sentetik öneri', recommendedQuantity: null, sortOrder: 0, recipeId: null, alternativeGroupId: null }],
+  } })
+  expect(planResponse.status()).toBe(201)
+  const plan = await planResponse.json()
+  expect((await page.request.post(`/api/v1/nutrition-plans/${plan.id}/activate`, { headers })).status()).toBe(200)
+  expect((await page.request.post('/api/v1/client-tasks', { headers, data: { clientId: relation.clientId, description: 'Sentetik açık görev' } })).status()).toBe(201)
+  async function openNavigation(name: string) {
+    const menu = page.getByRole('button', { name: 'Menüyü aç', exact: true })
+    if (await menu.isVisible()) await menu.click()
+    await page.getByRole('navigation', { name: 'Diyetisyen çalışma alanı', exact: true }).getByRole('link', { name, exact: true }).click()
+  }
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme })
+    for (const width of [1366, 768, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await openNavigation('Danışanlarım')
+      await page.getByRole('link', { name: 'Sentetik U6 danışan için danışan detayını aç', exact: true }).click()
+      await page.getByRole('link', { name: 'Öğünler', exact: true }).click()
+      const meal = page.getByRole('region', { name: 'Öğün günlüğü', exact: true })
+      const today = meal.getByRole('button', { name: 'Bugün', exact: true })
+      await today.click()
+      await expect(today).toHaveAttribute('aria-pressed', 'true')
+      await expect(meal.getByRole('heading', { name: 'Sentetik deneme öğünü' })).toBeVisible()
+      const cardBox = (await meal.boundingBox())!, buttonBox = (await today.boundingBox())!
+      expect(buttonBox.x - cardBox.x).toBeGreaterThanOrEqual(16)
+      expect(cardBox.x + cardBox.width - buttonBox.x - buttonBox.width).toBeGreaterThanOrEqual(16)
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      if (width === 390) await page.screenshot({ path: testInfo.outputPath(`meal-controls-${theme}.png`), fullPage: true })
+      await page.getByRole('link', { name: 'Program', exact: true }).click()
+      await page.getByRole('button', { name: 'Programı düzenle', exact: true }).click()
+      const title = page.getByRole('textbox', { name: 'Program başlığı', exact: true })
+      await expect(title).toBeFocused()
+      await expect(title).toBeInViewport()
+      await page.getByRole('button', { name: 'Vazgeç', exact: true }).click()
+      await openNavigation('Bağlantılar ve davet')
+      await page.getByRole('combobox', { name: 'Durum', exact: true }).selectOption('active')
+      const end = page.getByRole('button', { name: 'Bağlantıyı sonlandır', exact: true })
+      await end.click()
+      const dialog = page.getByRole('alertdialog')
+      await expect(dialog).toContainText('açık görevleriniz iptal edilecek')
+      await expect(page.locator('#root')).toHaveAttribute('inert', '')
+      await expect(dialog.getByRole('button', { name: 'Vazgeç', exact: true })).toBeFocused()
+      await page.keyboard.press('Shift+Tab')
+      await expect(dialog.getByRole('button', { name: 'Onayla ve sonlandır' })).toBeFocused()
+      const box = (await dialog.boundingBox())!
+      expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(width)
+      expect(box.y).toBeGreaterThanOrEqual(0); expect(box.y + box.height).toBeLessThanOrEqual(900)
+      if (width === 390) await page.screenshot({ path: testInfo.outputPath(`relationship-confirmation-${theme}.png`) })
+      await page.keyboard.press('Escape')
+      await expect(dialog).toHaveCount(0)
+      await expect(end).toBeFocused()
+      await expect(page.locator('#root')).not.toHaveAttribute('inert', '')
+    }
+  }
+  let writes = 0
+  page.on('request', sent => { if (sent.method() === 'POST' && sent.url().endsWith(`/dietitian-relationships/${relation.id}/end`)) writes++ })
+  await page.getByRole('button', { name: 'Bağlantıyı sonlandır', exact: true }).click()
+  expect(writes).toBe(0)
+  await page.getByRole('button', { name: 'Onayla ve sonlandır', exact: true }).click()
+  await expect(page.getByText('Bağlantı sonlandırıldı.', { exact: true })).toBeVisible()
+  expect(writes).toBe(1)
+  expect((await api(request, `/api/v1/nutrition-plans/${plan.id}`, 'GET', 200, undefined, mobile.accessToken)).status).toBe('archived')
+  const tasks = await api(request, '/api/v1/client-tasks?page=1&pageSize=10', 'GET', 200, undefined, mobile.accessToken)
+  expect(tasks.items[0].status).toBe('cancelled'); expect(tasks.items[0].versionNumber).toBe(2)
 })

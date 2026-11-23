@@ -71,7 +71,7 @@ describe('program draft protection', () => {
       ? Response.json(plan({ title: 'Değişen taslak', versionNumber: 2 })) : list())
     const { user } = setup(); await changeTitle(user)
     const event = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(event); expect(event.defaultPrevented).toBe(true)
-    await user.click(screen.getByRole('button', { name: 'Boş taslak' })); expect(screen.getByRole('alertdialog')).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'Yeni program oluştur' })); expect(screen.getByRole('alertdialog')).toBeVisible()
     await user.click(screen.getByRole('button', { name: 'Düzenlemeye dön' }))
     await user.click(screen.getByRole('button', { name: 'Yeni sürüm kaydet' }))
     await screen.findByText('Yeni program sürümü kaydedildi.')
@@ -212,7 +212,7 @@ describe('copying only authorized own program structure', () => {
     act(() => window.dispatchEvent(new Event('focus')))
     expect(await screen.findByRole('alert')).toHaveTextContent('Kopyalanan taslak kaldırıldı')
     expect(screen.queryByRole('form', { name: 'Beslenme programı formu' })).not.toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Boş taslak' })).toBeVisible()
+    expect(await screen.findByRole('button', { name: 'Yeni program oluştur' })).toBeVisible()
     expect(request.mock.calls.some(([, init]) => init?.method === 'POST')).toBe(false)
   })
   it('aborts a pending source selection when saving the current draft and ignores its late response', async () => {
@@ -221,7 +221,7 @@ describe('copying only authorized own program structure', () => {
     let finish!: (response: Response) => void
     request.mockImplementation((path, init) => String(path) === `/api/v1/nutrition-plans/${planId}`
       ? new Promise(resolve => { finish = resolve }) : original(path, init))
-    await user.click(await screen.findByRole('button', { name: 'Boş taslak' }))
+    await user.click(await screen.findByRole('button', { name: 'Yeni program oluştur' }))
     fireEvent.change(screen.getByLabelText('Program başlığı'), { target: { value: 'Mevcut taslak' } })
     fireEvent.change(screen.getByLabelText('Başlangıç tarihi'), { target: { value: '2026-11-21' } })
     fireEvent.change(screen.getByLabelText('Öğün 1 açıklaması'), { target: { value: 'Mevcut öğün' } })
