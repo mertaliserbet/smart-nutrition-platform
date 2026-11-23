@@ -33,8 +33,6 @@
 .plan-meal-editor { margin: 12px 0; padding: 16px; border: 1px solid var(--border); border-radius: 12px; }
 .plan-meal-editor summary { cursor: pointer; min-height: 44px; font-weight: 600; overflow-wrap: anywhere; }
 .plan-save-bar { position: sticky; bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 2; }
-.plan-modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 55%); display: grid; place-items: center; padding: 16px; z-index: 1000; }
-.plan-modal { width: min(100%, 560px); max-height: 90dvh; overflow: auto; padding: 24px; overflow-wrap: anywhere; }
 .plan-copy-picker { padding: 24px; margin-block: 24px; }
 .plan-copy-picker input { max-width: 100%; }
 @media (max-width: 600px), (max-height: 600px) { .plan-save-bar { position: static; } }

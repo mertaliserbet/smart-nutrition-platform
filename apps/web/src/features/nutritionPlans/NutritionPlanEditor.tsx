@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { mealLabels } from './nutritionPlanApi'
 import type { MealType, NutritionPlanResponse, PlanContentRequest } from './nutritionPlanApi'
@@ -20,6 +20,8 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, onDirtyCh
   const [copyDay, setCopyDay] = useState('1')
   const [replaceDay, setReplaceDay] = useState(false)
   const [message, setMessage] = useState('')
+  const titleInput = useRef<HTMLInputElement>(null)
+  useEffect(() => { titleInput.current?.focus() }, [])
   const dirty = draftSignature(draft) !== draftSignature(baseline)
   useEffect(() => { onDirtyChange?.(dirty) }, [dirty, onDirtyChange])
   useEffect(() => { if (focus) { document.getElementById(focus)?.focus() } }, [focus])
@@ -60,7 +62,7 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, onDirtyCh
     {clientName && <p><strong>Hedef danışan: {clientName}</strong></p>}
     {seed && <p>Yalnız öğün yapısı kopyalandı. Serbest metin kişiye özel bilgi içerebilir; açıklama ve miktarları kaydetmeden önce inceleyin. Başlık, tarihler ve hedefleri bu danışan için girin.</p>}
     <fieldset disabled={busy}><legend>Program bilgileri</legend>
-      <div className="form-field"><label htmlFor="plan-title">Program başlığı</label><input id="plan-title" {...field('plan-title')} value={draft.title} required onChange={event => updateDraft({ title: event.target.value })} />{error('plan-title')}</div>
+      <div className="form-field"><label htmlFor="plan-title">Program başlığı</label><input ref={titleInput} id="plan-title" {...field('plan-title')} value={draft.title} required onChange={event => updateDraft({ title: event.target.value })} />{error('plan-title')}</div>
       <div className="plan-grid"><div className="form-field"><label htmlFor="plan-start">Başlangıç tarihi</label><input id="plan-start" {...field('plan-start')} type="date" value={draft.start} required onChange={event => updateDraft({ start: event.target.value })} />{error('plan-start')}</div>
         <div className="form-field"><label htmlFor="plan-end">Bitiş tarihi (isteğe bağlı)</label><input id="plan-end" {...field('plan-end')} type="date" value={draft.end} onChange={event => updateDraft({ end: event.target.value })} />{error('plan-end')}</div></div>
       <div className="plan-grid"><div className="form-field"><label htmlFor="plan-kcal">Günlük enerji hedefi (kcal, isteğe bağlı)</label><input id="plan-kcal" {...field('plan-kcal')} inputMode="decimal" value={draft.calories} onChange={event => updateDraft({ calories: event.target.value })} />{error('plan-kcal')}</div>

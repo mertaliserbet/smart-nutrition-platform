@@ -71,7 +71,7 @@ describe('navigable live client details', () => {
   })
   it('returns to the hidden program editor with field focus when cancelling a leave action', async () => {
     const { user } = setup(`${path}?bolum=program`)
-    await user.click(await screen.findByRole('button', { name: 'Boş taslak' }))
+    await user.click(await screen.findByRole('button', { name: 'Yeni program oluştur' }))
     await user.type(screen.getByLabelText('Program başlığı'), 'Korunan program')
     await user.click(screen.getByRole('link', { name: 'Özet' }))
     await user.click(screen.getByRole('link', { name: 'Danışan listesine dön' }))

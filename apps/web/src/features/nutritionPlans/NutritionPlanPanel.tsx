@@ -147,7 +147,6 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
     {denied ? <p className="form-message" role="alert">{denied}</p> : <>
       {state.pending && <p role="status">Programlar okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}{message && <p role="alert">{message}</p>}{notice && <p role="status">{notice}</p>}
       {state.data && <div className="expert-pagination"><button className="button button-primary" disabled={busy || state.pending} onClick={() => replaceEditor(() => openEditor())}>Yeni program oluştur</button>
-        <button className="button button-secondary" disabled={busy || state.pending} onClick={() => replaceEditor(() => openEditor())}>Boş taslak</button>
         <button className="button button-secondary" disabled={busy || state.pending} onClick={() => setPicker(true)}>Kendi programımdan kopyala</button></div>}
       {picker && <PlanCopyPicker onCopy={source => replaceEditor(() => openEditor(undefined, source))} onCancel={() => setPicker(false)} />}
       {editor && <NutritionPlanEditor key={editor.key} initial={editor.initial} seed={editor.seed} clientName={clientName} busy={busy} onDirtyChange={setDirty} onCancel={() => replaceEditor(closeEditor)} onSave={content => mutate('save', editor.initial, content)} />}

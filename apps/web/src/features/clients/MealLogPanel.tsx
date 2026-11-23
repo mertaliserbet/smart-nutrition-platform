@@ -53,7 +53,8 @@ function MealLogContent({ clientId }: { clientId: string }) {
 
   return <section className="card" aria-label="Öğün günlüğü">
     <header className="card-header"><div><h2>Öğün günlüğü</h2><p>Danışanın açık paylaşım izniyle görüntülenen tüketim kayıtları.</p></div><span className="neutral-badge">Salt okunur</span></header>
-    <div className="expert-pagination" role="group" aria-label="Öğün tarih aralığı">
+    <div className="meal-date-controls">
+    <div className="meal-date-presets" role="group" aria-label="Öğün tarih aralığı">
       {([['today', 'Bugün'], ['yesterday', 'Dün'], ['week', 'Son 7 gün']] as const).map(([value, label]) => <button key={value} className="button button-secondary" aria-pressed={preset === value} onClick={() => selectPeriod(value)}>{label}</button>)}
       <button className="button button-secondary" aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Özel aralık</button>
     </div>
@@ -65,6 +66,7 @@ function MealLogContent({ clientId }: { clientId: string }) {
     </form>}
     <button className="button button-secondary" onClick={() => { setError(''); setAccessError(''); setPage(1); setRange({}); setFirst(''); setLast(''); setPreset('') }}>Filtreyi temizle</button>
     {error && <p role="alert">{error}</p>}
+    </div>
     {state.pending && <p className="panel-feedback" role="status">Öğünler okunuyor…</p>}
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
     {accessError && <p className="panel-feedback error-message" role="alert">{accessError}</p>}
