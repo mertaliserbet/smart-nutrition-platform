@@ -134,7 +134,7 @@ describe('email-link password form', () => {
     expect(screen.getByLabelText('Yeni şifre tekrarı')).toBeDisabled()
     expect(JSON.parse(String(request.mock.calls[0]![1]!.body))).toEqual({ token, password })
     await act(async () => finish!(new Response(null, { status: 204 })))
-    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeInTheDocument()
     expect(page.location().pathname).toBe('/giris'); expect(page.location().state).toEqual({ passwordResetComplete: true })
     expect(screen.getByRole('status')).toHaveTextContent('MFA doğrulaması devam eder')
     expect(request).toHaveBeenCalledTimes(1); expect(store).not.toHaveBeenCalled()

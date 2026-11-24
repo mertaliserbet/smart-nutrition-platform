@@ -31,7 +31,7 @@ describe('web cookie session', () => {
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
     await user.click(await screen.findByRole('link', { name: 'Açık hesabı görüntüle ve çıkış yap' }))
     await user.click(await screen.findByRole('button', { name: 'Çıkış yap' }))
-    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
     expect(request.mock.calls[4]?.[1]?.method).toBe('DELETE')
   })
 
@@ -43,8 +43,8 @@ describe('web cookie session', () => {
     const { user } = page()
     enterCredentials()
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
-    expect(await screen.findByText('Sentetik Danışan')).toBeVisible()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Hesabım')
+    expect(await screen.findByText('Sentetik Danışan', { selector: 'dd' })).toBeVisible()
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Ayarlar')
     expect(screen.queryByRole('navigation', { name: 'Diyetisyen paneli' })).not.toBeInTheDocument()
     expect(request.mock.calls.map(call => call[0])).toEqual([
       '/api/v1/auth/csrf', '/api/v1/auth/web-session', '/api/v1/dietitians/me', '/api/v1/auth/csrf', '/api/v1/auth/me',
@@ -80,7 +80,7 @@ describe('web cookie session', () => {
       method: 'DELETE', headers: { 'X-CSRF-TOKEN': 'synthetic-csrf' },
     }))
     await act(async () => finish(new Response(null, { status: 204 })))
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tekrar hoş geldiniz.')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tekrar hoş geldin')
     expect(screen.queryByText(userAccount.email)).not.toBeInTheDocument()
   })
 
@@ -96,7 +96,7 @@ describe('web cookie session', () => {
     expect(request).toHaveBeenCalledTimes(3)
     expect(document.body).not.toHaveTextContent('private transport detail')
     await user.click(screen.getByRole('button', { name: 'Çıkışı tekrar dene' }))
-    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
     expect(request).toHaveBeenCalledTimes(6)
   })
 
@@ -127,7 +127,7 @@ describe('web cookie session', () => {
   it('returns to login on a server 401 without displaying a stale account', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(csrf()).mockResolvedValueOnce(new Response(null, { status: 401 }))
     page('/hesabim')
-    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
     expect(screen.queryByText(userAccount.email)).not.toBeInTheDocument()
   })
 

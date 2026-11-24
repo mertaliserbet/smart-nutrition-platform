@@ -1,0 +1,242 @@
+.marketing-page { max-width: 1600px; margin-inline: auto; padding: 12px 56px 18px; }
+.marketing-header { display: flex; justify-content: space-between; align-items: center; gap: 30px; margin-bottom: 16px; }
+.marketing-header .brand { font-size: 36px; }
+.marketing-header .brand-logo { width: 202px; }
+.marketing-header > a:first-child { display: flex; margin-left: 16px; }
+.marketing-header .brand-mark { width: 48px; height: 54px; }
+.marketing-header nav { display: flex; align-items: center; gap: 56px; }
+.marketing-header nav a { position: relative; display: inline-flex; align-items: center; min-height: 44px; font-size: 22px; font-weight: 850; }
+.marketing-header nav a.active::after { position: absolute; content: ''; bottom: -5px; height: 4px; border-radius: 5px; background: #6cad20; width: 100%; }
+.marketing-header > div { display: flex; gap: 10px; transform: translateY(-5px); }
+.marketing-header .button { border-radius: 24px; padding: 6px 18px; min-height: 42px; font-size: 20px; }
+.marketing-heading { text-align: center; margin: 14px auto 24px; }
+.marketing-heading h1 { font-size: clamp(30px, 3.3vw, 49px); letter-spacing: -1.4px; font-weight: 950; line-height: 1.1; color: #063b39; }
+.marketing-heading > p { color: #626b71; font-size: clamp(18px, 1.8vw, 27px); margin-top: 10px; line-height: 1.2; font-weight: 650; }
+.marketing-card { min-width: 0; padding: 18px 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 3px 2px #0c2a1e0d; }
+.marketing-card > header { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 12px; }
+.marketing-card header > div { min-width: 0; }
+.marketing-card h2 { font-size: clamp(22px, 1.9vw, 29px); font-weight: 950; letter-spacing: -.9px; line-height: 1.1; color: #101416; }
+.marketing-card p { font-size: 18px; color: #25314a; margin-top: 4px; line-height: 1.25; }
+.marketing-icon { width: 48px; height: 48px; display: grid; place-items: center; flex-shrink: 0; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); }
+.marketing-icon .icon { width: 28px; height: 28px; }
+.marketing-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 46px; margin: 33px 6px 0; }
+.step-card { position: relative; }
+.step-card > header { padding-inline: 4px; }
+.step-card:not(:last-child)::after { content: '→'; position: absolute; right: -25px; top: 53%; font-size: 28px; color: var(--brand-primary); }
+.step-number { display: grid; place-items: center; flex-shrink: 0; min-width: 64px; height: 46px; padding-inline: 10px; border-radius: 50%; background: #e3efc6; font-size: 28px; font-weight: 950; }
+.marketing-food { width: 100%; height: 180px; display: block; object-fit: cover; border-radius: 16px; }
+.step-card > .marketing-food { height: 176px; width: calc(100% - 48px); margin: 22px auto 0; }
+.illustration-options { display: flex; gap: 6px; margin-top: 10px; font-size: 12px; }
+.illustration-options > span { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 7px 8px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface); flex: 1; font-size: clamp(12px, 1.1vw, 17px); font-weight: 650; }
+.illustration-options > .selected, .illustration-food-list > .selected { background: var(--brand-soft); }
+.illustration-options .icon { width: 23px; height: 23px; }
+.illustration-food-list { display: grid; gap: 10px; }
+.illustration-food-list > div:not(.illustration-meter) { display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 9px 12px; border: 1px solid var(--border-strong); border-radius: 12px; font-size: 18px; }
+.illustration-food-list strong { flex: 1; font-weight: 750; }
+.illustration-food-list > div > span { font-size: 17px; color: var(--text-primary); }
+.illustration-food-list .icon { color: var(--brand-primary); }
+.how-diary-list > div:nth-child(-n+2) { padding-block: 4px; }
+.how-diary-list .meal-type-illustration { display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 38px; border-radius: 15px; background: #f0f7de; }
+.meal-type-illustration .icon { width: 30px; height: 30px; color: #174f09; }
+.marketing-card .illustration-note { padding: 10px 12px; margin-top: 12px; border-radius: 9px; background: var(--brand-soft); font-size: 12px; }
+.illustration-meter { height: 10px; border-radius: 10px; background: var(--brand-accent); position: relative; margin: 4px 10px; }
+.illustration-meter::after { content: ''; position: absolute; inset: 0 50% 0 0; border-radius: 10px; background: var(--brand-primary); }
+.marketing-info { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 18px auto 20px; padding: 8px 24px; border-radius: 24px; width: fit-content; background: #eef2df; font-size: 17px; }
+.marketing-info .icon { width: 23px; height: 23px; }
+.marketing-together { display: flex; align-items: center; gap: 54px; border: 1px solid var(--border-strong); border-radius: 20px; margin-top: 20px; padding: 18px 24px; min-height: 140px; }
+.marketing-together h2 { font-size: 29px; margin-bottom: 4px; color: #101416; letter-spacing: -.7px; }
+.marketing-together p { font-size: 20px; color: var(--text-primary); line-height: 1.3; }
+.marketing-together ul { padding: 0 18px 0 60px; margin: 0 0 0 auto; border-left: 1px solid var(--border); list-style: none; display: grid; gap: 8px; }
+.marketing-together li { display: flex; align-items: center; gap: 16px; font-size: 19px; }
+.marketing-together li .icon { color: var(--brand-primary); width: 17px; }
+.marketing-cta { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 30px; padding: 12px 24px; background: #ecf1db; border: 1px solid #e1e9d1; border-radius: 20px; margin-top: 20px; min-height: 78px; }
+.marketing-cta h2 { font-size: 31px; font-weight: 950; color: #101416; }
+.marketing-cta .button { border-radius: 28px; min-width: 260px; font-size: 24px; padding-block: 6px; }
+.marketing-cta > span { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.marketing-footer { display: flex; align-items: center; gap: 24px; margin-top: 18px; min-height: 44px; }
+.marketing-footer .brand { font-size: 22px; }
+.marketing-footer .brand-logo { width: 120px; }
+.marketing-footer .brand-mark { width: 30px; height: 34px; }
+.marketing-footer > span { flex: 1; height: 1px; background: var(--border); }
+.marketing-footer p, .marketing-footer > a { font-size: 16px; color: var(--text-secondary); }
+.marketing-footer > a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--brand-primary); font-weight: 700; }
+.marketing-tabs { display: flex; width: fit-content; margin: 0 auto 18px; border: 1px solid var(--border-strong); padding: 4px; border-radius: 24px; background: var(--surface); }
+.marketing-tabs button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 8px 40px; border: 0; border-radius: 20px; background: transparent; color: var(--text-primary); font-size: 22px; font-weight: 800; line-height: 1.25; }
+.marketing-tabs [aria-pressed='true'] { background: var(--brand-primary); color: var(--on-brand); }
+.marketing-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.marketing-feature-grid .marketing-food { height: 105px; }
+.macro-illustration { display: flex; justify-content: space-between; gap: 7px; padding: 10px 8px; margin-top: 10px; border: 1px solid var(--border); border-radius: 12px; }
+.mini-meal { display: flex; align-items: center; gap: 14px; border: 1px solid var(--border); padding: 7px; border-radius: 12px; margin-top: 10px; }
+.mini-meal .marketing-food { flex-shrink: 0; width: 92px; height: 52px; }
+.mini-meal strong { flex: 1; font-size: 18px; }
+.marketing-bubble { width: fit-content; background: var(--brand-soft); padding: 12px 16px; border-radius: 18px 18px 2px 18px; margin: 12px 0 12px auto; font-size: 13px; }
+.marketing-bubble.reply { border-radius: 18px 18px 18px 2px; background: var(--surface-page); margin-left: 0; margin-right: auto; border: 1px solid var(--border); }
+.marketing-checklist { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.marketing-checklist li { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid var(--border); }
+.marketing-checklist .icon { color: var(--brand-primary); }
+.marketing-hero { display: grid; grid-template-columns: minmax(0, .93fr) minmax(0, 1.25fr); gap: 60px; margin: 24px 44px 28px 62px; min-height: 332px; align-items: center; }
+.marketing-hero h1 { font-size: clamp(34px, 3.5vw, 52px); font-weight: 950; letter-spacing: -1.5px; line-height: 1.1; color: #003a37; }
+.marketing-hero > div > p { margin-top: 18px; color: #6d7a7f; font-size: 24px; line-height: 1.35; font-weight: 650; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.hero-actions .button { border-radius: 28px; font-size: 21px; }
+.marketing-hero small { display: block; color: var(--text-secondary); font-size: 18px; margin-top: 14px; }
+.marketing-panel-example { display: grid; grid-template-columns: 170px minmax(0, 1fr); padding: 16px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); box-shadow: 0 4px 7px #122c1d12; min-height: 332px; }
+.marketing-panel-example > aside { display: grid; align-content: start; gap: 12px; padding-right: 12px; border-right: 1px solid var(--border); }
+.marketing-panel-example .brand { font-size: 22px; margin-bottom: 14px; }
+.marketing-panel-example .brand-logo { width: 105px; }
+.marketing-panel-example .brand-mark { width: 27px; height: 30px; }
+.marketing-panel-example > aside > span { display: flex; align-items: center; gap: 9px; padding: 7px 8px; font-size: 16px; }
+.marketing-panel-example > aside > span:first-of-type { background: var(--brand-soft); border-radius: 8px; }
+.marketing-panel-example > div { padding-left: 18px; }
+.marketing-panel-example h2 { font-size: 26px; margin: 8px 0 16px; color: #101416; }
+.mini-panel-row { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 12px; margin-top: 8px; }
+.mini-panel-row strong { flex: 1; font-size: 19px; }
+.mini-panel-row .marketing-icon { width: 30px; height: 30px; }
+.mini-panel-row .marketing-icon .icon { width: 20px; height: 20px; }
+.mini-panel-row > img { width: 65px; height: 45px; object-fit: cover; border-radius: 10px; }
+.dietitian-meal-example { display: flex; gap: 14px; }
+.dietitian-meal-example > .marketing-food { width: 50%; height: 120px; }
+.dietitian-meal-example > div { display: grid; gap: 10px; }
+.workflow-cta { justify-content: space-between; }
+.marketing-faq { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 130px; align-items: center; margin: 24px 24px 0; }
+.marketing-faq details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 5px 16px; margin-bottom: 8px; }
+.marketing-faq summary { font-weight: 850; font-size: 20px; min-height: 24px; cursor: pointer; }
+.marketing-faq p { margin-top: 4px; color: var(--text-secondary); font-size: 17px; }
+.marketing-faq > .button { border-radius: 28px; font-size: 25px; }
+@media (max-width: 1200px) { .marketing-page { padding-inline: 30px; } .marketing-header nav { gap: 20px; } .marketing-header nav a { font-size: 14px; } .marketing-header .button { padding-inline: 14px; } .marketing-hero { gap: 24px; } .marketing-panel-example { grid-template-columns: 115px minmax(0, 1fr); } .marketing-panel-example > aside > span { font-size: 10px; gap: 5px; } .marketing-panel-example .brand { font-size: 18px; } .marketing-panel-example h2 { font-size: 19px; } .mini-panel-row strong { font-size: 12px; } .marketing-card { padding: 16px; } .marketing-card > header { gap: 10px; } .marketing-icon { width: 40px; height: 40px; } .marketing-icon .icon { width: 25px; height: 25px; } }
+@media (max-width: 950px) { .marketing-header { flex-wrap: wrap; gap: 20px; } .marketing-header nav { order: 3; justify-content: center; width: 100%; } .marketing-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .marketing-steps { grid-template-columns: minmax(0, 1fr); gap: 20px; max-width: 620px; margin-inline: auto; } .marketing-steps .illustration-options > span { font-size: 16px; } .step-card:not(:last-child)::after { display: none; } .marketing-together { flex-wrap: wrap; } .marketing-together ul { margin: 0; padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--border); width: 100%; } .marketing-hero { grid-template-columns: minmax(0, 1fr); } .marketing-hero > div:first-child { max-width: 650px; } .marketing-panel-example { grid-template-columns: 150px minmax(0, 1fr); } .marketing-faq { gap: 24px; grid-template-columns: minmax(0, 1fr) 220px; } }
+@media (max-width: 650px) { .marketing-page { padding: 18px 16px; } .marketing-header { margin-bottom: 26px; gap: 16px; } .marketing-header .brand { font-size: 28px; } .marketing-header .brand-mark { width: 37px; height: 42px; } .marketing-header > div { gap: 6px; } .marketing-header .button { font-size: 11px; padding-inline: 12px; } .marketing-header nav { gap: 20px; justify-content: space-between; } .marketing-header nav a { font-size: 12px; } .marketing-heading { margin-bottom: 24px; } .marketing-heading h1 { font-size: 31px; } .marketing-heading > p { font-size: 16px; } .marketing-steps, .marketing-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; margin-top: 24px; } .marketing-card { padding: 20px; } .marketing-card h2 { font-size: 23px; } .marketing-tabs { width: 100%; } .marketing-tabs button { flex: 1; padding-inline: 12px; font-size: 13px; } .marketing-info { font-size: 11px; align-items: flex-start; } .marketing-together { padding: 20px; gap: 14px; } .marketing-together > div { flex: 1; } .marketing-together h2 { font-size: 22px; } .marketing-together p br { display: none; } .marketing-cta { gap: 18px; padding: 20px; text-align: center; } .marketing-cta h2 { font-size: 23px; } .marketing-cta > .button { width: 100%; } .marketing-footer { flex-wrap: wrap; gap: 12px; } .marketing-footer > span { min-width: 80px; } .marketing-footer p { flex-basis: 100%; order: 3; font-size: 11px; } .marketing-hero h1 { font-size: 36px; } .marketing-hero > div > p { font-size: 18px; } .marketing-panel-example { grid-template-columns: 90px minmax(0, 1fr); padding: 12px; } .marketing-panel-example > aside { padding-right: 8px; } .marketing-panel-example .brand { font-size: 15px; gap: 2px; } .marketing-panel-example .brand-mark { width: 20px; height: 24px; } .marketing-panel-example > aside > span { gap: 5px; font-size: 9px; } .marketing-panel-example > aside .icon { width: 15px; height: 15px; } .marketing-panel-example > div { padding-left: 10px; } .marketing-panel-example h2 { font-size: 18px; } .mini-panel-row { gap: 6px; padding-inline: 7px; } .mini-panel-row strong { font-size: 11px; } .mini-panel-row > .icon:last-child { width: 15px; } .mini-panel-row > img { width: 45px; } .workflow-cta { justify-content: center; } .workflow-cta > h2 { flex-basis: 100%; } .workflow-cta > span { flex-basis: 100%; justify-content: center; } .workflow-cta > .icon { transform: rotate(90deg); } .marketing-faq { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+
+.wide-food { max-width: 368px; margin-inline: auto; object-fit: cover; }
+.marketing-feature-grid > .marketing-card { min-height: 232px; }
+.marketing-feature-grid > .marketing-card:nth-child(-n+3) { min-height: 254px; }
+
+.illustration-options > span:first-child { font-weight: 800; }
+.energy-example { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.energy-example > div:first-child { display: flex; align-items: center; gap: 10px; font-size: 18px; }
+.energy-example strong { flex: 1; }
+.energy-example .icon { color: var(--brand-primary); }
+.energy-example .illustration-meter { margin: 12px 0 0; height: 14px; }
+
+.macro-illustration > span { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; white-space: nowrap; }
+.macro-illustration .icon { width: 23px; height: 23px; color: var(--brand-primary); }
+.example-time { border-radius: 30px; padding: 5px 12px; background: var(--brand-soft); font-size: 16px; font-weight: 850; }
+
+.marketing-card > .mini-meal:first-of-type { margin-top: 0; }
+
+.water-example { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; }
+.water-example > .icon { width: 30px; height: 30px; color: var(--brand-primary); }
+.water-example > div { flex: 1; min-width: 0; }
+.water-example > div > div:first-child { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 17px; }
+.water-example b { color: var(--brand-primary); }
+.water-example .illustration-meter { margin: 10px 0 0; height: 13px; }
+.water-example .illustration-meter::after { right: 60%; }
+.measurement-example { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border: 1px solid var(--border); border-radius: 12px; margin-top: 10px; font-size: 17px; }
+.measurement-example strong { flex: 1; }
+.measurement-example b { color: var(--brand-primary); }
+.marketing-chat-example { position: relative; padding-inline: 20px; }
+.marketing-chat-example .marketing-bubble { position: relative; padding: 5px 14px; margin: 6px 45px 10px auto; font-size: 16px; line-height: 1.3; }
+.marketing-chat-example .marketing-bubble small { position: absolute; right: -45px; bottom: 0; font-size: 11px; color: var(--text-secondary); }
+.marketing-chat-example .marketing-bubble.reply { margin-left: 20px; margin-right: auto; box-shadow: var(--shadow-card); }
+.marketing-message-field { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; padding: 5px 8px; font-size: 14px; color: var(--text-muted); }
+.marketing-message-field > span:first-of-type { flex: 1; }
+.example-send { display: grid; place-items: center; width: 40px; height: 32px; border-radius: 14px; background: var(--brand-primary); color: var(--on-brand); }
+.appointment-example { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; margin-top: 18px; }
+.appointment-example > div { display: flex; align-items: center; gap: 12px; background: var(--brand-soft); padding: 18px; border-radius: 16px; font-size: 17px; }
+.appointment-example strong { flex: 1; }
+.appointment-example small { display: block; font-size: 16px; font-weight: 500; }
+.appointment-example ul { list-style: none; padding: 0 0 0 16px; margin: 0; border-left: 1px solid var(--border-strong); }
+.appointment-example li { display: flex; align-items: center; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 18px; }
+.appointment-example li span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: #6cab23; color: white; font-size: 16px; font-weight: 700; }
+.appointment-example li .unchecked { background: transparent; border: 2px solid var(--brand-primary); }
+.features-cta { justify-content: space-between; gap: 16px; padding: 14px 22px; }
+.features-cta h2 { font-size: 20px; border-radius: 24px; padding: 7px 20px; background: var(--brand-accent); }
+.features-cta > span { border-left: 1px solid var(--border-strong); padding-left: 20px; font-size: 16px; }
+.features-cta .button { font-size: 23px; min-width: 320px; }
+.feature-availability { margin-block: 9px; font-size: 15px; }
+@media (max-width: 1200px) { .marketing-header nav { gap: 24px; } .marketing-header .brand-logo { width: 170px; } .energy-example > div:first-child { font-size: 15px; } .macro-illustration > span { font-size: 12px; } .example-time { font-size: 13px; padding-inline: 8px; } .mini-meal .marketing-food { width: 70px; } .mini-meal strong { font-size: 15px; } .appointment-example { gap: 10px; } .appointment-example > div { padding: 10px; font-size: 14px; gap: 7px; } }
+@media (max-width: 650px) { .marketing-header .brand-logo { width: 120px; } .marketing-card p { font-size: 14px; } .marketing-tabs button { font-size: 15px; padding-inline: 14px; } .marketing-feature-grid > .marketing-card { min-height: 0; } .marketing-header nav a { font-size: 12px; } .features-cta > span { border-left: 0; padding-left: 0; } .marketing-panel-example .brand-logo { width: 68px; } .macro-illustration > span { font-size: 14px; } .energy-example > div:first-child { font-size: 16px; flex-wrap: wrap; } .features-cta h2 { font-size: 18px; } }
+
+.how-heading { margin-top: 20px; }
+.how-food-list > div:not(.illustration-meter) { min-height: 50px; padding: 5px 12px; }
+.food-symbol { display: grid; place-items: center; width: 80px; height: 34px; flex-shrink: 0; }
+.food-symbol img { width: 72px; height: 38px; object-fit: contain; }
+.how-example-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 32px; font-size: 17px; }
+.how-example-actions > span { display: flex; align-items: center; gap: 5px; padding: 9px 12px; border-radius: 24px; background: var(--brand-soft); white-space: nowrap; }
+.how-example-actions > span:first-child { background: var(--tone-amber-bg); }
+.how-example-actions > .example-confirm { border-radius: 10px; background: var(--brand-primary); color: var(--on-brand); padding-inline: 22px; }
+.how-example-actions .icon { width: 15px; height: 15px; }
+.how-diary-list b { color: var(--brand-primary); font-size: 18px; }
+.how-diary-list > div:not(.illustration-meter) { min-height: 48px; }
+.how-diary-list > div:nth-child(3) { border: 0; padding-bottom: 0; }
+.how-diary-list > div:nth-child(3) b { font-size: 17px; color: var(--text-primary); }
+.how-diary-list .illustration-meter { height: 14px; min-height: 0; margin: 6px 28px 18px; }
+.marketing-card .planned-feature-label { font-size: 13px; margin-top: 8px; }
+@media (max-width: 650px) { .how-heading { margin-top: 20px; } .how-example-actions { flex-wrap: wrap; } .how-example-actions > span { padding-inline: 10px; } }
+
+.marketing-together > .marketing-icon { width: 225px; height: 100px; background: #eef3df; flex-shrink: 0; border-radius: 50%; }
+.marketing-together > .marketing-icon .icon { width: 85px; height: 85px; stroke-width: 1.4; }
+.marketing-card .how-diary-list { gap: 6px; }
+.marketing-card .how-food-list { gap: 7px; margin-top: 16px; }
+.dietitian-feature-grid > .marketing-card { min-height: 242px; }
+@media (min-width: 1300px) { .step-card { min-height: 376px; } .marketing-feature-grid:not(.dietitian-feature-grid) { margin-top: 18px; } .marketing-feature-grid:not(.dietitian-feature-grid) > .marketing-card { min-height: 232px; } .marketing-feature-grid:not(.dietitian-feature-grid) > .marketing-card:nth-child(-n+3) { min-height: 254px; } }
+@media (max-width: 1200px) { .marketing-hero { margin-inline: 0; gap: 24px; } .marketing-together { gap: 24px; } .marketing-together > .marketing-icon { width: 100px; } .marketing-together p { font-size: 16px; } .marketing-together ul { padding-left: 20px; } .marketing-together li { font-size: 16px; } .marketing-steps { gap: 22px; } .step-number { min-width: 44px; height: 38px; font-size: 23px; } .marketing-cta .button { font-size: 18px; } .marketing-hero > div > p { font-size: 22px; } .hero-actions .button { font-size: 17px; } }
+@media (max-width: 650px) { .marketing-steps { margin-inline: 0; } .step-card > .marketing-food { width: 100%; margin-top: 16px; } .marketing-together { gap: 18px; } .marketing-together > .marketing-icon { width: 64px; height: 64px; } .marketing-together > .marketing-icon .icon { width: 42px; height: 42px; } .marketing-together ul { padding-left: 0; } .marketing-faq { margin-inline: 0; } .marketing-card h2 { color: var(--text-primary); } .marketing-hero { margin-inline: 0; } .marketing-card p { color: var(--text-secondary); } }
+
+.marketing-feature-grid > .marketing-card { padding: 14px 22px; }
+.dietitian-feature-grid > .marketing-card { padding: 12px 20px; }
+.dietitian-feature-grid .marketing-card h2 { font-size: 26px; }
+.dietitian-feature-grid .marketing-card p { font-size: 16px; }
+.dietitian-feature-grid .marketing-card > header { margin-bottom: 10px; }
+.dietitian-feature-grid .illustration-food-list { gap: 7px; }
+.dietitian-feature-grid .illustration-food-list > div { min-height: 38px; padding: 6px 12px; font-size: 18px; }
+.dietitian-meal-example > div { font-size: 17px; }
+.dietitian-meal-example .illustration-note { font-size: 17px; font-weight: 800; padding: 8px 12px; }
+.mini-panel-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--border-strong); border-radius: 14px; padding: 3px 12px; min-width: 114px; font-size: 16px; font-weight: 800; }
+.marketing-heading > p { position: relative; }
+.marketing-heading > p::after { content: ''; position: absolute; right: 35%; bottom: -18px; width: 140px; height: 10px; border-top: 4px solid #cee89d; border-radius: 50%; transform: rotate(3deg); }
+.how-heading > p::before { content: ''; position: absolute; right: 36%; bottom: -22px; width: 100px; height: 8px; border-top: 3px solid #cee89d; border-radius: 50%; transform: rotate(-4deg); }
+@media (min-width: 1300px) { .marketing-header nav { transform: translate(42px, -7px); } .marketing-heading:not(.how-heading) h1 { font-size: 47px; } .features-cta { margin-top: 27px; } }
+@media (max-width: 650px) { .marketing-feature-grid > .marketing-card { padding: 20px; } .mini-panel-action { gap: 4px; min-width: 0; padding: 3px 5px; font-size: 10px; } .mini-panel-action .icon { width: 14px; } .dietitian-feature-grid .marketing-card h2 { font-size: 23px; } }
+
+@media (max-width: 650px) { .illustration-options > span { min-width: 0; padding-inline: 6px; gap: 5px; font-size: 14px; } .illustration-options .icon { width: 18px; height: 18px; } }
+
+@media (min-width: 1300px) { .dietitian-feature-grid > .marketing-card:nth-child(-n+3) { min-height: 242px; } .step-card { padding-bottom: 8px; } }
+
+@media (max-width: 650px) { .workflow-cta > h2 { font-size: 23px; } }
+
+.tracking-illustration { width: 225px; height: 100px; flex-shrink: 0; }
+.how-photo { height: 176px; margin: 22px 6px 0 26px; position: relative; }
+.how-photo .marketing-food { width: 100%; height: 100%; }
+.how-photo::before { content: ''; position: absolute; width: 5px; height: 16px; top: -15px; left: -14px; border-radius: 4px; background: #ffa85b; transform: rotate(-35deg); box-shadow: 13px -6px 0 -1px #ffa85b, -10px 7px 0 -1px #ffa85b; }
+.photo-camera { display: grid; place-items: center; position: absolute; right: 14px; bottom: 12px; width: 54px; height: 54px; border-radius: 50%; background: #fffef8; color: var(--brand-primary); box-shadow: 0 3px 5px #18281922; }
+.photo-camera .icon { width: 31px; height: 31px; }
+.marketing-footer { position: relative; }
+.marketing-footer .brand-logo { width: 136px; }
+.marketing-footer > .brand { margin-left: 8px; margin-right: -22px; }
+.marketing-footer > span { margin-right: 18px; }
+.how-footer { padding-right: 124px; }
+.footer-mascot { position: absolute; bottom: -8px; right: 0; width: 100px; height: 86px; object-fit: contain; }
+@media (max-width: 1200px) { .tracking-illustration { width: 100px; } .food-symbol { width: 54px; } .food-symbol img { width: 50px; } }
+@media (max-width: 650px) { .tracking-illustration { width: 78px; height: 72px; } .how-photo { margin: 16px 0 0; } .how-footer { padding-right: 0; } .footer-mascot { display: none; } .marketing-footer > .brand { margin-right: 0; margin-left: 0; } .marketing-footer > span { margin-right: 0; } }
+
+@media (min-width: 1300px) {
+ .marketing-together { position: relative; display: grid; grid-template-columns: 250px minmax(0, 1fr) 540px; gap: 56px; margin-inline: -3px; }
+ .marketing-together::before { content: ''; position: absolute; left: 274px; top: 19px; bottom: 19px; width: 1px; background: var(--border); }
+ .tracking-illustration { justify-self: center; }
+ .marketing-together > div { min-width: 0; }
+ .marketing-together h2 { font-size: 31px; font-weight: 900; }
+ .marketing-together p { font-size: 19px; }
+ .marketing-together ul { position: relative; margin: 0; padding: 0 18px 0 32px; border: 0; gap: 0; }
+ .marketing-together ul::before { content: ''; position: absolute; left: -33px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+ .marketing-together li { gap: 24px; font-size: 20px; }
+ .marketing-together li + li { border-top: 1px solid var(--border); padding-top: 6px; }
+ .marketing-together li .icon { width: 24px; height: 24px; border: 1px solid #84a34e; border-radius: 50%; padding: 2px; background: #e8f1d5; }
+ .marketing-faq details:last-child { margin-bottom: 0; }
+ .marketing-page:has(.marketing-hero) .marketing-footer { margin-top: 11px; }
+}
+
+.workflow-cta > h2 { display: flex; align-items: center; gap: 16px; font-size: 27px; }
+.workflow-cta > h2 > .icon { width: 42px; height: 42px; color: var(--brand-primary); }
+.workflow-cta > span { padding: 6px 12px; border-radius: 30px; background: #ffffff9a; font-size: 18px; font-weight: 650; }
+@media (min-width: 1300px) { .marketing-feature-grid:not(.dietitian-feature-grid) { margin-top: 17px; row-gap: 19px; } .marketing-feature-grid:not(.dietitian-feature-grid) .marketing-card > header { margin-bottom: 7px; } .features-cta { min-height: 71px; padding-block: 10px; } .marketing-hero { margin-top: 22px; } .workflow-cta { min-height: 70px; padding-block: 10px; } }

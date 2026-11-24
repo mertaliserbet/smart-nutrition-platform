@@ -6,7 +6,7 @@ import App from '../../App'
 it('redirects the former client registration URL to the mobile registration guidance', async () => {
   const request = vi.spyOn(globalThis, 'fetch')
   render(<MemoryRouter initialEntries={['/kayit']}><App /></MemoryRouter>)
-  expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+  expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
   expect(screen.getByText('Danışan kaydı ve danışan işlemleri mobil uygulamada yapılır.')).toBeVisible()
   expect(screen.queryByRole('form', { name: /kayıt/i })).not.toBeInTheDocument()
   expect(request).not.toHaveBeenCalled()

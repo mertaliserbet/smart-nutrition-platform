@@ -50,14 +50,14 @@ export function DietitianApplicationPage() {
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setForm(current => ({ ...current, [name]: event.target.value })); setErrors(current => ({ ...current, [name]: undefined })); setMessage('')
       } }
-    const input = multiline ? <textarea {...props} rows={5} /> : <input {...props}
-      type={isPassword && !showPassword ? 'password' : name === 'email' ? 'email' : 'text'}
+    const input = multiline ? <textarea {...props} rows={3} /> : <input {...props}
+      placeholder={isPassword ? 'Şifrenizi girin' : name === 'email' ? 'ornek@eposta.com' : 'Adın ve soyadın'} type={isPassword && !showPassword ? 'password' : name === 'email' ? 'email' : 'text'}
       autoComplete={isPassword ? 'new-password' : name === 'email' ? 'email' : 'name'} />
 
     return <div className="form-field"><label htmlFor={props.id}>{label}</label>
       {isPassword ? <>
         <div className="password-field">
-          {input}
+          <Icon name="lock" className="password-lock" />{input}
           <button type="button" className="password-toggle" disabled={pending} aria-controls={props.id}
             aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'} aria-pressed={showPassword}
             onClick={() => setShowPassword(visible => !visible)}>
@@ -65,13 +65,13 @@ export function DietitianApplicationPage() {
           </button>
         </div>
         <p id="expert-password-hint" className="auth-description">Şifre 8–128 karakter olmalı. Boşluk kullanabilirsiniz.</p>
-      </> : input}
+      </> : multiline ? input : <div className="input-icon-field"><Icon name={name === 'email' ? 'mail' : 'user'} />{input}</div>}
       {errors[name] && <p className="field-error" id={errorId} role="alert">{errors[name]}</p>}
     </div>
   }
 
-  return <AuthLayout title="Diyetisyen başvurusu" badge="Uzman başvurusu" description="Mesleki bilgilerinizi iletin. Danışan erişimi, Admin onayı ve danışanın paylaşım izinleriyle açılır.">
-    <p className="form-message">Danışan hesabınız varsa mobil uygulamada Profil bölümünden aynı hesapla diyetisyen başvurusu yapabilirsiniz.</p>
+  return <AuthLayout registration secondary={<div className="registration-help"><p>Danışan hesabınız varsa mobil uygulamada Profil bölümünden aynı hesapla diyetisyen başvurusu yapabilirsiniz.</p><Link className="text-link" to="/eposta-dogrulama">E-postamı doğrula</Link></div>} title="Limely hesabını oluştur" badge="Uzman başvurusu" description="Diyetisyen hesabınla başla.">
+    <div className="auth-account-types" aria-label="Hesap türü"><span aria-disabled="true" title="Danışan kaydı mobil uygulamadan yapılır"><Icon name="users" />Danışan<small>Mobil uygulamada</small></span><span className="selected"><Icon name="users" />Diyetisyen<Icon name="check" /></span></div>
     {submitted ? <p className="form-message" role="status">Başvurunuz kaydedildi. E-postanızı doğrulayın; ardından giriş yaparak Admin onay durumunu takip edebilirsiniz.</p> :
       <form noValidate aria-label="Diyetisyen başvuru formu" aria-busy={pending} onSubmit={event => { void submit(event) }}>
         {field('displayName', 'Ad ve soyad')}{field('email', 'E-posta adresi')}{field('password', 'Şifre')}
@@ -80,7 +80,5 @@ export function DietitianApplicationPage() {
         {message && <p className="form-message error-message" role="alert">{message}</p>}
         <button className="button button-primary form-submit" disabled={pending} type="submit">{pending ? 'Başvuru iletiliyor…' : 'Başvuruyu gönder'}</button>
       </form>}
-    <Link className="preview-link" to="/eposta-dogrulama">E-postamı doğrula</Link>
-    <Link className="preview-link" to="/giris">Giriş yap</Link>
   </AuthLayout>
 }

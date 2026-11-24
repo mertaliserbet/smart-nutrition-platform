@@ -9,6 +9,8 @@ import type { WorkspaceSession } from './workspaceSession'
 import { WorkspaceLayout } from './WorkspaceLayout'
 import { LiveDashboardPage } from './LiveDashboardPage'
 import { ClientListProvider } from '../relationships/clientListState'
+import { ClientFeaturePage } from './ClientFeaturePage'
+import { AppointmentsPage, MessagesPage } from './UnavailableWorkspacePage'
 export function DietitianWorkspace() {
   const [session, setSession] = useState<WorkspaceSession>()
   const [profile, setProfile] = useState<{ displayName: string; email: string; token: string }>()
@@ -57,6 +59,11 @@ export function DietitianWorkspace() {
           <Route path="danisanlar" element={<LiveClientsPage />} />
           <Route path="danisanlar/:clientId" element={<LiveClientDetailsPage />} />
           <Route path="baglantilar" element={<ConnectionsPage />} />
+          <Route path="ogun-incelemeleri" element={<ClientFeaturePage key="meals" feature="meals" />} />
+          <Route path="programlar" element={<ClientFeaturePage key="plans" feature="plans" />} />
+          <Route path="raporlar" element={<ClientFeaturePage key="reports" feature="reports" />} />
+          <Route path="randevular" element={<AppointmentsPage />} />
+          <Route path="mesajlar" element={<MessagesPage />} />
           <Route path="*" element={<><h1 tabIndex={-1}>Bölüm bulunamadı</h1><Link to="/calisma-alani/danisanlar">Danışanlarıma dön</Link></>} />
         </Routes></ClientListProvider></WorkspaceContext.Provider>}
   </WorkspaceLayout>

@@ -1,36 +1,29 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { Brand, Icon } from '../../core/components/Icon'
-import { ThemeControl } from '../../core/theme/ThemeProvider'
+import { LegalLinks } from '../../core/components/LegalLinks'
+import './login.css'
 
-export function AuthLayout({ title, description, children, isLogin = false, badge = 'Arayüz önizlemesi', backTo = '/giris' }: {
-  title: string; description: string; children: ReactNode; isLogin?: boolean; badge?: string; backTo?: string
+export function AuthLayout({ title, description, children, isLogin = false, registration = false, badge = 'Hesap', backTo = '/giris', secondary }: {
+  title: string; description: string; children: ReactNode; isLogin?: boolean; registration?: boolean; badge?: string; backTo?: string; secondary?: ReactNode
 }) {
-  return (
-    <div className={isLogin ? 'auth-layout auth-layout-login' : 'auth-layout'}>
-      <aside className="auth-story">
-        <Brand inverse />
-        <div className="story-copy">
-          <p className="eyebrow">BİRLİKTE, DAHA İYİ BİR TAKİP.</p>
-          <h2>Danışanınıza odaklanın.<br /><span>Bütünü bir arada görün.</span></h2>
-          <p>Beslenme kayıtları, programlar ve gelişim.<br />Diyetisyenlik pratiğiniz için sakin bir çalışma alanı.</p>
-          <div className="story-art" aria-hidden="true"><div className="art-orbit" /><Icon name="leaf" /><span className="art-dot" /></div>
-          <div className="story-note"><Icon name="shield" /><span>Paylaşım danışanın kontrolünde.<br /><strong>Her adımda, izinli erişim.</strong></span></div>
-        </div>
-        <p className="story-footer">SMART NUTRITION PLATFORM</p>
-      </aside>
-      <div className="auth-main">
-        <header className="auth-header"><span className="preview-badge">{badge}</span><ThemeControl /></header>
-        <main id="main-content" className="auth-content">
-          {!isLogin && <Link to={backTo} className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
-          <span className="auth-icon"><Icon name={isLogin ? 'leaf' : 'link'} /></span>
-          {!isLogin && <p className="eyebrow">SMART NUTRITION</p>}
-          <h1 tabIndex={-1}>{title}</h1>
-          <p className="auth-description">{description}</p>
-          {children}
-        </main>
-        {!isLogin && <footer className="auth-footer">Diyetisyen ve danışan arasında, daha güçlü bir bağ.</footer>}
-      </div>
+  return <div className={`auth-layout${isLogin ? ' auth-layout-login' : ''}${registration ? ' auth-layout-registration' : ''}`}>
+    <div className="auth-shell">
+      <header className="auth-header">
+        <Link to="/giris" aria-label="Limely giriş ekranı"><Brand subtitle="" /></Link>
+        <div className="auth-header-actions">{registration ? <><span>Zaten hesabın var mı?</span><Link className="text-link" to="/giris">Giriş yap</Link></> : <Link className="text-link" to="/">Ana sayfaya dön<Icon name="arrow" /></Link>}</div>
+      </header>
+      <main id="main-content" className="auth-content">
+        {!isLogin && !registration && <Link to={backTo} className="text-link back-link"><Icon name="back" />Giriş ekranına dön</Link>}
+        <p className="auth-badge">{badge}</p>
+        <h1 tabIndex={-1}>{title}{isLogin && <span className="heading-rays" aria-hidden="true" />}</h1>
+        <p className="auth-description">{description}</p>
+        <div className="auth-form-surface">{children}</div>
+      </main>
+      {isLogin && <div className="auth-encouragement" aria-hidden="true"><img src="/images/limely-mascot-lime.png" width="1536" height="1024" alt="" /><p>Küçük adımlar,<br />düzenli takip.</p></div>}
+      <footer className="auth-footer">{isLogin ? <LegalLinks /> : <><Icon name="shield" /><span>Paylaşım danışanın kontrolünde. Her adımda izinli erişim.</span><span className="auth-footer-brand">Limely</span></>}</footer>
+      {secondary}
+      {isLogin && <p className="auth-mobile-note">Danışan kaydı ve danışan işlemleri mobil uygulamada yapılır.</p>}
     </div>
-  )
+  </div>
 }

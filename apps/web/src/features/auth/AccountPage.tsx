@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { AuthLayout } from './AuthLayout'
+import { WorkspaceLayout } from '../workspace/WorkspaceLayout'
+import { Icon } from '../../core/components/Icon'
 import { getAccount, getCsrf, logout, WebSessionError } from './webSessionApi'
 import type { CurrentUserResponse } from './webSessionApi'
 
@@ -92,25 +93,26 @@ export function AccountPage() {
     }
   }
 
-  return <AuthLayout title="Hesabım" badge="Hesap" backTo={returnTo} description="Hesap bilgilerinizi görüntüleyebilir ve oturumunuzu kapatabilirsiniz.">
+  return <WorkspaceLayout audience={account?.role === 'admin' ? 'admin' : 'dietitian'} profile={account && context.current ? { displayName: account.displayName ?? 'Hesabım', email: account.email, token: context.current.token } : undefined}>
+    <div className="page-heading"><h1 tabIndex={-1}>Ayarlar</h1><p>Profilini, çalışma düzenini ve hesap tercihlerini yönet.</p></div>
+    <div className="settings-layout"><nav className="card settings-navigation" aria-label="Hesap bölümleri"><a href="#account-profile"><Icon name="users" />Profil ve kurum</a><a href="#account-hours"><Icon name="calendar" />Çalışma saatleri</a><a href="#account-notifications"><Icon name="bell" />Bildirimler</a><a href="#account-security"><Icon name="shield" />Hesap ve güvenlik</a><a href="#account-privacy"><Icon name="database" />Gizlilik ve veriler</a></nav><div className="card settings-profile" id="account-profile"><h2>Profil ve kurum bilgileri</h2>
     {pending && <p role="status">İşlem sürüyor…</p>}
     {message && <p className="form-message error-message" role="alert">{message}</p>}
     {account && recovering && <p className="form-message error-message" role="alert">Çıkış doğrulanamadı. Devam etmeden önce açık hesabı kontrol edin.</p>}
     {account && typeof location.state?.accessNotice === 'string' && <p className="form-message" role="status">{location.state.accessNotice}</p>}
     {account && <section aria-label="Hesap bilgileri">
+      <div className="settings-identity"><span className="client-avatar large-avatar" aria-hidden="true">{account.displayName?.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join('') || <Icon name="users" />}</span><div><button className="button button-secondary" disabled aria-describedby="profile-unavailable"><Icon name="camera" />Fotoğraf değiştir</button></div></div>
       <dl className="account-details">
-        <dt>Ad</dt><dd>{account.displayName ?? 'Belirtilmemiş'}</dd>
-        <dt>E-posta</dt><dd>{account.email}</dd>
-        <dt>Web profili</dt><dd>{account.role === 'admin' ? 'Yönetici' : 'Diyetisyen'}</dd>
-        <dt>E-posta doğrulaması</dt><dd>Doğrulandı</dd>
-      </dl>
-      {account.role === 'admin' && <Link className="preview-link" to="/yonetim/uzmanlar">Uzman başvurularını incele</Link>}
-      {account.role !== 'admin' && <Link className="preview-link" to="/uzman/basvuru-durumu">Başvuru durumum</Link>}
-      {account.role !== 'admin' && <Link className="preview-link" to="/calisma-alani">Çalışma alanımı aç</Link>}
-      <button className="button button-primary form-submit" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>
+        <div><dt>Ad soyad</dt><dd>{account.displayName ?? 'Belirtilmemiş'}</dd></div>
+        <div><dt>E-posta</dt><dd>{account.email}</dd></div>
+        <div><dt>Web profili</dt><dd>{account.role === 'admin' ? 'Yönetici' : 'Diyetisyen'}</dd></div>
+        <div><dt>E-posta doğrulaması</dt><dd>{account.isEmailVerified ? 'Doğrulandı' : 'Doğrulanmadı'}</dd></div>
+        {['Telefon', 'Kurum adı', 'Şehir', 'Zaman dilimi'].map(label => <div key={label}><dt>{label}</dt><dd aria-label={`${label} sunulmuyor`}>—</dd></div>)}
+      </dl><label className="settings-biography">Kısa biyografi<textarea disabled placeholder="Bu sürümde sunulmuyor" rows={3} /></label><div className="settings-visibility" id="account-privacy"><h3>Profil görünürlüğü</h3><div className="settings-visibility-row" title="Bu tercih bilgisi sunulmuyor">Adımı ve unvanımı danışanlara göster</div><div className="settings-visibility-row" title="Bu tercih bilgisi sunulmuyor">Kurum bilgilerimi randevu sayfasında göster</div><button className="button button-primary" disabled>Değişiklikleri kaydet</button></div>
     </section>}
     {logoutFailed && <button className="button button-primary form-submit" disabled={pending} onClick={() => { void signOut() }}>Çıkışı tekrar dene</button>}
     {!account && !pending && <button className="button button-secondary form-submit" onClick={() => { void load() }}>Hesabı yeniden kontrol et</button>}
-    <Link className="preview-link" to={returnTo}>Giriş ekranına git</Link>
-  </AuthLayout>
+    </div><aside className="settings-aside"><section className="card" id="account-hours"><div className="settings-card-heading"><span className="marketing-icon"><Icon name="calendar" /></span><h2>Çalışma düzeni</h2></div><div className="settings-placeholder-row"><span>Hafta içi</span><strong>—</strong></div><div className="settings-placeholder-row"><span>Hafta sonu</span><strong>—</strong></div><button className="button button-secondary" disabled>Çalışma düzeni sunulmuyor</button></section><section className="card" id="account-notifications"><div className="settings-card-heading"><span className="marketing-icon"><Icon name="bell" /></span><h2>Bildirim tercihleri</h2></div><div className="settings-placeholder-row"><span>Yeni randevu talebi</span><span>—</span></div><div className="settings-placeholder-row"><span>Yeni mesaj</span><span>—</span></div><p>Bildirim tercihleri bu sürümde sunulmuyor.</p></section><section className="card settings-security" id="account-security"><div className="settings-card-heading"><span className="marketing-icon"><Icon name="shield" /></span><h2>Hesap güvenliği</h2></div><p>Bu tarayıcıdaki oturumunuzu güvenli biçimde kapatabilirsiniz.</p>{account && <button className="button button-secondary" onClick={() => { void signOut() }} disabled={pending}>Çıkış yap</button>}<div className="settings-account-links">{account?.role === 'admin' ? <Link to="/yonetim/uzmanlar">Uzman başvurularını incele</Link> : <><Link to="/uzman/basvuru-durumu">Başvuru durumum</Link><Link to="/calisma-alani">Çalışma alanımı aç</Link></>}<Link to={returnTo}>Giriş ekranına git</Link></div></section></aside></div>
+    <div className="inline-note" id="profile-unavailable"><Icon name="info" /><p>Profil bilgileri salt okunur. Fotoğraf, kurum ve profil düzenleme bu sürümde sunulmuyor.</p></div>
+  </WorkspaceLayout>
 }

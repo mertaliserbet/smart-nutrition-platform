@@ -4,19 +4,19 @@ import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { createMealLogComment, getMealLogComments, validCommentText } from './mealLogCommentApi'
 
-export function MealLogComments({ mealLogId, onAccessDenied }: { mealLogId: string; onAccessDenied: (error: WebSessionError) => void }) {
+export function MealLogComments({ mealLogId, onAccessDenied, initiallyOpen = false }: { mealLogId: string; initiallyOpen?: boolean; onAccessDenied: (error: WebSessionError) => void }) {
   const session = useWorkspaceSession()
-  return <CommentSection key={`${session.dietitianId}:${session.token}:${mealLogId}`} mealLogId={mealLogId} onAccessDenied={onAccessDenied} />
+  return <CommentSection key={`${session.dietitianId}:${session.token}:${mealLogId}`} mealLogId={mealLogId} onAccessDenied={onAccessDenied} initiallyOpen={initiallyOpen} />
 }
-function CommentSection({ mealLogId, onAccessDenied }: { mealLogId: string; onAccessDenied: (error: WebSessionError) => void }) {
-  const [open, setOpen] = useState(false)
+function CommentSection({ mealLogId, onAccessDenied, initiallyOpen }: { mealLogId: string; initiallyOpen: boolean; onAccessDenied: (error: WebSessionError) => void }) {
+  const [open, setOpen] = useState(initiallyOpen)
   const id = useId()
-  return <div className="meal-comments">
-    <button className="button button-secondary" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>Yorumlar ve yanıtlar</button>
-    {open && <div id={id}><CommentContent mealLogId={mealLogId} onAccessDenied={onAccessDenied} /></div>}
+  return <div className={`meal-comments${initiallyOpen ? ' meal-comments-inline' : ''}`}>
+    <button className="button button-secondary" aria-label="Yorumlar ve yanıtlar" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>{initiallyOpen ? 'Danışana geri bildirim' : 'Yorumlar ve yanıtlar'}</button>
+    {open && <div id={id}><CommentContent mealLogId={mealLogId} onAccessDenied={onAccessDenied} compact={initiallyOpen} /></div>}
   </div>
 }
-function CommentContent({ mealLogId, onAccessDenied }: { mealLogId: string; onAccessDenied: (error: WebSessionError) => void }) {
+function CommentContent({ mealLogId, onAccessDenied, compact = false }: { mealLogId: string; compact?: boolean; onAccessDenied: (error: WebSessionError) => void }) {
   const session = useWorkspaceSession()
   const [page, setPage] = useState(1)
   const [text, setText] = useState('')
@@ -70,13 +70,13 @@ function CommentContent({ mealLogId, onAccessDenied }: { mealLogId: string; onAc
   }
   const ready = state.data && !state.pending && !writing
   const fieldId = useId()
-  return <section aria-label="Öğün yorumları">
+  return <section className="meal-comment-content" aria-label="Öğün yorumları">
     <h4>Yorumlar ve danışan yanıtları</h4>
     {(state.pending || writing) && <p role="status">{writing ? 'Yorum gönderiliyor…' : 'Yorumlar okunuyor…'}</p>}
     {state.message && <p role="alert">{state.message}</p>}
     {writeError && <p role="alert">{writeError}</p>}
     {notice && <p role="status">{notice}</p>}
-    {ready && <>
+    {ready && <details className="meal-comment-history" open={!compact || state.data!.totalCount > 0}><summary>Yorum geçmişi ({state.data!.totalCount})</summary>
       {state.data!.items.length === 0 && <p>{state.data!.totalCount > 0 ? 'Bu sayfada yorum kalmadı. Önceki sayfaya dönebilirsiniz.' : 'Henüz yorum veya yanıt yok.'}</p>}
       <ol className="meal-comment-list" aria-label="Yorum geçmişi">{state.data!.items.map(item => {
         const parent = state.data!.items.find(row => row.id === item.parentCommentId)
@@ -92,9 +92,9 @@ function CommentContent({ mealLogId, onAccessDenied }: { mealLogId: string; onAc
         <span>{state.data!.totalCount} yorum/yanıt · Sayfa {page}</span>
         <button className="button button-secondary" disabled={page * 10 >= state.data!.totalCount} onClick={() => setPage(value => value + 1)}>Sonraki yorum sayfası</button>
       </div>
-    </>}
+    </details>}
     <form onSubmit={submit} aria-label="Diyetisyen yorumu yaz">
-      <label htmlFor={fieldId}>Öğüne yorumunuz</label>
+      <label className={compact ? 'sr-only' : undefined} htmlFor={fieldId}>Öğüne yorumunuz</label>
       <textarea id={fieldId} rows={3} value={text} disabled={!ready || locked} onChange={event => { setText(event.target.value); setWriteError(''); setNotice('') }} aria-describedby={`${fieldId}-count`} />
       <p id={`${fieldId}-count`}>{[...text.trim()].length}/2000 karakter</p>
       <button className="button button-primary" disabled={!ready || locked} type="submit">Yorum gönder</button>

@@ -27,6 +27,16 @@ function setup(start = '/calisma-alani/danisanlar') {
   return { ...render(tree('synthetic')), tree, request, user: userEvent.setup(), count: (value: number) => { total = value } }
 }
 describe('client list return position', () => {
+  it('opens a numbered page with the current search and reports the returned range', async () => {
+    const { user, request } = setup(); await screen.findByText('Sentetik Ada')
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'Ada' } }); await user.click(screen.getByRole('button', { name: 'Ara' })); await screen.findByText('Sentetik Ada')
+    await user.click(screen.getByRole('button', { name: '3. sayfayı aç' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '3. sayfayı aç' })).toHaveAttribute('aria-current', 'page'))
+    expect(screen.getByText('21–21 / 21 danışan')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Sonraki sayfa' })).toBeDisabled()
+    const url = new URL(String(request.mock.calls.at(-1)![0]), 'https://localhost')
+    expect(url.searchParams.get('page')).toBe('3'); expect(url.searchParams.get('query')).toBe('Ada')
+  })
   it.each(['Tarayıcı Geri', 'Danışan listesine dön'])('retains search, sorting and page after %s without putting names in route/history storage', async back => {
     const { user, request } = setup(); await screen.findByText('Sentetik Ada')
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: ' Ada ' } }); await user.click(screen.getByRole('button', { name: 'Ara' }))

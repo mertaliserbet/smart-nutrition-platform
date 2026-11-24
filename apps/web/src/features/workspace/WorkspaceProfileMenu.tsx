@@ -1,9 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Icon } from '../../core/components/Icon'
 import './workspace.css'
 
-export function WorkspaceProfileMenu({ displayName, email, children }: {
-  displayName: string; email?: string; children: ReactNode
+export function WorkspaceProfileMenu({ displayName, email, children, showName = false }: {
+  displayName: string; email?: string; children: ReactNode; showName?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const root = useRef<HTMLDivElement>(null)
@@ -21,13 +22,13 @@ export function WorkspaceProfileMenu({ displayName, email, children }: {
     return () => document.removeEventListener('pointerdown', outside)
   }, [open])
 
-  return <div ref={root} className="workspace-profile" onBlur={event => {
+  return <div ref={root} className={`workspace-profile${showName ? ' sidebar-profile' : ''}`} onBlur={event => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }} onKeyDown={event => {
     if (event.key === 'Escape' && open) { setOpen(false); button.current?.focus() }
   }}>
     <button ref={button} type="button" className="workspace-avatar" aria-label="Profil menüsü" aria-expanded={open}
-      aria-controls={open ? id : undefined} onClick={() => setOpen(value => !value)}><span aria-hidden="true">{initials}</span></button>
+      aria-controls={open ? id : undefined} onClick={() => setOpen(value => !value)}><span className="profile-initials" aria-hidden="true">{initials}</span>{showName && <><span className="profile-name">{displayName}</span><Icon name="chevron" /></>}</button>
     {open && <div id={id} className="workspace-profile-panel">
       <div className="workspace-profile-identity"><strong>{displayName}</strong>{email && <span>{email}</span>}</div>
       {children}

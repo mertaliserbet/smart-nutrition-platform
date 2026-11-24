@@ -64,7 +64,7 @@ describe('authentication presentation boundary', () => {
     await user.type(screen.getByLabelText('Şifre', { exact: true }), 'a')
     await user.click(screen.getByRole('button', { name: 'Giriş yap' }))
     expect(await screen.findByRole('status')).toHaveTextContent('Giriş bilgileri doğrulanamadı')
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tekrar hoş geldiniz.')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Tekrar hoş geldin')
     expect(screen.getByLabelText('Şifre', { exact: true })).toHaveValue('')
     expect(request).toHaveBeenCalledTimes(2)
     expect(request).toHaveBeenLastCalledWith('/api/v1/auth/web-session', expect.objectContaining({

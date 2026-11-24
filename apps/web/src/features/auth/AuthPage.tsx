@@ -85,15 +85,16 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
     <form noValidate onSubmit={(event) => { void submit(event) }} aria-label={isLogin ? 'Giriş formu' : 'Şifre sıfırlama formu'} aria-busy={busy}>
       <div className="form-field">
         <label htmlFor="email">E-posta adresi</label>
-        <input id="email" name="email" type="email" autoComplete="email" ref={emailInput}
+        <div className="input-icon-field"><Icon name="mail" /><input id="email" name="email" type="email" autoComplete="email" ref={emailInput}
           placeholder="eposta@ornek.com" value={email} disabled={busy} required
           aria-invalid={Boolean(errors.email)} aria-describedby={errors.email ? 'email-error' : undefined}
-          onChange={(event) => { setEmail(event.target.value); setErrors((current) => ({ ...current, email: undefined })); setNotice('') }} />
+          onChange={(event) => { setEmail(event.target.value); setErrors((current) => ({ ...current, email: undefined })); setNotice('') }} /></div>
         {errors.email && <p className="field-error" id="email-error" role="alert">{errors.email}</p>}
       </div>
       {isLogin && <div className="form-field">
-        <div className="field-label"><label htmlFor="password">Şifre</label><Link to="/sifremi-unuttum">Şifremi unuttum</Link></div>
+        <div className="field-label"><label htmlFor="password">Şifre</label></div>
         <div className="password-field">
+          <Icon name="lock" className="password-lock" />
           <input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password"
             ref={passwordInput} placeholder="Şifrenizi girin" value={password} disabled={busy} required
             aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'password-error' : undefined}
@@ -105,12 +106,14 @@ export function AuthForm({ mode, isLoading = false, errorMessage }: {
         </div>
         {errors.password && <p className="field-error" id="password-error" role="alert">{errors.password}</p>}
       </div>}
+      {isLogin && <div className="login-forgot"><Link to="/sifremi-unuttum">Şifremi unuttum</Link></div>}
       {errorMessage && <p className="form-message error-message" role="alert">{errorMessage}</p>}
       {notice && <p className={`form-message${requestFailed ? ' error-message' : ''}`} role={requestFailed ? 'alert' : 'status'}>{notice}</p>}
       {sessionConflict && <Link className="button button-secondary form-submit" to="/hesabim" state={{ returnTo: '/giris' }}>Açık hesabı görüntüle ve çıkış yap</Link>}
       <button className="button button-primary form-submit" type="submit" disabled={busy}>
-        {busy ? 'İşlem sürüyor…' : isLogin ? 'Giriş yap' : 'Sıfırlama bağlantısı iste'}{!busy && <Icon name="arrow" />}
+        {busy ? 'İşlem sürüyor…' : isLogin ? 'Giriş yap' : 'Sıfırlama bağlantısı iste'}{!busy && !isLogin && <Icon name="arrow" />}
       </button>
+      {isLogin && <div className="login-create-account"><span>Hesabın yok mu?</span><Link to="/uzman-basvurusu">Hesap oluştur</Link></div>}
     </form>
   )
 }
@@ -142,14 +145,13 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
   const location = useLocation()
   return (
     <AuthLayout isLogin={isLogin}
+      secondary={isLogin ? <LoginOptions /> : undefined}
       badge={isLogin ? 'Hesap girişi' : 'Şifre sıfırlama'}
-      title={isLogin ? 'Tekrar hoş geldiniz.' : 'Şifrenizi mi unuttunuz?'}
-      description={isLogin ? 'Çalışma alanınıza giriş yaparak takibe kaldığınız yerden devam edin.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
+      title={isLogin ? 'Tekrar hoş geldin' : 'Şifrenizi mi unuttunuz?'}
+      description={isLogin ? 'Çalışma alanına kaldığın yerden devam et.' : 'Hesabınızın e-posta adresiyle şifre sıfırlama bağlantısı isteyebilirsiniz.'}>
       {isLogin && location.state?.passwordResetComplete === true && <p className="form-message" role="status">Şifreniz yenilendi. Yeni şifrenizle giriş yapın. Yönetici girişinde MFA doğrulaması devam eder.</p>}
       {!isLogin && <p className="auth-description">Bağlantıyı açtıktan sonra sayfayı yenilediyseniz e-postadaki bağlantıyı yeniden açın veya yeni bağlantı isteyin.</p>}
       <AuthForm key={mode} mode={mode} />
-      {isLogin && <p className="auth-description">Danışan kaydı ve danışan işlemleri mobil uygulamada yapılır.</p>}
-      {isLogin && <LoginOptions />}
     </AuthLayout>
   )
 }
