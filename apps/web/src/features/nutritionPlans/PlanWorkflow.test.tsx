@@ -33,11 +33,13 @@ describe('program draft protection', () => {
   it('does not warn for a clean or reverted draft, but cancel requires a deliberate discard for actual edits', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(async () => list())
     const { user } = setup()
-    await user.click(await screen.findByRole('button', { name: 'Programı düzenle' }))
+    const edit = await screen.findByRole('button', { name: 'Programı düzenle' })
+    await user.click(edit)
     fireEvent.change(screen.getByLabelText('Program başlığı'), { target: { value: 'geçici' } })
     fireEvent.change(screen.getByLabelText('Program başlığı'), { target: { value: 'Kaynak başlığı' } })
     await user.click(screen.getByRole('button', { name: 'Vazgeç' }))
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    await waitFor(() => expect(edit).toHaveFocus())
     await changeTitle(user)
     await user.click(screen.getByRole('button', { name: 'Vazgeç' }))
     expect(screen.getByRole('alertdialog')).toHaveTextContent('Kaydedilmemiş değişiklikler')
@@ -46,6 +48,7 @@ describe('program draft protection', () => {
     await user.click(screen.getByRole('button', { name: 'Vazgeç' }))
     await user.click(screen.getByRole('button', { name: 'Değişiklikleri sil' }))
     expect(screen.queryByLabelText('Program başlığı')).not.toBeInTheDocument()
+    await waitFor(() => expect(edit).toHaveFocus())
   })
   it('preserves editing across refresh, history, paging and a failed save', async () => {
     const request = vi.spyOn(globalThis, 'fetch').mockImplementation(async (path, options) => {
@@ -176,6 +179,45 @@ describe('copying only authorized own program structure', () => {
     expect(screen.queryByRole('button', { name: 'Kişisel programını kopyala' })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Kaynak başlığı programını kopyala' }))
   }
+  it('returns focus to the create action when discarding a copied draft whose source button was removed', async () => {
+    const { user } = copySetup()
+    await choose(user)
+    await user.click(screen.getByRole('button', { name: 'Vazgeç' }))
+    await user.click(screen.getByRole('button', { name: 'Değişiklikleri sil' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Yeni program oluştur' })).toHaveFocus())
+    expect(screen.queryByRole('form', { name: 'Beslenme programı formu' })).not.toBeInTheDocument()
+  })
+  it('invalidates a selected source and aborts its pending copy when the client list is rechecked', async () => {
+    const { user, request, source } = copySetup()
+    const original = request.getMockImplementation()!
+    let finish!: (response: Response) => void
+    request.mockImplementation((path, init) => String(path) === `/api/v1/nutrition-plans/${planId}`
+      ? new Promise(resolve => { finish = resolve }) : original(path, init))
+    await user.click(await screen.findByRole('button', { name: 'Kendi programımdan kopyala' }))
+    await user.click(await screen.findByRole('button', { name: 'Kaynak Sentetik Deniz' }))
+    await user.click(await screen.findByRole('button', { name: 'Kaynak başlığı programını kopyala' }))
+    const pending = request.mock.calls.find(([path]) => String(path) === `/api/v1/nutrition-plans/${planId}`)![1]!.signal!
+    await user.click(screen.getByRole('button', { name: 'Kaynakları yeniden kontrol et' }))
+    expect(pending.aborted).toBe(true)
+    expect(screen.queryByRole('button', { name: 'Kaynak başlığı programını kopyala' })).not.toBeInTheDocument()
+    await act(async () => finish(Response.json(source)))
+    expect(screen.queryByRole('form', { name: 'Beslenme programı formu' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Kaynak Sentetik Deniz' })).toBeVisible()
+  })
+  it('removes a stale source access error after a successful permission recheck', async () => {
+    const { user, request } = copySetup()
+    const original = request.getMockImplementation()!
+    let denied = true
+    request.mockImplementation((path, init) => String(path).includes(`clientId=${sourceClient}`) && denied
+      ? Promise.resolve(new Response(null, { status: 403 })) : original(path, init))
+    await user.click(await screen.findByRole('button', { name: 'Kendi programımdan kopyala' }))
+    await user.click(await screen.findByRole('button', { name: 'Kaynak Sentetik Deniz' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Programlara erişim veya düzenleme izniniz bulunmuyor.')
+    denied = false
+    act(() => window.dispatchEvent(new Event('focus')))
+    expect(await screen.findByRole('button', { name: 'Kaynak başlığı programını kopyala' })).toBeVisible()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
   it('uses paged client/program lists, copies reusable fields only, POSTs an independent target draft and never writes the source or activates', async () => {
     const { user, request } = copySetup(); await choose(user)
     expect(screen.queryByRole('button', { name: 'Kişisel programını kopyala' })).not.toBeInTheDocument()
