@@ -16,10 +16,10 @@ export function LiveDashboardPage() {
   const clients = useWorkspaceRead(loadClients)
   const requests = useWorkspaceRead(loadRequests)
   return <>
-    <div className="dashboard-heading"><div className="page-heading"><p className="eyebrow">GÜNLÜK ÇALIŞMA ALANI</p><h1 tabIndex={-1}>Genel bakış</h1><p>Danışanlarınız, bağlantılarınız ve bir sonraki adımınız.</p></div>
+    <div className="dashboard-heading"><div className="page-heading"><h1 tabIndex={-1}>Genel bakış</h1><p>Günlük çalışma alanınız. Her danışanla bir adım ileri.</p></div>
       <button className="button button-secondary" disabled={clients.pending || requests.pending} onClick={() => { clients.refresh(); requests.refresh() }}><Icon name="clock" />Özeti yenile</button>
     </div>
-    <section className="card dashboard-quick-actions" aria-label="Günlük işlemler"><h2>Danışanlarla çalışmaya başlayın</h2><div className="expert-pagination">
+    <section className="card dashboard-quick-actions" aria-label="Günlük işlemler"><h2>Danışan takibini günlük iş akışınıza taşıyın.</h2><p>Programları, öğün kayıtlarını ve gelişimi aynı yerden takip edin.</p><div className="expert-pagination">
       <Link className="button button-primary" to="/calisma-alani/danisanlar"><Icon name="search" />Danışan ara ve görüntüle</Link>
       <Link className="button button-secondary" to="/calisma-alani/baglantilar">Bekleyen isteklere git</Link>
     </div></section>
@@ -34,7 +34,7 @@ export function LiveDashboardPage() {
         {requests.data && <p>{requests.data.totalCount === 0 ? 'Bekleyen bağlantı talebi bulunmuyor.' : 'Talepleri Bağlantılar bölümünden yanıtlayabilirsiniz.'}</p>}
       </article>
     </section>
-    <div className="dashboard-primary">
+    <div className="live-dashboard-columns"><div className="dashboard-primary">
       <section className="card" aria-labelledby="live-clients-title"><header className="card-header"><div><h2 id="live-clients-title">Danışanlarım</h2><p>Ad sırasına göre ilk danışanlarınız.</p></div><Link className="text-link" to="/calisma-alani/danisanlar">Tümünü gör<Icon name="arrow" /></Link></header>
         {clients.pending && <p role="status">Aktif danışanlar okunuyor…</p>}
         {clients.message && <><p role="alert" className="error-message">{clients.message}</p><button className="button button-secondary" onClick={clients.refresh}>Danışanları yeniden dene</button></>}
@@ -45,6 +45,6 @@ export function LiveDashboardPage() {
           </Link></li>)}</ul>)}
       </section>
       <section className="request-strip"><span className="strip-icon"><Icon name="link" /></span><div><h2>Yeni bağlantılara yer açın</h2><p>Davet kodunuzu oluşturun, gelen talepleri yanıtlayın.</p></div><Link className="icon-button" to="/calisma-alani/baglantilar" aria-label="Bağlantıları ve daveti aç"><Icon name="arrow" /></Link></section>
-    </div>
+    </div><aside className="card dashboard-workflow"><h2>Bugünün çalışma alanı</h2><Link to="/calisma-alani/danisanlar?bolum=ogunler"><Icon name="meal" /><span>Öğünleri incele<small>Kaydı aç, geri bildirim bırak.</small></span><Icon name="arrow" /></Link><Link to="/calisma-alani/danisanlar?bolum=program"><Icon name="plan" /><span>Programları aç<small>Danışana özel planla ve ata.</small></span><Icon name="arrow" /></Link><Link to="/calisma-alani/danisanlar?bolum=olcum-su"><Icon name="chart" /><span>Gelişimi takip et<small>Paylaşılan ölçümler ve su kayıtları.</small></span><Icon name="arrow" /></Link><div className="inline-note"><Icon name="shield" /><p>Her bölüm, danışanın ilgili paylaşım izniyle açılır.</p></div></aside></div>
   </>
 }

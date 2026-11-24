@@ -2,7 +2,6 @@ import { useRef, useState } from 'react'
 import { Link, NavLink, Route, Routes } from 'react-router-dom'
 import { Brand, Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
-import { ThemeControl } from '../../core/theme/ThemeProvider'
 import { DashboardPage } from './DashboardPage'
 import { ClientsPage } from '../clients/ClientsPage'
 import { ClientDetailsPage } from '../clients/ClientDetailsPage'
@@ -54,7 +53,7 @@ export function WorkspacePreview() {
         <header className="workspace-header">
           <div className="workspace-context"><span>Diyetisyen paneli</span><span className="header-divider">/</span><strong>Çalışma alanı</strong></div>
           <div className="header-actions">
-            <ThemeControl />
+
             <WorkspaceProfileMenu displayName="Panel önizlemesi">
               <Link to="/giris">Giriş yap<Icon name="arrow" /></Link>
             </WorkspaceProfileMenu>
@@ -69,7 +68,7 @@ export function WorkspacePreview() {
             <Route path="baglanti-istekleri" element={<RequestsPage />} />
             <Route path="*" element={<div className="page-heading"><h1 tabIndex={-1}>Bu bölüm bulunamadı.</h1><Link className="text-link" to="/onizleme">Genel bakışa dön</Link></div>} />
           </Routes>
-          <footer className="workspace-footer"><span>Smart Nutrition Platform</span><span>Takibin merkezinde, danışanınız.</span></footer>
+          <footer className="workspace-footer"><span>Limely</span><span>Takibin merkezinde, danışanınız.</span></footer>
         </main>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
+import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
@@ -10,12 +11,16 @@ import { mealDateRange, mealPeriodRange } from './mealDateRange'
 import type { MealPeriod } from './mealDateRange'
 import './clientTracking.css'
 
-export function MealLogPanel({ clientId }: { clientId: string }) {
+export function MealLogPanel({ clientId, clientName, compact = false }: { clientId: string; clientName?: string; compact?: boolean }) {
   const session = useWorkspaceSession()
-  return <MealLogContent key={`${session.dietitianId}:${session.token}:${clientId}`} clientId={clientId} />
+  return <MealLogContent key={`${session.dietitianId}:${session.token}:${clientId}`} clientId={clientId} clientName={clientName} compact={compact} />
 }
 
-function MealLogContent({ clientId }: { clientId: string }) {
+function MealDateSurface({ compact, children, label }: { compact: boolean; children: ReactNode; label: string }) {
+  return compact ? <details className="meal-date-dropdown"><summary><Icon name="calendar" />{label}</summary>{children}</details> : <>{children}</>
+}
+
+function MealLogContent({ clientId, clientName, compact }: { clientId: string; clientName?: string; compact: boolean }) {
   const [range, setRange] = useState<{ from?: string; to?: string }>({})
   const [page, setPage] = useState(1)
   const [error, setError] = useState('')
@@ -51,9 +56,9 @@ function MealLogContent({ clientId }: { clientId: string }) {
     catch (error) { setError(error instanceof Error ? error.message : 'Tarihleri kontrol edin.') }
   }
 
-  return <section className="card" aria-label="Öğün günlüğü">
+  return <section className="card meal-log-panel" aria-label="Öğün günlüğü">
     <header className="card-header"><div><h2>Öğün günlüğü</h2><p>Danışanın açık paylaşım izniyle görüntülenen tüketim kayıtları.</p></div><span className="neutral-badge">Salt okunur</span></header>
-    <div className="meal-date-controls">
+    <MealDateSurface compact={compact} label={preset === 'today' ? 'Bugün' : preset === 'yesterday' ? 'Dün' : preset === 'week' ? 'Son 7 gün' : preset === 'custom' ? 'Özel tarih aralığı' : 'Tüm tarihler'}><div className="meal-date-controls">
     <div className="meal-date-presets" role="group" aria-label="Öğün tarih aralığı">
       {([['today', 'Bugün'], ['yesterday', 'Dün'], ['week', 'Son 7 gün']] as const).map(([value, label]) => <button key={value} className="button button-secondary" aria-pressed={preset === value} onClick={() => selectPeriod(value)}>{label}</button>)}
       <button className="button button-secondary" aria-pressed={preset === 'custom'} onClick={() => setPreset('custom')}>Özel aralık</button>
@@ -66,7 +71,7 @@ function MealLogContent({ clientId }: { clientId: string }) {
     </form>}
     <button className="button button-secondary" onClick={() => { setError(''); setAccessError(''); setPage(1); setRange({}); setFirst(''); setLast(''); setPreset('') }}>Filtreyi temizle</button>
     {error && <p role="alert">{error}</p>}
-    </div>
+    </div></MealDateSurface>
     {state.pending && <p className="panel-feedback" role="status">Öğünler okunuyor…</p>}
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
     {accessError && <p className="panel-feedback error-message" role="alert">{accessError}</p>}
@@ -74,7 +79,7 @@ function MealLogContent({ clientId }: { clientId: string }) {
     {state.data?.kind === 'ready' && !accessError && <>
       {state.data.items.length === 0
         ? <EmptyState icon="leaf" title={range.from || range.to ? 'Bu aralıkta öğün kaydı yok' : 'Henüz öğün kaydı yok'}>Başka bir tarih aralığı seçebilir veya öğünleri yenileyebilirsiniz.</EmptyState>
-        : <MealLogList clientId={clientId} records={state.data.items} renderComments={meal => <MealLogComments mealLogId={meal.id} onAccessDenied={denied} />} />}
+        : <MealLogList review collapseValues={compact} clientName={clientName} clientId={clientId} records={state.data.items} renderComments={meal => <MealLogComments mealLogId={meal.id} initiallyOpen={compact} onAccessDenied={denied} />} />}
       <div className="meal-preview-pagination">
         <button className="button button-secondary" disabled={page <= 1} onClick={() => setPage(value => value - 1)}>Önceki öğün sayfası</button>
         <p role="status">{state.data.totalCount} öğün · Sayfa {page}</p>

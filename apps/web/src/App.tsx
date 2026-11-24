@@ -11,6 +11,7 @@ import { DietitianApplicationPage } from './features/dietitians/DietitianApplica
 import { DietitianStatusPage } from './features/dietitians/DietitianStatusPage'
 import { AdminDietitiansPage } from './features/dietitians/AdminDietitiansPage'
 import { DietitianWorkspace } from './features/workspace/DietitianWorkspace'
+import { MarketingPage } from './features/marketing/MarketingPage'
 
 function RouteFocus() {
   const { pathname } = useLocation()
@@ -22,7 +23,7 @@ function RouteFocus() {
       if (!heading || (heading === lastHeading && heading.textContent === lastTitle)) return
       lastHeading = heading; lastTitle = heading.textContent
       heading.focus()
-      document.title = `${lastTitle} · Smart Nutrition`
+      document.title = `${lastTitle} · Limely`
     }
     // Protected routes render their heading after the asynchronous session checks.
     const observer = new MutationObserver(updateHeading)
@@ -38,7 +39,10 @@ export default function App() {
     <ThemeProvider>
       <a className="skip-link" href="#main-content">İçeriğe geç</a>
       <Routes>
-        <Route path="/" element={<Navigate to="/giris" replace />} />
+        <Route path="/" element={<Navigate to="/nasil-calisir" replace />} />
+        <Route path="/nasil-calisir" element={<MarketingPage page="how" />} />
+        <Route path="/ozellikler" element={<MarketingPage page="features" />} />
+        <Route path="/diyetisyenler-icin" element={<MarketingPage page="dietitians" />} />
         <Route path="/giris" element={<AuthPage key="login" mode="login" />} />
         <Route path="/kayit" element={<Navigate to="/giris" replace />} />
         <Route path="/sifremi-unuttum" element={<PasswordResetPage />} />
@@ -53,7 +57,7 @@ export default function App() {
         {import.meta.env.DEV && <Route path="/onizleme/*" element={<WorkspacePreview />} />}
         <Route path="*" element={
           <main id="main-content" className="not-found">
-            <p className="eyebrow">SMART NUTRITION</p>
+            <p className="eyebrow">LIMELY</p>
             <h1 tabIndex={-1}>Bu sayfa bulunamadı.</h1>
             <p>Devam etmek için giriş ekranına dönebilirsiniz.</p>
             <a className="button button-primary" href="/giris">Giriş ekranına dön</a>

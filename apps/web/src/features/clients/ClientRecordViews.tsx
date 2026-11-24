@@ -1,5 +1,6 @@
 import { Icon } from '../../core/components/Icon'
 import { EmptyState } from '../../core/components/EmptyState'
+import { useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { ActivityLog, BodyMeasurement, LabFlag, LabReport, LabResult, MealLog, MealType, RecordSource, WaterLog } from './clientTracking.types'
 
@@ -24,9 +25,12 @@ function RecordTime({ at }: { at: string }) {
   return <time dateTime={at}><Icon name="clock" />{dateFormatter.format(new Date(at))}</time>
 }
 
-export function MealLogList({ clientId, records, page, renderComments }: {
-  clientId: string; records: MealLog[]; page?: { number: number; size: number }; renderComments?: (record: MealLog) => ReactNode
+export function MealLogList({ clientId, clientName, records, page, renderComments, review = false, collapseValues = false }: {
+  clientId: string; clientName?: string; records: MealLog[]; page?: { number: number; size: number }; renderComments?: (record: MealLog) => ReactNode; review?: boolean; collapseValues?: boolean
 }) {
+  const [selected, setSelected] = useState('')
+  const detailId = useId()
+  const detail = useRef<HTMLDivElement>(null)
   const visibleRecords = records.filter((record) => record.clientId === clientId).sort((a, b) => {
     const milliseconds = Date.parse(b.consumedAt) - Date.parse(a.consumedAt)
     if (milliseconds !== 0) return milliseconds
@@ -37,27 +41,32 @@ export function MealLogList({ clientId, records, page, renderComments }: {
     return fractionB - fractionA
   })
   const pageRecords = page ? visibleRecords.slice((page.number - 1) * page.size, page.number * page.size) : visibleRecords
+  const current = pageRecords.find(record => record.id === selected) ?? pageRecords[0]
+  const shown = review && current ? [current] : pageRecords
   if (pageRecords.length === 0) return <EmptyState icon="leaf" title="Henüz öğün kaydı yok">Bu görünümde görüntülenebilecek öğün kaydı bulunmuyor.</EmptyState>
-  return <div className="record-list" aria-label="Öğün kayıtları">
-    {pageRecords.map((record) => <article className="meal-record" key={record.id} aria-labelledby={`meal-${record.id}`}>
-      <header className="record-header"><div><h3 id={`meal-${record.id}`}>{mealLabels[record.mealType]}</h3><RecordTime at={record.consumedAt} /></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+  return <div className={review ? 'meal-review-layout' : undefined}>
+    {review && <aside className="meal-review-list" aria-label="İncelenecek öğünler">{pageRecords.map(record => <button key={record.id} type="button" aria-pressed={current?.id === record.id} aria-controls={detailId} onClick={() => { setSelected(record.id); requestAnimationFrame(() => detail.current?.focus({ preventScroll: true })) }}>
+      <span className="meal-review-symbol"><Icon name="meal" /></span><span><strong>{clientName ?? mealLabels[record.mealType]}</strong><small>{clientName ? `${mealLabels[record.mealType]} · ${new Date(record.consumedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}` : dateFormatter.format(new Date(record.consumedAt))}</small><span className="neutral-badge">{record.items.length} besin · {sourceLabels[record.source]}</span></span><Icon name="arrow" />
+    </button>)}</aside>}
+    <div id={detailId} ref={detail} tabIndex={review ? -1 : undefined} className={`record-list${review ? ' meal-review-detail' : ''}`} aria-label="Öğün kayıtları">
+    {shown.map((record) => <article className="meal-record" key={record.id} aria-labelledby={`meal-${record.id}`}>
+      <header className="record-header"><div><h3 id={`meal-${record.id}`}>{clientName ?? mealLabels[record.mealType]}</h3><div className="meal-record-meta">{clientName && <p className="meal-type-caption">{mealLabels[record.mealType]} ·</p>}<RecordTime at={record.consumedAt} /></div></div><span className="neutral-badge">{sourceLabels[record.source]}</span></header>
+      <div className={review ? 'meal-content-grid' : undefined}>{review && <div className="meal-photo-placeholder"><Icon name="camera" /><span>Fotoğraf bu görünümde sunulmuyor.</span></div>}
       <ul className="meal-items">
         {record.items.filter((item) => item.mealLogId === record.id).map((item) => <li key={item.id}>
-          <div className="meal-item-title"><h4>{item.displayName}</h4>{item.isEstimated && <span className="estimate-badge">Tahmini</span>}</div>
-          <dl className="record-quantities">
-            <Quantity label="Porsiyon" value={item.quantityGrams} unit="g" />
-            <Quantity label="Enerji" value={item.caloriesKcal} unit="kcal" />
-            <Quantity label="Protein" value={item.proteinGrams} unit="g" />
-            <Quantity label="Karbonhidrat" value={item.carbsGrams} unit="g" />
-            <Quantity label="Yağ" value={item.fatGrams} unit="g" />
-          </dl>
+          <div className="meal-item-title"><h4>{item.displayName}</h4>{item.isEstimated && <span className="estimate-badge">Tahmini</span>}{collapseValues && <span className="meal-item-portion">{item.quantityGrams === null ? 'Bilinmiyor' : `${numberFormatter.format(item.quantityGrams)} g`}</span>}</div>
+          <details className="meal-nutrition-values" open={!collapseValues}><summary>Besin değerleri</summary><dl className="record-quantities">
+            <Quantity label="Porsiyon" value={item.quantityGrams} unit="g" /><Quantity label="Enerji" value={item.caloriesKcal} unit="kcal" /><Quantity label="Protein" value={item.proteinGrams} unit="g" /><Quantity label="Karbonhidrat" value={item.carbsGrams} unit="g" /><Quantity label="Yağ" value={item.fatGrams} unit="g" />
+          </dl></details>
         </li>)}
       </ul>
+      </div>
+      {review && <div className="meal-record-summary"><strong>Kayıt özeti</strong><span>{record.items.filter(item => item.mealLogId === record.id).length} besin</span><span>Tüketim kaydı salt okunur</span></div>}
       {record.note && <p className="record-note"><Icon name="info" />{record.note}</p>}
       {renderComments?.(record)}
     </article>)}
     <p className="record-footnote">Tahmini değerler kesin ölçüm değildir. Diyetisyen görünümü danışanın tüketim kayıtlarını değiştirmez.</p>
-  </div>
+  </div></div>
 }
 
 export function WaterLogList({ clientId, records }: { clientId: string; records: WaterLog[] }) {

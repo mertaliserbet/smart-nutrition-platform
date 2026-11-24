@@ -64,7 +64,7 @@ describe('independent dashboard sections', () => {
     render(<MemoryRouter initialEntries={['/calisma-alani']}><App /></MemoryRouter>)
     await screen.findByText('Sentetik danışan')
     await act(async () => finish(new Response(null, { status: 401 })))
-    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldiniz.' })).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
     expect(screen.queryByText('Sentetik danışan')).not.toBeInTheDocument()
   })
 })

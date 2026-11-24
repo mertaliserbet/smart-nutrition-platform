@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Brand, Icon } from '../../core/components/Icon'
 import type { IconName } from '../../core/components/Icon'
-import { ThemeControl } from '../../core/theme/ThemeProvider'
 import { logout } from '../auth/webSessionApi'
 import { WorkspaceProfileMenu } from './WorkspaceProfileMenu'
 import './workspace.css'
@@ -17,17 +16,29 @@ export function WorkspaceLayout({ audience, profile, children }: {
   const [signingOut, setSigningOut] = useState(false)
   const menuButton = useRef<HTMLButtonElement>(null)
   const operation = useRef<AbortController | null>(null)
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const navigate = useNavigate()
   const admin = audience === 'admin'
   const navigation: { to: string; label: string; icon: IconName; end?: boolean }[] = admin
     ? [{ to: '/yonetim/uzmanlar', label: 'Uzman başvuruları', icon: 'shield' }]
     : [
       { to: '/calisma-alani', label: 'Genel bakış', icon: 'grid', end: true },
-      { to: '/calisma-alani/danisanlar', label: 'Danışanlarım', icon: 'users' },
-      { to: '/calisma-alani/baglantilar', label: 'Bağlantılar ve davet', icon: 'link' },
+      { to: '/calisma-alani/danisanlar', label: 'Danışanlar', icon: 'users' },
+      { to: '/calisma-alani/ogun-incelemeleri', label: 'Öğün incelemeleri', icon: 'meal' },
+      { to: '/calisma-alani/programlar', label: 'Programlar', icon: 'plan' },
+      { to: '/calisma-alani/randevular', label: 'Randevular', icon: 'calendar' },
+      { to: '/calisma-alani/mesajlar', label: 'Mesajlar', icon: 'message' },
+      { to: '/calisma-alani/raporlar', label: 'Raporlar', icon: 'chart' },
     ]
-  const title = [...navigation].reverse().find(item => pathname.startsWith(item.to))?.label ?? 'Çalışma alanı'
+  const selectedSection = new URLSearchParams(search).get('bolum')
+  function isCurrent(to: string) {
+    if (pathname.startsWith('/calisma-alani/danisanlar/')) {
+      const sectionRoutes: Record<string, string> = { program: '/calisma-alani/programlar', ogunler: '/calisma-alani/ogun-incelemeleri', 'olcum-su': '/calisma-alani/raporlar' }
+      return to === (sectionRoutes[selectedSection ?? ''] ?? '/calisma-alani/danisanlar')
+    }
+    return to === '/calisma-alani' ? pathname === to : pathname.startsWith(to)
+  }
+  const title = navigation.find(item => isCurrent(item.to))?.label ?? (pathname === '/hesabim' ? 'Hesabım' : 'Çalışma alanı')
   const returnTo = admin ? '/yonetici-giris' : '/giris'
   useEffect(() => () => operation.current?.abort(), [])
 
@@ -50,32 +61,24 @@ export function WorkspaceLayout({ audience, profile, children }: {
     <aside className="sidebar" onKeyDown={event => {
       if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuButton.current?.focus() }
     }}>
-      <div className="sidebar-brand"><Brand subtitle={admin ? 'YÖNETİM ÇALIŞMA ALANI' : 'DİYETİSYEN ÇALIŞMA ALANI'} /><button ref={menuButton} className="icon-button mobile-menu" type="button"
+      <div className="sidebar-brand"><Link to={admin ? '/yonetim/uzmanlar' : '/calisma-alani'} aria-label="Limely ana panel"><Brand subtitle={admin ? 'YÖNETİCİ' : 'DİYETİSYEN'} /></Link><button ref={menuButton} className="icon-button mobile-menu" type="button"
         onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-controls="live-navigation" aria-label={menuOpen ? 'Menüyü kapat' : 'Menüyü aç'}>
         <Icon name={menuOpen ? 'close' : 'menu'} /></button></div>
       <div id="live-navigation" className={`sidebar-content ${menuOpen ? 'is-open' : ''}`}>
-        <p className="nav-heading">{admin ? 'YÖNETİM' : 'ÇALIŞMA ALANI'}</p>
         <nav aria-label={admin ? 'Yönetici paneli' : 'Diyetisyen çalışma alanı'}>
-          {navigation.map(item => <NavLink key={item.to} to={item.to} end={item.end} onClick={() => setMenuOpen(false)}><Icon name={item.icon} />{item.label}</NavLink>)}
+          {navigation.map(item => <Link key={item.to} to={item.to} className={isCurrent(item.to) ? 'active' : undefined} aria-current={isCurrent(item.to) ? 'page' : undefined} onClick={() => setMenuOpen(false)}><Icon name={item.icon} />{item.label}</Link>)}
         </nav>
-        <div className="sidebar-note"><span className="small-leaf"><Icon name={admin ? 'shield' : 'leaf'} /></span>
-          <h2>{admin ? 'Güvenli bir başlangıç.' : 'Her danışan, ayrı bir yolculuk.'}</h2>
-          <p>{admin ? 'Uzman başvurularını inceleyin, mesleki doğrulamayı tamamlayın.' : 'Bağlantıyı kurun, paylaşılanı görün, birlikte planlayın.'}</p>
-        </div>
+        <div className="sidebar-account"><Link className={pathname === '/hesabim' ? 'active' : ''} to="/hesabim" onClick={() => setMenuOpen(false)}><Icon name="settings" />Ayarlar</Link></div>
+        {profile && <WorkspaceProfileMenu key={pathname} displayName={profile.displayName} email={profile.email} showName>
+          <Link to="/hesabim" state={{ returnTo }}>Hesabım<Icon name="arrow" /></Link>
+          {!admin && <Link to="/calisma-alani/baglantilar">Bağlantılar ve davet<Icon name="link" /></Link>}
+          <button type="button" onClick={() => { void signOut() }}>Çıkış yap</button>
+        </WorkspaceProfileMenu>}
       </div>
     </aside>
     <div className="workspace-body">
-      <header className="workspace-header"><div className="workspace-context"><span>{admin ? 'Yönetici paneli' : 'Diyetisyen paneli'}</span><span className="header-divider">/</span><strong>{title}</strong></div>
-        <div className="header-actions">
-          <ThemeControl />
-          {profile && <WorkspaceProfileMenu key={pathname} displayName={profile.displayName} email={profile.email}>
-            <Link to="/hesabim" state={{ returnTo }}>Hesabım<Icon name="arrow" /></Link>
-            <button type="button" onClick={() => { void signOut() }}>Çıkış yap</button>
-          </WorkspaceProfileMenu>}
-        </div>
-      </header>
+      <span className="sr-only">{title}</span>
       <main id="main-content" className="workspace-main">{children}
-        <footer className="workspace-footer"><span>Smart Nutrition Platform</span><span>{admin ? 'Uzman doğrulama ve başvuru yönetimi.' : 'Takibin merkezinde, danışanınız.'}</span></footer>
       </main>
     </div>
   </div>

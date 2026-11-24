@@ -1,54 +1,45 @@
-/* Initial web values pending shared design approval (docs/09 and docs/12).
-   Brand #386a5e, 8/16/24/32 spacing and 16px radius match mobile AppTokens.
-   System fonts avoid sending any page requests to a third-party font service. */
+/* Limely web presentation. API names and the mobile theme are independent. */
+@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito-sans.ttf') format('truetype'); font-style: normal; font-weight: 200 1000; font-display: swap; }
+@font-face { font-family: 'Roboto'; src: url('/fonts/roboto.ttf') format('truetype'); font-style: normal; font-weight: 100 900; font-stretch: 75% 100%; font-display: swap; }
 :root {
-  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color-scheme: light;
-  --brand-primary: #386a5e;
-  --brand-strong: #285347;
-  --brand-soft: #eaf2ee;
+  --sidebar-width: 250px;
+  --control-height: 46px;
+  --page-gutter: 24px;
+  --font-heading: 'Roboto', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
+  --brand-primary: #005b49;
+  --brand-strong: #004537;
+  --brand-soft: #e9f1df;
+  --brand-accent: #dff0b6;
+  --brand-fill: radial-gradient(ellipse at 16% 15%, #008a6699, transparent 40%), radial-gradient(ellipse at 60% 100%, #003e3580, transparent 45%), linear-gradient(115deg, #00654e, #00483e);
+  --on-brand: #ffffff;
   --surface: #ffffff;
-  --surface-page: #f7f8fa;
-  --surface-subtle: #f2f4f5;
-  --text-primary: #243a36;
-  --text-secondary: #62736e;
-  --text-muted: #6d7975;
-  --border: #e3e9e6;
-  --error: #b13535;
-  --error-soft: #fff0f0;
-  --focus: #386a5e;
+  --surface-page: #f9f6f3;
+  --page-wash: radial-gradient(ellipse at 15% 20%, #fff9f880, transparent 45%), radial-gradient(ellipse at 85% 75%, #fffaf780, transparent 50%);
+  --surface-subtle: #f1f3eb;
+  --text-primary: #101b1c;
+  --text-secondary: #48536a;
+  --text-muted: #616c71;
+  --border: #d9d9dc;
+  --border-strong: #bfc6cd;
+  --error: #a63131;
+  --error-soft: #fff0ed;
+  --focus: #00745a;
   --space-small: 8px;
   --space-medium: 16px;
   --space-large: 24px;
   --space-extra-large: 32px;
-  --radius-medium: 16px;
-  --tone-amber-bg: #fbf2df;
-  --tone-amber-text: #856527;
-  --tone-blue-bg: #eaf0fa;
-  --tone-blue-text: #4e6f9c;
-  --tone-rose-bg: #f8ecec;
-  --tone-rose-text: #9b6269;
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --brand-primary: #9bcec0;
-  --brand-strong: #b4e0d4;
-  --brand-soft: #243d35;
-  --surface: #1b2522;
-  --surface-page: #141c19;
-  --surface-subtle: #242f2a;
-  --text-primary: #e6eee9;
-  --text-secondary: #a9bdb3;
-  --text-muted: #a3b4ac;
-  --border: #34443c;
-  --error: #ffb2ab;
-  --error-soft: #472624;
-  --focus: #b4e0d4;
-  --tone-amber-bg: #3a3322;
-  --tone-amber-text: #e2c58c;
-  --tone-blue-bg: #273344;
-  --tone-blue-text: #b0c6ee;
-  --tone-rose-bg: #3c2c30;
-  --tone-rose-text: #e9b3bb;
+  --radius-small: 8px;
+  --radius-medium: 14px;
+  --radius-large: 22px;
+  --shadow-card: 0 2px 4px #18382c06;
+  --shadow-popover: 0 12px 32px #1533291c;
+  --tone-amber-bg: #ffead4;
+  --tone-amber-text: #754413;
+  --tone-blue-bg: #edf3f7;
+  --tone-blue-text: #335e79;
+  --tone-rose-bg: #f9e9e6;
+  --tone-rose-text: #8e3d42;
 }

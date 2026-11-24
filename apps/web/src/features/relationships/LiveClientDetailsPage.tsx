@@ -33,7 +33,7 @@ function ClientDetails({ clientId }: { clientId: string }) {
   }, [refresh, revalidate])
   return <>
     <Link className="text-link back-link" to="/calisma-alani/danisanlar"><Icon name="back" />Danışan listesine dön</Link>
-    <div className="page-heading"><p className="eyebrow">DANIŞAN TAKİBİ</p><h1 tabIndex={-1}>{state.data?.displayName ?? 'Danışan detayı'}</h1><p>Beslenme programlarını, görevleri ve izinli kayıtları bölümlerden açın.</p></div>
+    <div className="client-detail-banner"><span className="client-avatar large-avatar" aria-hidden="true">{state.data?.displayName.trim().split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join('').toLocaleUpperCase('tr-TR') || <Icon name="users" />}</span><div className="page-heading"><p className="eyebrow">DANIŞAN TAKİBİ</p><h1 tabIndex={-1}>{state.data?.displayName ?? 'Danışan detayı'}</h1><p>Beslenme programları, görevler ve paylaşılan günlük kayıtlar.</p></div>{state.data && <span className="access-badge"><Icon name="check" />Aktif bağlantı</span>}</div>
     {state.pending && <p role="status">Danışan bağlantısı kontrol ediliyor…</p>}
     {state.message && <p role="alert">{state.message}</p>}
     {state.data && <ClientSections client={state.data} />}
@@ -69,6 +69,12 @@ function ClientSections({ client }: { client: ClientDashboardResponse }) {
       <div><h3>Aktif danışan bağlantısı</h3><p>Her kayıt türü danışanın bağımsız paylaşım izniyle açılır.</p><p>Program ve görev taslaklarınız bu danışanın bölümleri arasında geçiş yaparken korunur.</p></div>
       <span className="access-badge">Aktif bağlantı</span>
     </section>}
+    {section === 'ozet' && <div className="client-overview-grid">{([
+      ['program', 'plan', 'Beslenme programı', 'Program hazırlayın, düzenleyin ve sürüm geçmişini inceleyin.'],
+      ['ogunler', 'meal', 'Öğün incelemeleri', 'Paylaşılan tüketim kayıtlarını açın ve geri bildirim bırakın.'],
+      ['gorevler', 'check', 'Danışan görevleri', 'Görev atayın, son tarihleri ve tamamlanma durumunu takip edin.'],
+      ['olcum-su', 'chart', 'Ölçüm ve su', 'İzinli ölçümleri, grafikleri ve su kayıtlarını inceleyin.'],
+    ] as const).map(([value, icon, title, description]) => <Link className="card client-overview-link" key={value} to={target(value)}><span className="strip-icon"><Icon name={icon} /></span><h3>{title}</h3><p>{description}</p><span className="text-link">Bölümü aç<Icon name="arrow" /></span></Link>)}</div>}
     {(opened.program || section === 'program') && <div hidden={section !== 'program'} inert={section !== 'program'}><NutritionPlanPanel clientId={client.clientId} clientName={client.displayName} active={section === 'program'} onReturnToEditor={() => { if (section !== 'program') navigate(target('program')) }} /></div>}
     {(opened.gorevler || section === 'gorevler') && <div hidden={section !== 'gorevler'} inert={section !== 'gorevler'}><ClientTaskPanel clientId={client.clientId} /></div>}
     {section === 'ogunler' && <MealLogPanel clientId={client.clientId} />}

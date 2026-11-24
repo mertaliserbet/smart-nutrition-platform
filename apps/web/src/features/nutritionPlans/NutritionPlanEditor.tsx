@@ -6,8 +6,8 @@ import { blankItem, copyItems, draftContent, draftSignature, planDays, planDraft
 import type { ItemForm, PlanDraft } from './planDraft'
 import { PlanConfirmation } from './PlanConfirmation'
 
-export function NutritionPlanEditor({ initial, seed, clientName, busy, onDirtyChange, onSave, onCancel }: {
-  initial?: NutritionPlanResponse; seed?: PlanDraft; clientName?: string; busy: boolean; onDirtyChange?: (dirty: boolean) => void;
+export function NutritionPlanEditor({ initial, seed, clientName, busy, compact = false, onDirtyChange, onSave, onCancel }: {
+  initial?: NutritionPlanResponse; seed?: PlanDraft; clientName?: string; busy: boolean; compact?: boolean; onDirtyChange?: (dirty: boolean) => void;
   onSave: (value: PlanContentRequest) => Promise<void>; onCancel: () => void
 }) {
   const [baseline] = useState(() => planDraft(initial))
@@ -57,7 +57,7 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, onDirtyCh
   }
   function error(id: string) { return errors[id] ? <p id={`${id}-error`} className="error-message" role="alert">{errors[id]}</p> : null }
   function field(id: string) { return { 'aria-invalid': !!errors[id], 'aria-describedby': errors[id] ? `${id}-error` : undefined } }
-  return <form className="nutrition-editor" aria-label="Beslenme programı formu" noValidate onSubmit={event => { void submit(event) }}>
+  return <form className={`nutrition-editor${compact ? ' compact-plan-editor' : ''}`} aria-label="Beslenme programı formu" noValidate onSubmit={event => { void submit(event) }}>
     <h3>{initial ? 'Programı düzenle' : 'Yeni program taslağı'}</h3>
     {clientName && <p><strong>Hedef danışan: {clientName}</strong></p>}
     {seed && <p>Yalnız öğün yapısı kopyalandı. Serbest metin kişiye özel bilgi içerebilir; açıklama ve miktarları kaydetmeden önce inceleyin. Başlık, tarihler ve hedefleri bu danışan için girin.</p>}
@@ -69,7 +69,7 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, onDirtyCh
         <div className="form-field"><label htmlFor="plan-water">Günlük su hedefi (mL, isteğe bağlı)</label><input id="plan-water" {...field('plan-water')} inputMode="decimal" value={draft.water} onChange={event => updateDraft({ water: event.target.value })} />{error('plan-water')}</div></div>
       <p>Hedefler otomatik hesaplanmaz. Ondalık için virgül veya nokta kullanabilirsiniz.</p>
     </fieldset>
-    <div className="plan-days" role="group" aria-label="Program günü">{planDays.map((label, i) => <button className="button button-secondary" key={label} type="button" aria-pressed={day === (i ? String(i) : '')} onClick={() => selectDay(i ? String(i) : '')}>{label}</button>)}</div>
+    <div className="plan-days" role="group" aria-label="Program günü">{planDays.map((label, i) => <button className="button button-secondary" key={label} type="button" aria-label={label} aria-pressed={day === (i ? String(i) : '')} onClick={() => selectDay(i ? String(i) : '')}>{compact ? ['Tümü', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'][i] : label}</button>)}</div>
     <p>Her gün önerileri haftanın tüm günlerinde geçerlidir; güne özel önerilerle birlikte gösterilir, onların yerine geçmez.</p>
     <fieldset disabled={busy}><legend>{planDays[Number(day)]} öğünleri</legend>
       {draft.items.filter(item => item.day === day).length === 0 && <p>Bu güne özel öğün önerisi yok.</p>}
