@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useId, useLayoutEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import './confirmationDialog.css'
@@ -8,7 +8,7 @@ export function ConfirmationDialog({ title, children, confirmLabel, cancelLabel 
 }) {
   const container = useRef<HTMLDivElement>(null)
   const id = useId()
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previous = document.activeElement as HTMLElement | null
     const root = document.getElementById('root')
     const wasInert = root?.inert ?? false

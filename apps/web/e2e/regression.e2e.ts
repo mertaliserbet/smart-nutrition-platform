@@ -246,7 +246,7 @@ test('HTTPS UI: an expired server session removes the client workspace and rejec
 
 test('HTTPS UI: reuse own program as an independent draft, weekly editing and explicit assignment', async ({ page, request }, testInfo) => {
   const { mobile, relation, csrf } = await pair(page, request)
-  await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category: 'nutrition_plans', isGranted: true }, mobile.accessToken)
+  const sourcePermission = await api(request, '/api/v1/data-sharing-permissions', 'POST', 201, { relationshipId: relation.id, category: 'nutrition_plans', isGranted: true }, mobile.accessToken)
   const headers = { Origin: origin, 'X-CSRF-TOKEN': csrf, 'X-Profile-Context': 'dietitian' }
   const sourceGroup = randomUUID()
   const response = await page.request.post('/api/v1/nutrition-plans', { headers, data: {
@@ -298,7 +298,39 @@ test('HTTPS UI: reuse own program as an independent draft, weekly editing and ex
   const sourceName = picker.getByRole('button', { name: 'Sentetik U6 danışan', exact: true })
   await expect(sourceName).toHaveCount(sources.items.length)
   await sourceName.nth(sourceIndex).click()
-  await picker.getByRole('button', { name: 'Sentetik yeniden kullanılabilir program programını kopyala' }).click()
+  const copySource = picker.getByRole('button', { name: 'Sentetik yeniden kullanılabilir program programını kopyala' })
+  await expect(copySource).toBeVisible()
+  await api(request, `/api/v1/data-sharing-permissions/${sourcePermission.id}`, 'PATCH', 200, { isGranted: false }, mobile.accessToken)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect(picker.getByRole('alert')).toContainText('Programlara erişim veya düzenleme izniniz bulunmuyor.')
+  await api(request, `/api/v1/data-sharing-permissions/${sourcePermission.id}`, 'PATCH', 200, { isGranted: true }, mobile.accessToken)
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')))
+  await expect(copySource).toBeVisible()
+  await expect(picker.getByRole('alert')).toHaveCount(0)
+  await picker.getByRole('button', { name: 'Kaynakları yeniden kontrol et' }).click()
+  await expect(copySource).toHaveCount(0)
+  await sourceName.nth(sourceIndex).click()
+  for (const theme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: theme })
+    for (const width of [1366, 768, 390]) {
+      await page.setViewportSize({ width, height: 900 })
+      await expect(copySource).toBeVisible()
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+      const sourceOption = sourceName.nth(sourceIndex)
+      const labelBox = (await sourceOption.locator('span').boundingBox())!
+      const arrowBox = (await sourceOption.locator('svg').boundingBox())!
+      expect(arrowBox.x).toBeGreaterThan(labelBox.x + labelBox.width)
+      await picker.screenshot({ path: testInfo.outputPath(`source-buttons-${theme}-${width}.png`) })
+    }
+  }
+  await page.setViewportSize({ width: 1366, height: 900 })
+  await copySource.click()
+  await page.getByRole('button', { name: 'Vazgeç', exact: true }).click()
+  await page.getByRole('button', { name: 'Değişiklikleri sil', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Yeni program oluştur', exact: true })).toBeFocused()
+  await page.getByRole('button', { name: 'Kendi programımdan kopyala' }).click()
+  await sourceName.nth(sourceIndex).click()
+  await copySource.click()
   await expect(page.getByText('Hedef danışan: Sentetik U6 danışan')).toBeVisible()
   await expect(page.getByLabel('Program başlığı')).toHaveValue('')
   await expect(page.getByLabel('Başlangıç tarihi')).toHaveValue('')
@@ -402,6 +434,15 @@ test('HTTPS UI: usable meal controls, editor focus and confirmed relationship en
       await expect(title).toBeFocused()
       await expect(title).toBeInViewport()
       await page.getByRole('button', { name: 'Vazgeç', exact: true }).click()
+      await expect(page.getByRole('button', { name: 'Programı düzenle', exact: true })).toBeFocused()
+      const pagination = page.getByRole('navigation', { name: 'Beslenme programı sayfaları', exact: true })
+      const refreshPlans = page.getByRole('button', { name: 'Programları yeniden kontrol et', exact: true })
+      const paginationBox = (await pagination.boundingBox())!, refreshBox = (await refreshPlans.boundingBox())!
+      expect(refreshBox.y - paginationBox.y - paginationBox.height).toBeGreaterThanOrEqual(20)
+      if (width === 390) {
+        await refreshPlans.scrollIntoViewIfNeeded()
+        await page.screenshot({ path: testInfo.outputPath(`program-footer-${theme}.png`) })
+      }
       await openNavigation('Bağlantılar ve davet')
       await page.getByRole('combobox', { name: 'Durum', exact: true }).selectOption('active')
       const end = page.getByRole('button', { name: 'Bağlantıyı sonlandır', exact: true })

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
 import { NutritionPlanEditor } from './NutritionPlanEditor'
@@ -54,6 +54,9 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
   const [page, setPage] = useState(1); const [historyId, setHistoryId] = useState<string>()
   const [editor, setEditor] = useState<{ key: string; initial?: NutritionPlanResponse; seed?: PlanDraft; source?: { id: string; clientId: string } }>()
   const [dirty, setDirty] = useState(false), [picker, setPicker] = useState(false)
+  const editorTrigger = useRef<HTMLElement | null>(null)
+  const createButton = useRef<HTMLButtonElement>(null)
+  const restoreEditorFocus = useRef(false)
   const [confirmation, setConfirmation] = useState<{ title: string; body: string; label: string; run: () => void }>()
   const guard = useCallback((run: () => void) => {
     setConfirmation({ title: 'Kaydedilmemiş değişiklikler', body: 'Bu taslaktaki değişiklikler silinecek. Düzenlemeye dönebilir veya değişiklikleri silebilirsiniz.', label: 'Değişiklikleri sil', run })
@@ -61,7 +64,12 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
   usePlanNavigation(dirty, guard)
   function replaceEditor(run: () => void) { if (dirty) guard(run); else run() }
   function closeEditor() { setEditor(undefined); setDirty(false) }
-  function openEditor(initial?: NutritionPlanResponse, source?: NutritionPlanResponse) {
+  function cancelEditor() {
+    restoreEditorFocus.current = true
+    closeEditor()
+  }
+  function openEditor(initial?: NutritionPlanResponse, source?: NutritionPlanResponse, trigger?: HTMLButtonElement) {
+    editorTrigger.current = trigger ?? createButton.current
     setEditor({ key: crypto.randomUUID(), initial, ...(source ? { seed: reusablePlanDraft(source), source: { id: source.id, clientId: source.clientId } } : {}) }); setDirty(!!source); setPicker(false); setMessage(''); setNotice('')
   }
   const [comparisonId, setComparisonId] = useState<string>()
@@ -75,6 +83,12 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
   }, [setDenied, setEditor, setDirty, setPicker, setConfirmation, setHistoryId, setNotice])
   const load = useCallback((signal: AbortSignal) => getNutritionPlans(clientId, page, signal), [clientId, page])
   const state = useWorkspaceRead(load, handleDenied)
+  useLayoutEffect(() => {
+    if (editor || confirmation || !restoreEditorFocus.current || state.pending) return
+    restoreEditorFocus.current = false
+    const target = editorTrigger.current?.isConnected ? editorTrigger.current : createButton.current
+    target?.focus()
+  }, [editor, confirmation, state.pending])
   useEffect(() => () => operation.current?.abort(), [])
   const sourceId = editor?.source?.id, sourceClientId = editor?.source?.clientId
   useEffect(() => {
@@ -146,15 +160,15 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
   return <section className="nutrition-panel" aria-label="Beslenme programları"><div className="page-heading"><h2>Beslenme programları</h2><p>Program önerileri ve gerçek tüketim kayıtları ayrı tutulur.</p></div>
     {denied ? <p className="form-message" role="alert">{denied}</p> : <>
       {state.pending && <p role="status">Programlar okunuyor…</p>}{state.message && <p role="alert">{state.message}</p>}{message && <p role="alert">{message}</p>}{notice && <p role="status">{notice}</p>}
-      {state.data && <div className="expert-pagination"><button className="button button-primary" disabled={busy || state.pending} onClick={() => replaceEditor(() => openEditor())}>Yeni program oluştur</button>
+      {state.data && <div className="expert-pagination"><button ref={createButton} className="button button-primary" disabled={busy || state.pending} onClick={event => { const trigger = event.currentTarget; replaceEditor(() => openEditor(undefined, undefined, trigger)) }}>Yeni program oluştur</button>
         <button className="button button-secondary" disabled={busy || state.pending} onClick={() => setPicker(true)}>Kendi programımdan kopyala</button></div>}
       {picker && <PlanCopyPicker onCopy={source => replaceEditor(() => openEditor(undefined, source))} onCancel={() => setPicker(false)} />}
-      {editor && <NutritionPlanEditor key={editor.key} initial={editor.initial} seed={editor.seed} clientName={clientName} busy={busy} onDirtyChange={setDirty} onCancel={() => replaceEditor(closeEditor)} onSave={content => mutate('save', editor.initial, content)} />}
+      {editor && <NutritionPlanEditor key={editor.key} initial={editor.initial} seed={editor.seed} clientName={clientName} busy={busy} onDirtyChange={setDirty} onCancel={() => replaceEditor(cancelEditor)} onSave={content => mutate('save', editor.initial, content)} />}
       {state.data && <>
         {state.data.totalCount === 0 && <p>Bu danışanın kayıtlı beslenme programı bulunmuyor.</p>}
         {state.data.items.map(plan => <article className="card nutrition-card" key={plan.id} aria-labelledby={`plan-heading-${plan.id}`}><header className="card-header"><div><h3 id={`plan-heading-${plan.id}`}>{plan.title}</h3><p>{statusLabels[plan.status]} · Sürüm {plan.versionNumber}</p></div><span className="neutral-badge">{plan.dietitianId === null ? 'Kişisel program · Salt okunur' : plan.dietitianId === session.dietitianId ? 'Atadığınız program' : 'Başka diyetisyenin programı · Salt okunur'}</span></header>
           <ProgramContent value={plan} /><div className="expert-pagination">
-            {plan.dietitianId === session.dietitianId && <><button className="button button-secondary" disabled={busy} onClick={() => { replaceEditor(() => openEditor(plan)) }}>Programı düzenle</button>
+            {plan.dietitianId === session.dietitianId && <><button className="button button-secondary" disabled={busy} onClick={event => { const trigger = event.currentTarget; replaceEditor(() => openEditor(plan, undefined, trigger)) }}>Programı düzenle</button>
               {plan.status !== 'active' && <button className="button button-primary" disabled={busy} onClick={() => { confirmStatus('activate', plan) }}>Programı etkinleştir</button>}
               {plan.status !== 'archived' && <button className="button button-secondary" disabled={busy} onClick={() => { confirmStatus('archive', plan) }}>Programı arşivle</button>}</>}
             <button className="button button-secondary" disabled={busy} onClick={() => { setHistoryId(plan.id) }}>Sürüm geçmişini aç</button>
@@ -162,11 +176,11 @@ function PlanPanel({ clientId, clientName, active, onReturnToEditor }: { clientI
           </div>
           {comparisonId === plan.id && <MealComparisonPanel plan={plan} onClose={() => setComparisonId(undefined)} />}
         </article>)}
-        <div className="expert-pagination"><button className="button button-secondary" disabled={busy || page <= 1} onClick={() => { setPage(value => value - 1); setHistoryId(undefined) }}>Önceki programlar sayfası</button><span>Sayfa {page}</span><button className="button button-secondary" disabled={busy || page * 10 >= state.data.totalCount} onClick={() => { setPage(value => value + 1); setHistoryId(undefined) }}>Sonraki programlar sayfası</button></div>
+        <nav className="expert-pagination nutrition-pagination" aria-label="Beslenme programı sayfaları"><button className="button button-secondary" disabled={busy || page <= 1} onClick={() => { setPage(value => value - 1); setHistoryId(undefined) }}>Önceki programlar sayfası</button><span>Sayfa {page}</span><button className="button button-secondary" disabled={busy || page * 10 >= state.data.totalCount} onClick={() => { setPage(value => value + 1); setHistoryId(undefined) }}>Sonraki programlar sayfası</button></nav>
         {historyId && <ProgramHistory key={historyId} planId={historyId} handleDenied={handleDenied} onClose={() => setHistoryId(undefined)} />}
       </>}
     </>}
     {confirmation && <PlanConfirmation title={confirmation.title} confirmLabel={confirmation.label} onCancel={() => { setConfirmation(undefined); if (confirmation.label === 'Değişiklikleri sil') { onReturnToEditor?.(); requestAnimationFrame(() => document.getElementById('plan-title')?.focus({ preventScroll: true })) } }} onConfirm={() => { const run = confirmation.run; setConfirmation(undefined); run() }}><p>{confirmation.body}</p></PlanConfirmation>}
-    <button className="button button-secondary" disabled={busy || state.pending} onClick={refresh}>Programları yeniden kontrol et</button>
+    <div className="nutrition-refresh-actions"><button className="button button-secondary" disabled={busy || state.pending} onClick={refresh}>Programları yeniden kontrol et</button></div>
   </section>
 }
