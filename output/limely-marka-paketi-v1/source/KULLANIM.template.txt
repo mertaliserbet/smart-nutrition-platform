@@ -1,0 +1,247 @@
+LIMELY — MERT VE UĞUR İÇİN ORTAK GÖRSEL KAYNAK PAKETİ
+Paket içeriği: 1.1.0 | klasör adı bağlantıları korumak için limely-marka-paketi-v1
+
+1. ORTAK KULLANIM
+
+Mert: Flutter / mobil. Uğur: React / web.
+İkiniz de aynı dosyaları kullanın. Logo ve maskotu yeniden ürettirmeyin,
+CSS veya başka bir ikonla yeniden çizmeyin. En/boy oranını koruyun.
+Onaylı 6 logo varyantı ve ilk 4 maskotun 20 SVG/PNG dosyası bu güncellemede
+byte düzeyinde korundu. Mezuralı maskot ayrıca eklendi.
+
+SVG ana dosyadır. PNG aynı SVG'den render edilmiştir. SVG'lerin içinde
+gömülü bitmap veya dış font yoktur. SVG ölçeklenebilir. PNG'ler şeffaftır;
+uygulama ikonunun iOS master zemini ayrıca opaktır.
+Logo yazısı da çizimdir; logo için font yüklemek gerekmez.
+
+Görsellerdeki çizimler raster konseptlerden vektörleştirildi. Konturlar
+yumuşatıldı; bunlar kaynak PNG'nin piksel kopyası değildir. Ekran ikonları
+ortak çizgi stilinde Lucide ve dört özel SVG çizimiyle karşılandı.
+
+2. KLASÖRLER
+
+logolar/             Lime simgesi ve yazılı logo; renkli, koyu, beyaz.
+maskotlar/           Merhaba, göz kırpma, su molası, kutlama ve ölçüm.
+ikonlar/koyu/        60 ikon; SVG ve 96 px şeffaf PNG.
+ikonlar/beyaz/       Aynı 60 ikonun koyu zemin için beyaz karşılıkları.
+bilesenler/          Su şişesi/bardağı, seçim ve ilerleme görselleri.
+dekorlar/            Maskot halesi, çekirdekler, banner ve kart köşeleri.
+gorseller/           Mevcut web uygulamasındaki altı yemek görseli.
+fontlar/             Fredoka, Figtree, Manrope, Inter; TTF ve OFL lisansları.
+animasyonlar/        Orijinal HTML keyframe kaynakları ve hafif gövde hareketi.
+tasarim/             Ortak renk/ölçü tokenları, font CSS'i, ekran eşleştirmesi.
+uygulama-ikonlari/   iOS 1024 master, Android adaptive ön plan ve arka plan rengi.
+referanslar/         Özgün PNG ekranlar, HTML ve üretim talimatları.
+lisanslar/           Lucide lisansı; font lisansları ilgili font klasörlerinde.
+source/             Vektörleştirme, paketleme/doğrulama kaynakları ve imzalar.
+
+KATALOG.html tüm varlıkları internetsiz görüntüler.
+asset-manifest.json dosyaların listesidir.
+tasarim/ekran-varlik-eslestirmesi.json hangi ekranda ne kullanılacağını gösterir.
+
+3. DOĞRU DOSYAYI SEÇME
+
+Normal logo: logolar/limely-yazili-logo-renkli.svg
+Dar alan: logolar/limely-simge-renkli.svg
+Koyu zemin: logolar/limely-yazili-logo-beyaz.svg
+Ana maskot: maskotlar/limely-maskot-merhaba.svg
+Su takibi: maskotlar/limely-maskot-su-molasi.svg
+Ölçüm/tanışma: maskotlar/limely-maskot-olcum.svg
+Kutlama: maskotlar/limely-maskot-kutlama.svg
+
+Mobil V3 alt menüsü:
+Günüm=house; Planım=calendar; Ölçüm=chart-no-axes-column;
+Sohbet=message-circle; Hesabım=user-round.
+Bildirim=bell; ekleme=plus; tarih seçimi=chevron-down;
+görüşme=calendar-days; detay=chevron-right.
+
+Karşılama/hedefler:
+Kilo vermek=body-scale; kilo almak=dumbbell; korumak=shield-check;
+dengeli beslenmek=salad; yaş=calendar-days; boy=height; kilo=body-scale;
+oturarak=armchair; biraz hareketli=walk; çok hareketli=run.
+HTML'nin özgün ikon adları (sprout, footprints, activity, pencil,
+rotate-ccw, arrow-left/right vb.) de pakette bulunur.
+
+Panel:
+Gösterge=grid-2x2; Danışanlar=users; Diyet planları=utensils;
+Takvim=calendar-days; Paket=package; Mesajlar=messages-square;
+Başvurular=inbox; Raporlar=chart-column; Mobil=smartphone;
+Web=globe; Ayarlar=settings; Görüşme=video; Tahsilat=wallet;
+Uyarı=triangle-alert; yeni işlem=clipboard-check; not=notebook-pen.
+
+İkonların ortak kutusu 24x24; çizgi 1.8; uçlar/köşeler yuvarlaktır.
+Normal gösterim 24 logical px/CSS px; PNG dosyası 96 px olduğu için
+24 px gösterimde 4x yoğunluk sağlar. Koyu ve beyaz varyantlar aynı çizimdir.
+60 ikonun 56'sı Lucide; body-scale, height, walk, run özel çizimlerdir.
+scale, özgün HTML'deki Lucide terazi ikonudur; ekrandaki banyo tartısı
+görünümü için body-scale kullanılır.
+triangle-alert dosyasının resmî kaynak adı triangle-exclamation-point'tir;
+pakette ekran anlamını koruyan sabit ad kullanılır. Kaynak commit sabittir.
+
+4. MERT — FLUTTER / MOBİL
+
+Çalışan projeye kopyalama bu görevde yapılmadı. Entegrasyon sırasında
+gereken görsel klasörlerini mobile/assets/limely/ altına kopyala.
+referanslar/, source/, lisans dokümanları ve KATALOG.html uygulama görseli
+olarak yüklenmemeli. Lisanslar yayın paketinde uygun biçimde korunmalıdır.
+
+Mevcut Flutter projesinde flutter_svg bağımlılığı yok. Ek bağımlılık olmadan
+PNG dosyalarını Image.asset ile kullanabilirsin. pubspec.yaml içindeki
+mevcut flutter: bölümüne aşağıdaki assets alanlarını ekle; ikinci bir
+flutter: bölümü oluşturma. Flutter varlık dizinleri için alt klasörleri
+açıkça belirt:
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/limely/logolar/
+    - assets/limely/maskotlar/
+    - assets/limely/ikonlar/koyu/
+    - assets/limely/ikonlar/beyaz/
+    - assets/limely/bilesenler/
+    - assets/limely/dekorlar/
+    - assets/limely/gorseller/
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/limely/fontlar/manrope/manrope.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/limely/fontlar/inter/inter.ttf
+    - family: Fredoka
+      fonts:
+        - asset: assets/limely/fontlar/fredoka/fredoka.ttf
+    - family: Figtree
+      fonts:
+        - asset: assets/limely/fontlar/figtree/figtree.ttf
+
+PNG örnekleri:
+Image.asset('assets/limely/logolar/limely-yazili-logo-renkli.png',
+  width: 202, fit: BoxFit.contain, semanticLabel: 'Limely')
+Image.asset('assets/limely/maskotlar/limely-maskot-merhaba.png',
+  width: 220, height: 220, fit: BoxFit.contain)
+Image.asset('assets/limely/ikonlar/koyu/house.png',
+  width: 24, height: 24, excludeFromSemantics: true)
+
+Anlamı yalnız ikondan anlaşılan düğmeye Semantics/tooltip etiketi ekle.
+Dekoratif maskot ile bilgi veren maskotu erişilebilirlikte ayır.
+PNG logo/maskotlara ColorFilter uygulama; marka renklerini koru.
+
+Fredoka kullanırken Türkçe için yedek fontu belirt:
+const TextStyle(fontFamily: 'Fredoka', fontFamilyFallback: ['Figtree'])
+Kaynak Fredoka dosyasında Ğ, ğ, İ, Ş, ş glifleri yoktur. Figtree, Manrope
+ve Inter Türkçe test dizisinin tamamını içerir. Bu eksik harfler yedek
+fonttan gelir; tek font görünümü için başlık ailesini değiştirme kararı
+ayrıca verilmelidir. İndirilen Fredoka dosyası değiştirilmedi.
+
+SVG kullanılacaksa flutter_svg desteği ayrı entegrasyon adımıdır:
+SvgPicture.asset('assets/limely/maskotlar/limely-maskot-merhaba.svg',
+  width: 220, height: 220)
+Bu örnek için flutter_svg import'u ve bağımlılığı gerekir; burada eklenmedi.
+Maskeler/gradyanlar gerçek Flutter renderer'ında ayrıca kontrol edilmelidir.
+Sorun halinde aynı adın PNG karşılığını kullan.
+
+Uygulama ana ekran ikonu:
+uygulama-ikonlari/ios-master-1024.png opak kaynak master'dır.
+Android adaptive ön plan 432x432 şeffaf PNG ve arka plan rengi ayrı verilir.
+Bunlar tüm platform yoğunluklarına işlenmiş, projeye kurulmuş AppIcon seti
+değildir. Android/iOS ikon üretim adımına kaynak olarak verilmeleri gerekir.
+
+5. UĞUR — REACT / WEB
+
+Çalışan projeye kopyalama bu görevde yapılmadı. Entegrasyon sırasında
+gereken klasörleri apps/web/public/limely/ altına, iç hiyerarşiyi koruyarak
+kopyala. İkonların harici paketle yeniden üretilmesi gerekmez.
+
+<img src="/limely/logolar/limely-yazili-logo-renkli.svg"
+     alt="Limely" width={202} height={73} />
+<img src="/limely/maskotlar/limely-maskot-merhaba.svg"
+     alt="" aria-hidden="true" width={220} height={220} />
+<button type="button" aria-label="Ana sayfa">
+  <img src="/limely/ikonlar/koyu/house.svg" alt="" width={24} height={24} />
+</button>
+
+SVG'yi img src ile kullanmak yeterli. Renk gerektiğinde koyu/beyaz dosyayı
+seç; marka logo ve maskotlarına CSS filter/invert uygulama.
+SVG'leri inline birleştirirsen aynı gradient/mask id'lerini her kopyada
+benzersizleştir. Ayrı img src dosyaları bu id çakışmasını oluşturmaz.
+
+Font ve token CSS dosyaları klasör yapısı korunarak yüklenebilir:
+<link rel="stylesheet" href="/limely/tasarim/limely-fonts.css" />
+<link rel="stylesheet" href="/limely/tasarim/limely-tokens.css" />
+<link rel="stylesheet" href="/limely/animasyonlar/limely-motion.css" />
+
+Font dosyaları yereldir; çalışma sırasında Google Fonts'a istek gerekmez.
+Karşılama yönü: Fredoka başlık / Figtree metin.
+V3 yönü: Manrope başlık / Inter metin.
+Fredoka kaynağındaki Ğ, ğ, İ, Ş, ş eksikliği için
+font-family: 'Fredoka', 'Figtree', sans-serif kullan.
+Paket CSS'indeki limely-onboarding-heading bu yedek sırasını içerir.
+Eksik harfler Figtree'den gelir; tamamen tek aile görünümü istenirse
+başlık fontu seçimi ayrıca onaylanmalıdır. Logo yazısı bundan etkilenmez.
+V3 PNG'sindeki fontun gerçek metadata kaynağı bulunmadığından bunlar
+üretim talimatında tarif edilen font aileleridir. Mevcut web kodundaki
+Roboto/Nunito Sans bu görevde değiştirilmedi.
+
+6. ORTAK GÖRSEL KURALLAR
+
+Zemin #F8FAF2; metin #203B2F; lime vurgu #C9E879;
+maskot #83B977; yaprak #3D7756; sarı #F5D96A; yumuşak yüzey #EAF3DE.
+SVG çizimlerde referansın hafif gradyanları bulunur; mevcut dosyaları koru.
+Lime düğmelerde koyu metin kullan. Logo yazısının fontunu değiştirme.
+
+Logo/simge/maskot için BoxFit.contain / object-fit: contain kullan.
+Yemek fotoğrafı için uygun çerçevede cover kullanılabilir.
+Boyutları responsive düzenle; ekran görüntüsünü tüm ekran arka planı yapma.
+Bildirim sayısı, avatar baş harfleri, takvim hücreleri ve gerçek değerler
+kodda metin/veri olarak gösterilmeli; ekran PNG'sine gömülmemeli.
+
+Su şişesi/bardak dosyaları görsel durum örnekleridir. Gerçek ml, bardak
+hacmi ve hedef uygulama verisinden gelir. Örnek 3/8 veya 250 ml sabit iş
+kuralı değildir. Enerji göstergesi örneği gerçek tüketim hesabı yapmaz.
+Ekrandaki mesaj/randevu/paket sayısı gibi sentetik içerikler bu paketle
+çalışan backend özelliğine dönüşmez; mevcut 04/05/06 sözleşmesi korunur.
+
+7. ANİMASYON VE KAYNAKLAR
+
+referanslar/limely-karsilama.html özgün dosyanın değiştirilmemiş kopyasıdır.
+Orijinal karakterin el/göz keyframe'leri animasyonlar/ altında da bulunur.
+Bu HTML; CSS ile çizilmiş karakter, ortamın ikon sistemi, window.openai
+ve isteğe bağlı Tweak bağlantıları içerir. Mobil widget değildir.
+Bu dosyadaki yaklaşık CSS karakterini kanonik logo/maskot yerine geçirme.
+
+limely-motion.css sabit maskot görselinin tümünü hafifçe hareket ettirir.
+Gerçek el sallama/göz kırpma için uzuv katmanları veya ayrı animasyon
+çalışması gerekir. Pakette Lottie/Rive/sprite animasyon dosyası yoktur.
+PNG pozları arasında geçiş yapılabilir; reduced-motion tercihini koru.
+
+V3'teki yemek fotoğrafı ekranın içine birleştirilmiş haldedir. Ayrı, tam
+çözünürlüklü fotoğraf kaynağı bulunmuyor. Özgün ekran referanslar/ içinde;
+mevcut webdeki altı yemek dosyası gorseller/ içinde ayrıca verildi.
+Bunlar V3 fotoğrafıyla birebir aynı kaynak olarak etiketlenmedi.
+
+V1/V2 panel görselleri ikon ve görsel referansı olarak arşivlendi.
+Yeni yerleşimde V3 yönü korunur. Onaylı logo/maskot/karşılama bozulmaz.
+
+8. LİSANSLAR VE DOĞRULAMA
+
+Lucide ikon kaynağı: https://github.com/lucide-icons/lucide
+Lisans: lisanslar/LUCIDE-LICENSE.txt (ISC ve türetilmiş Feather notları).
+Font kaynağı: https://github.com/google/fonts
+Her fontun OFL.txt dosyası kendi klasöründedir. Lisans metinlerini koru.
+Kaynak commit'leri ve dosya SHA-256 değerleri source/dis-kaynaklar.json'da.
+
+Bu görev asset paketi hazırlığıdır; uygulama entegrasyonu yapılmadı.
+SVG/PNG eşleşmesi, şeffaflık, fontların Türkçe glif kapsamı,
+dosya bağlantıları, ZIP içeriği ve ilk 20
+dosyanın değişmediği kontrol edilir. Android/iOS gerçek cihaz, Flutter
+SVG renderer'ı ve uygulama akışları test edilmiş sayılmaz.
+
+Yeniden üretmek zorunlu değil; hazır dosyaları kullanın.
+İsteğe bağlı kaynaklar Node.js + sharp ile çalışır. Hazır SVG/PNG dosyaları
+Node, Python, CDN veya indirme gerektirmez.
+source/build-all.cjs paketi yerel kaynaklarla yeniden üretir ve doğrular.
+source/collect-dependencies.ps1 yalnız kaynakları yeniden indirmek içindir;
+normal entegrasyonda çalıştırmayın.
+
+Sonraki adım: ikinizin de bu paketteki aynı dosya adlarıyla entegrasyon yapması.

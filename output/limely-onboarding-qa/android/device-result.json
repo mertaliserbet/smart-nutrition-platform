@@ -1,0 +1,11 @@
+{
+  "device": "Android 16 API 36 x86_64 emulator",
+  "ok": true,
+  "steps": 4,
+  "validation": true,
+  "commaDecimal": true,
+  "editPreservedAnswers": true,
+  "flutterErrors": 0,
+  "apiCalls": 0,
+  "existingAccountDataRead": false
+}

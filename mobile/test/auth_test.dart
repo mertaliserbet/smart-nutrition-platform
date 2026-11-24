@@ -11,6 +11,8 @@ import 'package:smart_nutrition_mobile/features/auth/register_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/registration_api.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 
+import 'onboarding_test_support.dart';
+
 void main() {
   test('registration accepts Unicode code point boundaries and whitespace', () {
     for (final password in [
@@ -363,6 +365,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const SmartNutritionApp());
     await tester.pumpAndSettle();
+    await openLoginFromWelcome(tester);
     await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
     expect(find.byType(RegisterPage), findsOneWidget);
     await tester.binding.handlePopRoute();

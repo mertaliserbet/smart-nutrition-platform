@@ -1,0 +1,249 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fredoka:wght@500;600&display=swap">
+<div id="limely-welcome-preview" class="viz-dotted-background">
+  <div class="lm-phone" aria-label="Limely karşılama tasarımı">
+    <header class="lm-header">
+      <button class="lm-back cursor-interaction" type="button" aria-label="Önceki ekrana dön" hidden><i data-lucide="arrow-left" aria-hidden="true"></i></button>
+      <div class="lm-logo" aria-label="Limely"><span class="lm-fruit" aria-hidden="true"><b></b><em></em></span><span>limely</span></div>
+      <span class="lm-counter" hidden></span>
+    </header>
+    <div class="lm-progress" aria-label="Tanışma adımları" hidden><span></span><span></span><span></span></div>
+    <main>
+      <section class="lm-view lm-intro" data-view="welcome" aria-label="Karşılama">
+        <button class="lm-mascot-stage cursor-interaction" aria-label="Limely yeniden el sallasın" type="button">
+          <span class="lm-halo" aria-hidden="true"></span>
+          <span class="lm-seed seed-one" aria-hidden="true"></span><span class="lm-seed seed-two" aria-hidden="true"></span>
+          <span class="lm-character" aria-hidden="true">
+            <span class="lm-foot foot-left"></span><span class="lm-foot foot-right"></span>
+            <span class="lm-hand hand-left"></span><span class="lm-hand hand-right"></span>
+            <span class="lm-body"></span><span class="lm-leaf"></span>
+            <span class="lm-eye eye-left"></span><span class="lm-eye eye-right"></span><span class="lm-smile"></span>
+            <span class="lm-rind"><span class="lm-flesh"><b></b><b></b><b></b><b></b></span></span>
+          </span>
+          <span class="lm-ground" aria-hidden="true"></span>
+        </button>
+        <h1>Merhaba, ben<br>Limely!</h1>
+        <p>Kendine iyi gelen küçük adımları<br>birlikte atalım.</p>
+        <span class="lm-note"><i data-lucide="sprout" aria-hidden="true"></i>Önce seni biraz tanıyalım.</span>
+        <button class="lm-primary cursor-interaction" type="button" data-next="goal">Hadi başlayalım <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+      </section>
+      <section class="lm-view" data-view="goal" aria-label="Hedef seçimi" hidden>
+        <div class="lm-kicker">SANA GÖRE BİR BAŞLANGIÇ</div>
+        <h1>Sana nasıl<br>eşlik edelim?</h1>
+        <p>Hedefini birlikte belirleyelim.</p>
+        <div class="lm-options" role="group" aria-label="Beslenme hedefin">
+          <button class="lm-option cursor-interaction" type="button" aria-pressed="false" data-goal="Kilo vermek"><i data-lucide="scale" aria-hidden="true"></i><span>Kilo vermek</span><b></b></button>
+          <button class="lm-option cursor-interaction" type="button" aria-pressed="false" data-goal="Kilo almak"><i data-lucide="dumbbell" aria-hidden="true"></i><span>Kilo almak</span><b></b></button>
+          <button class="lm-option cursor-interaction" type="button" aria-pressed="false" data-goal="Kilomu korumak"><i data-lucide="shield-check" aria-hidden="true"></i><span>Kilomu korumak</span><b></b></button>
+          <button class="lm-option cursor-interaction" type="button" aria-pressed="true" data-goal="Daha dengeli beslenmek"><i data-lucide="salad" aria-hidden="true"></i><span>Daha dengeli beslenmek</span><b>✓</b></button>
+        </div>
+        <p class="lm-hint"><i data-lucide="info" aria-hidden="true"></i>Hedefin zamanla değişebilir.</p>
+        <button class="lm-primary cursor-interaction" type="button" data-next="profile">Devam et <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+      </section>
+      <section class="lm-view" data-view="profile" aria-label="Temel bilgiler" hidden>
+        <div class="lm-kicker">SENİN GÜNLÜK RİTMİN</div>
+        <h1>Seni biraz<br>tanıyalım.</h1>
+        <p>Başlangıcını sana göre hazırlayalım.</p>
+        <form class="lm-profile">
+          <div class="lm-fields">
+            <label class="lm-field"><span>Yaşın</span><span><input aria-label="Yaşın" name="age" type="number" min="18" max="120" placeholder="28" required><small>yaş</small></span></label>
+            <label class="lm-field"><span>Boyun</span><span><input aria-label="Boyun" name="height" type="number" min="100" max="250" placeholder="170" required><small>cm</small></span></label>
+            <label class="lm-field"><span>Kilon</span><span><input aria-label="Kilon" name="weight" type="number" min="25" max="400" step="0.1" placeholder="72" required><small>kg</small></span></label>
+          </div>
+          <h2>Günün nasıl geçiyor?</h2>
+          <div class="lm-activity" role="group" aria-label="Günlük hareket düzeyin">
+            <button class="cursor-interaction" type="button" aria-pressed="false" data-activity="Çoğunlukla oturarak"><i data-lucide="armchair" aria-hidden="true"></i>Çoğunlukla<br>oturarak</button>
+            <button class="cursor-interaction" type="button" aria-pressed="true" data-activity="Biraz hareketli"><i data-lucide="footprints" aria-hidden="true"></i>Biraz<br>hareketli</button>
+            <button class="cursor-interaction" type="button" aria-pressed="false" data-activity="Çok hareketli"><i data-lucide="activity" aria-hidden="true"></i>Çok<br>hareketli</button>
+          </div>
+          <p class="lm-hint">Bu bilgileri daha sonra değiştirebilirsin.</p>
+          <button class="lm-primary cursor-interaction" type="submit">Bilgilerimi gözden geçir <i data-lucide="arrow-right" aria-hidden="true"></i></button>
+        </form>
+      </section>
+      <section class="lm-view lm-summary" data-view="summary" aria-label="Başlangıç özeti" hidden>
+        <span class="lm-summary-icon"><i data-lucide="sprout" aria-hidden="true"></i></span>
+        <h1>Güzel bir<br>başlangıç!</h1>
+        <p>Hedefin ve günlük ritmin bir arada.</p>
+        <dl class="lm-summary-list"></dl>
+        <button class="lm-primary cursor-interaction" type="button" data-next="profile">Bilgilerimi düzenle <i data-lucide="pencil" aria-hidden="true"></i></button>
+      </section>
+    </main>
+    <footer class="lm-footer"><span class="lm-footer-dot"></span>Küçük adımlar. Sana göre.</footer>
+  </div>
+  <div class="lm-preview-actions"><button type="button" class="lm-replay cursor-interaction"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Karşılamayı yeniden oynat</button></div>
+  <span class="lm-live" aria-live="polite"></span>
+</div>
+<style>
+#limely-welcome-preview{--lm-bg:#F8FAF2;--lm-ink:#203B2F;--lm-muted:#627365;--lm-lime:#C9E879;--lm-sage:#83B977;--lm-leaf:#3D7756;--lm-soft:#EAF3DE;--lm-yellow:#F5D96A;--lm-radius:24px;padding:20px 0 12px;font-family:Figtree,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;gap:14px;isolation:isolate}
+#limely-welcome-preview *{box-sizing:border-box}
+#limely-welcome-preview [hidden]{display:none!important}
+#limely-welcome-preview .lm-phone{width:min(366px,calc(100% - 24px));min-height:710px;background:var(--lm-bg);color:var(--lm-ink);border:1px solid #E0E7D8;border-radius:32px;padding:25px 24px 20px;box-shadow:0 16px 38px #203B2F12;position:relative;display:flex;flex-direction:column}
+#limely-welcome-preview .lm-header{height:47px;display:flex;justify-content:center;align-items:center;position:relative;flex-shrink:0}
+#limely-welcome-preview button{font-family:inherit;color:inherit}
+#limely-welcome-preview .lm-logo{display:flex;align-items:center;gap:10px;font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:34px;font-weight:600;line-height:1}
+#limely-welcome-preview .lm-fruit{position:relative;display:inline-block;background:var(--lm-lime);height:31px;width:28px;border-radius:48% 48% 40% 50%;transform:rotate(25deg)}
+#limely-welcome-preview .lm-fruit:before{content:'';position:absolute;left:1px;top:3px;width:17px;height:22px;border-radius:50%;border-left:2px solid white;transform:rotate(10deg)}
+#limely-welcome-preview .lm-fruit:after{content:'';position:absolute;right:1px;bottom:5px;width:3px;height:3px;border-radius:50%;background:var(--lm-ink);box-shadow:-4px -3px var(--lm-ink),-1px -6px var(--lm-ink)}
+#limely-welcome-preview .lm-fruit b{position:absolute;top:-10px;left:15px;width:5px;height:11px;background:var(--lm-ink);border-radius:2px}
+#limely-welcome-preview .lm-fruit em{position:absolute;top:-12px;left:18px;width:21px;height:12px;background:var(--lm-leaf);border-radius:100% 0 100% 0;transform:rotate(25deg)}
+#limely-welcome-preview .lm-back{position:absolute;left:-7px;top:3px;width:44px;height:44px;display:grid;place-items:center;border:0;background:transparent;border-radius:50%}
+#limely-welcome-preview .lm-back svg{width:24px;height:24px}
+#limely-welcome-preview .lm-counter{position:absolute;right:0;font-size:12px;color:var(--lm-muted)}
+#limely-welcome-preview .lm-progress{display:flex;gap:6px;margin:20px 0 8px}
+#limely-welcome-preview .lm-progress span{height:5px;border-radius:20px;flex:1;background:#E3ECD9}
+#limely-welcome-preview .lm-progress span.is-filled{background:#A6CE65}
+#limely-welcome-preview main{flex:1;display:flex;flex-direction:column}
+#limely-welcome-preview .lm-view{flex:1;display:flex;flex-direction:column;padding-top:30px;gap:14px}
+#limely-welcome-preview h1{font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-weight:600;font-size:33px;letter-spacing:-.5px;line-height:1.1;margin:0}
+#limely-welcome-preview p{font-size:15px;font-weight:400;line-height:1.6;color:var(--lm-muted);margin:0}
+#limely-welcome-preview .lm-intro{text-align:center;padding-top:8px;align-items:center;gap:18px}
+#limely-welcome-preview .lm-intro h1{font-size:38px;line-height:1.08}
+#limely-welcome-preview .lm-note{display:inline-flex;gap:8px;align-items:center;padding:10px 15px;background:var(--lm-soft);border-radius:28px;font-size:13px;margin:2px 0 8px}
+#limely-welcome-preview .lm-note svg{height:18px;width:18px}
+#limely-welcome-preview .lm-primary{margin-top:auto;width:100%;display:flex;gap:10px;align-items:center;justify-content:center;min-height:54px;padding:13px 16px;border:0;background:var(--lm-lime);color:var(--lm-ink);border-radius:var(--lm-radius);font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:20px;font-weight:500;box-shadow:0 3px 0 #87AB5040}
+#limely-welcome-preview .lm-primary:hover{filter:brightness(.98)}
+#limely-welcome-preview .lm-primary:active{transform:translateY(1px)}
+#limely-welcome-preview .lm-primary svg{width:18px;height:18px;flex-shrink:0}
+#limely-welcome-preview .lm-kicker{font-size:10px;letter-spacing:1.5px;color:var(--lm-leaf);font-weight:600;margin-bottom:3px}
+#limely-welcome-preview .lm-options{display:flex;flex-direction:column;gap:10px;margin:7px 0 0}
+#limely-welcome-preview .lm-option{width:100%;display:flex;align-items:center;gap:13px;min-height:67px;text-align:left;padding:13px 15px;border:1px solid #E1E7DB;border-radius:var(--lm-radius);background:#fff;font-size:16px;font-weight:500}
+#limely-welcome-preview .lm-option svg{width:25px;height:25px;flex-shrink:0;color:var(--lm-leaf)}
+#limely-welcome-preview .lm-option b{margin-left:auto;border:1.5px solid #A0AE96;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+#limely-welcome-preview .lm-option[aria-pressed=true]{border-color:#BACF92;background:var(--lm-soft)}
+#limely-welcome-preview .lm-option[aria-pressed=true] b{background:var(--lm-ink);color:white;border-color:var(--lm-ink)}
+#limely-welcome-preview .lm-hint{font-size:12px;display:flex;gap:6px;align-items:center;margin:1px 0 10px}
+#limely-welcome-preview .lm-hint svg{width:15px;height:15px;flex-shrink:0}
+#limely-welcome-preview .lm-footer{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:22px;font-size:11px;color:var(--lm-muted)}
+#limely-welcome-preview .lm-footer-dot{width:5px;height:5px;border-radius:50%;background:var(--lm-sage)}
+#limely-welcome-preview .lm-profile{display:flex;flex:1;flex-direction:column;gap:17px;margin-top:6px}
+#limely-welcome-preview .lm-fields{display:grid;gap:9px}
+#limely-welcome-preview .lm-field{padding:12px 15px;display:flex;gap:10px;align-items:center;justify-content:space-between;min-height:57px;background:#fff;border:1px solid #E1E7DB;border-radius:18px;font-size:15px}
+#limely-welcome-preview .lm-field>span:last-child{display:flex;align-items:center;gap:6px;max-width:140px}
+#limely-welcome-preview .lm-field input{width:80px;min-width:0;font-size:18px;font-family:inherit;font-weight:600;color:var(--lm-ink);text-align:right;background:transparent;border:0;border-bottom:1px solid #DBE4D2;padding:3px}
+#limely-welcome-preview .lm-field input::placeholder{color:#8C9A84}
+#limely-welcome-preview .lm-field small{font-size:12px;color:var(--lm-muted)}
+#limely-welcome-preview h2{font-family:Fredoka,ui-rounded,system-ui,sans-serif;font-size:21px;font-weight:500;margin:6px 0 -7px}
+#limely-welcome-preview .lm-activity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#limely-welcome-preview .lm-activity button{display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;font-size:11px;line-height:1.5;min-height:95px;padding:10px 3px;border:1px solid #E1E7DB;background:#fff;border-radius:17px}
+#limely-welcome-preview .lm-activity button svg{height:24px;width:24px}
+#limely-welcome-preview .lm-activity button[aria-pressed=true]{background:var(--lm-soft);border-color:#BACF92}
+#limely-welcome-preview .lm-summary{align-items:center;text-align:center;padding-top:30px}
+#limely-welcome-preview .lm-summary-icon{margin:10px 0 4px;display:grid;place-items:center;background:var(--lm-soft);height:90px;width:90px;border-radius:50%}
+#limely-welcome-preview .lm-summary-icon svg{height:42px;width:42px;color:var(--lm-leaf)}
+#limely-welcome-preview .lm-summary-list{text-align:left;width:100%;padding:17px;background:#fff;border:1px solid #E1E7DB;border-radius:var(--lm-radius);margin:5px 0 17px;display:grid;grid-template-columns:auto 1fr;gap:14px 12px;font-size:13px}
+#limely-welcome-preview .lm-summary-list dt{color:var(--lm-muted)}
+#limely-welcome-preview .lm-summary-list dd{margin:0;text-align:right;font-weight:500;overflow-wrap:anywhere}
+#limely-welcome-preview .lm-mascot-stage{margin:16px 0 0;width:260px;max-width:100%;height:253px;border:0;background:transparent;position:relative;padding:0;isolation:isolate}
+#limely-welcome-preview .lm-halo{position:absolute;inset:5px 6px 8px;background:var(--lm-soft);border-radius:50% 46% 48% 49%;transform:rotate(-12deg)}
+#limely-welcome-preview .lm-character{position:absolute;top:51px;left:42px;width:176px;height:173px;transform:rotate(-5deg);z-index:2}
+#limely-welcome-preview .lm-body{position:absolute;inset:0;background:var(--lm-sage);border-radius:50% 50% 46% 48%;z-index:2}
+#limely-welcome-preview .lm-leaf{position:absolute;left:96px;top:-30px;width:66px;height:35px;border-radius:100% 0 100% 0;background:var(--lm-leaf);transform:rotate(-8deg);z-index:3}
+#limely-welcome-preview .lm-leaf:after{content:'';position:absolute;left:9px;top:20px;width:46px;height:4px;border-radius:100% 0 100% 0;background:#A8CD82;transform:rotate(-20deg)}
+#limely-welcome-preview .lm-foot{position:absolute;width:28px;height:25px;background:var(--lm-sage);border-radius:40%;top:156px;z-index:1}
+#limely-welcome-preview .foot-left{left:28px;transform:rotate(15deg)}
+#limely-welcome-preview .foot-right{right:24px;transform:rotate(-15deg)}
+#limely-welcome-preview .lm-hand{position:absolute;width:24px;height:56px;background:var(--lm-sage);border-radius:20px;z-index:1;transform-origin:50% 90%}
+#limely-welcome-preview .hand-left{left:-6px;top:71px;transform:rotate(28deg)}
+#limely-welcome-preview .hand-right{right:-5px;top:21px;transform:rotate(42deg)}
+#limely-welcome-preview .lm-eye{position:absolute;top:61px;width:7px;height:11px;border-radius:60%;background:var(--lm-ink);z-index:3}
+#limely-welcome-preview .eye-left{left:47px}
+#limely-welcome-preview .eye-right{left:112px}
+#limely-welcome-preview .lm-smile{position:absolute;left:73px;top:69px;width:22px;height:12px;border-bottom:4px solid var(--lm-ink);border-radius:0 0 24px 24px;z-index:3}
+#limely-welcome-preview .lm-rind{position:absolute;right:1px;bottom:16px;width:126px;height:63px;border-radius:0 0 90px 90px;background:var(--lm-leaf);transform:rotate(-20deg);z-index:4;overflow:hidden}
+#limely-welcome-preview .lm-flesh{position:absolute;top:0;left:8px;width:110px;height:53px;background:var(--lm-yellow);border:7px solid #FFFAE6;border-top-width:5px;border-radius:0 0 90px 90px;overflow:hidden}
+#limely-welcome-preview .lm-flesh b{position:absolute;left:48%;top:-4px;width:4px;height:66px;background:#FFFAE6;transform-origin:top}
+#limely-welcome-preview .lm-flesh b:nth-child(1){transform:rotate(0deg)}
+#limely-welcome-preview .lm-flesh b:nth-child(2){transform:rotate(38deg)}
+#limely-welcome-preview .lm-flesh b:nth-child(3){transform:rotate(-38deg)}
+#limely-welcome-preview .lm-flesh b:nth-child(4){transform:rotate(70deg)}
+#limely-welcome-preview .lm-ground{position:absolute;bottom:10px;left:72px;width:120px;height:12px;border-radius:50%;background:#203B2F0D;z-index:0}
+#limely-welcome-preview .lm-seed{position:absolute;width:9px;height:18px;background:#9BC35C;border-radius:100% 100% 45% 45%;transform:rotate(-25deg);left:32px;top:26px}
+#limely-welcome-preview .seed-two{left:18px;top:46px;transform:rotate(-66deg);width:7px;height:14px}
+#limely-welcome-preview.is-playing .lm-character{animation:lm-friendly-bob 1.5s ease-in-out 2}
+#limely-welcome-preview.is-playing .hand-right{animation:lm-wave 0.55s ease-in-out 4}
+#limely-welcome-preview.is-playing .eye-right{animation:lm-wink 2.3s ease-in-out 1}
+#limely-welcome-preview.is-playing .lm-leaf{animation:lm-leaf-nod 1.5s ease-in-out 2}
+#limely-welcome-preview .lm-preview-actions{max-width:100%;display:flex;justify-content:center}
+#limely-welcome-preview .lm-replay{display:flex;align-items:center;gap:7px;min-height:44px;padding:6px 12px;border:0;border-radius:8px;background:transparent;color:light-dark(#425742,#C5D2C1);font-size:12px}
+#limely-welcome-preview .lm-replay svg{height:14px;width:14px}
+#limely-welcome-preview .lm-live{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+@keyframes lm-friendly-bob{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-7px) rotate(-2deg)}}
+@keyframes lm-wave{0%,100%{transform:rotate(42deg)}50%{transform:rotate(13deg)}}
+@keyframes lm-wink{0%,52%,65%,100%{transform:scaleY(1)}57%,61%{transform:scaleY(.18)}}
+@keyframes lm-leaf-nod{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(-16deg)}}
+@media(max-width:380px){#limely-welcome-preview .lm-phone{padding:22px 19px 18px;min-height:710px}#limely-welcome-preview h1{font-size:30px}#limely-welcome-preview .lm-intro h1{font-size:35px}#limely-welcome-preview .lm-note{font-size:12px}#limely-welcome-preview .lm-primary{font-size:18px}#limely-welcome-preview .lm-mascot-stage{transform:scale(.94);margin:8px 0 -5px}}
+@media(prefers-reduced-motion:reduce){#limely-welcome-preview .lm-character,#limely-welcome-preview .hand-right,#limely-welcome-preview .eye-right,#limely-welcome-preview .lm-leaf{animation:none!important}}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('limely-welcome-preview');
+  if (!root) return;
+  const saved = window.openai?.widgetState?.privateContent;
+  const design = {accent: typeof saved?.accent === 'string' && /^#[0-9a-f]{6}$/i.test(saved.accent) ? saved.accent : '#C9E879', radius: typeof saved?.radius === 'number' ? Math.max(12,Math.min(28,saved.radius)) : 24, motion: typeof saved?.motion === 'boolean' ? saved.motion : true};
+  const views = Array.from(root.querySelectorAll('[data-view]'));
+  const back = root.querySelector('.lm-back');
+  const progress = root.querySelector('.lm-progress');
+  const counter = root.querySelector('.lm-counter');
+  const goalButtons = Array.from(root.querySelectorAll('[data-goal]'));
+  const activityButtons = Array.from(root.querySelectorAll('[data-activity]'));
+  const live = root.querySelector('.lm-live');
+  const form = root.querySelector('.lm-profile');
+  let current = 'welcome';
+  let goal = 'Daha dengeli beslenmek';
+  let activity = 'Biraz hareketli';
+  let replayTimer;
+  let animationTimer;
+  function replay(){
+    clearTimeout(replayTimer); clearTimeout(animationTimer);
+    root.classList.remove('is-playing');
+    if (!design.motion || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    replayTimer = setTimeout(() => {root.classList.add('is-playing');animationTimer=setTimeout(()=>root.classList.remove('is-playing'),3100);},35);
+  }
+  function show(name){
+    current = name;
+    views.forEach(el => {el.hidden=el.dataset.view!==name;});
+    back.hidden=name==='welcome';
+    progress.hidden=name==='welcome';
+    counter.hidden=name==='welcome';
+    const step={welcome:0,goal:1,profile:2,summary:3}[name];
+    counter.textContent=step ? `${step} / 3` : '';
+    progress.querySelectorAll('span').forEach((el,i)=>el.classList.toggle('is-filled',i<step));
+    live.textContent={welcome:'Karşılama',goal:'Hedef seçimi',profile:'Temel bilgiler',summary:'Başlangıç özeti'}[name];
+    if(name!=='welcome'){clearTimeout(replayTimer);clearTimeout(animationTimer);root.classList.remove('is-playing');}
+  }
+  root.querySelectorAll('[data-next]').forEach(el=>el.addEventListener('click',()=>show(el.dataset.next)));
+  back.addEventListener('click',()=>show({goal:'welcome',profile:'goal',summary:'profile'}[current]||'welcome'));
+  goalButtons.forEach(el=>el.addEventListener('click',()=>{goal=el.dataset.goal;goalButtons.forEach(btn=>{const on=btn===el;btn.setAttribute('aria-pressed',String(on));btn.querySelector('b').textContent=on?'✓':'';});}));
+  activityButtons.forEach(el=>el.addEventListener('click',()=>{activity=el.dataset.activity;activityButtons.forEach(btn=>btn.setAttribute('aria-pressed',String(btn===el)));}));
+  form.addEventListener('submit',event=>{
+    event.preventDefault();
+    if(!form.reportValidity()) return;
+    const values = new FormData(form);
+    const list=root.querySelector('.lm-summary-list');
+    list.replaceChildren();
+    [['Hedefin',goal],['Yaşın',`${values.get('age')} yaş`],['Boyun',`${values.get('height')} cm`],['Kilon',`${values.get('weight')} kg`],['Günlük ritmin',activity]].forEach(([label,value])=>{const dt=document.createElement('dt');dt.textContent=label;const dd=document.createElement('dd');dd.textContent=value;list.append(dt,dd);});
+    show('summary');
+  });
+  root.querySelector('.lm-mascot-stage').addEventListener('click',replay);
+  root.querySelector('.lm-replay').addEventListener('click',()=>{show('welcome');replay();});
+  function renderDesign(){
+    root.style.setProperty('--lm-lime',design.accent);
+    root.style.setProperty('--lm-radius',`${design.radius}px`);
+    if(!design.motion){clearTimeout(replayTimer);clearTimeout(animationTimer);root.classList.remove('is-playing');}
+  }
+  renderDesign();show('welcome');replay();
+  if(globalThis.Tweak){
+    const tweak=new Tweak({container:root.querySelector('.lm-phone'),onChange:()=>{renderDesign();window.openai?.setWidgetState?.({modelContent:{brand:'Limely'},privateContent:{accent:design.accent,radius:design.radius,motion:design.motion}})?.catch(()=>{});}});
+    tweak.addColorPicker(design,'accent',{label:'Lime vurgu rengi',reference:'--lm-lime'});
+    tweak.addSlider(design,'radius',{label:'Köşe yumuşaklığı',min:12,max:28,step:2,unit:'px'});
+    tweak.addToggle(design,'motion',{label:'Karşılama hareketi'});
+  }
+  window.addEventListener('openai:set_globals',event=>{
+    const next=event.detail?.globals?.widgetState?.privateContent;
+    if(!next) return;
+    if(typeof next.accent==='string'&&/^#[0-9a-f]{6}$/i.test(next.accent))design.accent=next.accent;
+    if(typeof next.radius==='number')design.radius=Math.max(12,Math.min(28,next.radius));
+    if(typeof next.motion==='boolean')design.motion=next.motion;
+    renderDesign();
+  });
+})();
+</script>

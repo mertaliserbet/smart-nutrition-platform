@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-24",
+  "scope": "Limely mobile welcome, goal, basic details and summary",
+  "font": "Figtree",
+  "commands": {
+    "flutter pub get --offline": "passed",
+    "flutter analyze --no-pub": "passed",
+    "flutter test --no-pub": {
+      "passed": 713,
+      "failed": 0
+    },
+    "flutter build apk --debug --no-pub": "passed",
+    "git diff --check": "passed"
+  },
+  "androidProbe": {
+    "device": "Android 16 API 36 x86_64 emulator",
+    "steps": 4,
+    "flutterErrors": 0,
+    "validation": true,
+    "commaDecimal": true,
+    "editPreservedAnswers": true,
+    "apiCalls": 0
+  },
+  "ios": "not run (Windows environment)",
+  "existingLiveApiProbes": "startup adapted; live scenarios not rerun",
+  "data": "in-memory draft only; no API or persistent onboarding storage",
+  "contractsChanged": false,
+  "committed": false,
+  "apkSha256": "1006ed51f128d398418ed86eab683dc7f76ee2de283f9332ffe32f6071613549",
+  "latestOnboardingChecks": {
+    "passed": 15,
+    "failed": 0,
+    "includesVisualCaptures": true
+  }
+}

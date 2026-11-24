@@ -1,0 +1,116 @@
+{
+  "mobil-v3": {
+    "reference": "referanslar/limely-danisan-yeni-duzen-v3.png",
+    "logo": "logolar/limely-yazili-logo-renkli.svg",
+    "mascots": [
+      "maskotlar/limely-maskot-merhaba.svg",
+      "maskotlar/limely-maskot-su-molasi.svg"
+    ],
+    "icons": [
+      "bell",
+      "chevron-down",
+      "plus",
+      "calendar-days",
+      "chevron-right",
+      "house",
+      "calendar",
+      "chart-no-axes-column",
+      "message-circle",
+      "user-round"
+    ],
+    "components": [
+      "su-sisesi-az",
+      "enerji-gostergesi-ornek",
+      "aktif-sekme-cizgisi",
+      "bildirim-noktasi"
+    ],
+    "food": "gorseller/meal-plate-wide.webp",
+    "foodNote": "Mevcut web kaynağıdır. Referanstaki tam fotoğraf katmanı ayrı dosya halinde mevcut değil."
+  },
+  "karsilama": {
+    "reference": "referanslar/limely-karsilama-ekranlari.png",
+    "html": "referanslar/limely-karsilama.html",
+    "mascots": [
+      "maskotlar/limely-maskot-merhaba.svg",
+      "maskotlar/limely-maskot-kutlama.svg",
+      "maskotlar/limely-maskot-olcum.svg"
+    ],
+    "icons": [
+      "arrow-left",
+      "sprout",
+      "body-scale",
+      "scale",
+      "dumbbell",
+      "shield-check",
+      "salad",
+      "info",
+      "calendar-days",
+      "height",
+      "armchair",
+      "walk",
+      "run",
+      "arrow-right",
+      "footprints",
+      "activity",
+      "pencil",
+      "rotate-ccw"
+    ],
+    "components": [
+      "secim-bos",
+      "secim-dolu",
+      "ilerleme-adimi-tamam",
+      "ilerleme-adimi-bekleyen"
+    ]
+  },
+  "panel-v1-v2": {
+    "references": [
+      "referanslar/limely-panel.png",
+      "referanslar/limely-panel-tipografi-v2.png"
+    ],
+    "mascot": "maskotlar/limely-maskot-merhaba.svg",
+    "icons": [
+      "grid-2x2",
+      "users",
+      "utensils",
+      "calendar-days",
+      "package",
+      "messages-square",
+      "inbox",
+      "chart-column",
+      "smartphone",
+      "globe",
+      "settings",
+      "calendar-check",
+      "wallet",
+      "video",
+      "triangle-alert",
+      "bell",
+      "chevron-right"
+    ],
+    "decorations": [
+      "panel-koyu-banner",
+      "kart-kose-yesil",
+      "kart-kose-sari",
+      "kart-kose-pembe"
+    ],
+    "note": "Bu referanslar önceki sürümlerdir; yeni yerleşim için V3 kararı korunur."
+  },
+  "panel-v3": {
+    "reference": "referanslar/limely-diyetisyen-yeni-duzen-v3.png",
+    "icons": [
+      "calendar",
+      "clipboard-check",
+      "scale",
+      "message-circle",
+      "layers",
+      "search",
+      "bell",
+      "plus",
+      "check",
+      "chevron-left",
+      "chevron-right",
+      "chevron-down",
+      "arrow-right"
+    ]
+  }
+}

@@ -20,3 +20,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/limely/logolar/
+    - assets/limely/maskotlar/
+    - assets/limely/ikonlar/koyu/
+    - assets/limely/ikonlar/beyaz/
+    - assets/limely/dekorlar/
+    - assets/limely/lisanslar/
+  fonts:
+    - family: Figtree
+      fonts:
+        - asset: assets/limely/fontlar/figtree/figtree.ttf

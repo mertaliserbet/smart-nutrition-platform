@@ -1,0 +1,46 @@
+{
+  "palette": {
+    "background": "#F8FAF2",
+    "ink": "#203B2F",
+    "lime": "#C9E879",
+    "body": "#83B977",
+    "leaf": "#3D7756",
+    "yellow": "#F5D96A",
+    "soft": "#EAF3DE"
+  },
+  "icon": {
+    "viewBox": 24,
+    "strokeWidth": 1.8,
+    "linecap": "round",
+    "linejoin": "round",
+    "pngPixels": 96,
+    "displayPixels": 24
+  },
+  "spacing": [
+    8,
+    16,
+    24,
+    32
+  ],
+  "corners": {
+    "small": 12,
+    "content": 18,
+    "onboarding": 24
+  },
+  "typography": {
+    "onboarding": {
+      "headings": "Fredoka",
+      "body": "Figtree"
+    },
+    "v3": {
+      "headings": "Manrope",
+      "body": "Inter"
+    },
+    "note": "V3 fontları üretim talimatındaki yönü karşılar; raster görselin font metadata kaynağı yoktur."
+  },
+  "motion": {
+    "floatDurationMs": 1500,
+    "repeat": 2,
+    "respectReducedMotion": true
+  }
+}

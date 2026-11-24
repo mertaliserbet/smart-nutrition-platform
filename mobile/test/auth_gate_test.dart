@@ -12,31 +12,39 @@ import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/dietitian_application_info_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
+import 'package:smart_nutrition_mobile/features/onboarding/onboarding_page.dart';
+
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_finder_page.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/client_connections_page.dart';
 
+import 'onboarding_test_support.dart';
+
 void main() {
   for (final brightness in Brightness.values) {
-    testWidgets('first frame stays signed out in ${brightness.name} theme', (
-      tester,
-    ) async {
-      tester.platformDispatcher.platformBrightnessTestValue = brightness;
-      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+    testWidgets(
+      'first launch shows the signed-out introduction in ${brightness.name}',
+      (tester) async {
+        tester.platformDispatcher.platformBrightnessTestValue = brightness;
+        addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
-      await tester.pumpWidget(const SmartNutritionApp());
-      expect(find.byType(LoginPage), findsNothing);
-      expectNoProtectedScreens();
-      expect(tester.takeException(), isNull);
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(const SmartNutritionApp());
+        expect(find.byType(LoginPage), findsNothing);
+        expectNoProtectedScreens();
+        expect(tester.takeException(), isNull);
+        await tester.pumpAndSettle();
 
-      expect(find.byType(LoginPage), findsOneWidget);
+        expect(find.byType(OnboardingPage), findsOneWidget);
+        expect(find.byType(LoginPage), findsNothing);
 
-      final theme = Theme.of(tester.element(find.byType(LoginPage)));
-      expect(theme.useMaterial3, isTrue);
-      expect(theme.brightness, brightness);
-      expect(find.byTooltip('Kimlik ekranları (önizleme)'), findsNothing);
-      expectNoProtectedScreens();
-    });
+        final theme = Theme.of(
+          tester.element(find.text('Merhaba, ben\nLimely!')),
+        );
+        expect(theme.useMaterial3, isTrue);
+        expect(theme.brightness, Brightness.light);
+        expect(find.byTooltip('Kimlik ekranları (önizleme)'), findsNothing);
+        expectNoProtectedScreens();
+      },
+    );
 
     for (final (route, page, backLabel) in [
       ('/register', RegisterPage, 'Zaten hesabınız var mı? Girişe dön'),
@@ -108,6 +116,7 @@ void main() {
     ) async {
       await tester.pumpWidget(const SmartNutritionApp());
       await tester.pumpAndSettle();
+      await openLoginFromWelcome(tester);
       Navigator.of(
         tester.element(find.byType(LoginPage)),
       ).pushNamed<void>(route, arguments: {'isAuthenticated': true});
@@ -152,6 +161,7 @@ void main() {
     ) async {
       await tester.pumpWidget(const SmartNutritionApp());
       await tester.pumpAndSettle();
+      await openLoginFromWelcome(tester);
       Navigator.of(
         tester.element(find.byType(LoginPage)),
       ).pushNamed<void>(route);
@@ -171,6 +181,7 @@ void main() {
     (tester) async {
       await tester.pumpWidget(const SmartNutritionApp());
       await tester.pumpAndSettle();
+      await openLoginFromWelcome(tester);
       await tester.enterText(
         find.byType(TextFormField).at(0),
         'ornek@example.com',
@@ -195,7 +206,7 @@ void main() {
         const SmartNutritionApp(key: ValueKey('restart')),
       );
       await tester.pumpAndSettle();
-      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.byType(OnboardingPage), findsOneWidget);
       expectNoProtectedScreens();
       expect(tester.takeException(), isNull);
     },

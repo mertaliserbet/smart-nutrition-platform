@@ -10,6 +10,8 @@ import 'package:smart_nutrition_mobile/features/dietitians/dietitian_account_pag
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 
+import 'onboarding_test_support.dart';
+
 const token = 'syntheticHeader.syntheticPayload.syntheticSignature';
 LoginUserResponse testPair(String access, DateTime expires) =>
     LoginUserResponse(
@@ -370,6 +372,7 @@ void main() {
       );
       await tester.pumpWidget(SmartNutritionApp(session: session));
       await tester.pumpAndSettle();
+      await openLoginFromWelcome(tester);
       await authenticate(tester, session, api);
       wallTime = wallTime.add(const Duration(minutes: 16));
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -466,6 +469,7 @@ Future<(AuthSession, PendingLoginApi)> setup(WidgetTester tester) async {
   );
   await tester.pumpWidget(SmartNutritionApp(session: session));
   await tester.pumpAndSettle();
+  await openLoginFromWelcome(tester);
   return (session, api);
 }
 

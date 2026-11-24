@@ -1,0 +1,5 @@
+/* Özgün HTML içindeki .lm-character/.hand-right/.eye-right/.lm-leaf parçalarına aittir. Tek PNG üzerindeki eli ayrı hareket ettirmez. */
+@keyframes lm-friendly-bob{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-7px) rotate(-2deg)}}
+@keyframes lm-wave{0%,100%{transform:rotate(42deg)}50%{transform:rotate(13deg)}}
+@keyframes lm-wink{0%,52%,65%,100%{transform:scaleY(1)}57%,61%{transform:scaleY(.18)}}
+@keyframes lm-leaf-nod{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(-16deg)}}

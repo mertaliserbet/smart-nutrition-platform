@@ -1,0 +1,2094 @@
+{
+  "package": "Limely ortak web ve mobil görsel kaynak paketi",
+  "version": "1.1.0",
+  "source": "source/onayli-konsept.png",
+  "sourceSha256": "707eab2a414cb89c239a526be4a3824ca85f7b563e9267237f3fd8552584ddd1",
+  "method": "Kaynak görselin konturları Bezier eğrilerine dönüştürüldü ve kenarlar yumuşatıldı; dolgu gradyanları düzenlendi. Su bardağının açık kenarı vektör konturla tamamlandı. PNG dosyaları SVG ana dosyalarından render edildi. Bu işlem raster kaynağın piksel kopyası değil, aynı kimliğin vektör uyarlamasıdır.",
+  "svg": "Gerçek vektör: path, linearGradient ve tek renkli simgelerde mask; gömülü bitmap ve font yok.",
+  "sourcePreserved": true,
+  "background": "transparent",
+  "palette": {
+    "background": "#F8FAF2",
+    "ink": "#203B2F",
+    "lime": "#C9E879",
+    "body": "#83B977",
+    "leaf": "#3D7756",
+    "yellow": "#F5D96A",
+    "soft": "#EAF3DE"
+  },
+  "assets": [
+    {
+      "id": "limely-simge-renkli",
+      "title": "Limely lime simgesi — renkli",
+      "svg": "logolar/limely-simge-renkli.svg",
+      "png": "logolar/limely-simge-renkli.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "brand"
+    },
+    {
+      "id": "limely-yazili-logo-renkli",
+      "title": "Limely yazılı logo — renkli",
+      "svg": "logolar/limely-yazili-logo-renkli.svg",
+      "png": "logolar/limely-yazili-logo-renkli.png",
+      "width": 2400,
+      "height": 861,
+      "category": "brand"
+    },
+    {
+      "id": "limely-simge-koyu",
+      "title": "Limely lime simgesi — koyu",
+      "svg": "logolar/limely-simge-koyu.svg",
+      "png": "logolar/limely-simge-koyu.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "brand"
+    },
+    {
+      "id": "limely-yazili-logo-koyu",
+      "title": "Limely yazılı logo — koyu",
+      "svg": "logolar/limely-yazili-logo-koyu.svg",
+      "png": "logolar/limely-yazili-logo-koyu.png",
+      "width": 2400,
+      "height": 861,
+      "category": "brand"
+    },
+    {
+      "id": "limely-simge-beyaz",
+      "title": "Limely lime simgesi — beyaz",
+      "svg": "logolar/limely-simge-beyaz.svg",
+      "png": "logolar/limely-simge-beyaz.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "brand"
+    },
+    {
+      "id": "limely-yazili-logo-beyaz",
+      "title": "Limely yazılı logo — beyaz",
+      "svg": "logolar/limely-yazili-logo-beyaz.svg",
+      "png": "logolar/limely-yazili-logo-beyaz.png",
+      "width": 2400,
+      "height": 861,
+      "category": "brand"
+    },
+    {
+      "id": "limely-maskot-merhaba",
+      "title": "Merhaba — el sallayan Limely",
+      "svg": "maskotlar/limely-maskot-merhaba.svg",
+      "png": "maskotlar/limely-maskot-merhaba.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "mascot"
+    },
+    {
+      "id": "limely-maskot-goz-kirpma",
+      "title": "Göz kırpan Limely",
+      "svg": "maskotlar/limely-maskot-goz-kirpma.svg",
+      "png": "maskotlar/limely-maskot-goz-kirpma.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "mascot"
+    },
+    {
+      "id": "limely-maskot-su-molasi",
+      "title": "Su molası veren Limely",
+      "svg": "maskotlar/limely-maskot-su-molasi.svg",
+      "png": "maskotlar/limely-maskot-su-molasi.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "mascot"
+    },
+    {
+      "id": "limely-maskot-kutlama",
+      "title": "Küçük kutlama yapan Limely",
+      "svg": "maskotlar/limely-maskot-kutlama.svg",
+      "png": "maskotlar/limely-maskot-kutlama.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "mascot"
+    },
+    {
+      "id": "maskotlar-limely-maskot-olcum",
+      "title": "Mezura tutan Limely — seni tanıyalım",
+      "svg": "maskotlar/limely-maskot-olcum.svg",
+      "png": "maskotlar/limely-maskot-olcum.png",
+      "width": 2048,
+      "height": 2048,
+      "category": "mascot",
+      "source": "referanslar/limely-karsilama-ekranlari.png; crop 1048,192,173,181",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-activity",
+      "title": "activity — koyu",
+      "svg": "ikonlar/koyu/activity.svg",
+      "png": "ikonlar/koyu/activity.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-activity",
+      "title": "activity — beyaz",
+      "svg": "ikonlar/beyaz/activity.svg",
+      "png": "ikonlar/beyaz/activity.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-armchair",
+      "title": "armchair — koyu",
+      "svg": "ikonlar/koyu/armchair.svg",
+      "png": "ikonlar/koyu/armchair.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-armchair",
+      "title": "armchair — beyaz",
+      "svg": "ikonlar/beyaz/armchair.svg",
+      "png": "ikonlar/beyaz/armchair.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-arrow-left",
+      "title": "arrow-left — koyu",
+      "svg": "ikonlar/koyu/arrow-left.svg",
+      "png": "ikonlar/koyu/arrow-left.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-arrow-left",
+      "title": "arrow-left — beyaz",
+      "svg": "ikonlar/beyaz/arrow-left.svg",
+      "png": "ikonlar/beyaz/arrow-left.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-arrow-right",
+      "title": "arrow-right — koyu",
+      "svg": "ikonlar/koyu/arrow-right.svg",
+      "png": "ikonlar/koyu/arrow-right.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-arrow-right",
+      "title": "arrow-right — beyaz",
+      "svg": "ikonlar/beyaz/arrow-right.svg",
+      "png": "ikonlar/beyaz/arrow-right.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-bell",
+      "title": "bell — koyu",
+      "svg": "ikonlar/koyu/bell.svg",
+      "png": "ikonlar/koyu/bell.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-bell",
+      "title": "bell — beyaz",
+      "svg": "ikonlar/beyaz/bell.svg",
+      "png": "ikonlar/beyaz/bell.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-calendar-check",
+      "title": "calendar-check — koyu",
+      "svg": "ikonlar/koyu/calendar-check.svg",
+      "png": "ikonlar/koyu/calendar-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-check",
+      "title": "calendar-check — beyaz",
+      "svg": "ikonlar/beyaz/calendar-check.svg",
+      "png": "ikonlar/beyaz/calendar-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-calendar-clock",
+      "title": "calendar-clock — koyu",
+      "svg": "ikonlar/koyu/calendar-clock.svg",
+      "png": "ikonlar/koyu/calendar-clock.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-clock",
+      "title": "calendar-clock — beyaz",
+      "svg": "ikonlar/beyaz/calendar-clock.svg",
+      "png": "ikonlar/beyaz/calendar-clock.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-calendar-days",
+      "title": "calendar-days — koyu",
+      "svg": "ikonlar/koyu/calendar-days.svg",
+      "png": "ikonlar/koyu/calendar-days.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-days",
+      "title": "calendar-days — beyaz",
+      "svg": "ikonlar/beyaz/calendar-days.svg",
+      "png": "ikonlar/beyaz/calendar-days.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-calendar",
+      "title": "calendar — koyu",
+      "svg": "ikonlar/koyu/calendar.svg",
+      "png": "ikonlar/koyu/calendar.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-calendar",
+      "title": "calendar — beyaz",
+      "svg": "ikonlar/beyaz/calendar.svg",
+      "png": "ikonlar/beyaz/calendar.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-chart-column",
+      "title": "chart-column — koyu",
+      "svg": "ikonlar/koyu/chart-column.svg",
+      "png": "ikonlar/koyu/chart-column.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-chart-column",
+      "title": "chart-column — beyaz",
+      "svg": "ikonlar/beyaz/chart-column.svg",
+      "png": "ikonlar/beyaz/chart-column.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-chart-no-axes-column",
+      "title": "chart-no-axes-column — koyu",
+      "svg": "ikonlar/koyu/chart-no-axes-column.svg",
+      "png": "ikonlar/koyu/chart-no-axes-column.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-chart-no-axes-column",
+      "title": "chart-no-axes-column — beyaz",
+      "svg": "ikonlar/beyaz/chart-no-axes-column.svg",
+      "png": "ikonlar/beyaz/chart-no-axes-column.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-check",
+      "title": "check — koyu",
+      "svg": "ikonlar/koyu/check.svg",
+      "png": "ikonlar/koyu/check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-check",
+      "title": "check — beyaz",
+      "svg": "ikonlar/beyaz/check.svg",
+      "png": "ikonlar/beyaz/check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-chevron-down",
+      "title": "chevron-down — koyu",
+      "svg": "ikonlar/koyu/chevron-down.svg",
+      "png": "ikonlar/koyu/chevron-down.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-down",
+      "title": "chevron-down — beyaz",
+      "svg": "ikonlar/beyaz/chevron-down.svg",
+      "png": "ikonlar/beyaz/chevron-down.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-chevron-left",
+      "title": "chevron-left — koyu",
+      "svg": "ikonlar/koyu/chevron-left.svg",
+      "png": "ikonlar/koyu/chevron-left.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-left",
+      "title": "chevron-left — beyaz",
+      "svg": "ikonlar/beyaz/chevron-left.svg",
+      "png": "ikonlar/beyaz/chevron-left.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-chevron-right",
+      "title": "chevron-right — koyu",
+      "svg": "ikonlar/koyu/chevron-right.svg",
+      "png": "ikonlar/koyu/chevron-right.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-right",
+      "title": "chevron-right — beyaz",
+      "svg": "ikonlar/beyaz/chevron-right.svg",
+      "png": "ikonlar/beyaz/chevron-right.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-circle-check",
+      "title": "circle-check — koyu",
+      "svg": "ikonlar/koyu/circle-check.svg",
+      "png": "ikonlar/koyu/circle-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-circle-check",
+      "title": "circle-check — beyaz",
+      "svg": "ikonlar/beyaz/circle-check.svg",
+      "png": "ikonlar/beyaz/circle-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-circle-user-round",
+      "title": "circle-user-round — koyu",
+      "svg": "ikonlar/koyu/circle-user-round.svg",
+      "png": "ikonlar/koyu/circle-user-round.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-circle-user-round",
+      "title": "circle-user-round — beyaz",
+      "svg": "ikonlar/beyaz/circle-user-round.svg",
+      "png": "ikonlar/beyaz/circle-user-round.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-circle",
+      "title": "circle — koyu",
+      "svg": "ikonlar/koyu/circle.svg",
+      "png": "ikonlar/koyu/circle.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-circle",
+      "title": "circle — beyaz",
+      "svg": "ikonlar/beyaz/circle.svg",
+      "png": "ikonlar/beyaz/circle.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-clipboard-check",
+      "title": "clipboard-check — koyu",
+      "svg": "ikonlar/koyu/clipboard-check.svg",
+      "png": "ikonlar/koyu/clipboard-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-clipboard-check",
+      "title": "clipboard-check — beyaz",
+      "svg": "ikonlar/beyaz/clipboard-check.svg",
+      "png": "ikonlar/beyaz/clipboard-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-clipboard-list",
+      "title": "clipboard-list — koyu",
+      "svg": "ikonlar/koyu/clipboard-list.svg",
+      "png": "ikonlar/koyu/clipboard-list.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-clipboard-list",
+      "title": "clipboard-list — beyaz",
+      "svg": "ikonlar/beyaz/clipboard-list.svg",
+      "png": "ikonlar/beyaz/clipboard-list.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-clock",
+      "title": "clock — koyu",
+      "svg": "ikonlar/koyu/clock.svg",
+      "png": "ikonlar/koyu/clock.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-clock",
+      "title": "clock — beyaz",
+      "svg": "ikonlar/beyaz/clock.svg",
+      "png": "ikonlar/beyaz/clock.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-dumbbell",
+      "title": "dumbbell — koyu",
+      "svg": "ikonlar/koyu/dumbbell.svg",
+      "png": "ikonlar/koyu/dumbbell.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-dumbbell",
+      "title": "dumbbell — beyaz",
+      "svg": "ikonlar/beyaz/dumbbell.svg",
+      "png": "ikonlar/beyaz/dumbbell.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-footprints",
+      "title": "footprints — koyu",
+      "svg": "ikonlar/koyu/footprints.svg",
+      "png": "ikonlar/koyu/footprints.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-footprints",
+      "title": "footprints — beyaz",
+      "svg": "ikonlar/beyaz/footprints.svg",
+      "png": "ikonlar/beyaz/footprints.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-glass-water",
+      "title": "glass-water — koyu",
+      "svg": "ikonlar/koyu/glass-water.svg",
+      "png": "ikonlar/koyu/glass-water.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-glass-water",
+      "title": "glass-water — beyaz",
+      "svg": "ikonlar/beyaz/glass-water.svg",
+      "png": "ikonlar/beyaz/glass-water.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-globe",
+      "title": "globe — koyu",
+      "svg": "ikonlar/koyu/globe.svg",
+      "png": "ikonlar/koyu/globe.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-globe",
+      "title": "globe — beyaz",
+      "svg": "ikonlar/beyaz/globe.svg",
+      "png": "ikonlar/beyaz/globe.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-grid-2x2",
+      "title": "grid-2x2 — koyu",
+      "svg": "ikonlar/koyu/grid-2x2.svg",
+      "png": "ikonlar/koyu/grid-2x2.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-grid-2x2",
+      "title": "grid-2x2 — beyaz",
+      "svg": "ikonlar/beyaz/grid-2x2.svg",
+      "png": "ikonlar/beyaz/grid-2x2.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-house",
+      "title": "house — koyu",
+      "svg": "ikonlar/koyu/house.svg",
+      "png": "ikonlar/koyu/house.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-house",
+      "title": "house — beyaz",
+      "svg": "ikonlar/beyaz/house.svg",
+      "png": "ikonlar/beyaz/house.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-inbox",
+      "title": "inbox — koyu",
+      "svg": "ikonlar/koyu/inbox.svg",
+      "png": "ikonlar/koyu/inbox.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-inbox",
+      "title": "inbox — beyaz",
+      "svg": "ikonlar/beyaz/inbox.svg",
+      "png": "ikonlar/beyaz/inbox.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-info",
+      "title": "info — koyu",
+      "svg": "ikonlar/koyu/info.svg",
+      "png": "ikonlar/koyu/info.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-info",
+      "title": "info — beyaz",
+      "svg": "ikonlar/beyaz/info.svg",
+      "png": "ikonlar/beyaz/info.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-layers",
+      "title": "layers — koyu",
+      "svg": "ikonlar/koyu/layers.svg",
+      "png": "ikonlar/koyu/layers.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-layers",
+      "title": "layers — beyaz",
+      "svg": "ikonlar/beyaz/layers.svg",
+      "png": "ikonlar/beyaz/layers.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-leaf",
+      "title": "leaf — koyu",
+      "svg": "ikonlar/koyu/leaf.svg",
+      "png": "ikonlar/koyu/leaf.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-leaf",
+      "title": "leaf — beyaz",
+      "svg": "ikonlar/beyaz/leaf.svg",
+      "png": "ikonlar/beyaz/leaf.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-menu",
+      "title": "menu — koyu",
+      "svg": "ikonlar/koyu/menu.svg",
+      "png": "ikonlar/koyu/menu.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-menu",
+      "title": "menu — beyaz",
+      "svg": "ikonlar/beyaz/menu.svg",
+      "png": "ikonlar/beyaz/menu.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-message-circle",
+      "title": "message-circle — koyu",
+      "svg": "ikonlar/koyu/message-circle.svg",
+      "png": "ikonlar/koyu/message-circle.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-message-circle",
+      "title": "message-circle — beyaz",
+      "svg": "ikonlar/beyaz/message-circle.svg",
+      "png": "ikonlar/beyaz/message-circle.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-messages-square",
+      "title": "messages-square — koyu",
+      "svg": "ikonlar/koyu/messages-square.svg",
+      "png": "ikonlar/koyu/messages-square.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-messages-square",
+      "title": "messages-square — beyaz",
+      "svg": "ikonlar/beyaz/messages-square.svg",
+      "png": "ikonlar/beyaz/messages-square.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-minus",
+      "title": "minus — koyu",
+      "svg": "ikonlar/koyu/minus.svg",
+      "png": "ikonlar/koyu/minus.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-minus",
+      "title": "minus — beyaz",
+      "svg": "ikonlar/beyaz/minus.svg",
+      "png": "ikonlar/beyaz/minus.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-notebook-pen",
+      "title": "notebook-pen — koyu",
+      "svg": "ikonlar/koyu/notebook-pen.svg",
+      "png": "ikonlar/koyu/notebook-pen.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-notebook-pen",
+      "title": "notebook-pen — beyaz",
+      "svg": "ikonlar/beyaz/notebook-pen.svg",
+      "png": "ikonlar/beyaz/notebook-pen.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-package",
+      "title": "package — koyu",
+      "svg": "ikonlar/koyu/package.svg",
+      "png": "ikonlar/koyu/package.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-package",
+      "title": "package — beyaz",
+      "svg": "ikonlar/beyaz/package.svg",
+      "png": "ikonlar/beyaz/package.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-pencil",
+      "title": "pencil — koyu",
+      "svg": "ikonlar/koyu/pencil.svg",
+      "png": "ikonlar/koyu/pencil.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-pencil",
+      "title": "pencil — beyaz",
+      "svg": "ikonlar/beyaz/pencil.svg",
+      "png": "ikonlar/beyaz/pencil.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-person-standing",
+      "title": "person-standing — koyu",
+      "svg": "ikonlar/koyu/person-standing.svg",
+      "png": "ikonlar/koyu/person-standing.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-person-standing",
+      "title": "person-standing — beyaz",
+      "svg": "ikonlar/beyaz/person-standing.svg",
+      "png": "ikonlar/beyaz/person-standing.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-plus",
+      "title": "plus — koyu",
+      "svg": "ikonlar/koyu/plus.svg",
+      "png": "ikonlar/koyu/plus.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-plus",
+      "title": "plus — beyaz",
+      "svg": "ikonlar/beyaz/plus.svg",
+      "png": "ikonlar/beyaz/plus.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-rotate-ccw",
+      "title": "rotate-ccw — koyu",
+      "svg": "ikonlar/koyu/rotate-ccw.svg",
+      "png": "ikonlar/koyu/rotate-ccw.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-rotate-ccw",
+      "title": "rotate-ccw — beyaz",
+      "svg": "ikonlar/beyaz/rotate-ccw.svg",
+      "png": "ikonlar/beyaz/rotate-ccw.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-ruler",
+      "title": "ruler — koyu",
+      "svg": "ikonlar/koyu/ruler.svg",
+      "png": "ikonlar/koyu/ruler.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-ruler",
+      "title": "ruler — beyaz",
+      "svg": "ikonlar/beyaz/ruler.svg",
+      "png": "ikonlar/beyaz/ruler.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-salad",
+      "title": "salad — koyu",
+      "svg": "ikonlar/koyu/salad.svg",
+      "png": "ikonlar/koyu/salad.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-salad",
+      "title": "salad — beyaz",
+      "svg": "ikonlar/beyaz/salad.svg",
+      "png": "ikonlar/beyaz/salad.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-scale",
+      "title": "scale — koyu",
+      "svg": "ikonlar/koyu/scale.svg",
+      "png": "ikonlar/koyu/scale.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-scale",
+      "title": "scale — beyaz",
+      "svg": "ikonlar/beyaz/scale.svg",
+      "png": "ikonlar/beyaz/scale.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-search",
+      "title": "search — koyu",
+      "svg": "ikonlar/koyu/search.svg",
+      "png": "ikonlar/koyu/search.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-search",
+      "title": "search — beyaz",
+      "svg": "ikonlar/beyaz/search.svg",
+      "png": "ikonlar/beyaz/search.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-settings",
+      "title": "settings — koyu",
+      "svg": "ikonlar/koyu/settings.svg",
+      "png": "ikonlar/koyu/settings.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-settings",
+      "title": "settings — beyaz",
+      "svg": "ikonlar/beyaz/settings.svg",
+      "png": "ikonlar/beyaz/settings.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-shield-check",
+      "title": "shield-check — koyu",
+      "svg": "ikonlar/koyu/shield-check.svg",
+      "png": "ikonlar/koyu/shield-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-shield-check",
+      "title": "shield-check — beyaz",
+      "svg": "ikonlar/beyaz/shield-check.svg",
+      "png": "ikonlar/beyaz/shield-check.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-smartphone",
+      "title": "smartphone — koyu",
+      "svg": "ikonlar/koyu/smartphone.svg",
+      "png": "ikonlar/koyu/smartphone.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-smartphone",
+      "title": "smartphone — beyaz",
+      "svg": "ikonlar/beyaz/smartphone.svg",
+      "png": "ikonlar/beyaz/smartphone.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-sprout",
+      "title": "sprout — koyu",
+      "svg": "ikonlar/koyu/sprout.svg",
+      "png": "ikonlar/koyu/sprout.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-sprout",
+      "title": "sprout — beyaz",
+      "svg": "ikonlar/beyaz/sprout.svg",
+      "png": "ikonlar/beyaz/sprout.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-triangle-alert",
+      "title": "triangle-alert — koyu",
+      "svg": "ikonlar/koyu/triangle-alert.svg",
+      "png": "ikonlar/koyu/triangle-alert.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-triangle-alert",
+      "title": "triangle-alert — beyaz",
+      "svg": "ikonlar/beyaz/triangle-alert.svg",
+      "png": "ikonlar/beyaz/triangle-alert.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-user-round",
+      "title": "user-round — koyu",
+      "svg": "ikonlar/koyu/user-round.svg",
+      "png": "ikonlar/koyu/user-round.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-user-round",
+      "title": "user-round — beyaz",
+      "svg": "ikonlar/beyaz/user-round.svg",
+      "png": "ikonlar/beyaz/user-round.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-users",
+      "title": "users — koyu",
+      "svg": "ikonlar/koyu/users.svg",
+      "png": "ikonlar/koyu/users.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-users",
+      "title": "users — beyaz",
+      "svg": "ikonlar/beyaz/users.svg",
+      "png": "ikonlar/beyaz/users.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-utensils",
+      "title": "utensils — koyu",
+      "svg": "ikonlar/koyu/utensils.svg",
+      "png": "ikonlar/koyu/utensils.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-utensils",
+      "title": "utensils — beyaz",
+      "svg": "ikonlar/beyaz/utensils.svg",
+      "png": "ikonlar/beyaz/utensils.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-video",
+      "title": "video — koyu",
+      "svg": "ikonlar/koyu/video.svg",
+      "png": "ikonlar/koyu/video.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-video",
+      "title": "video — beyaz",
+      "svg": "ikonlar/beyaz/video.svg",
+      "png": "ikonlar/beyaz/video.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-wallet",
+      "title": "wallet — koyu",
+      "svg": "ikonlar/koyu/wallet.svg",
+      "png": "ikonlar/koyu/wallet.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-wallet",
+      "title": "wallet — beyaz",
+      "svg": "ikonlar/beyaz/wallet.svg",
+      "png": "ikonlar/beyaz/wallet.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-x",
+      "title": "x — koyu",
+      "svg": "ikonlar/koyu/x.svg",
+      "png": "ikonlar/koyu/x.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-x",
+      "title": "x — beyaz",
+      "svg": "ikonlar/beyaz/x.svg",
+      "png": "ikonlar/beyaz/x.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-body-scale",
+      "title": "body-scale — koyu",
+      "svg": "ikonlar/koyu/body-scale.svg",
+      "png": "ikonlar/koyu/body-scale.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-body-scale",
+      "title": "body-scale — beyaz",
+      "svg": "ikonlar/beyaz/body-scale.svg",
+      "png": "ikonlar/beyaz/body-scale.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-height",
+      "title": "height — koyu",
+      "svg": "ikonlar/koyu/height.svg",
+      "png": "ikonlar/koyu/height.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-height",
+      "title": "height — beyaz",
+      "svg": "ikonlar/beyaz/height.svg",
+      "png": "ikonlar/beyaz/height.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-walk",
+      "title": "walk — koyu",
+      "svg": "ikonlar/koyu/walk.svg",
+      "png": "ikonlar/koyu/walk.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-walk",
+      "title": "walk — beyaz",
+      "svg": "ikonlar/beyaz/walk.svg",
+      "png": "ikonlar/beyaz/walk.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-run",
+      "title": "run — koyu",
+      "svg": "ikonlar/koyu/run.svg",
+      "png": "ikonlar/koyu/run.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-run",
+      "title": "run — beyaz",
+      "svg": "ikonlar/beyaz/run.svg",
+      "png": "ikonlar/beyaz/run.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Limely özel çizim; ekran referansı",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-sisesi-bos",
+      "title": "Su şişesi — bos",
+      "svg": "bilesenler/su-sisesi-bos.svg",
+      "png": "bilesenler/su-sisesi-bos.png",
+      "width": 320,
+      "height": 360,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-sisesi-az",
+      "title": "Su şişesi — az",
+      "svg": "bilesenler/su-sisesi-az.svg",
+      "png": "bilesenler/su-sisesi-az.png",
+      "width": 320,
+      "height": 360,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-sisesi-yari",
+      "title": "Su şişesi — yari",
+      "svg": "bilesenler/su-sisesi-yari.svg",
+      "png": "bilesenler/su-sisesi-yari.png",
+      "width": 320,
+      "height": 360,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-sisesi-dolu",
+      "title": "Su şişesi — dolu",
+      "svg": "bilesenler/su-sisesi-dolu.svg",
+      "png": "bilesenler/su-sisesi-dolu.png",
+      "width": 320,
+      "height": 360,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-bardagi-bos",
+      "title": "Su bardağı — bos",
+      "svg": "bilesenler/su-bardagi-bos.svg",
+      "png": "bilesenler/su-bardagi-bos.png",
+      "width": 200,
+      "height": 240,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-su-bardagi-dolu",
+      "title": "Su bardağı — dolu",
+      "svg": "bilesenler/su-bardagi-dolu.svg",
+      "png": "bilesenler/su-bardagi-dolu.png",
+      "width": 200,
+      "height": 240,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-secim-bos",
+      "title": "Seçim — seçilmemiş",
+      "svg": "bilesenler/secim-bos.svg",
+      "png": "bilesenler/secim-bos.png",
+      "width": 96,
+      "height": 96,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-secim-dolu",
+      "title": "Seçim — seçilmiş",
+      "svg": "bilesenler/secim-dolu.svg",
+      "png": "bilesenler/secim-dolu.png",
+      "width": 96,
+      "height": 96,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-bildirim-noktasi",
+      "title": "Bildirim işareti",
+      "svg": "bilesenler/bildirim-noktasi.svg",
+      "png": "bilesenler/bildirim-noktasi.png",
+      "width": 96,
+      "height": 96,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-ilerleme-adimi-tamam",
+      "title": "Tanışma adımı — tamam",
+      "svg": "bilesenler/ilerleme-adimi-tamam.svg",
+      "png": "bilesenler/ilerleme-adimi-tamam.png",
+      "width": 480,
+      "height": 64,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-ilerleme-adimi-bekleyen",
+      "title": "Tanışma adımı — bekleyen",
+      "svg": "bilesenler/ilerleme-adimi-bekleyen.svg",
+      "png": "bilesenler/ilerleme-adimi-bekleyen.png",
+      "width": 480,
+      "height": 64,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-enerji-gostergesi-ornek",
+      "title": "Enerji göstergesi — yalnız görsel örnek",
+      "svg": "bilesenler/enerji-gostergesi-ornek.svg",
+      "png": "bilesenler/enerji-gostergesi-ornek.png",
+      "width": 960,
+      "height": 78,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "bilesenler-aktif-sekme-cizgisi",
+      "title": "Aktif sekme çizgisi",
+      "svg": "bilesenler/aktif-sekme-cizgisi.svg",
+      "png": "bilesenler/aktif-sekme-cizgisi.png",
+      "width": 192,
+      "height": 72,
+      "category": "component",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-maskot-halesi",
+      "title": "Karşılama maskot halesi",
+      "svg": "dekorlar/maskot-halesi.svg",
+      "png": "dekorlar/maskot-halesi.png",
+      "width": 960,
+      "height": 960,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-iki-cekirdek",
+      "title": "Karşılama çekirdek süsleri",
+      "svg": "dekorlar/iki-cekirdek.svg",
+      "png": "dekorlar/iki-cekirdek.png",
+      "width": 152,
+      "height": 200,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-panel-koyu-banner",
+      "title": "Panel koyu yeşil zemin ve organik şekiller",
+      "svg": "dekorlar/panel-koyu-banner.svg",
+      "png": "dekorlar/panel-koyu-banner.png",
+      "width": 1800,
+      "height": 300,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-kart-kose-yesil",
+      "title": "İstatistik kartı köşe şekli — yesil",
+      "svg": "dekorlar/kart-kose-yesil.svg",
+      "png": "dekorlar/kart-kose-yesil.png",
+      "width": 360,
+      "height": 360,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-kart-kose-sari",
+      "title": "İstatistik kartı köşe şekli — sari",
+      "svg": "dekorlar/kart-kose-sari.svg",
+      "png": "dekorlar/kart-kose-sari.png",
+      "width": 360,
+      "height": 360,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    },
+    {
+      "id": "dekorlar-kart-kose-pembe",
+      "title": "İstatistik kartı köşe şekli — pembe",
+      "svg": "dekorlar/kart-kose-pembe.svg",
+      "png": "dekorlar/kart-kose-pembe.png",
+      "width": 360,
+      "height": 360,
+      "category": "decoration",
+      "source": "Limely çizimi",
+      "opaque": false
+    }
+  ],
+  "files": [
+    {
+      "file": "referanslar/limely-danisan-yeni-duzen-v3.png",
+      "sha256": "857bc57f9c5d01a4b2aa1ec13778953ea9959a20ea19bc49cd0d87e7779b5186",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/limely-diyetisyen-yeni-duzen-v3.png",
+      "sha256": "50267dbb5e4b985e5ff3c14d0b761135630549b53632fe961fb6af5d303e914b",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/limely-karsilama-ekranlari.png",
+      "sha256": "f14e47d1ea454f0673959407c09a209d85b8836432f1cfef8a6b9ec24197ae68",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/limely-panel-tipografi-v2.png",
+      "sha256": "604369b388f45b076446d0b36716affb30497f9b20d67c5dddcfc18e77f222dc",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/limely-panel.png",
+      "sha256": "92317ddfa21f36d9a27b4acdef5304f071d7ea205c531512f8e396166d7d8291",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/limely-karsilama.html",
+      "sha256": "37a50fcd73ed8ecb18cdbdac106563566e2fe399397f5e23477fda04a55c733b",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/uretim-promptlari.json",
+      "sha256": "77ecc2b74cfcecb3bc405d348e233aae8827dfa8c4619ec36ed934afeeb3bc51",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/tipografi-v2-promptlari.json",
+      "sha256": "f1e799caa4a2c7d77f875bdba8c8bbbf8331253b5d51864ca7b3705277340cf7",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "referanslar/yeni-duzen-v3-promptlari.json",
+      "sha256": "fc1c170fa515cec35489e0cb840deb7f3c4231152f8a123f823fd380115a30d4",
+      "purpose": "Özgün konsept ve üretim kaynağı; uygulama kodu değil",
+      "status": "reference"
+    },
+    {
+      "file": "gorseller/balanced-plate.webp",
+      "sha256": "c5c237688454fdedee0baced50b3e7f5676c5f8628c4eb1662bf7f76ed75c862",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    },
+    {
+      "file": "gorseller/breakfast-bowl.webp",
+      "sha256": "79262d0571ec703c1a7162d93dd72a29528935c28654e7e4485d0e1f3f3c0253",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    },
+    {
+      "file": "gorseller/food-bulgur.webp",
+      "sha256": "5017906be9297aa57d5bd9e2ecc9a4d73718b9bb3e765f9811b248f22d8bc7cc",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    },
+    {
+      "file": "gorseller/food-chicken.webp",
+      "sha256": "b1c6acd967a62e48d1675869e877f84939044aab37505107cab6fe8ade0502fe",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    },
+    {
+      "file": "gorseller/food-salad.webp",
+      "sha256": "f590c2270a96ef71c901b68459af427a8e03bed7bf0eae4a6980dd640112314a",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    },
+    {
+      "file": "gorseller/meal-plate-wide.webp",
+      "sha256": "7de704fae71cd6050c415b48a5799d80c3c0e48e35dac5386ef0598ece0e38b1",
+      "purpose": "Mevcut web projesindeki yemek görseli; V3 fotoğrafının birebir bağımsız kaynağı değil",
+      "status": "existing-web-asset"
+    }
+  ],
+  "dependencies": {
+    "lucideCommit": "7981a0798a4f7184296bf42e94b6a8677f3ef2a0",
+    "files": [
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/figtree/Figtree-Italic%5Bwght%5D.ttf",
+        "file": "fontlar/figtree/figtree-italic.ttf",
+        "sha256": "94dec1f18b9275d69e8b4a91b6514bdc18199048347e1c36e1285b11b0b87653"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/figtree/Figtree%5Bwght%5D.ttf",
+        "file": "fontlar/figtree/figtree.ttf",
+        "sha256": "26ad3db9b31ff7dde67a91ff515d022d2f495cd506590699cf264f0bfe6fb714"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/figtree/OFL.txt",
+        "file": "fontlar/figtree/OFL.txt",
+        "sha256": "140d37233e7f3ce7313798befa9600893bcceaf41a55fa0fa5ad52f7f657a268"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/fredoka/Fredoka%5Bwdth%2Cwght%5D.ttf",
+        "file": "fontlar/fredoka/fredoka.ttf",
+        "sha256": "2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/fredoka/OFL.txt",
+        "file": "fontlar/fredoka/OFL.txt",
+        "sha256": "5c9e7eee5c6b25f4b05b8d53b2e470ea4962f9ced742d044a98f7d95d1375bab"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/inter/Inter-Italic%5Bopsz%2Cwght%5D.ttf",
+        "file": "fontlar/inter/inter-italic.ttf",
+        "sha256": "acd98e64795781b2058f07b18475e0ecee2a0fe2b42a49e2f9e37d0d6bf66ce6"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/inter/Inter%5Bopsz%2Cwght%5D.ttf",
+        "file": "fontlar/inter/inter.ttf",
+        "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/inter/OFL.txt",
+        "file": "fontlar/inter/OFL.txt",
+        "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/manrope/Manrope%5Bwght%5D.ttf",
+        "file": "fontlar/manrope/manrope.ttf",
+        "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/google/fonts/83c62e30d87daa70216dab6b984d00d20d96d585/ofl/manrope/OFL.txt",
+        "file": "fontlar/manrope/OFL.txt",
+        "sha256": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/LICENSE",
+        "file": "lisanslar/LUCIDE-LICENSE.txt",
+        "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/activity.svg",
+        "file": "source/lucide/activity.svg",
+        "sha256": "050fbcda05e13c2051cf857683645e19c6b180861ef4d0cc28a6f09ba1ea1666"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/armchair.svg",
+        "file": "source/lucide/armchair.svg",
+        "sha256": "94040a227db83a21e42834b8839426754b4e1f36530eb90a440abaa3f3ee13eb"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/arrow-left.svg",
+        "file": "source/lucide/arrow-left.svg",
+        "sha256": "c5f4b88076108eb1a0d95336e1aa7e7bb1419a3a92af96f6247d88cd3456f933"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/arrow-right.svg",
+        "file": "source/lucide/arrow-right.svg",
+        "sha256": "288397fdb73bb4f783cf9eabb726ff47357df1d4e3f1201dd748090579f108b9"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/bell.svg",
+        "file": "source/lucide/bell.svg",
+        "sha256": "394889e9631fe3a9a63be9a479a95b451b708e432d895978d21d9130b5ee5dbe"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/calendar-check.svg",
+        "file": "source/lucide/calendar-check.svg",
+        "sha256": "952b6b26c7a29e845e06f7ab1618cbbc809298e62639ae456acb1cd6da8d942e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/calendar-clock.svg",
+        "file": "source/lucide/calendar-clock.svg",
+        "sha256": "31535adb748cc4abe561baed32d01905a90c95279120e5c2e325ce7f984e4957"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/calendar-days.svg",
+        "file": "source/lucide/calendar-days.svg",
+        "sha256": "9330eb8d7c4989e97b6361314abbf02953243c602874725c9e58ceca00da3bd7"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/calendar.svg",
+        "file": "source/lucide/calendar.svg",
+        "sha256": "312ac8e715ac2b71bcc942dec2e8de9c1929085474f08885af35b563f6aa7a0b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/chart-column.svg",
+        "file": "source/lucide/chart-column.svg",
+        "sha256": "80664a4c5ca1bca10bcb88c1a99f62593c94d61d72d3a4bbf577eb3f3ea4da57"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/chart-no-axes-column.svg",
+        "file": "source/lucide/chart-no-axes-column.svg",
+        "sha256": "5dfd8fc5b5417dad858991de4969c3fe1c4a466104d0880a15b691ff7c5b1f12"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/check.svg",
+        "file": "source/lucide/check.svg",
+        "sha256": "7f33acc9a77a61659531044525fc008edebe215bf4dcf1c789c8674ad3277db0"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/chevron-down.svg",
+        "file": "source/lucide/chevron-down.svg",
+        "sha256": "66ea878e72ed3488bb3b464c39dfdccee8d1f78e560dccea40e5e12da0e87e87"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/chevron-left.svg",
+        "file": "source/lucide/chevron-left.svg",
+        "sha256": "83b0681aa38bf55e9d52a1e4b4cced624abe1fe7678ecafda133a574f1161d93"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/chevron-right.svg",
+        "file": "source/lucide/chevron-right.svg",
+        "sha256": "2758143d7b2434e4aa7307dfd34405c87909ff4052f21b5f3f40d45224b4f19b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/circle-check.svg",
+        "file": "source/lucide/circle-check.svg",
+        "sha256": "9711e045a5999f8a3b0782eb88e09b04e0559bc7b379dcc0a4ae645223e10345"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/circle-user-round.svg",
+        "file": "source/lucide/circle-user-round.svg",
+        "sha256": "a7061596d155332f46cebc93e7458ff3f0a3a87b84b441d04b07461f0bfcffc2"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/circle.svg",
+        "file": "source/lucide/circle.svg",
+        "sha256": "3a991bd47beaf9874fba6fdf87bbba442970a89b5e6aa391558bc8b0a00a0513"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/clipboard-check.svg",
+        "file": "source/lucide/clipboard-check.svg",
+        "sha256": "e2bac86a6b24caa0d7d0dcc2719ec6b7870ec5eef2d21afae498d8cb5eefda96"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/clipboard-list.svg",
+        "file": "source/lucide/clipboard-list.svg",
+        "sha256": "2b91abc2e8ee8ba4c2e0f77d506a47a7a9774b0d4de3fa4b27e822a6376ab892"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/clock.svg",
+        "file": "source/lucide/clock.svg",
+        "sha256": "e9d3e3acf4d1c280fcf8092293439dc0a4756a908ceb859de144b12451cd1cb9"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/dumbbell.svg",
+        "file": "source/lucide/dumbbell.svg",
+        "sha256": "058a51e1fd42319d7eee4988a68bee4a23bc94fc69cb8aa1450835246126382d"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/footprints.svg",
+        "file": "source/lucide/footprints.svg",
+        "sha256": "09ddd9fd4ac7cebfdc91e1096f7b75db019a42fffc493c4adb128a49e1dba04f"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/glass-water.svg",
+        "file": "source/lucide/glass-water.svg",
+        "sha256": "5cdb0b488c058e83ae4b619d6e94bb736f8dbfbb8171c8663f9fc37915ccdfc8"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/globe.svg",
+        "file": "source/lucide/globe.svg",
+        "sha256": "82c6b8fa0b8e8d775ec9becd86f74a4e50bff7bee4c81f7362de45348504f14d"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/grid-2x2.svg",
+        "file": "source/lucide/grid-2x2.svg",
+        "sha256": "dc1896d3b22e88e0ba45a77bc8e947b7a01d0c9fb5ff77d07d24a5589816bb84"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/house.svg",
+        "file": "source/lucide/house.svg",
+        "sha256": "28216c479005731ef5e382e7d8627eda2b129b019eb1f3d9de9f5915576d448e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/inbox.svg",
+        "file": "source/lucide/inbox.svg",
+        "sha256": "1838482c53d0846badef9be96fdcf7a167064241bd4891efa995c77ebec5f187"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/info.svg",
+        "file": "source/lucide/info.svg",
+        "sha256": "bc977a64eb96f3e9c1041ffd09a3fceb70e3e65c02b571f76064062ed31f3cb9"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/layers.svg",
+        "file": "source/lucide/layers.svg",
+        "sha256": "ce16d0a955e3581cda17f6b2fd5c5bc2034b405f9cecc31c8ebb8495b4afc1bb"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/leaf.svg",
+        "file": "source/lucide/leaf.svg",
+        "sha256": "ac2b65d8d35b5038c9388cd1f161e74570fce6ef6a4c3d99a6b0c2bd68e0cb28"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/menu.svg",
+        "file": "source/lucide/menu.svg",
+        "sha256": "af6491988ac1ba30dc5414f485bc48713e957e1edb0fbef4a0dd8691c3c21598"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/message-circle.svg",
+        "file": "source/lucide/message-circle.svg",
+        "sha256": "146f39740fe50844394d56ae1f8821937655bcfff3842bf6fe8ffc0bcd324076"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/messages-square.svg",
+        "file": "source/lucide/messages-square.svg",
+        "sha256": "97733c58b74f8beddd569927f8453c86bca4afa394e6aad606db1acff4bd8355"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/minus.svg",
+        "file": "source/lucide/minus.svg",
+        "sha256": "a0c743ab6dbf545d8a6e19ef3874f48ede686ce68d25e231bd81f540d97b1f19"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/notebook-pen.svg",
+        "file": "source/lucide/notebook-pen.svg",
+        "sha256": "56705c35e839977bd6f133d7ca4e9c93a6eea563c89e4be125efd0a32e1fa041"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/package.svg",
+        "file": "source/lucide/package.svg",
+        "sha256": "69d6bc7650d26c4d24dd55eb22791607b982ce7637073944c256f1f61575509d"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/pencil.svg",
+        "file": "source/lucide/pencil.svg",
+        "sha256": "7e1ca7a6f5c1eb949671df762f2baadd32f5bd841d43153c3a15279af7d78d0c"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/person-standing.svg",
+        "file": "source/lucide/person-standing.svg",
+        "sha256": "02960f63be14df8543ec5dabf5250a47509c35f177eb90ef9c864aa7acc1161a"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/plus.svg",
+        "file": "source/lucide/plus.svg",
+        "sha256": "7f6af73bf1ff6c4bca3f18351c8d1bdec6749c0c2530c4de5da85d520c21df17"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/rotate-ccw.svg",
+        "file": "source/lucide/rotate-ccw.svg",
+        "sha256": "622685386ab4017eabfde01cd74550a20b1924df233b353f73b6b155371f2afd"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/ruler.svg",
+        "file": "source/lucide/ruler.svg",
+        "sha256": "af9710f70510217ef33773d502d0be2425c3a9cb1e3294ace27da9f0b4c8850b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/salad.svg",
+        "file": "source/lucide/salad.svg",
+        "sha256": "d68314fb83e26cd9e1a7a9b1ef3a121fbb293969088248bffb3556b25cefb95b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/scale.svg",
+        "file": "source/lucide/scale.svg",
+        "sha256": "a7faa238b153311b18aaffb14ade8989128eaac35a92482edb7a7ee04c7333de"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/search.svg",
+        "file": "source/lucide/search.svg",
+        "sha256": "283d371c2e433817bb9c0c8310caa6c77fa4177c0f4f1168d9c83b97af7389dc"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/settings.svg",
+        "file": "source/lucide/settings.svg",
+        "sha256": "0ae27fd0f81999229e3127ac96c5b32edfea448e291d509e76212b917551d66b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/shield-check.svg",
+        "file": "source/lucide/shield-check.svg",
+        "sha256": "8d4fcdbde5bba4abb1a2f6fe53e37ceb6343a1d5449a9d88f6f97c1971d26c4e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/smartphone.svg",
+        "file": "source/lucide/smartphone.svg",
+        "sha256": "f9fdb700b50feb5fc6436f53eb9813e9eb56a9071ac4cdcba69c7f7c1c13877d"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/sprout.svg",
+        "file": "source/lucide/sprout.svg",
+        "sha256": "cf4cd97166b3239348dfe2a94dad045bf788883c32292b16fd8c953f619a4f7b"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/triangle-exclamation-point.svg",
+        "file": "source/lucide/triangle-alert.svg",
+        "sha256": "4866f38b8560d410f21e3226413e0b77997b6dfbb6931fadfe0a0d5aef9ffeb4"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/user-round.svg",
+        "file": "source/lucide/user-round.svg",
+        "sha256": "84870f26f3faf8da45da84174517519e81b9e8f00319c78954fcbb74f50038a1"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/users.svg",
+        "file": "source/lucide/users.svg",
+        "sha256": "eeed488a1ec95ba730dd69996536fb65061d6ea273afb2429ae47e65eebf401c"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/utensils.svg",
+        "file": "source/lucide/utensils.svg",
+        "sha256": "9b5eb803bc342b8503b6a154ff63a0f754ba52a13fa24c2e270d2ab89c70f76a"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/video.svg",
+        "file": "source/lucide/video.svg",
+        "sha256": "d4fb6587f282c1152b953fe9494cd8ccafdf1e9f44957fbb7fe8dc7af0457597"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/wallet.svg",
+        "file": "source/lucide/wallet.svg",
+        "sha256": "76c9596f629a2abf9cfabb573452f3113ed7e9502c699aa811e630f156eb7556"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/x.svg",
+        "file": "source/lucide/x.svg",
+        "sha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+      }
+    ],
+    "googleFontsCommit": "83c62e30d87daa70216dab6b984d00d20d96d585"
+  },
+  "protectedAssetHashes": "source/korunan-varliklar-sha256.json",
+  "screenMap": "tasarim/ekran-varlik-eslestirmesi.json",
+  "usage": "KULLANIM.txt",
+  "notes": [
+    "Önceki 20 logo/maskot dosyası byte düzeyinde korunur.",
+    "İkonlar 24 px Lucide çizimleri ve dört ekran uyarlamasıdır; PNG konseptlerinin kayıp vektör katmanları oldukları iddia edilmez.",
+    "Mezuralı maskot karşılama görselinden konturla vektörleştirildi.",
+    "Bağımsız V3 yemek fotoğrafı kaynağı mevcut değil; referans tam hali ve mevcut web yemek varlıkları eklendi.",
+    "Fontlar üretim talimatlarında belirtilen ailelerdir; kaynak PNG kesin font dosyası/ölçü bilgisi içermez."
+  ]
+}

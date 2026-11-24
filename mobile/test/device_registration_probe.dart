@@ -56,8 +56,17 @@ Future<void> main() async {
     await controller.pump(const Duration(milliseconds: 300));
     await waitFor(
       controller,
-      () => find.byType(LoginPage).evaluate().isNotEmpty,
+      () =>
+          find.byType(LoginPage).evaluate().isNotEmpty ||
+          find.byKey(const ValueKey('onboarding-login')).evaluate().isNotEmpty,
     );
+    if (find.byKey(const ValueKey('onboarding-login')).evaluate().isNotEmpty) {
+      await tap(controller, 'Giriş yap');
+      await waitFor(
+        controller,
+        () => find.byType(LoginPage).evaluate().isNotEmpty,
+      );
+    }
     await tap(controller, 'Hesabınız yok mu? Kayıt ol');
     await waitFor(
       controller,

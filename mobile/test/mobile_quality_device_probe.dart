@@ -84,7 +84,15 @@ Future<void> main() async {
   }
 
   Future<void> login(String email) async {
-    await wait(() => find.byType(LoginPage).evaluate().isNotEmpty);
+    await wait(
+      () =>
+          find.byType(LoginPage).evaluate().isNotEmpty ||
+          find.byKey(const ValueKey('onboarding-login')).evaluate().isNotEmpty,
+    );
+    if (find.byKey(const ValueKey('onboarding-login')).evaluate().isNotEmpty) {
+      await tap(find.byKey(const ValueKey('onboarding-login')));
+      await wait(() => find.byType(LoginPage).evaluate().isNotEmpty);
+    }
     await fill(find.byType(EditableText).at(0), email);
     await fill(
       find.byType(EditableText).at(1),

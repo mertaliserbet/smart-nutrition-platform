@@ -1,0 +1,44 @@
+[
+  {
+    "file": "fontlar/figtree/figtree-italic.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [],
+    "fallback": null
+  },
+  {
+    "file": "fontlar/figtree/figtree.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [],
+    "fallback": null
+  },
+  {
+    "file": "fontlar/fredoka/fredoka.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [
+      "Ğ",
+      "ğ",
+      "İ",
+      "Ş",
+      "ş"
+    ],
+    "fallback": "Figtree"
+  },
+  {
+    "file": "fontlar/inter/inter-italic.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [],
+    "fallback": null
+  },
+  {
+    "file": "fontlar/inter/inter.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [],
+    "fallback": null
+  },
+  {
+    "file": "fontlar/manrope/manrope.ttf",
+    "testCharacters": "ÇçĞğIıİiÖöŞşÜü",
+    "missing": [],
+    "fallback": null
+  }
+]

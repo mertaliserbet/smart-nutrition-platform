@@ -1,0 +1,2413 @@
+{
+  "verified": true,
+  "protectedFilesVerified": 20,
+  "checks": [
+    "150 SVG are pure vector with no external dependencies",
+    "150 PNG match their SVG render pixel for pixel",
+    "All PNG include transparent and antialiased pixels",
+    "All artwork stays inside the canvas",
+    "The initial 20 logo and mascot files are unchanged"
+  ],
+  "assets": [
+    {
+      "id": "limely-simge-renkli",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 8042,
+      "artworkBounds": [
+        245,
+        183,
+        1814,
+        1880
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "74c9571c99ca17707aa055278dc8fded127a9185d2ae31fe7c619a14b06e2dd7",
+      "pngSha256": "bb90660e70efda129a1e69150a502592e75d81fbe2a2e516f50ab4f6907a62e0"
+    },
+    {
+      "id": "limely-yazili-logo-renkli",
+      "width": 2400,
+      "height": 861,
+      "hasTransparency": true,
+      "antialiasedPixels": 13089,
+      "artworkBounds": [
+        77,
+        69,
+        2333,
+        810
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "edd58f7dd3a1fdbb46df1bbe6b87ef18e673550d2a51aca60e1636792be59258",
+      "pngSha256": "32b98b8b32d24d6803403eee934d053388fb0a8e5e3e29bd5826567a693e74a7"
+    },
+    {
+      "id": "limely-simge-koyu",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 11338,
+      "artworkBounds": [
+        246,
+        180,
+        1817,
+        1882
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d95e801335c378b980fb2963562c630b212412813c0ee600123e6989b4562d58",
+      "pngSha256": "39380eba481d969d34f3191bdc920cee519562c2635329f1ab40535d97a5758b"
+    },
+    {
+      "id": "limely-yazili-logo-koyu",
+      "width": 2400,
+      "height": 861,
+      "hasTransparency": true,
+      "antialiasedPixels": 14519,
+      "artworkBounds": [
+        77,
+        68,
+        2333,
+        810
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "597aa17872558a2a7555f3f8904409f931cec7f02aa02d055b5cbdb8e06636c4",
+      "pngSha256": "fbc2d2fba94d1244b60f90bb6fc0192fc2cf5df8c30f7c21bf45566e3cad39fb"
+    },
+    {
+      "id": "limely-simge-beyaz",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 11338,
+      "artworkBounds": [
+        246,
+        180,
+        1817,
+        1882
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "49835db414337e55100cb8b5262628bd672b7cd256a9b5654fccf961463e1e80",
+      "pngSha256": "c4144e13d2e57a43bbaab6e37b01ce05ee4325b094406bd6265becabdc990ce4"
+    },
+    {
+      "id": "limely-yazili-logo-beyaz",
+      "width": 2400,
+      "height": 861,
+      "hasTransparency": true,
+      "antialiasedPixels": 14519,
+      "artworkBounds": [
+        77,
+        68,
+        2333,
+        810
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "68cce560f96af39249f85df371b2c84bfda84c4a9ccc0e9bc892efdf38678e03",
+      "pngSha256": "1476a5202537fe0d429a57eccf7983453843e57bb66d6b2458cc35a5a2cb20d0"
+    },
+    {
+      "id": "limely-maskot-merhaba",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 7608,
+      "artworkBounds": [
+        181,
+        422,
+        1863,
+        1868
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c92999610e56615470ab1c9796a60ee77c89d6a1071c247d2cdc3f30d82fd26b",
+      "pngSha256": "f933787bd1f6843d515103e322c4a677f025d80450e1a5dd3bef60fa35828a4a"
+    },
+    {
+      "id": "limely-maskot-goz-kirpma",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 6574,
+      "artworkBounds": [
+        291,
+        298,
+        1734,
+        1860
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "5fdd15b703a78d47be4b50a661986cd4d702f0d6e94e521743ab6f0d1d42ab32",
+      "pngSha256": "2cfe9da90fa0bc54727dcb6175fe1a369fe616e8635f5b2bd0a04adf15811781"
+    },
+    {
+      "id": "limely-maskot-su-molasi",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 6507,
+      "artworkBounds": [
+        340,
+        298,
+        1769,
+        1859
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "23db6705fe151eca8cffdaba98e8f27f0c090ac3c0ce9d476cf340233e7919e3",
+      "pngSha256": "f768774466d60f845b74b9f3b0742a5a292b8c30d273bede696b04b5d90fc8c3"
+    },
+    {
+      "id": "limely-maskot-kutlama",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 8860,
+      "artworkBounds": [
+        202,
+        378,
+        1814,
+        1861
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "59acdbe10e4925632c5f0a7c797f47c366e90cd13aae7b1193e5d395e11bb959",
+      "pngSha256": "54d469e170ed3b2fb28f7b68e6a2cede166dbf0ae44264a485d4cb6dee222317"
+    },
+    {
+      "id": "maskotlar-limely-maskot-olcum",
+      "width": 2048,
+      "height": 2048,
+      "hasTransparency": true,
+      "antialiasedPixels": 8106,
+      "artworkBounds": [
+        274,
+        215,
+        1766,
+        1830
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "bdce56bb92cc728087cde16fe463c0875c18345291915d896ab413fbbcd43280",
+      "pngSha256": "8bb594a3cfd0f563084eb8bd5d2caf13c52ac4653daae5c19e2b0512e2a62ea2"
+    },
+    {
+      "id": "ikonlar-koyu-activity",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 455,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "47f96c4e67226a165238c495bb11dd643c1ed868a61a9b2d88213d372ad71c1c",
+      "pngSha256": "a79846a567a577e290c2e0b93017b3471e937a655d592d482bb0af9df58e12fe"
+    },
+    {
+      "id": "ikonlar-beyaz-activity",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 455,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "60fcb675df0e04e08116ad472fbc9e47635dff617c01735bd0a67b7f11a21c5b",
+      "pngSha256": "f9e5e506cff55444fb6d9c5ac4c87e50a611955462971f032c9e2df04c594d36"
+    },
+    {
+      "id": "ikonlar-koyu-armchair",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 684,
+      "artworkBounds": [
+        8,
+        12,
+        87,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b592762ae0bb679888ccdfcad9d82c7a3b5499e498c3bbf24e4bfcf0828c90e2",
+      "pngSha256": "ffeadd93d1322e0960d1fc0dc478e9f3fa8e29ed8d7a66f90545783838087f41"
+    },
+    {
+      "id": "ikonlar-beyaz-armchair",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 684,
+      "artworkBounds": [
+        8,
+        12,
+        87,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "fd9d1d54ce7f6923933a59cf41496d02ccf05a0bbe41275f91e6aec3197e1537",
+      "pngSha256": "8fa1c40d31eba05dade7054e16fe4c14fecfd0317e7773876135b9fc45a800ec"
+    },
+    {
+      "id": "ikonlar-koyu-arrow-left",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 328,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "6d528c836143d521dc4db5ed92312dc58802218d25f7264339994a9f84515226",
+      "pngSha256": "bed863b5825815b4be5e3fe9cbeaecb759fea0cae072212d491067857d3bee73"
+    },
+    {
+      "id": "ikonlar-beyaz-arrow-left",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 328,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3ea34f9d8ff321a057ab365aab254a9bc692006e03b60f11f9d50d7e0f932554",
+      "pngSha256": "0f4814d08d0b54aabb23820cdbb1fcd4b67d3442aca1584ea15622825cc4b94c"
+    },
+    {
+      "id": "ikonlar-koyu-arrow-right",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 328,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "74754c223fc9f90743d1233c463bd6d923033b00a5ccba3f064aede5dae14e47",
+      "pngSha256": "f3270fea10ab02bfe84b19cef2fb5db8c36ad27eb7e059c917e53bd72b7dfdcd"
+    },
+    {
+      "id": "ikonlar-beyaz-arrow-right",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 328,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ec8d4c73bea0a1b9e0c326405d3aff2332e7647134485974e2509fb4c2a65d1d",
+      "pngSha256": "fb1dc6bca391932d30c3137da55a5c61e232c21b13b7934cdedd38862ee40998"
+    },
+    {
+      "id": "ikonlar-koyu-bell",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 576,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "95f7f77e9973087bad37c6ecbf5963afe7ba13a2b8f1da13469d7b1bec3588d3",
+      "pngSha256": "cc1c7cc0836becb98751dffdcc4dfc4087ebd2e7cbc7c8bdddffadbc47874c41"
+    },
+    {
+      "id": "ikonlar-beyaz-bell",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 576,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "46e0b7ae1ab35fd5b22c503582954a304f0bf4df735af6a89f22ce5af5f7ffeb",
+      "pngSha256": "77dc22b147188d9afac8071eb249deb68c223aab0a056e4aba44cec20d390956"
+    },
+    {
+      "id": "ikonlar-koyu-calendar-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 834,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "6a073417514600a236c48dad2e6996d1f025e5427c1580e121877a463edc2082",
+      "pngSha256": "e2c285b059e340d081435d067bd652ebfd48c53ddbbfa83c64b4c3892859d948"
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 834,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8b1e6f52b2f2c5d1f8aea8f6a2727562f1238d4382856b27dedd17e372987c8d",
+      "pngSha256": "3ef6f0c4942a25e67f3591fe6453d21d6b772e322ef754bcf7f3cc00ec6d7a48"
+    },
+    {
+      "id": "ikonlar-koyu-calendar-clock",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 876,
+      "artworkBounds": [
+        8,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "37def1e322c8b92c2c2f891f387c6312234d2b9d0c56c689899f813bb531712b",
+      "pngSha256": "6d9e8c4c8a84c8fb0f28fcd555b84cb17e71ed0cabaf5ba036ba3bfac5addb36"
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-clock",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 876,
+      "artworkBounds": [
+        8,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "884ce4faee9525a91ca516a777823f6249657ae9ce21f202cca4f23a2e6e2433",
+      "pngSha256": "fe2a112afac41ba1236184977c7478184c8c3e3c1024b6d200bb1dafac316189"
+    },
+    {
+      "id": "ikonlar-koyu-calendar-days",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 844,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "04de61cad873649add8ebb05de904ed03cd0fbffb06ba5d9d3591b2b2ed98bd3",
+      "pngSha256": "3677aa9a07fa50ccbd034b16388d9d548cee08253f0b9dc3c504590cb3c12836"
+    },
+    {
+      "id": "ikonlar-beyaz-calendar-days",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 844,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "db22c57a6fd4342abe380e485d3c03bd60b342c725323f661b8e5d7d5afe00d5",
+      "pngSha256": "42ba14b3e470b1bc83ad59534ef27519f5f9a01d415aca5932497ade4e5866b2"
+    },
+    {
+      "id": "ikonlar-koyu-calendar",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 724,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "69027fdaaa33986705bc462a3004382e14c608bceb50cfc05964ee001d6b749f",
+      "pngSha256": "082eb745f5df2c097314a7265490fe161d426adfa1d3219c2d7368aac12b8461"
+    },
+    {
+      "id": "ikonlar-beyaz-calendar",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 724,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ea3e35cb73c052aa982644043c54a9f2708ebc61ce3e531007c4adb09b140ed5",
+      "pngSha256": "64ef53c35f24894bed2e26d6d7a9ab1094c38fe27a26194b8b513f4cfbc232a0"
+    },
+    {
+      "id": "ikonlar-koyu-chart-column",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 552,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b549350c470318f7dd8a37b97d90fb6256ac3a65f5ea1110219ebca77ae2e9f6",
+      "pngSha256": "038276deefb6f81faed1c0c42ec740bac7f0815c3786f574bbdec1574582edcb"
+    },
+    {
+      "id": "ikonlar-beyaz-chart-column",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 552,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "da160dda2759c5fcbde66ddcd2ea6a5decbf19675067849e8a1393375ba10981",
+      "pngSha256": "56a537e84decef7edea43dc4cf856deb307478a5ecc8773357ac091c2ec64a75"
+    },
+    {
+      "id": "ikonlar-koyu-chart-no-axes-column",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 348,
+      "artworkBounds": [
+        16,
+        8,
+        79,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4d50a1c857d908ccf616dd90b9beb704d656c9f82c5ca1246a0499031ee8cc81",
+      "pngSha256": "7c7b08c9c6f0416e964f81e713b5036b2565a535db7bc5e19b882f899a0a2331"
+    },
+    {
+      "id": "ikonlar-beyaz-chart-no-axes-column",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 348,
+      "artworkBounds": [
+        16,
+        8,
+        79,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b665f49891395f0065af7866276f351706b3973f7416baa8519c320bf9c16b2c",
+      "pngSha256": "ca1a3dcbdbedf472bf63b7ae8b2fcd9ed2bc1ab9a5f968b8b302771b3f5c9985"
+    },
+    {
+      "id": "ikonlar-koyu-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 270,
+      "artworkBounds": [
+        12,
+        20,
+        83,
+        71
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "218ce29d53395af8b6721e7744a1164da11711a4f4b791d3a02f429d1a229651",
+      "pngSha256": "867338ba314d4a41bc7464917a422639e559f6b81d9f3efe849f203067fab2d0"
+    },
+    {
+      "id": "ikonlar-beyaz-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 270,
+      "artworkBounds": [
+        12,
+        20,
+        83,
+        71
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "e496571ec70bbbc75bb6f6e8bb803841aef67f63996fd74f6bdaf9787632e417",
+      "pngSha256": "c960cd1691304a77fecae54704062da0f9cd51c2395ba5a4729a2bf0e5ffd63d"
+    },
+    {
+      "id": "ikonlar-koyu-chevron-down",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        20,
+        32,
+        75,
+        63
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "60cc271a1ebcb366bed8d4dc2288bf1940e3b7f66410bf97321cbad532edbb4a",
+      "pngSha256": "bbbb8683d4b08ac91e3efca06ab28a2a9435e18c08fc6e1b5d4ccccc8dba3056"
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-down",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        20,
+        32,
+        75,
+        63
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4c815c53d279f3e1741fa1bb6163018a8bf77c5e9a8d01356a691c24894d260c",
+      "pngSha256": "d21664d628f52f50e50f3f1973ee8edab1091205be52d665f2b364c271faf128"
+    },
+    {
+      "id": "ikonlar-koyu-chevron-left",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        32,
+        20,
+        63,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "7a4d13321cbacb71feb206387ff14c36da7928844ec04b3f0c6b99718f0a3bb9",
+      "pngSha256": "1114f559333b2bf7dbd723fca12c1566222627cf3552407d59c8f99d76dee51f"
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-left",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        32,
+        20,
+        63,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "358b5141495b4e57627f3e9c915c00b25f65b06f57843dda73a41b24847e589c",
+      "pngSha256": "618cf93f7369264be26c96fba32661fad7da11654b9b0a39558d12a08f4a60b7"
+    },
+    {
+      "id": "ikonlar-koyu-chevron-right",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        32,
+        20,
+        63,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b20989ad28a3b6d765e5e80334f5f5b5fa0965c449c299830363cb46f509cd71",
+      "pngSha256": "a9773f345f970ab6311f60f86075691e782619c91ba24b0cb6fad360d3032e74"
+    },
+    {
+      "id": "ikonlar-beyaz-chevron-right",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 206,
+      "artworkBounds": [
+        32,
+        20,
+        63,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "079631b0f212795e39b0437c4962e59f218e70233587a53d644f0df73c7e81c6",
+      "pngSha256": "e6b74d7b5367d9295a9095f8d7c87578e152f17085265611601e0ec888531014"
+    },
+    {
+      "id": "ikonlar-koyu-circle-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 729,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8f56898a9f7856e028693c00df519f66fc9909942ee1bb6c9e4873f0074e4a92",
+      "pngSha256": "39a02c97f7dfa68e6366f8836c76d185f400f5083016608e73ee516b46431dd5"
+    },
+    {
+      "id": "ikonlar-beyaz-circle-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 729,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c84e11b39b6f3b0cc4dd2de6b0772fad0483273a85a9389152c98a27f842ed16",
+      "pngSha256": "87ecb5bb3b57965564334f189f3e157075809987d92b322c4bb672de03c4434a"
+    },
+    {
+      "id": "ikonlar-koyu-circle-user-round",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 900,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "f58be7524953909dd2d37e4b49002c69abc91c01fbd6c4375d42c1881d92d079",
+      "pngSha256": "cdb31631d51cf561843e3b751900df163a5c407e3cb12408cb5e3ffc9022f8a0"
+    },
+    {
+      "id": "ikonlar-beyaz-circle-user-round",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 900,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "18cf5603c03d4839e92b1ae536a26c9e1566c24775dcfb01528efbe43916cfc1",
+      "pngSha256": "aace63b963c2f6ac92ebbbdd3d16ab47517a4c2bf11798105128802b1e10b342"
+    },
+    {
+      "id": "ikonlar-koyu-circle",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 587,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "854ea0f8f9911f555bcb6e9860545f64adb6cc40a82486047602cca510badf15",
+      "pngSha256": "890954afe6ca003b07d1fa712e520521d8774c2b4c7e4f93de243c6dac26d3ce"
+    },
+    {
+      "id": "ikonlar-beyaz-circle",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 587,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "12755bd0d5ba768ae15dd2a93f98bb3628d0a8e19f0bbbf99807f4b860f2729c",
+      "pngSha256": "f6f45086bbad5a6814894cfd84627fc534a5a606734dc9c45460df44a5e8cc05"
+    },
+    {
+      "id": "ikonlar-koyu-clipboard-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 746,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "96adf6bbde158df91a72ae140ea4444b7a1df93ed61f72d0dc9a03e342c381a9",
+      "pngSha256": "5e322bf84a2f457b65b816be6b93127b19ad3c20e1352ee41d515c1aa14bb266"
+    },
+    {
+      "id": "ikonlar-beyaz-clipboard-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 746,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "e2029858f6cf5a5191459fa1efcc4b3e3ca30f48e52c52e99de9203d389e1c51",
+      "pngSha256": "baf42bf92c0fc6b94039466e67fc7a38192114ea22bf4b32502d0ea7de33228c"
+    },
+    {
+      "id": "ikonlar-koyu-clipboard-list",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 780,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b4c1e2c4e49e30ec3d48cec85ff3b1f8011703c622e56c007541777e288c39f4",
+      "pngSha256": "95266618b18ec0d13fc6e0e68e78ac07d6e137687e2586af508350eed39c0251"
+    },
+    {
+      "id": "ikonlar-beyaz-clipboard-list",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 780,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "edd6361b347d4fa3df62f559c1b550e8efe9917f761ca7e73374a3aa8208d1b0",
+      "pngSha256": "206d0dc6b1137ab2242629b64568f236d0a9e331b4df8ccfb241a7306d7f2381"
+    },
+    {
+      "id": "ikonlar-koyu-clock",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 686,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "dd6809a4772409b41c91aeb1da4d27bc13bdd561e024f713c3a06847d8e3fa80",
+      "pngSha256": "0853b24e95a18e527350229422b551d85f5fcb25ea341cf80629f9dba5ace14e"
+    },
+    {
+      "id": "ikonlar-beyaz-clock",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 686,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "96825a2314cea1c2186387fda3c42702e311121ca19fb3324a4498c6afaa94ce",
+      "pngSha256": "891718bc57ef93eb9c514ac966aa30535470f430f28e2d533e1a5463ac0d64dd"
+    },
+    {
+      "id": "ikonlar-koyu-dumbbell",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 885,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "78de8acd9c17b6c35565a774d0c2f011d3f6bc159564311b04b01898f2bc068b",
+      "pngSha256": "a6df62e9ad34960428da5d1a985f991d2aa9922b7e7c1ab1fad2ae1eb74bf7f4"
+    },
+    {
+      "id": "ikonlar-beyaz-dumbbell",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 885,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "f7b6c06ca138e5824c804a724261b7e4d3b6114494dafedb1f123349615a774e",
+      "pngSha256": "fdc76511ab7f8f0afc8d4c9f5f1e9eb49df9c49d11f709549be5229133fa3104"
+    },
+    {
+      "id": "ikonlar-koyu-footprints",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 707,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "bca142b3f9c9c8df39b684de3fe997cb7232f2889dc0361096d345c8dfcff0d2",
+      "pngSha256": "709e2a0f4510dda5bb13501cacba0cd63fcc48fae17c51f38cb19a0099e58e50"
+    },
+    {
+      "id": "ikonlar-beyaz-footprints",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 707,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c3cef9f20b7187dc3bb464e5420516019db9968d8e39e1b801b02f5728b99ce8",
+      "pngSha256": "96495b2190ce5ea0c5aceeb1c2fcfe88e37de7f641116398fe78029bea6d1678"
+    },
+    {
+      "id": "ikonlar-koyu-glass-water",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 585,
+      "artworkBounds": [
+        16,
+        8,
+        79,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "baf07564865604e9646aa42b0543aa5b87c21763513f82418a8097fe4040537f",
+      "pngSha256": "114e720ac308bf62284b886d5e3fd75f4459e71692fc7362221e427ef9b28873"
+    },
+    {
+      "id": "ikonlar-beyaz-glass-water",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 585,
+      "artworkBounds": [
+        16,
+        8,
+        79,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "9aa06c0ed4acb1ce640d2c23d624ca7247bf0087c0883bae81038cb5c39569e1",
+      "pngSha256": "daf65619093023f1078b7fdceae7c8e52a5a0c6a4c41b53979cd53e8f0d465d4"
+    },
+    {
+      "id": "ikonlar-koyu-globe",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 989,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3b77234f2e7e42bc3312d7c19a564ce695a6415408e8adfe5dff878b409725c6",
+      "pngSha256": "da9e25eef88df8cb53ce2d3ab511e9d2c2242a86abe82209d750dfe70603d98f"
+    },
+    {
+      "id": "ikonlar-beyaz-globe",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 989,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3d44e6236c7945058a53f3a2634442745bd28300db5e745cd6562d7586613cd8",
+      "pngSha256": "c4e9df847ad782249ce197d020855a0c77f8df7ed7ad705674e1ef07d7e39f82"
+    },
+    {
+      "id": "ikonlar-koyu-grid-2x2",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 780,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "60c9ce8ca405a4e70676e631dd0fb58d21a2553a3b61289c30b3ee0f5f2cf728",
+      "pngSha256": "352bc01feb0783e0eca2b8a2a24b0488d557d47857929ec777cc94c9b6041242"
+    },
+    {
+      "id": "ikonlar-beyaz-grid-2x2",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 780,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b5661a2662a4dac0cae6e2bf97e655c0e4ae9ea476c15285e8a230278a63c681",
+      "pngSha256": "e5fbbb33548636181ff3e33b9892a1876ad3a27bc8d5288eb400c3541703c0bc"
+    },
+    {
+      "id": "ikonlar-koyu-house",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 741,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c79af2e8622af03404731858b4ad135566301ef92f263cfec3256fb5760cc2bd",
+      "pngSha256": "8dc2a3e0d2af9d10c23f637d97deced4e0d2559e0fb780756479750427b38e02"
+    },
+    {
+      "id": "ikonlar-beyaz-house",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 741,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "343b22efb380d455deee475be9f642f70544e08b0d444e2ec0302afa760c8a14",
+      "pngSha256": "a3e6c219bfb2456f5dc009cdc9ed4c7d2da5af58610517a15b06179699a9575d"
+    },
+    {
+      "id": "ikonlar-koyu-inbox",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 684,
+      "artworkBounds": [
+        4,
+        12,
+        91,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "30156814deef17a7fb6b1102d3f31e64a8f4ceeb8d0224b1f11ebc3ec4e90b65",
+      "pngSha256": "e41c043901edad9fd653c4197d721dbdd929e1cc699ec1b86a88bfc86b5a1527"
+    },
+    {
+      "id": "ikonlar-beyaz-inbox",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 684,
+      "artworkBounds": [
+        4,
+        12,
+        91,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "9ef561d2ec06f5a714e681758187c4266565dcbb42a59ca11516b0a91cccef54",
+      "pngSha256": "a45fd9bbc2ca564104e716d4e094651c97f6fbb5aa6b3a7419f86cb2d4804503"
+    },
+    {
+      "id": "ikonlar-koyu-info",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 659,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "f6eac565134482ff271205c1450f0fcbcf7b74eb46514fc58bdf5e44e9c44594",
+      "pngSha256": "2e5782104011484b1f1b0da8f5e04ed8475b0a6cea82bf1fcd1a2da5af07c9db"
+    },
+    {
+      "id": "ikonlar-beyaz-info",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 659,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "85fea72f7e615cac27d185a7b7d09bc543c09a972a0713005beb1ea8d016a5a0",
+      "pngSha256": "dfcadb00997ce505a881c37a993fd7f5d932014f6f3c5a0367c41d6e2869eefe"
+    },
+    {
+      "id": "ikonlar-koyu-layers",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 941,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "e1c4183fff4e690575eb15eeb8efd2703754595c0e7357121ebf1fe90fd5c6fd",
+      "pngSha256": "f5d50543994600155af3f9daf3b0d1ec83e96e55d4df9be4ee37e12da3b20355"
+    },
+    {
+      "id": "ikonlar-beyaz-layers",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 941,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1d96a7d11b4cacd81981c4de1437d6a82e8b0a4d5ecf197b57d76070afc5ed47",
+      "pngSha256": "0bbccededabe330776403a54f2ac5483ab1737941c13c11f94770feaae6ca034"
+    },
+    {
+      "id": "ikonlar-koyu-leaf",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 639,
+      "artworkBounds": [
+        4,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c67719975d9cec31cc4f5c0006073fa6c237426a3ebbdd1a3cbfc8826ce12dbb",
+      "pngSha256": "98374801f0cd04391650e45c7521baeaaa1a336d25d0f3e3262d21ecf9af27e6"
+    },
+    {
+      "id": "ikonlar-beyaz-leaf",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 639,
+      "artworkBounds": [
+        4,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ffeb0c6273cdaa3ba4ca6bae719c87a0dffaf16c6dc4a985c983dbc54e4abde0",
+      "pngSha256": "2e2ffb24fddf44802d506660cc84dd091c7869163fdf42bd07b536c2ce6a25ec"
+    },
+    {
+      "id": "ikonlar-koyu-menu",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 444,
+      "artworkBounds": [
+        12,
+        16,
+        83,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8a68a25c5d231594bb54e895b952bda248f9b2b63d86e094e099c8409368dd0f",
+      "pngSha256": "f2153a0c6f50869b45060023b5c377692dda48193562fbe1e46e7abfd8eb8c45"
+    },
+    {
+      "id": "ikonlar-beyaz-menu",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 444,
+      "artworkBounds": [
+        12,
+        16,
+        83,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "10ccf3d0a8405e99729077ed975b3e6418295e3a7ee66ca2c9e150e667356e13",
+      "pngSha256": "bfdef5059c6064ba8be4f22977b94676d129ddc7b0234bb682a38d00068455d1"
+    },
+    {
+      "id": "ikonlar-koyu-message-circle",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 619,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8150879a732885fd977ca5de6c50dfca973a384c03a18822d82731ab316ab97d",
+      "pngSha256": "3e3f946b1c0879fbc0791e0e46ec9c1e8247675fd010f0fdc735b6cdadd2bf5e"
+    },
+    {
+      "id": "ikonlar-beyaz-message-circle",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 619,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "63ee523b2ae8087b866387677634e1e3d9ec406cfa60040a8b5561cde54f2a12",
+      "pngSha256": "3845538566dcbb5d6f168e5df1c296063688a01f3ce50b58148f61da8da3ce35"
+    },
+    {
+      "id": "ikonlar-koyu-messages-square",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 724,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "93b4ec1f62d81d6ea0b2fed62ad7e873e0b77f785a7ec0ba3219a08ff4adc1fb",
+      "pngSha256": "c44e528ed560ff21dca3f6ffb5c78abaa10b8e2ee222b22c44aee134663db11f"
+    },
+    {
+      "id": "ikonlar-beyaz-messages-square",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 724,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1d1b71c48229e1afb3bcfbc78ecb2ca771fc15ae6595dba8df06a02ee3843098",
+      "pngSha256": "d1b830c1ad3e5bb757a42f2b680f698ad54f77202c04f785c44db4ad8748ed55"
+    },
+    {
+      "id": "ikonlar-koyu-minus",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 132,
+      "artworkBounds": [
+        16,
+        44,
+        79,
+        51
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "e28bbb7f03a2898e3ad017843f3cda98715f9ec0b6d33c218a71f958a1d76828",
+      "pngSha256": "13245f31c5a621cda5d123e49f4e8cafa055009f789c412292766af0d0e06844"
+    },
+    {
+      "id": "ikonlar-beyaz-minus",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 132,
+      "artworkBounds": [
+        16,
+        44,
+        79,
+        51
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "be5b4c2b0701b9ce5f09df5225df02c0bf37b11af45daad93d292c83f5118ec5",
+      "pngSha256": "b98e1a70a2e1b6529226c14eb31c43df78560012f3d11c7e60eb0f0e0f894f82"
+    },
+    {
+      "id": "ikonlar-koyu-notebook-pen",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 870,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "406a8137ee431647bc35aed23ae90129aa35f8b98499abdc988a915274ea22cc",
+      "pngSha256": "c3b57df69334e93908d6a21d8af7259c6494d08392e087c30200964b79562003"
+    },
+    {
+      "id": "ikonlar-beyaz-notebook-pen",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 870,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3d7c5d09be94de30968b2f149eab4929ef128d231dd1357dae3e08611e6a2996",
+      "pngSha256": "8a95fa8b928ca70fc02099ccc84a0f2792650f178b0f285d73b5e242949fc256"
+    },
+    {
+      "id": "ikonlar-koyu-package",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 874,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d8636754bceca020201215cc3a4b64d8fe529eaae24b549b4de43b00eab64e5c",
+      "pngSha256": "a1bd22cad7d23a39223969929be27a040f6b6ca68c42c8bf4cdcbf1f6548935a"
+    },
+    {
+      "id": "ikonlar-beyaz-package",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 874,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "a08823b4608a694ed261650c0ef6e86704f78276de2b3f8c47e26b9bc538a7ea",
+      "pngSha256": "aa3923f0293d026cc109c01fe9e8459787853b300af194d66c987295d217db2e"
+    },
+    {
+      "id": "ikonlar-koyu-pencil",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 539,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "11e6202fe08206cd52357bee3eec42d45d4069e8430386b9dcd67ace290c575b",
+      "pngSha256": "b70546fc59a0bd0ec29b01b34730cd3880c7a910030eee6605f5b5c3e4de23d5"
+    },
+    {
+      "id": "ikonlar-beyaz-pencil",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 539,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3e3d3fd1d2f040fab811b53db32dc078aa2339de9808107e7db060326daf5790",
+      "pngSha256": "2469af112f4ee467edfecf7251af39e0cd63cc831535fb3cc0d7db1d0358f009"
+    },
+    {
+      "id": "ikonlar-koyu-person-standing",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 322,
+      "artworkBounds": [
+        20,
+        12,
+        75,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c3002f64129b4dfda9527c52b5d708a076b47111c21b853d6b17033caffa8547",
+      "pngSha256": "6f07c52530a40216bf580a12c95e8c662a4d0101bd824e8b00f1555652412cbc"
+    },
+    {
+      "id": "ikonlar-beyaz-person-standing",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 322,
+      "artworkBounds": [
+        20,
+        12,
+        75,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "91eec6a658d6995c582b35c77e1f7013e564dca8605e00a8b1faf2fefc21fb59",
+      "pngSha256": "a647eec2824f5cea79beb784a5fc1b7a0df482360f44fba0ed860a26a36fabc3"
+    },
+    {
+      "id": "ikonlar-koyu-plus",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 236,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8ec47e5a57281e31c36eac679362a0c2f8c34f95ca53daf4724c461a2d7aeb5b",
+      "pngSha256": "511d86c8202b1c8cfaacfbeeb4da23dfe3dae92e52ac97d7fafc1f3436f59d25"
+    },
+    {
+      "id": "ikonlar-beyaz-plus",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 236,
+      "artworkBounds": [
+        16,
+        16,
+        79,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "83dd749208668500207836c80ba8148cdafbd4341efd4e7fdfd312cbe21c5cca",
+      "pngSha256": "674c361857f751bd616bf6a98dbab64974b7990b2293e7c7514bbbed322d0490"
+    },
+    {
+      "id": "ikonlar-koyu-rotate-ccw",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 592,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d2fca7c5cc20c9c781b28bdc92a67d461b6ce4520c5615f8620f5f3bef55505c",
+      "pngSha256": "3525713043124372c813d1449721f4408ae3eb928a3eb46664da8ce2ad8f79cd"
+    },
+    {
+      "id": "ikonlar-beyaz-rotate-ccw",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 592,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "7f1f6c5d24118c5b85a25f5f146757949fffbaa26ee1db608b0b6aa92114d848",
+      "pngSha256": "21b335f8e5dca91f9a536620080168462edda3a003a81e6198e7a540ef529e8c"
+    },
+    {
+      "id": "ikonlar-koyu-ruler",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 712,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "bddb2e0b52cae03900cac02d73f67b839e9b7604c982274d224f11b323ff9da7",
+      "pngSha256": "5cbc181be559948c4f15e39af48cd341572cc6893df3c8805f19be44d5b98cb1"
+    },
+    {
+      "id": "ikonlar-beyaz-ruler",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 712,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "9cb72162f8f648d5a8d07139877795a0f4daad4c1b5e55652ea1915f29582cb5",
+      "pngSha256": "42c0f6eaa6c2a9bcfd63498115f32b82545b29ac677c39729ddb41923fa7a07f"
+    },
+    {
+      "id": "ikonlar-koyu-salad",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 770,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3e9c1b0f0796b01791addafd815f00bc982fa2ad2e0b2d023f78b299a597f603",
+      "pngSha256": "5d8d307f172d6d27e5ff33c0b750cfe38421416d1bae27c6c10fbe8589e10519"
+    },
+    {
+      "id": "ikonlar-beyaz-salad",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 770,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "44c3d32b57c60405deb701830249e15594b75a79c8fd7d75864074db361adb6f",
+      "pngSha256": "4b62ccf167a056cc799b11f1f99c9083bfe0ed0e18912148cc3ae6f228af1d1a"
+    },
+    {
+      "id": "ikonlar-koyu-scale",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 755,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "7323132e84468fa110d5ea0f960f5077a08430333fd0bda82362bb82b3fc112a",
+      "pngSha256": "e89d4c3106ffb11d3a96133349fdd0851b48a566f3931a9355a5be46a21bf252"
+    },
+    {
+      "id": "ikonlar-beyaz-scale",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 755,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c6039686336fa992bea887824d34e38cb9029cd6dc892843746f1dbe5ada7a19",
+      "pngSha256": "5d7281cb7d4e1693f4d57c4455dac46536170ba48ced554d80a43a32058c1bd7"
+    },
+    {
+      "id": "ikonlar-koyu-search",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 555,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "be166dbc693a4807447ea96a9f38d9616ec40c0d0204637480984a9210914af3",
+      "pngSha256": "07add6f357f17dd87645174aedccfda80063a3282e3fe636793dbade65f53421"
+    },
+    {
+      "id": "ikonlar-beyaz-search",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 555,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "aab0fa0a6107db93417021fb5b2b54a96f0dff7485855136a93ad47f454cbc6f",
+      "pngSha256": "f498d4b5bcad34f85a931654d9d9bd89edf5ae66fe6db6b366e9562ce27bb381"
+    },
+    {
+      "id": "ikonlar-koyu-settings",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 840,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3956da2e136be7534026b87550a219047eed17b143791120eb3f8c1ba2e26ede",
+      "pngSha256": "abda96b2fca4ec553c0e163b203958b664193caf5b5455f411c9873b6783551c"
+    },
+    {
+      "id": "ikonlar-beyaz-settings",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 840,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "a24633ba54f64e026b1be2917b53601895b70573ee586f252e9ca6bf4f4e42fa",
+      "pngSha256": "44de2e6f1b46f7462424dbc121405ab40fa626f90f615508e8226ae98b44e8dc"
+    },
+    {
+      "id": "ikonlar-koyu-shield-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 660,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4c039acca0c23436755d967f624f32eff4732ce8ae64e27503d9502c31c19e7a",
+      "pngSha256": "ee82ba7de4cdeb681a11e59e8908f43d0934f0d677ef7c81df470043810d1ae4"
+    },
+    {
+      "id": "ikonlar-beyaz-shield-check",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 660,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "a6d583b1194e1e2cf8d94d22e5b5302471b033b05189f9cfb19d77a3fcdfc3ae",
+      "pngSha256": "4b04af39f4400bdd2efb79c4688553dd7bde5f0e0b164f02fccd8a8eb60e3364"
+    },
+    {
+      "id": "ikonlar-koyu-smartphone",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 564,
+      "artworkBounds": [
+        16,
+        4,
+        79,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "28a87ea81af58e4ef1e46b0559d1299d5103fd33ebd078ece97997429dccd066",
+      "pngSha256": "c64e09318e88e01780e4e16f4bc7e4a4d18cc27d35e20e7af03af1fa2d3bd204"
+    },
+    {
+      "id": "ikonlar-beyaz-smartphone",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 564,
+      "artworkBounds": [
+        16,
+        4,
+        79,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8bc8cd6983b9f1008fed6036701b3468638b4622c5d25a73a04e010b865ce9a1",
+      "pngSha256": "08c4a956d61ae40098907c0e774311b0b6f091a5982494ac9fcf04a9fa4d5ee3"
+    },
+    {
+      "id": "ikonlar-koyu-sprout",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 576,
+      "artworkBounds": [
+        12,
+        8,
+        83,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "fafaad5cb7dbec79d926fc315e030e991fecd144ab6a613c070fcd29aed588d6",
+      "pngSha256": "197cd1511b64c8b3d26d448490c9c83bd44cae7fa3eaab9421a3481d961f5090"
+    },
+    {
+      "id": "ikonlar-beyaz-sprout",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 576,
+      "artworkBounds": [
+        12,
+        8,
+        83,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c40ea5fa128e029f367e1657d93ed3095c980773a282183f7bf7ba12213048c5",
+      "pngSha256": "aeb7b405f978166d91ee195ea8440062725625edb997c4410281c7dc5090b9de"
+    },
+    {
+      "id": "ikonlar-koyu-triangle-alert",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 658,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "9bd055ecbd4074f57a37e5dec2eaf2bd91ab2fa3029f5b83d4e4a97a3b7a48b7",
+      "pngSha256": "2afea445c72b70331f716fd3c749f20cc76a75935c5e4edc28c92739b862bd3e"
+    },
+    {
+      "id": "ikonlar-beyaz-triangle-alert",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 658,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "f8184ce32eb23cbe5ccdb0f55b2fc9f7c7ed70b6b2d393060c508b79811086b1",
+      "pngSha256": "51c7a9e8ea94a69ce764d833880372fcab572526c0313f895d6837a663b8027a"
+    },
+    {
+      "id": "ikonlar-koyu-user-round",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 504,
+      "artworkBounds": [
+        12,
+        8,
+        83,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "54768c34046f9516421759df8979d37a05d4f12df666f217246a4b02042b1062",
+      "pngSha256": "525df40799983f98bdb4bc291b0f53942da5a5eb975a4f239eb80adbf2e6ddc9"
+    },
+    {
+      "id": "ikonlar-beyaz-user-round",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 504,
+      "artworkBounds": [
+        12,
+        8,
+        83,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "e52020f9291707d2a50b90e7d04148ee4036441aa94bfd8288178e9fd3855238",
+      "pngSha256": "f43cac97e0a316e4032cdd3c68203d24dab69fe93fa4362cef24b43a2905850a"
+    },
+    {
+      "id": "ikonlar-koyu-users",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 705,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "748f7591e9c66b5a0ac776d58178639ce22918a3653a3f82547358cf2f70fe00",
+      "pngSha256": "e3688a1c3b5579a24a1605dc65f4a893f648e9d0072964aad31f58b535bbec1d"
+    },
+    {
+      "id": "ikonlar-beyaz-users",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 705,
+      "artworkBounds": [
+        4,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4b7db2c621816c2cf3af63bdd4da413991a5906feac8617b51a3e22540e0067d",
+      "pngSha256": "6e72cfa2f3dba53be99adcb9f0d655ea99ca3d986f229540148b93cd06fde4af"
+    },
+    {
+      "id": "ikonlar-koyu-utensils",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 712,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "5e5958d146d0dcbbf8c629bde0a4d7b3e3e90e780e7b7b23e2def871c02078dc",
+      "pngSha256": "c490574ee7009b60f249e95e22b8ee6d2ee8f6f82c9b7605fd9d456e3b69b3a9"
+    },
+    {
+      "id": "ikonlar-beyaz-utensils",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 712,
+      "artworkBounds": [
+        8,
+        4,
+        87,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "9919b8ba0fa3adeddbd5bd9d9cad0cdea6d981e9575c87afb75313415ce8af29",
+      "pngSha256": "b88eeb839fce1e3dcee55b34492ee03aa1fc63354864a53aadae6cb617990e4b"
+    },
+    {
+      "id": "ikonlar-koyu-video",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 580,
+      "artworkBounds": [
+        4,
+        20,
+        91,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "bfa4041d6b79a1c877339ed005db04d90ffac770ceaf2c034028c36a3a8e48c2",
+      "pngSha256": "1baacc680f957c592bca20365477f4ef1452856429a867ed3cdc4152f9a45b3b"
+    },
+    {
+      "id": "ikonlar-beyaz-video",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 580,
+      "artworkBounds": [
+        4,
+        20,
+        91,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "61929f582c6c62b6cf668f5e690de690459a7e20f486f4643ef3701f4f5466fe",
+      "pngSha256": "3793088a8535d1f69df8de8e1b197d81f403521f981961777e92cbd42777b9fe"
+    },
+    {
+      "id": "ikonlar-koyu-wallet",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 770,
+      "artworkBounds": [
+        8,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1a672ad70c7458fd4a669122f7ce0a7b98106fb9e1d09dbc65fdf1df428d7b6e",
+      "pngSha256": "6b841b04342cc61f0b9a6d088293a4359799d3da135fa29d3c4fef4c6e313461"
+    },
+    {
+      "id": "ikonlar-beyaz-wallet",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 770,
+      "artworkBounds": [
+        8,
+        8,
+        91,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3c80e5cf9fd7098e2b63c485f0629474dd5078d9a99c38a6f39d7d95e52e6883",
+      "pngSha256": "e5a97166577977083834040efafe3d89c14160252498485560137e41c50aae1b"
+    },
+    {
+      "id": "ikonlar-koyu-x",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 380,
+      "artworkBounds": [
+        20,
+        20,
+        75,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1dd9f5de8a282e9d37a5d1b3e172967cf6365fc5870db02337a75519cfc51b11",
+      "pngSha256": "bab0312f6e706763099f95531736b9343677481a2c82a48b8ca2434037440707"
+    },
+    {
+      "id": "ikonlar-beyaz-x",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 380,
+      "artworkBounds": [
+        20,
+        20,
+        75,
+        75
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "aac86f48142de6822a21deca34a2b0408047cab7279a26030ba8735a23857dc1",
+      "pngSha256": "e2f126f9365e9bc45cb099802f9edb90bb622683d46e65349878beb606b5d0b9"
+    },
+    {
+      "id": "ikonlar-koyu-body-scale",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 774,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c422618f62736ed75ba50e2ba8fcc807ef1a50cf6156c08c827753f197e3bdff",
+      "pngSha256": "57260055748d4d12b11bcbc215eecd6457b02f3e5d0e29794a398008d6f5c842"
+    },
+    {
+      "id": "ikonlar-beyaz-body-scale",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 774,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "8cae391043bdff25a52c0e3e3832fd39f640e03c5275a29be5391966bca72805",
+      "pngSha256": "2eec071b6398ac79d9baf4ad4e7688b9ad29c02bf57bd2cba43f8d70fdf7b1b1"
+    },
+    {
+      "id": "ikonlar-koyu-height",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 736,
+      "artworkBounds": [
+        12,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "5045d888e74fe2da486367747387979abab5d9730249b19005a6493101bfc56e",
+      "pngSha256": "8683e1262097c8c982e95d9c4cf26248d4a2662a31b745096ed90ecee59d9343"
+    },
+    {
+      "id": "ikonlar-beyaz-height",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 736,
+      "artworkBounds": [
+        12,
+        4,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ee04820f81b56ac0a93e44273eb2570096d5e0169f30165690f4e56f8de17cbf",
+      "pngSha256": "1f78b70b23f9945963577bd4c3f1dba6df6e5bcb0706548c2b8ebd9a3bb2d4ee"
+    },
+    {
+      "id": "ikonlar-koyu-walk",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 473,
+      "artworkBounds": [
+        12,
+        3,
+        79,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4e1c7202ce997491bb0f5f9139515a996ecc0a0e12eede52dce6f83d3722b0c6",
+      "pngSha256": "eb3af57cf51880df69ae6a7dccf7e7143bc2dd5c734b4b7fc8ffa4587698d37c"
+    },
+    {
+      "id": "ikonlar-beyaz-walk",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 473,
+      "artworkBounds": [
+        12,
+        3,
+        79,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "53385bf1d176ed9b6de92f63bd2518e9053d1a2b09386528d44c64aa44de92bf",
+      "pngSha256": "ebfc4d844f8fc12159a1d4f6332d13b60ef5c5d3986512a5d16115bb8b472e9b"
+    },
+    {
+      "id": "ikonlar-koyu-run",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 501,
+      "artworkBounds": [
+        8,
+        3,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ede5c2c7d6199c2b73ee0581bc473f72ee52ccd41c6f294fa88bcef7f38d431e",
+      "pngSha256": "35d9d626fcece398e275974f5602c28701facd7074f1fc0452a8fab02b8ae9fd"
+    },
+    {
+      "id": "ikonlar-beyaz-run",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 501,
+      "artworkBounds": [
+        8,
+        3,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1fb6f2f6901b97ed01a342ed5390d794287d83ee4967ab54e0c36c4a3f2788c8",
+      "pngSha256": "4f0dbfeaf241681bf3061245b61e7ebe61bb0c5cf8c1c23fd7db93e8a9856d20"
+    },
+    {
+      "id": "bilesenler-su-sisesi-bos",
+      "width": 320,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 524,
+      "artworkBounds": [
+        92,
+        24,
+        227,
+        327
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "1697f373b0d1aff985ef8bae884927825e69650eb0e2773654abcb7c7fc84fed",
+      "pngSha256": "ba2a5d4ad238c30a10d6b44c88f36173e8ff0e9fc6e2bce558d7d40fa92203e0"
+    },
+    {
+      "id": "bilesenler-su-sisesi-az",
+      "width": 320,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 506,
+      "artworkBounds": [
+        92,
+        24,
+        227,
+        327
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d4f15d77b1539e36ad033470f45d94c3bff19c65e5741516c4fc124e23352026",
+      "pngSha256": "8f51a5fae24d29a4e08010cd7ac8209bfcc43d748130fd0791c31d1b8e2900de"
+    },
+    {
+      "id": "bilesenler-su-sisesi-yari",
+      "width": 320,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 506,
+      "artworkBounds": [
+        92,
+        24,
+        227,
+        327
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ad5ec3660fc762bbfabb007705fb47fc03dd8a334910aafdd88d5d2038837ced",
+      "pngSha256": "ac927eeeb011527898e2fe266ec0dc15aab0d165b473c026268e1947f8ae58fe"
+    },
+    {
+      "id": "bilesenler-su-sisesi-dolu",
+      "width": 320,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 372,
+      "artworkBounds": [
+        92,
+        24,
+        227,
+        327
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "47f65ebc7b41ec10157654d75dcdc4969b9759034ab6b80e77d2ee16825ce484",
+      "pngSha256": "fc3993032c3055d8f3be5eee500b6f0d5577b2e9e60c4d4165af4b6453ec83f4"
+    },
+    {
+      "id": "bilesenler-su-bardagi-bos",
+      "width": 200,
+      "height": 240,
+      "hasTransparency": true,
+      "antialiasedPixels": 1101,
+      "artworkBounds": [
+        35,
+        28,
+        164,
+        205
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "4adb4c07d8bdfcfff1f4cad11f94870965ad7f0a1f4225b40dabcd5902b4778f",
+      "pngSha256": "b0efec4c539803ff70edb5a194b19d823b9d8bd9d1c12e31a1358a84fd1e7361"
+    },
+    {
+      "id": "bilesenler-su-bardagi-dolu",
+      "width": 200,
+      "height": 240,
+      "hasTransparency": true,
+      "antialiasedPixels": 583,
+      "artworkBounds": [
+        35,
+        28,
+        164,
+        205
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "f16f480776622e5d414a4ca5ba3d7611821b2e080661a0a1eca8e9378b74692b",
+      "pngSha256": "ee0c68ee8419bc78feb2bbb5d6e28e0c7e737b8df89cd2f53c8c8adb94951d34"
+    },
+    {
+      "id": "bilesenler-secim-bos",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 550,
+      "artworkBounds": [
+        8,
+        8,
+        87,
+        87
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "5e01a382cbe65924e17a256bdabb11e42caf1820eeebb23f5e8df4ef780296a2",
+      "pngSha256": "243b6b4c887d0cf92dc16797ba6ae7e0589bc851e7046ae0af8bbf09f5ba135a"
+    },
+    {
+      "id": "bilesenler-secim-dolu",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 284,
+      "artworkBounds": [
+        12,
+        12,
+        83,
+        83
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "42919ad906440c066662d7f4bfab03d59c70aecda2de529122ac43ad8b4f8ff6",
+      "pngSha256": "427c4ddb017a3695e92618e5dfd0cc6ded80fceb344114052618a6d5846afea8"
+    },
+    {
+      "id": "bilesenler-bildirim-noktasi",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 183,
+      "artworkBounds": [
+        24,
+        24,
+        71,
+        71
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "0954d1444e7750bb284891354d54a4da8c72f817219f6aba67e25e7224449f75",
+      "pngSha256": "f36d60e9bd763f9f5427d2ac7cd07b9f0f14db4a8e91f4a7d82e6821c23ea3b4"
+    },
+    {
+      "id": "bilesenler-ilerleme-adimi-tamam",
+      "width": 480,
+      "height": 64,
+      "hasTransparency": true,
+      "antialiasedPixels": 92,
+      "artworkBounds": [
+        12,
+        20,
+        467,
+        43
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "5c39c8a32d6688ca86e343de7086d42d76978232b6a1ad19721427460e35698c",
+      "pngSha256": "373b23d58c9f70710ccba252cd89db755b33e672fd87d1fa3709a3ffdbdd4cac"
+    },
+    {
+      "id": "bilesenler-ilerleme-adimi-bekleyen",
+      "width": 480,
+      "height": 64,
+      "hasTransparency": true,
+      "antialiasedPixels": 92,
+      "artworkBounds": [
+        12,
+        20,
+        467,
+        43
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d45d8cfa2d2ca617e76dbd1088d9e5cb5ddc872f60fde484fc6476be09bc0ce6",
+      "pngSha256": "f2ab5de6c80e58bca471a209893add08c19542576c31f40bf4dcba4a524238bc"
+    },
+    {
+      "id": "bilesenler-enerji-gostergesi-ornek",
+      "width": 960,
+      "height": 78,
+      "hasTransparency": true,
+      "antialiasedPixels": 108,
+      "artworkBounds": [
+        12,
+        24,
+        947,
+        53
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "d6538f418c0ac271f4638b76c011c60aeaad6332fb5d5dcf6ad79491e55a81ab",
+      "pngSha256": "129c437a72706258d3dcdf071dc35706ebd5bbde9de1d5b66727e648158d881b"
+    },
+    {
+      "id": "bilesenler-aktif-sekme-cizgisi",
+      "width": 192,
+      "height": 72,
+      "hasTransparency": true,
+      "antialiasedPixels": 60,
+      "artworkBounds": [
+        20,
+        28,
+        171,
+        43
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "50272e60a7275c8d047733ab2656ed284508f2235dca5d698fdca97ddb021ad5",
+      "pngSha256": "e918bb03ff736217f6f884a834f09e28f9f2b284f388fdea01d00ca5893878c6"
+    },
+    {
+      "id": "dekorlar-maskot-halesi",
+      "width": 960,
+      "height": 960,
+      "hasTransparency": true,
+      "antialiasedPixels": 3355,
+      "artworkBounds": [
+        30,
+        36,
+        929,
+        923
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b5cbafdc1b58f38c9818735055508b5276b2b0e2723c44fe141b75b30a90a8e0",
+      "pngSha256": "2fab31637faaf5d0572096411c3377fca2335a382f67fe84e15dff9153958583"
+    },
+    {
+      "id": "dekorlar-iki-cekirdek",
+      "width": 152,
+      "height": 200,
+      "hasTransparency": true,
+      "antialiasedPixels": 490,
+      "artworkBounds": [
+        4,
+        15,
+        98,
+        169
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "466d3694d381cfd5e891c465a0e5262b1d4ea3b8cb586f02ad2470da71bd16c4",
+      "pngSha256": "5507806a5837bafd2bdb5d0af5a501f2811e4a02c164311382ae3d8baff5e362"
+    },
+    {
+      "id": "dekorlar-panel-koyu-banner",
+      "width": 1800,
+      "height": 300,
+      "hasTransparency": true,
+      "antialiasedPixels": 213,
+      "artworkBounds": [
+        3,
+        3,
+        1796,
+        296
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "739307bcc2d810d3db5c109fece3ea630da1ca5f8e7c4dc01c187125a534bce2",
+      "pngSha256": "f5eef5a223fe4c11042c66122e7bc6b1a83f48e63001570946dc93bddb0b7034"
+    },
+    {
+      "id": "dekorlar-kart-kose-yesil",
+      "width": 360,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 590,
+      "artworkBounds": [
+        24,
+        24,
+        335,
+        335
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "235c10839ab3160d2364487ea5e85c49fea1c48ee8713b742445b4905dc118ce",
+      "pngSha256": "bda2cc661a503e6709718e7abd84e5d02b8506d60fe27cb1dac0e39c97f96961"
+    },
+    {
+      "id": "dekorlar-kart-kose-sari",
+      "width": 360,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 590,
+      "artworkBounds": [
+        24,
+        24,
+        335,
+        335
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "3b6b7bcd5630c019379805700bdbc384ed444cde509606a283d651a2a07cbf0c",
+      "pngSha256": "b7c6bbd0822f9cd0a4f6c1dc475e4524d5763380d022e82660bd6be483902257"
+    },
+    {
+      "id": "dekorlar-kart-kose-pembe",
+      "width": 360,
+      "height": 360,
+      "hasTransparency": true,
+      "antialiasedPixels": 590,
+      "artworkBounds": [
+        24,
+        24,
+        335,
+        335
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "c5ce3b021a68ebf0d53494dc586cc50f43f61e5bbd27f226b73292f7849699d3",
+      "pngSha256": "3fa732a0f6376471665db87fc7cc77c2b03ccf6e59767e266063fceed2853866"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" role="img" aria-labelledby="asset-title"><title id="asset-title">calendar — koyu</title><g fill="none" stroke="#203B2F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M8 2v3" />
+  <path d="M16 2v3" />
+  <rect x="3" y="3" width="18" height="18" rx="2" />
+  <path d="M3 9h18" />
+</g></svg>

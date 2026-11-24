@@ -12,15 +12,23 @@ import 'web_panel_link.dart';
 import '../personal_nutrition_targets/personal_nutrition_target_page.dart';
 import '../health/device_health_page.dart';
 import '../client_tasks/client_task_page.dart';
+import '../onboarding/onboarding_page.dart';
 
 /// Route arguments, build mode and unverified login responses grant no access.
 class AuthGate extends StatelessWidget {
-  const AuthGate({this.initialIndex = 0, this.child, super.key});
+  const AuthGate({
+    this.initialIndex = 0,
+    this.child,
+    this.showWelcome = false,
+    super.key,
+  });
   final int initialIndex;
   final Widget? child;
+  final bool showWelcome;
 
   static Route<void> route(RouteSettings settings) {
     final page = switch (settings.name) {
+      '/welcome' => const AuthGate(showWelcome: true),
       '/register' => const RegisterPage(),
       '/email-verification' => const EmailVerificationPage(),
       '/forgot-password' => const ForgotPasswordPage(),
@@ -48,7 +56,15 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = AuthSessionScope.maybeOf(context);
     final account = session?.user;
-    if (account == null) return const LoginPage();
+    if (account == null) {
+      if (showWelcome && session?.hasEndedSession != true) {
+        return OnboardingPage(
+          onLogin: () =>
+              Navigator.of(context).pushReplacementNamed<void, void>('/'),
+        );
+      }
+      return const LoginPage();
+    }
     if (account.role != 'client') {
       return WebPanelPage(key: ValueKey(account.id), showSignOut: true);
     }

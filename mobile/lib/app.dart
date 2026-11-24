@@ -75,7 +75,9 @@ class _SmartNutritionAppState extends State<SmartNutritionApp>
                       '/forgot-password',
                     ].contains(name))
                       AuthGate.route(const RouteSettings(name: '/')),
-                    AuthGate.route(RouteSettings(name: name)),
+                    AuthGate.route(
+                      RouteSettings(name: name == '/' ? '/welcome' : name),
+                    ),
                   ],
           );
         },

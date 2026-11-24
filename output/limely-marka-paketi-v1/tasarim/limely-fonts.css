@@ -1,0 +1,5 @@
+@font-face{font-family:'Fredoka';src:url('../fontlar/fredoka/fredoka.ttf') format('truetype');font-weight:300 700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Figtree';src:url('../fontlar/figtree/figtree.ttf') format('truetype');font-weight:300 900;font-style:normal;font-display:swap;}
+@font-face{font-family:'Manrope';src:url('../fontlar/manrope/manrope.ttf') format('truetype');font-weight:200 800;font-style:normal;font-display:swap;}
+@font-face{font-family:'Inter';src:url('../fontlar/inter/inter.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap;}
+.limely-onboarding-heading{font-family:'Fredoka','Figtree',sans-serif}.limely-onboarding-body{font-family:'Figtree',sans-serif}.limely-v3-heading{font-family:'Manrope',sans-serif}.limely-v3-body{font-family:'Inter',sans-serif}
