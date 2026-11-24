@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Limely · Giriş ve hesap oluşturma tasarımları</title>
+  <style>
+    @font-face{font-family:Figtree;src:url('../limely-marka-paketi-v1/fontlar/figtree/figtree.ttf') format('truetype');font-weight:300 900;font-display:swap}
+    *{box-sizing:border-box}body{margin:0;background:#eef2e8;color:#203b2f;font-family:Figtree,sans-serif;padding:36px 24px}
+    main{max-width:1270px;margin:auto}header{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+    h1{font-size:32px;line-height:1.15;letter-spacing:-.8px;margin:0 0 12px}p{font-size:16px;line-height:1.6;color:#627365;margin:0}
+    .badge{font-size:12px;font-weight:750;letter-spacing:.6px;background:#eaf3de;padding:12px 18px;border-radius:24px}
+    nav{display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 32px}button{font:650 14px Figtree,sans-serif;border:1px solid #d6dfce;border-radius:99px;padding:11px 18px;background:transparent;color:#203b2f;cursor:pointer}
+    button[aria-pressed=true]{background:#203b2f;color:#f8faf2;border-color:#203b2f}button:focus-visible{outline:3px solid #83b977;outline-offset:3px}
+    .screens{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;align-items:start}
+    figure{margin:0}figcaption{font-weight:700;font-size:18px;text-align:center;margin-bottom:16px}
+    figure img{display:block;width:100%;height:auto;border-radius:30px;border:1px solid #dfe7da;box-shadow:0 8px 30px #203b2f08}
+    .screens.single{display:block;max-width:390px;margin:auto}figure[hidden]{display:none}
+    aside{border-top:1px solid #d6dfce;margin-top:36px;padding-top:24px;display:grid;grid-template-columns:1.3fr 1fr;gap:30px}
+    aside strong{display:block;margin-bottom:6px}a{color:#203b2f;font-weight:650;text-underline-offset:3px}
+    .scope{font-size:14px;margin-top:24px}.palette{display:flex;gap:8px;margin-top:20px}.palette i{display:block;width:26px;height:26px;border-radius:8px;border:1px solid #203b2f15}
+    @media(max-width:850px){.screens{grid-template-columns:1fr;max-width:390px;margin:auto;gap:36px}aside{grid-template-columns:1fr}h1{font-size:27px}body{padding:28px 16px}}
+    @media print{nav{display:none}body{padding:0}.screens{grid-template-columns:repeat(3,1fr);gap:16px}aside{break-inside:avoid}figure img{box-shadow:none}}
+  </style>
+</head>
+<body><main>
+  <header><div><h1>Limely · Giriş ve hesap oluşturma</h1><p>Mevcut marka paketi, tek Figtree fontu ve aynı renk paleti.</p></div><span class="badge">TASARIM ÖNERİSİ</span></header>
+  <nav aria-label="Tasarım görünümü">
+    <button type="button" data-screen="all" aria-pressed="true">Yan yana</button>
+    <button type="button" data-screen="login" aria-pressed="false">Giriş yap</button>
+    <button type="button" data-screen="summary" aria-pressed="false">Başlangıç özeti</button>
+    <button type="button" data-screen="register" aria-pressed="false">Hesap oluştur</button>
+  </nav>
+  <div class="screens">
+    <figure data-view="login"><figcaption>Giriş yap</figcaption><a href="01-giris-yap.png" aria-label="Giriş tasarımını tam boy aç"><img src="01-giris-yap.svg" width="390" height="844" alt="Limely logosu ve göz kırpan maskotla e-posta ve şifre alanları. Giriş yap düğmesi, kayıt ve diyetisyen web paneli bağlantıları."></a></figure>
+    <figure data-view="summary"><figcaption>Başlangıç özeti</figcaption><a href="02-baslangic-ozeti.png" aria-label="Özet tasarımını tam boy aç"><img src="02-baslangic-ozeti.svg" width="390" height="844" alt="Seçilen hedef, yaş, boy, kilo ve günlük ritim özeti. Ana eylem: Devam et."></a></figure>
+    <figure data-view="register"><figcaption>Hesap oluştur</figcaption><a href="03-hesap-olustur.png" aria-label="Hesap oluşturma tasarımını tam boy aç"><img src="03-hesap-olustur.svg" width="390" height="844" alt="Merhaba maskotu, ad soyad, e-posta ve şifre alanları. Hesabımı oluştur düğmesi ve giriş bağlantısı."></a></figure>
+  </div>
+  <aside>
+    <div><strong>Önerilen yeni kullanıcı akışı</strong><p>Karşılama → Hedef → Seni tanıyalım → Özet → Hesap oluştur.</p><p>Özette “Bilgilerimi düzenle” yerine “Devam et” bulunur. İsim soyisim, e-posta ve şifre bir sonraki ekranda alınır.</p></div>
+    <div><strong>“Diyetisyen misin?” yerleşimi</strong><p>Giriş formunun altında ikincil bağlantı. Danışan girişini gölgelemeyen, web panelini açan ayrı bir seçenek.</p></div>
+  </aside>
+  <div class="palette" aria-label="Marka renkleri"><i style="background:#f8faf2"></i><i style="background:#203b2f"></i><i style="background:#c9e879"></i><i style="background:#83b977"></i><i style="background:#f5d96a"></i><i style="background:#eaf3de"></i></div>
+  <p class="scope">Bu dosya yalnız tasarım önizlemesidir. Form göndermez veya veri kaydetmez. Görünen kişisel bilgiler örnektir. Kalıcı onboarding kaydı, hesap oluşturmayla ilişkilendirilecek uygulama adımıdır; mevcut kayıt API’si bu alanları almıyor. Yeni tasarımlar mobil uygulamaya aktarılmadı.</p>
+  <p class="scope"><a href="limely-giris-kayit-konsept-v1.png">Karşılaştırma görselini aç</a></p>
+</main>
+<script>
+  document.querySelectorAll('[data-screen]').forEach(button => button.addEventListener('click', () => {
+    const selected = button.dataset.screen;
+    document.querySelectorAll('[data-screen]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    document.querySelector('.screens').classList.toggle('single', selected !== 'all');
+    document.querySelectorAll('[data-view]').forEach(view => view.hidden = selected !== 'all' && view.dataset.view !== selected);
+  }));
+</script></body>
+</html>

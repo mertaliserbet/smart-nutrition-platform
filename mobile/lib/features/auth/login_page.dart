@@ -5,7 +5,6 @@ import 'auth_validation.dart';
 import 'auth_widgets.dart';
 import 'email_verification_page.dart';
 import 'forgot_password_page.dart';
-import 'register_page.dart';
 import 'auth_session.dart';
 import 'login_api.dart';
 import 'web_panel_link.dart';
@@ -76,6 +75,15 @@ class _LoginPageState extends State<LoginPage> {
     ).push(MaterialPageRoute<void>(builder: (context) => page));
   }
 
+  void _startOnboarding() {
+    if (_busy) return;
+    FocusScope.of(context).unfocus();
+    _password.clear();
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil<void>('/welcome', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final error =
@@ -94,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextButton(
-              onPressed: _busy ? null : () => _openPage(const RegisterPage()),
+              onPressed: _busy ? null : _startOnboarding,
               child: const Text(
                 'Hesabınız yok mu? Kayıt ol',
                 textAlign: TextAlign.center,

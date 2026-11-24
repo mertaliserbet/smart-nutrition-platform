@@ -8,6 +8,7 @@ import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/web_panel_link.dart';
 import 'package:smart_nutrition_mobile/features/dietitians/dietitian_account_page.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
+import 'package:smart_nutrition_mobile/features/onboarding/onboarding_page.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/manual_meal_log_page.dart';
 
 import 'onboarding_test_support.dart';
@@ -320,7 +321,9 @@ void main() {
     },
   );
 
-  testWidgets('logout button clears the in-memory session', (tester) async {
+  testWidgets('registration can restart onboarding after logout', (
+    tester,
+  ) async {
     final (session, api) = await setup(tester);
     await authenticate(tester, session, api);
     await tester.tap(find.byTooltip('Çıkış yap'));
@@ -328,6 +331,21 @@ void main() {
     expect(find.byType(LoginPage), findsOneWidget);
     expect(session.isAuthenticated, isFalse);
     expect(session.user, isNull);
+    expect(session.hasEndedSession, isTrue);
+    await tester.ensureVisible(find.text('Hesabınız yok mu? Kayıt ol'));
+    await tester.tap(find.text('Hesabınız yok mu? Kayıt ol'));
+    await tester.pumpAndSettle();
+    expect(find.byType(OnboardingPage), findsOneWidget);
+    expect(find.text('Merhaba, ben\nLimely!'), findsOneWidget);
+    expect(find.byType(MainShell, skipOffstage: false), findsNothing);
+    expect(find.byType(LoginPage, skipOffstage: false), findsNothing);
+    expect(
+      Navigator.of(tester.element(find.byType(OnboardingPage))).canPop(),
+      isFalse,
+    );
+    await openLoginFromWelcome(tester);
+    expect(find.byType(LoginPage), findsOneWidget);
+    expect(session.isAuthenticated, isFalse);
     await tester.pumpWidget(const SizedBox.shrink());
     session.dispose();
   });

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_nutrition_mobile/app.dart';
 import 'package:smart_nutrition_mobile/core/theme/app_theme.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_validation.dart';
+import 'package:smart_nutrition_mobile/features/auth/auth_gate.dart';
 import 'package:smart_nutrition_mobile/features/auth/auth_widgets.dart';
 import 'package:smart_nutrition_mobile/features/auth/email_verification_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/forgot_password_page.dart';
@@ -10,6 +11,7 @@ import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/register_page.dart';
 import 'package:smart_nutrition_mobile/features/auth/registration_api.dart';
 import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
+import 'package:smart_nutrition_mobile/features/onboarding/onboarding_page.dart';
 
 import 'onboarding_test_support.dart';
 
@@ -325,14 +327,17 @@ void main() {
   });
 
   testWidgets(
-    'auth screens navigate and return without simulating registration',
+    'registration shortcut restarts onboarding and other auth links still return',
     (tester) async {
       await pumpAuth(tester, const LoginPage());
       await enterField(tester, 1, 'Deneme parolası!');
       await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
-      expect(find.byType(RegisterPage), findsOneWidget);
+      expect(find.byType(OnboardingPage), findsOneWidget);
+      expect(find.text('Merhaba, ben\nLimely!'), findsOneWidget);
+      expect(find.byType(LoginPage, skipOffstage: false), findsNothing);
+      expect(find.byType(RegisterPage), findsNothing);
       expect(find.text('E-posta doğrulama adımını incele'), findsNothing);
-      await tapText(tester, 'Zaten hesabınız var mı? Girişe dön');
+      await openLoginFromWelcome(tester);
       expect(find.byType(LoginPage), findsOneWidget);
       await tapText(tester, 'E-posta doğrulama hakkında');
       expect(find.byType(EmailVerificationPage), findsOneWidget);
@@ -367,15 +372,15 @@ void main() {
     await tester.pumpAndSettle();
     await openLoginFromWelcome(tester);
     await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
-    expect(find.byType(RegisterPage), findsOneWidget);
+    expect(find.byType(OnboardingPage), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.byType(OnboardingPage), findsOneWidget);
     expect(find.byType(MainShell), findsNothing);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
-    expect(find.byType(LoginPage), findsOneWidget);
+    expect(find.byType(OnboardingPage), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
     expect(find.byTooltip('Kimlik ekranları (önizleme)'), findsNothing);
     expect(tester.takeException(), isNull);
@@ -516,7 +521,12 @@ Future<void> pumpAuth(WidgetTester tester, Widget page) async {
     );
   }
   await tester.pumpWidget(
-    MaterialApp(theme: AppTheme.light, darkTheme: AppTheme.dark, home: page),
+    MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      onGenerateRoute: AuthGate.route,
+      home: page,
+    ),
   );
 }
 

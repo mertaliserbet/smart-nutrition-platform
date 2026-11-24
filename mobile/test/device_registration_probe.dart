@@ -67,7 +67,11 @@ Future<void> main() async {
         () => find.byType(LoginPage).evaluate().isNotEmpty,
       );
     }
-    await tap(controller, 'Hesabınız yok mu? Kayıt ol');
+    // The proposed account screen is not implemented yet. Exercise the existing
+    // registration form through its public route, independently of onboarding.
+    Navigator.of(
+      controller.element(find.byType(LoginPage)),
+    ).pushNamed<void>('/register');
     await waitFor(
       controller,
       () => find.byType(RegisterPage).evaluate().isNotEmpty,
@@ -101,7 +105,9 @@ Future<void> main() async {
     );
 
     phase = 'duplicate_registration';
-    await tap(controller, 'Hesabınız yok mu? Kayıt ol');
+    Navigator.of(
+      controller.element(find.byType(LoginPage)),
+    ).pushNamed<void>('/register');
     await waitFor(
       controller,
       () => find.byType(RegisterPage).evaluate().isNotEmpty,

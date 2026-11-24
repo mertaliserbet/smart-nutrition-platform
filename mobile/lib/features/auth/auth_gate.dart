@@ -57,7 +57,7 @@ class AuthGate extends StatelessWidget {
     final session = AuthSessionScope.maybeOf(context);
     final account = session?.user;
     if (account == null) {
-      if (showWelcome && session?.hasEndedSession != true) {
+      if (showWelcome) {
         return OnboardingPage(
           onLogin: () =>
               Navigator.of(context).pushReplacementNamed<void, void>('/'),
