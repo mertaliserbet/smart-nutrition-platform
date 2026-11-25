@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { EmptyState } from '../../core/components/EmptyState'
@@ -45,8 +46,8 @@ export function MealLogPreview({ clientId, records }: { clientId: string; record
     <>
       <form className="meal-preview-filters" onSubmit={applyFilter} onReset={clearFilter} aria-label="Öğün tarihi filtresi">
         <p id="meal-preview-time-zone">Filtre saatleri UTC (UTC+00:00). Kayıt saatleri cihazın saat diliminde gösterilir.</p>
-        <label>Başlangıç<input name="from" type="datetime-local" aria-describedby="meal-preview-time-zone" /></label>
-        <label>Bitiş<input name="to" type="datetime-local" aria-describedby="meal-preview-time-zone" /></label>
+        <label>Başlangıç<DateField name="from" type="datetime-local" aria-describedby="meal-preview-time-zone" /></label>
+        <label>Bitiş<DateField name="to" type="datetime-local" aria-describedby="meal-preview-time-zone" /></label>
         <div className="meal-preview-actions">
           <button className="button button-primary" type="submit">Filtrele</button>
           <button className="button button-secondary" type="reset">Filtreyi temizle</button>

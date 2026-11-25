@@ -1,3 +1,4 @@
+import { Select } from '../../core/components/Select'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { WorkspaceLayout } from '../workspace/WorkspaceLayout'
@@ -73,7 +74,7 @@ export function AdminDietitiansPage() {
     {notice && <p className="form-message" role="status">{notice}</p>}
     <section className="card"><header className="card-header"><div><h2>{verified ? 'Onaylı diyetisyenler' : 'İnceleme bekleyen başvurular'}</h2>
       <p>{total === undefined ? 'Başvurular kontrol ediliyor' : verified ? `Onaylı diyetisyen: ${total}` : `İnceleme bekleyen başvuru: ${total}`}</p></div>
-      <label className="panel-filter">Başvuru durumu<select value={String(verified)} disabled={pending} onChange={event => { void load(1, event.target.value === 'true') }}><option value="false">Onay bekleyen</option><option value="true">Onaylı</option></select></label>
+      <label className="panel-filter">Başvuru durumu<Select value={String(verified)} disabled={pending} onChange={event => { void load(1, event.target.value === 'true') }}><option value="false">Onay bekleyen</option><option value="true">Onaylı</option></Select></label>
     </header>
     {!pending && total === 0 && <EmptyState icon="shield" title={verified ? 'Onaylı diyetisyen bulunmuyor.' : 'İnceleme bekleyen başvuru bulunmuyor.'}>Başvuruları yenileyerek güncel listeyi kontrol edebilirsiniz.</EmptyState>}
     <ul className="expert-review-list admin-review-list" aria-label={verified ? 'Onaylı diyetisyenler' : 'Bekleyen uzman başvuruları'}>

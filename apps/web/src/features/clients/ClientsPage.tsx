@@ -1,3 +1,4 @@
+import { Select } from '../../core/components/Select'
 import { useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { EmptyState } from '../../core/components/EmptyState'
@@ -35,7 +36,7 @@ export function ClientsPage() {
         <TrackingPreviewState scenario={scenario} scope="list" onShowSample={() => setScenario('sample')}>
           <div className="list-toolbar client-toolbar">
             <label className="search-field"><Icon name="search" /><input type="search" aria-label="Danışan ara" placeholder="Danışan adıyla ara" value={query} onChange={(event) => changeQuery('arama', event.target.value)} /></label>
-            <label className="sort-control">Sıralama<select value={direction} onChange={(event) => changeQuery('sirala', event.target.value)}><option value="az">Ad: A → Z</option><option value="za">Ad: Z → A</option></select></label>
+            <label className="sort-control">Sıralama<Select value={direction} onChange={(event) => changeQuery('sirala', event.target.value)}><option value="az">Ad: A → Z</option><option value="za">Ad: Z → A</option></Select></label>
           </div>
           <p className="client-result-count" role="status">{clients.length} örnek danışan gösteriliyor</p>
           {clients.length === 0 ? <EmptyState icon="search" title="Aramanızla eşleşen danışan yok" action={<button className="button button-secondary" onClick={() => changeQuery('arama', '')}>Aramayı temizle</button>}>Başka bir adla arayın veya arama alanını temizleyin.</EmptyState> : <ul className="client-list" aria-label="Örnek danışanlar">

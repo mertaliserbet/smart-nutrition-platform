@@ -1,3 +1,4 @@
+import { Select } from '../../core/components/Select'
 import type { ReactNode } from 'react'
 import { EmptyState } from '../../core/components/EmptyState'
 import { Icon } from '../../core/components/Icon'
@@ -19,9 +20,9 @@ export function TrackingPreviewControl({ scenario, onChange }: {
   return (
     <div className="tracking-preview-control">
       <div><span className="preview-badge">Sentetik önizleme</span><p>Bu alandaki kişiler ve kayıtlar örnektir. İşlem veya gerçek veri erişimi yapılmaz.</p></div>
-      <label>Önizleme senaryosu<select value={scenario} onChange={(event) => onChange(event.target.value as TrackingPreviewScenario)}>
+      <label>Önizleme senaryosu<Select value={scenario} onChange={(event) => onChange(event.target.value as TrackingPreviewScenario)}>
         {Object.entries(scenarios).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select></label>
+      </Select></label>
     </div>
   )
 }

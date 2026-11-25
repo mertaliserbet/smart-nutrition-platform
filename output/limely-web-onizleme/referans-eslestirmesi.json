@@ -1,0 +1,132 @@
+[
+  {
+    "number": 1,
+    "source": "gizli-topsecert/Danışan takip raporları paneli-6.png",
+    "file": "referanslar/01.png",
+    "width": 1586,
+    "height": 992,
+    "title": "Raporlar",
+    "route": "/calisma-alani/raporlar",
+    "web": true
+  },
+  {
+    "number": 2,
+    "source": "gizli-topsecert/Danışanlar yönetim paneli-1.png",
+    "file": "referanslar/02.png",
+    "width": 1585,
+    "height": 992,
+    "title": "Danışanlar",
+    "route": "/calisma-alani/danisanlar",
+    "web": true
+  },
+  {
+    "number": 3,
+    "source": "gizli-topsecert/Danışanlarla profesyonel mesajlaşma paneli-5.png",
+    "file": "referanslar/03.png",
+    "width": 1585,
+    "height": 992,
+    "title": "Mesajlar",
+    "route": "/calisma-alani/mesajlar — mevcut desteklenmeyen yüzey",
+    "web": true
+  },
+  {
+    "number": 4,
+    "source": "gizli-topsecert/Dengeli başlangıç programı atama ekranı-3.png",
+    "file": "referanslar/04.png",
+    "width": 1585,
+    "height": 992,
+    "title": "Programlar",
+    "route": "/calisma-alani/programlar; danışana özel program detayları",
+    "web": true
+  },
+  {
+    "number": 5,
+    "source": "gizli-topsecert/Diyetisyenler için günlük danışan takip alanı-12.png",
+    "file": "referanslar/05.png",
+    "width": 1586,
+    "height": 992,
+    "title": "Diyetisyenler için",
+    "route": "/diyetisyenler-icin",
+    "web": true
+  },
+  {
+    "number": 6,
+    "source": "gizli-topsecert/Elif’in kahvaltı inceleme ekranı-2.png",
+    "file": "referanslar/06.png",
+    "width": 1586,
+    "height": 992,
+    "title": "Öğün incelemeleri",
+    "route": "/calisma-alani/ogun-incelemeleri; danışan detayı ?bolum=ogunler",
+    "web": true
+  },
+  {
+    "number": 7,
+    "source": "gizli-topsecert/Limely diyetisyen profil ayarları-7.png",
+    "file": "referanslar/07.png",
+    "width": 1585,
+    "height": 992,
+    "title": "Ayarlar",
+    "route": "/hesabim — mevcut hesap kapsamıyla sınırlı",
+    "web": true
+  },
+  {
+    "number": 8,
+    "source": "gizli-topsecert/Limely giriş ve kayıt ekranları-13.png",
+    "file": "referanslar/08.png",
+    "width": 1536,
+    "height": 1024,
+    "title": "Giriş / hesap oluşturma",
+    "route": "/giris; uzman için /uzman-basvurusu; web danışan kaydı yok",
+    "web": true
+  },
+  {
+    "number": 9,
+    "source": "gizli-topsecert/LIMELY Mesajlar ve Profil-9.png",
+    "file": "referanslar/09.png",
+    "width": 1199,
+    "height": 1312,
+    "title": "Mobil mesajlar / profil",
+    "route": "Yalnız mobil; web yerleşim kaynağı değil",
+    "web": false
+  },
+  {
+    "number": 10,
+    "source": "gizli-topsecert/Limely mobil günlük ve beslenme planı-8.png",
+    "file": "referanslar/10.png",
+    "width": 1199,
+    "height": 1312,
+    "title": "Mobil günlük / program",
+    "route": "Yalnız mobil; web yerleşim kaynağı değil",
+    "web": false
+  },
+  {
+    "number": 11,
+    "source": "gizli-topsecert/Limely özellikleri_ beslenme takibi ve diyetisyen araçları.png",
+    "file": "referanslar/11.png",
+    "width": 1585,
+    "height": 992,
+    "title": "Özellikler",
+    "route": "/ozellikler",
+    "web": true
+  },
+  {
+    "number": 12,
+    "source": "gizli-topsecert/Randevular takvimi ve bekleyen talepler-4.png",
+    "file": "referanslar/12.png",
+    "width": 1586,
+    "height": 992,
+    "title": "Randevular",
+    "route": "/calisma-alani/randevular — mevcut desteklenmeyen yüzey",
+    "web": true
+  },
+  {
+    "number": 13,
+    "source": "gizli-topsecert/Üç adımda günlük beslenme takibi-10.png",
+    "file": "referanslar/13.png",
+    "width": 1586,
+    "height": 992,
+    "title": "Nasıl çalışır?",
+    "route": "/nasil-calisir",
+    "web": true
+  }
+]

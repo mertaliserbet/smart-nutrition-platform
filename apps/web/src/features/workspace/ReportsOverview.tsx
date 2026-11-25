@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
@@ -59,7 +60,7 @@ export function ReportsOverview({ clientId, clientName, totalClients }: { client
     { icon: 'plan', label: 'Kayıtlı program', value: programs?.totalCount }, { icon: 'chart', label: 'Kayıtlı ölçüm', value: measures?.totalCount },
   ]
   return <div className="reports-overview">
-    <div className="reports-controls"><label className="report-period"><Icon name="calendar" /><span className="sr-only">28 günlük dönem başlangıcı</span><span className="report-date-caption">{valid ? new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }).formatRange(new Date(`${start}T12:00:00`), end) : 'Dönem seçin'}</span><input type="date" value={start} onChange={event => setStart(event.target.value)} /></label><div><button className="button button-secondary" onClick={csv} disabled={!weeks || !programs || !measures}><Icon name="download" />CSV indir</button><button className="button button-primary" disabled aria-describedby="pdf-unavailable"><Icon name="plan" />PDF raporu</button></div></div>
+    <div className="reports-controls"><label className="report-period"><Icon name="calendar" /><span className="sr-only">28 günlük dönem başlangıcı</span><span className="report-date-caption">{valid ? new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }).formatRange(new Date(`${start}T12:00:00`), end) : 'Dönem seçin'}</span><DateField type="date" value={start} onChange={event => setStart(event.target.value)} /></label><div><button className="button button-secondary" onClick={csv} disabled={!weeks || !programs || !measures}><Icon name="download" />CSV indir</button><button className="button button-primary" disabled aria-describedby="pdf-unavailable"><Icon name="plan" />PDF raporu</button></div></div>
     {!valid && <p role="alert" className="form-message error-message">Geçerli bir dönem başlangıcı seçin.</p>}
     <section className="metrics-grid report-metrics" aria-label="Danışan rapor göstergeleri">{metrics.map(metric => <article className="metric-card" key={metric.label}><span className="metric-icon green"><Icon name={metric.icon} /></span><div><h2>{metric.label}</h2><strong className="metric-value">{metric.value ?? '—'}</strong></div></article>)}</section>
     <div className="report-chart-grid"><section className="card report-chart-card"><header><h2>Haftalık kayıt hareketi</h2><span className="neutral-badge">{clientName}</span></header>
