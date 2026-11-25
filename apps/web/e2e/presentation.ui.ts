@@ -68,6 +68,13 @@ async function fixtures(page: Page) {
 
 async function fits(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  expect(await page.locator('.sidebar').evaluateAll(sidebars => sidebars.flatMap(sidebar => {
+    const bounds = sidebar.getBoundingClientRect()
+    return [...sidebar.querySelectorAll('.sidebar nav a, .sidebar-account > a, .workspace-avatar')].flatMap(node => {
+      const rect = node.getBoundingClientRect()
+      return rect.width && (rect.left < bounds.left - 1 || rect.right > bounds.right + 1) ? [node.textContent] : []
+    })
+  }))).toEqual([])
   const escapedCards = await page.locator('.marketing-card .illustration-food-list > div, .marketing-card .illustration-options > span, .marketing-card .how-example-actions > span').evaluateAll(nodes => nodes.flatMap(node => {
     const card = node.closest('.marketing-card')!.getBoundingClientRect(), content = node.getBoundingClientRect()
     return content.left < card.left - 1 || content.right > card.right + 1 ? [node.textContent] : []
@@ -150,6 +157,67 @@ test('program draft, meal selection, keyboard menus and empty client search', as
   await expect(page.getByText('41–46 / 100 danışan')).toBeVisible()
   await fits(page)
   await page.screenshot({ path: testInfo.outputPath('client-pagination-390.png'), fullPage: true })
+  expect(errors).toEqual([])
+})
+
+test('approved brand assets and visual selection retain the native filter contract', async ({ page }, testInfo) => {
+  const errors = await fixtures(page)
+  await page.setViewportSize({ width: 1585, height: 992 })
+  await page.goto('/calisma-alani/danisanlar')
+  await expect(page.getByRole('link', { name: `${client.displayName} için danışan detayını aç` })).toBeVisible()
+  await page.evaluate(() => document.fonts.ready)
+  expect(await page.locator('body').evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(248, 250, 242)')
+  expect(await page.locator('h1').evaluate(element => getComputedStyle(element).fontFamily)).toContain('Manrope')
+  expect(await page.locator('body').evaluate(element => getComputedStyle(element).fontFamily)).toContain('Inter')
+  await expect(page.locator('.brand-logo')).toHaveAttribute('src', '/limely/logolar/limely-yazili-logo-renkli.svg')
+  expect(await page.locator('.icon svg, .brand svg').count()).toBe(0)
+  const select = page.getByRole('combobox', { name: 'Sıralama', exact: true })
+  await select.click()
+  const popup = page.getByRole('listbox', { name: 'Sıralama seçenekleri' })
+  await expect(popup).toBeVisible()
+  const request = page.waitForRequest(request => request.url().includes('/dietitian/clients?') && new URL(request.url()).searchParams.get('sortOrder') === 'desc')
+  await popup.getByRole('option', { name: 'Ad: Z → A', exact: true }).click()
+  await request
+  await expect(select).toHaveValue('desc')
+  await expect(select).toBeFocused()
+  await select.press('Home'); await select.press('Enter')
+  await expect(select).toHaveValue('asc')
+  await select.click(); await select.press('ArrowDown'); await select.press('Escape')
+  await expect(select).toHaveValue('asc')
+  await select.click()
+  await page.screenshot({ path: testInfo.outputPath('approved-select-1585.png') })
+  await select.press('Escape')
+  await fits(page)
+  expect(errors).toEqual([])
+})
+
+test('approved calendar edits the existing program draft without an API write', async ({ page }, testInfo) => {
+  const errors = await fixtures(page)
+  const writes: string[] = []
+  page.on('request', request => { if (request.url().includes('/api/') && !['GET', 'HEAD'].includes(request.method())) writes.push(request.url()) })
+  await page.goto('/calisma-alani/programlar')
+  await page.getByRole('button', { name: 'Yeni program oluştur', exact: true }).click()
+  await page.getByLabel('Program başlığı', { exact: true }).fill('Sentetik takvim taslağı')
+  for (const width of [1585, 768, 390]) {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 992 })
+    const control = page.locator('.date-control').filter({ has: page.locator('#plan-start') })
+    await control.getByRole('button').click()
+    const calendar = page.getByRole('dialog', { name: 'Tarih seç' })
+    await expect(calendar).toBeVisible()
+    await expect(calendar.locator('[data-date][tabindex="0"]')).toBeFocused()
+    await page.keyboard.press('ArrowRight')
+    await expect(calendar.locator('[data-date][tabindex="0"]')).toBeFocused()
+    await expect(calendar.getByRole('columnheader')).toHaveCount(7)
+    const box = (await calendar.boundingBox())!
+    expect(box.x).toBeGreaterThanOrEqual(11)
+    expect(box.x + box.width).toBeLessThanOrEqual(width - 11)
+    await page.screenshot({ path: testInfo.outputPath(`approved-calendar-${width}.png`) })
+    await calendar.getByRole('gridcell', { name: '27 Kasım 2026', exact: true }).click()
+    await expect(page.locator('#plan-start')).toHaveValue('2026-11-27')
+    await expect(page.getByLabel('Program başlığı', { exact: true })).toHaveValue('Sentetik takvim taslağı')
+    await fits(page)
+  }
+  expect(writes).toEqual([])
   expect(errors).toEqual([])
 })
 

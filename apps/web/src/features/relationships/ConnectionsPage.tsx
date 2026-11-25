@@ -1,3 +1,4 @@
+import { Select } from '../../core/components/Select'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceSession, useWorkspaceRead } from '../workspace/workspaceSession'
@@ -49,7 +50,7 @@ function ConnectionsContent() {
       {invitation && <InvitationCode key={`${invitation.invitationCode}:${invitation.expiresAt}`} invitation={invitation} busy={busy} />}</div>
     </section>
     {message && <p role="alert">{message}</p>}{notice && <p role="status">{notice}</p>}{busy && <p role="status">İşlem sürüyor…</p>}
-    <section className="card"><header className="card-header"><div><h2>Danışan bağlantıları</h2><p>{state.data ? `${state.data.totalCount} bağlantı` : 'Talepler, aktif bağlantılar ve geçmiş'}</p></div><label className="panel-filter">Durum<select disabled={busy || state.pending} value={status} onChange={event => { setStatus(event.target.value as RelationshipStatus); setPage(1); setNotice('') }}>{Object.entries(labels).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</select></label></header>
+    <section className="card"><header className="card-header"><div><h2>Danışan bağlantıları</h2><p>{state.data ? `${state.data.totalCount} bağlantı` : 'Talepler, aktif bağlantılar ve geçmiş'}</p></div><label className="panel-filter">Durum<Select disabled={busy || state.pending} value={status} onChange={event => { setStatus(event.target.value as RelationshipStatus); setPage(1); setNotice('') }}>{Object.entries(labels).map(([value, text]) => <option key={value} value={value}>{text}</option>)}</Select></label></header>
       {state.pending && <p className="panel-feedback" role="status">Bağlantılar okunuyor…</p>}{state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}
       {state.data && <>{state.data.totalCount === 0 && <EmptyState icon="link" title="Bu durumda bağlantı bulunmuyor.">Farklı bir durum seçebilir veya yeni bir davet kodu oluşturabilirsiniz.</EmptyState>}
         <ul className="connection-list" aria-label="Danışan bağlantıları">{state.data.items.map(row => <li key={row.id}><div className="connection-heading"><h3>Danışan adı mevcut değil</h3><span className="neutral-badge">{labels[row.status]}</span></div><p>Talep: <time dateTime={row.requestedAt}>{new Date(row.requestedAt).toLocaleString('tr-TR')}</time></p>

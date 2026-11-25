@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -133,7 +133,8 @@ describe('authenticated dietitian workspace', () => {
     const request = gated().mockImplementationOnce(() => new Promise(resolve => { finish = resolve }))
     const { unmount } = setup()
     await screen.findByText('Danışanlar okunuyor…')
-    const signal = request.mock.calls[3]?.[1]?.signal
+    await waitFor(() => expect(request.mock.calls.some(([url]) => String(url).startsWith('/api/v1/dietitian/clients?'))).toBe(true))
+    const signal = request.mock.calls.find(([url]) => String(url).startsWith('/api/v1/dietitian/clients?'))?.[1]?.signal
     unmount(); expect(signal?.aborted).toBe(true)
     await act(async () => finish(list()))
     expect(screen.queryByText('Sentetik Danışan')).not.toBeInTheDocument()

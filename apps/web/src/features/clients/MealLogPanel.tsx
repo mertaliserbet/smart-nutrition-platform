@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { Icon } from '../../core/components/Icon'
@@ -65,8 +66,8 @@ function MealLogContent({ clientId, clientName, compact }: { clientId: string; c
     </div>
     <p id="meal-log-time-zone">Tarihler ve kayıt saatleri cihazınızın saat dilimindedir: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Seçilen ilk ve son gün dahil; ertesi günün başlangıcı hariçtir.</p>
     {preset === 'custom' && <form className="meal-preview-filters" aria-label="Öğün tarihi filtresi" onSubmit={applyFilter} noValidate>
-      <label>Başlangıç<input name="from" type="date" value={first} onChange={event => setFirst(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
-      <label>Bitiş<input name="to" type="date" value={last} onChange={event => setLast(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
+      <label>Başlangıç<DateField name="from" type="date" value={first} onChange={event => setFirst(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
+      <label>Bitiş<DateField name="to" type="date" value={last} onChange={event => setLast(event.target.value)} aria-describedby="meal-log-time-zone" /></label>
       <button className="button button-primary" type="submit">Filtrele</button>
     </form>}
     <button className="button button-secondary" onClick={() => { setError(''); setAccessError(''); setPage(1); setRange({}); setFirst(''); setLast(''); setPreset('') }}>Filtreyi temizle</button>

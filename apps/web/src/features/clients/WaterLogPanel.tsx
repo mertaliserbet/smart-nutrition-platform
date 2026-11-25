@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { EmptyState } from '../../core/components/EmptyState'
 import { WebSessionError } from '../auth/webSessionApi'
@@ -67,9 +68,9 @@ function WaterLogContent({ clientId }: { clientId: string }) {
     <header className="card-header"><div><h2>Su takibi</h2><p>Danışanın paylaştığı tüketim kayıtları ve günlük toplamları.</p></div><span className="neutral-badge">Salt okunur</span></header>
     <div className="meal-preview-filters water-date-filters">
       <p>Tarihler ve kayıt saatleri cihazınızın saat dilimindedir: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Geçmiş aralığı başlangıç ve bitiş dahil en fazla 31 gündür.</p>
-      <label>Su günü<input type="date" value={day} onChange={event => { setDay(event.target.value); setPage(1) }} /></label>
-      <label>Su geçmişi başlangıcı<input type="date" value={from} onChange={event => setFrom(event.target.value)} /></label>
-      <label>Su geçmişi bitişi<input type="date" value={to} onChange={event => setTo(event.target.value)} /></label>
+      <label>Su günü<DateField type="date" value={day} onChange={event => { setDay(event.target.value); setPage(1) }} /></label>
+      <label>Su geçmişi başlangıcı<DateField type="date" value={from} onChange={event => setFrom(event.target.value)} /></label>
+      <label>Su geçmişi bitişi<DateField type="date" value={to} onChange={event => setTo(event.target.value)} /></label>
     </div>
     {state.pending && <p className="panel-feedback" role="status">Su takibi okunuyor…</p>}
     {state.message && <p className="panel-feedback error-message" role="alert">{state.message}</p>}

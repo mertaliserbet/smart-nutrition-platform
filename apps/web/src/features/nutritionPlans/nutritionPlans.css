@@ -29,7 +29,7 @@
 @media (max-width: 600px) { .plan-grid { grid-template-columns: 1fr; } .nutrition-card, .nutrition-editor, .nutrition-history { padding: 16px; } .nutrition-editor fieldset { padding: 12px; } }
 
 .plan-days { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; background: var(--surface-subtle); border-radius: 12px; }
-.plan-days [aria-pressed="true"] { background: var(--brand-primary); color: var(--on-brand); border-color: var(--brand-primary); }
+.plan-days [aria-pressed="true"] { background: var(--brand-accent); color: var(--on-accent); border-color: var(--brand-accent); }
 .plan-meal-editor { margin: 12px 0; border: 1px solid var(--border); border-radius: 12px; padding: 18px; background: var(--surface-page); }
 .plan-meal-editor summary { cursor: pointer; min-height: 44px; font-weight: 600; overflow-wrap: anywhere; font-size: 15px; color: var(--brand-strong); padding-block: 8px; }
 .plan-save-bar { position: sticky; bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; z-index: 2; box-shadow: var(--shadow-popover); border-color: var(--border-strong); }
@@ -107,7 +107,7 @@
 .compact-program-panel .nutrition-programs-grid .nutrition-card { position: relative; margin: 0; min-width: 0; overflow: visible; }
 .compact-program-panel .nutrition-card > .card-header { align-items: center; flex-wrap: nowrap; padding: 16px; border: 0; gap: 14px; position: relative; min-height: 124px; }
 .compact-program-panel .nutrition-card .card-header > div { flex: 1; min-width: 0; padding-right: 8px; }
-.compact-program-panel .nutrition-card .card-header h3 { font-size: 23px; font-weight: 900; }
+.compact-program-panel .nutrition-card .card-header h3 { font-size: 23px; font-weight: 800; }
 .compact-program-panel .nutrition-card .card-header p { font-size: 14px; margin-top: 8px; }
 .compact-program-panel .nutrition-card .card-header > .neutral-badge { display: none; }
 .program-card-icon { display: grid; place-items: center; width: 94px; height: 94px; border-radius: 14px; background: var(--brand-soft); color: var(--brand-primary); flex-shrink: 0; }
@@ -140,7 +140,7 @@
 .compact-program-panel .program-content-disclosure { position: absolute; top: 8px; right: 8px; z-index: 3; border: 0; }
 .compact-program-panel .program-content-disclosure > summary { width: 28px; height: 32px; min-height: 32px; padding: 2px; font-size: 0; list-style: none; text-align: center; }
 .compact-program-panel .program-content-disclosure > summary::after { content: '⋮'; font-size: 24px; }
-.compact-program-panel .program-more-content { position: absolute; right: 0; top: 36px; width: min(410px, calc(100vw - 48px)); max-height: 70vh; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-popover); }
+.compact-program-panel .program-more-content { position: absolute; right: 0; top: 36px; width: min(410px, calc(100vw - 48px)); max-height: 70vh; overflow: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow-popover); }
 .compact-plan-editor fieldset { border: 0; padding: 0; margin-block: 18px; }
 .compact-plan-editor fieldset > legend { font-size: 16px; padding: 0; margin-bottom: 10px; }
 .compact-plan-editor .plan-days { flex-wrap: nowrap; gap: 4px; padding: 4px; overflow-x: auto; overscroll-behavior-x: contain; }

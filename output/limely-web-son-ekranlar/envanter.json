@@ -1,0 +1,379 @@
+{
+  "capturedAt": "2026-11-25T13:26:33.093Z",
+  "base": "http://127.0.0.1:5188",
+  "syntheticData": true,
+  "sourceChanged": false,
+  "screenshots": [
+    {
+      "slug": "genel-bakis",
+      "title": "Genel bakış",
+      "route": "/calisma-alani",
+      "category": "Ana paneller",
+      "file": "01-genel-bakis.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1076
+    },
+    {
+      "slug": "danisanlar",
+      "title": "Danışanlar",
+      "route": "/calisma-alani/danisanlar",
+      "category": "Ana paneller",
+      "file": "02-danisanlar.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "ogun-incelemeleri",
+      "title": "Öğün incelemeleri",
+      "route": "/calisma-alani/ogun-incelemeleri",
+      "category": "Ana paneller",
+      "file": "03-ogun-incelemeleri.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1295
+    },
+    {
+      "slug": "programlar",
+      "title": "Programlar",
+      "route": "/calisma-alani/programlar",
+      "category": "Ana paneller",
+      "file": "04-programlar.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "raporlar",
+      "title": "Raporlar",
+      "route": "/calisma-alani/raporlar",
+      "category": "Ana paneller",
+      "file": "05-raporlar.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1006
+    },
+    {
+      "slug": "randevular",
+      "title": "Randevular · mevcut yüzey",
+      "route": "/calisma-alani/randevular",
+      "category": "Ana paneller",
+      "file": "06-randevular.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "mesajlar",
+      "title": "Mesajlar · mevcut yüzey",
+      "route": "/calisma-alani/mesajlar",
+      "category": "Ana paneller",
+      "file": "07-mesajlar.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "baglantilar",
+      "title": "Bağlantılar ve davet",
+      "route": "/calisma-alani/baglantilar",
+      "category": "Ana paneller",
+      "file": "08-baglantilar.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "hesabim",
+      "title": "Hesabım / ayarlar",
+      "route": "/hesabim",
+      "category": "Ana paneller",
+      "file": "09-hesabim.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1000
+    },
+    {
+      "slug": "danisan-ozeti",
+      "title": "Danışan detayı · özet",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001",
+      "category": "Danışan detayları",
+      "file": "10-danisan-ozeti.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "danisan-programi",
+      "title": "Danışan detayı · program",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001?bolum=program",
+      "category": "Danışan detayları",
+      "file": "11-danisan-programi.png",
+      "width": 1585,
+      "errors": [],
+      "height": 3128
+    },
+    {
+      "slug": "danisan-ogunleri",
+      "title": "Danışan detayı · öğünler",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001?bolum=ogunler",
+      "category": "Danışan detayları",
+      "file": "12-danisan-ogunleri.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1575
+    },
+    {
+      "slug": "danisan-gorevleri",
+      "title": "Danışan detayı · görevler",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001?bolum=gorevler",
+      "category": "Danışan detayları",
+      "file": "13-danisan-gorevleri.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "danisan-olcum-su",
+      "title": "Danışan detayı · ölçüm ve su",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001?bolum=olcum-su",
+      "category": "Danışan detayları",
+      "file": "14-danisan-olcum-su.png",
+      "width": 1585,
+      "errors": [],
+      "alerts": [],
+      "height": 3820
+    },
+    {
+      "slug": "program-duzenleme",
+      "title": "Program düzenleme paneli",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "15-program-duzenleme.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "program-olusturma",
+      "title": "Yeni program formu",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "16-program-olusturma.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "program-kopyalama",
+      "title": "Program kopyalama alanı",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "17-program-kopyalama.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1723
+    },
+    {
+      "slug": "program-atama",
+      "title": "Danışana atama onayı",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "18-program-atama.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "secim-menusu",
+      "title": "Açılır seçim tasarımı",
+      "route": "/calisma-alani/danisanlar",
+      "category": "Program ve seçimler",
+      "file": "19-secim-menusu.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "takvim",
+      "title": "Tarih seçimi",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "20-takvim.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "giris",
+      "title": "Diyetisyen girişi",
+      "route": "/giris",
+      "category": "Hesap ve yönetim",
+      "file": "21-giris.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "uzman-basvurusu",
+      "title": "Uzman başvurusu",
+      "route": "/uzman-basvurusu",
+      "category": "Hesap ve yönetim",
+      "file": "22-uzman-basvurusu.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "basvuru-durumu",
+      "title": "Uzman başvuru durumu",
+      "route": "/uzman/basvuru-durumu",
+      "category": "Hesap ve yönetim",
+      "file": "23-basvuru-durumu.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "sifre-sifirlama",
+      "title": "Şifremi unuttum",
+      "route": "/sifremi-unuttum",
+      "category": "Hesap ve yönetim",
+      "file": "24-sifre-sifirlama.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "eposta-dogrulama",
+      "title": "E-posta doğrulama",
+      "route": "/eposta-dogrulama",
+      "category": "Hesap ve yönetim",
+      "file": "25-eposta-dogrulama.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "yonetici-girisi",
+      "title": "Yönetici / MFA girişi",
+      "route": "/yonetici-giris",
+      "category": "Hesap ve yönetim",
+      "file": "26-yonetici-girisi.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "yonetici-paneli",
+      "title": "Yönetici · uzman başvuruları",
+      "route": "/yonetim/uzmanlar",
+      "category": "Hesap ve yönetim",
+      "file": "27-yonetici-paneli.png",
+      "width": 1585,
+      "errors": [],
+      "height": 992
+    },
+    {
+      "slug": "nasil-calisir",
+      "title": "Nasıl çalışır?",
+      "route": "/nasil-calisir",
+      "category": "Tanıtım sayfaları",
+      "file": "28-nasil-calisir.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1010
+    },
+    {
+      "slug": "ozellikler",
+      "title": "Özellikler",
+      "route": "/ozellikler",
+      "category": "Tanıtım sayfaları",
+      "file": "29-ozellikler.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1027
+    },
+    {
+      "slug": "diyetisyenler-icin",
+      "title": "Diyetisyenler için",
+      "route": "/diyetisyenler-icin",
+      "category": "Tanıtım sayfaları",
+      "file": "30-diyetisyenler-icin.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1016
+    },
+    {
+      "slug": "dar-danisanlar",
+      "title": "Dar ekran · danışanlar",
+      "route": "/calisma-alani/danisanlar",
+      "category": "Dar ekran",
+      "file": "31-dar-danisanlar.png",
+      "width": 390,
+      "errors": [],
+      "height": 2969
+    },
+    {
+      "slug": "dar-programlar",
+      "title": "Dar ekran · programlar",
+      "route": "/calisma-alani/programlar",
+      "category": "Dar ekran",
+      "file": "32-dar-programlar.png",
+      "width": 390,
+      "errors": [],
+      "height": 1921
+    },
+    {
+      "slug": "dar-giris",
+      "title": "Dar ekran · giriş",
+      "route": "/giris",
+      "category": "Dar ekran",
+      "file": "33-dar-giris.png",
+      "width": 390,
+      "errors": [],
+      "height": 1022
+    },
+    {
+      "slug": "gorev-olusturma",
+      "title": "Yeni görev formu",
+      "route": "/calisma-alani/danisanlar/10000000-0000-4000-8000-000000000001?bolum=gorevler",
+      "category": "Danışan detayları",
+      "file": "34-gorev-olusturma.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1458
+    },
+    {
+      "slug": "yeni-parola",
+      "title": "Yeni parola formu",
+      "route": "/sifremi-unuttum#token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "category": "Hesap ve yönetim",
+      "file": "35-yeni-parola.png",
+      "width": 1000,
+      "errors": [],
+      "height": 1100
+    },
+    {
+      "slug": "program-surumleri",
+      "title": "Program sürüm geçmişi",
+      "route": "/calisma-alani/programlar",
+      "category": "Program ve seçimler",
+      "file": "36-program-surumleri.png",
+      "width": 1585,
+      "errors": [],
+      "height": 1739
+    }
+  ],
+  "failures": [],
+  "apiWrites": [],
+  "overviewSheets": [
+    "01-ana-paneller.jpg",
+    "02-danisan-detaylari.jpg",
+    "03-program-ve-secimler.jpg",
+    "04-hesap-ve-yonetim.jpg",
+    "05-tanitim.jpg",
+    "06-dar-ekran.jpg"
+  ]
+}
