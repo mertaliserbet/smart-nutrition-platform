@@ -78,14 +78,14 @@ Future<void> main() async {
     );
 
     phase = 'invalid_form';
-    await tap(controller, 'Kayıt ol');
+    await tap(controller, 'Hesabımı oluştur');
     check(find.text('Adınızı ve soyadınızı girin.').evaluate().length == 1);
     check(find.byType(EmailVerificationPage).evaluate().isEmpty);
     results['invalidFormStayedOnRegistration'] = true;
 
     phase = 'successful_registration';
     await fill(controller, email, password);
-    await tap(controller, 'Kayıt ol');
+    await tap(controller, 'Hesabımı oluştur');
     await waitFor(
       controller,
       () => find.byType(EmailVerificationPage).evaluate().isNotEmpty,
@@ -113,7 +113,7 @@ Future<void> main() async {
       () => find.byType(RegisterPage).evaluate().isNotEmpty,
     );
     await fill(controller, email, password);
-    await tap(controller, 'Kayıt ol');
+    await tap(controller, 'Hesabımı oluştur');
     await waitFor(
       controller,
       () => find
@@ -130,7 +130,7 @@ Future<void> main() async {
           .isEmpty,
     );
     results['real409StayedOnRegistration'] = true;
-    await tap(controller, 'Zaten hesabınız var mı? Girişe dön');
+    await tap(controller, 'Giriş yap');
 
     phase = 'real_connection_failure';
     await waitFor(
@@ -153,7 +153,7 @@ Future<void> main() async {
       () => find.byType(RegisterPage).evaluate().isNotEmpty,
     );
     await fill(controller, email, password);
-    await tap(controller, 'Kayıt ol');
+    await tap(controller, 'Hesabımı oluştur');
     await waitFor(
       controller,
       () => find
@@ -221,7 +221,6 @@ Future<void> fill(
     (0, 'Sentetik Mobil Danışanı'),
     (1, email),
     (2, password),
-    (3, password),
   ]) {
     final field = find.byType(EditableText).at(index);
     await controller.ensureVisible(field);

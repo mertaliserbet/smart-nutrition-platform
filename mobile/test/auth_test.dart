@@ -75,7 +75,7 @@ void main() {
     await pumpAuth(tester, const LoginPage());
     expect(
       find.text('Giriş için e-posta adresinizin doğrulanmış olması gerekir.'),
-      findsOneWidget,
+      findsNothing,
     );
     await tapText(tester, 'Giriş yap');
     expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
@@ -148,31 +148,25 @@ void main() {
   );
 
   testWidgets(
-    'registration validates fields and stays on the form after API rejection',
+    'registration validates three fields and stays signed out after API rejection',
     (tester) async {
       await pumpAuth(tester, const RegisterPage());
-      expect(find.byType(TextFormField), findsNWidgets(4));
-      await tapText(tester, 'Kayıt ol');
+      expect(find.byType(TextFormField), findsNWidgets(3));
+      await tapText(tester, 'Hesabımı oluştur');
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
       expect(find.text('E-posta adresinizi girin.'), findsOneWidget);
       expect(find.text('Şifrenizi girin.'), findsOneWidget);
-      expect(find.text('Şifrenizi tekrar girin.'), findsOneWidget);
-
       await enterField(tester, 0, ' \t ');
       await enterField(tester, 1, 'gecersiz-adres');
-      await tapText(tester, 'Kayıt ol');
+      await enterField(tester, 2, 'kısa');
+      await tapText(tester, 'Hesabımı oluştur');
       expect(find.text('Adınızı ve soyadınızı girin.'), findsOneWidget);
       expect(find.text('Geçerli bir e-posta adresi girin.'), findsOneWidget);
-
+      expect(find.text('Şifreniz en az 8 karakter olmalıdır.'), findsOneWidget);
       await enterField(tester, 0, 'İpek Şen');
       await enterField(tester, 1, 'ornek@example.com');
       await enterField(tester, 2, 'Deneme parolası! ');
-      await enterField(tester, 3, 'Deneme parolası!');
-      await tapText(tester, 'Kayıt ol');
-      expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
-      await enterField(tester, 3, 'Deneme parolası! ');
-      await tapText(tester, 'Kayıt ol');
-
+      await tapText(tester, 'Hesabımı oluştur');
       expect(find.text(registrationTestError), findsOneWidget);
       expect(find.byType(RegisterPage), findsOneWidget);
       expect(find.byType(EmailVerificationPage), findsNothing);
@@ -182,136 +176,73 @@ void main() {
     },
   );
 
-  testWidgets(
-    'registration validates emoji lengths on submit and keyboard done',
-    (tester) async {
-      await pumpAuth(tester, const RegisterPage());
-      await enterField(tester, 0, 'İpek Şen');
-      await enterField(tester, 1, 'ornek@example.test');
-      for (final length in [7, 8, 128, 129]) {
-        final password = '😀' * length;
-        await enterField(tester, 2, password);
-        await enterField(tester, 3, password);
-        await tester.testTextInput.receiveAction(TextInputAction.done);
-        await tester.pumpAndSettle();
-        final expected = switch (length) {
-          7 => 'Şifreniz en az 8 karakter olmalıdır.',
-          129 => 'Şifreniz en fazla 128 karakter olabilir.',
-          _ => registrationTestError,
-        };
-        expect(find.text(expected), findsOneWidget);
-        expect(
-          tester
-              .widget<TextField>(find.byType(TextField).at(2))
-              .controller!
-              .text,
-          password,
-        );
-        expect(find.byType(EmailVerificationPage), findsNothing);
-        expect(find.byType(MainShell), findsNothing);
-        expect(tester.takeException(), isNull);
-      }
-    },
-  );
+  testWidgets('registration validates emoji lengths on keyboard submit', (
+    tester,
+  ) async {
+    await pumpAuth(tester, const RegisterPage());
+    await enterField(tester, 0, 'İpek Şen');
+    await enterField(tester, 1, 'ornek@example.test');
+    for (final length in [7, 8, 128, 129]) {
+      final password = '😀' * length;
+      await enterField(tester, 2, password);
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      final expected = switch (length) {
+        7 => 'Şifreniz en az 8 karakter olmalıdır.',
+        129 => 'Şifreniz en fazla 128 karakter olabilir.',
+        _ => registrationTestError,
+      };
+      expect(find.text(expected), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(2)).controller!.text,
+        password,
+      );
+      expect(find.byType(EmailVerificationPage), findsNothing);
+      expect(find.byType(MainShell), findsNothing);
+      expect(tester.takeException(), isNull);
+    }
+  });
 
-  testWidgets('registration refreshes matching and feedback after edits', (
+  testWidgets('registration clears server feedback after editing', (
     tester,
   ) async {
     await pumpAuth(tester, const RegisterPage());
     await enterField(tester, 0, 'İpek Şen');
     await enterField(tester, 1, 'ornek@example.test');
     await enterField(tester, 2, 'Sentetik şifre');
-    await enterField(tester, 3, 'Sentetik şifre');
-    await enterField(tester, 2, 'Başka bir şifre');
-    expect(find.text('Şifreler eşleşmiyor.'), findsOneWidget);
-    await enterField(tester, 2, 'Sentetik şifre');
-    expect(find.text('Şifreler eşleşmiyor.'), findsNothing);
-    await tapText(tester, 'Kayıt ol');
-    const feedback = registrationTestError;
-    expect(find.text(feedback), findsOneWidget);
+    await tapText(tester, 'Hesabımı oluştur');
+    expect(find.text(registrationTestError), findsOneWidget);
     await enterField(tester, 0, 'İpek Şen Yılmaz');
-    expect(find.text(feedback), findsNothing);
+    expect(find.text(registrationTestError), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('registration password visibility preserves both exact values', (
+  testWidgets('registration password visibility preserves the exact value', (
     tester,
   ) async {
     await pumpAuth(tester, const RegisterPage());
     const password = '  Şifre😀e\u0301  ';
     await enterField(tester, 2, password);
-    await enterField(tester, 3, password);
-    for (final (index, label) in [(2, 'Şifre'), (3, 'Şifre tekrarı')]) {
-      final toggle = find.byTooltip('Göster: $label');
-      await tester.ensureVisible(toggle);
-      await tester.pumpAndSettle();
-      await tester.tap(toggle);
-      await tester.pump();
-      expect(
-        tester.widget<TextField>(find.byType(TextField).at(index)).obscureText,
-        isFalse,
-      );
-      expect(
-        tester
-            .widget<TextField>(find.byType(TextField).at(index))
-            .controller!
-            .text,
-        password,
-      );
-      await tester.tap(find.byTooltip('Gizle: $label'));
-      await tester.pump();
-      expect(
-        tester.widget<TextField>(find.byType(TextField).at(index)).obscureText,
-        isTrue,
-      );
-    }
+    final toggle = find.byTooltip('Göster: Şifre');
+    await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(toggle);
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(2)).obscureText,
+      isFalse,
+    );
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(2)).controller!.text,
+      password,
+    );
+    await tester.tap(find.byTooltip('Gizle: Şifre'));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byType(TextField).at(2)).obscureText,
+      isTrue,
+    );
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('KVKK information is accessible without consent or form changes', (
-    tester,
-  ) async {
-    final semantics = tester.ensureSemantics();
-    try {
-      await pumpAuth(tester, const RegisterPage());
-      await enterField(tester, 0, 'İpek Şen');
-      await enterField(tester, 1, 'ornek@example.test');
-      await enterField(tester, 2, 'Sentetik parola');
-      await enterField(tester, 3, 'Sentetik parola');
-      final before = tester
-          .widgetList<TextField>(find.byType(TextField))
-          .map((field) => field.controller!.text)
-          .toList();
-      final link = find.bySemanticsLabel('KVKK aydınlatma metni');
-      await tester.ensureVisible(link);
-      await tester.pumpAndSettle();
-      expect(link.hitTestable(), findsOneWidget);
-      await tester.tap(link);
-      await tester.pumpAndSettle();
-      expect(
-        find.text(
-          'Aydınlatma metni henüz yayımlanmadı. Yayımlandığında bu alandan erişebilirsiniz.',
-        ),
-        findsOneWidget,
-      );
-      expect(find.byType(Checkbox, skipOffstage: false), findsNothing);
-      await tapText(tester, 'Kapat');
-      expect(find.byType(BottomSheet), findsNothing);
-      expect(
-        tester
-            .widgetList<TextField>(find.byType(TextField))
-            .map((field) => field.controller!.text)
-            .toList(),
-        before,
-      );
-      await tapText(tester, 'Kayıt ol');
-      expect(find.text(registrationTestError), findsOneWidget);
-      expect(find.byType(EmailVerificationPage), findsNothing);
-      expect(find.byType(MainShell), findsNothing);
-      expect(tester.takeException(), isNull);
-    } finally {
-      semantics.dispose();
-    }
   });
 
   testWidgets('password reset validates email before sending a request', (
@@ -331,7 +262,7 @@ void main() {
     (tester) async {
       await pumpAuth(tester, const LoginPage());
       await enterField(tester, 1, 'Deneme parolası!');
-      await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
+      await tapText(tester, 'Hesabın yok mu? Kayıt ol');
       expect(find.byType(OnboardingPage), findsOneWidget);
       expect(find.text('Merhaba, ben\nLimely!'), findsOneWidget);
       expect(find.byType(LoginPage, skipOffstage: false), findsNothing);
@@ -339,14 +270,7 @@ void main() {
       expect(find.text('E-posta doğrulama adımını incele'), findsNothing);
       await openLoginFromWelcome(tester);
       expect(find.byType(LoginPage), findsOneWidget);
-      await tapText(tester, 'E-posta doğrulama hakkında');
-      expect(find.byType(EmailVerificationPage), findsOneWidget);
-      expect(
-        find.text('E-posta adresinizi doğrulamadan oturum açılmaz.'),
-        findsOneWidget,
-      );
-      await tapText(tester, 'Önceki ekrana dön');
-      expect(find.byType(LoginPage), findsOneWidget);
+      expect(find.text('E-posta doğrulama hakkında'), findsNothing);
       expect(
         tester.widget<TextField>(find.byType(TextField).at(1)).controller!.text,
         isEmpty,
@@ -355,11 +279,6 @@ void main() {
       await tapText(tester, 'Şifremi unuttum');
       expect(find.byType(ForgotPasswordPage), findsOneWidget);
       await tapText(tester, 'Giriş ekranına dön');
-      expect(find.byType(LoginPage), findsOneWidget);
-      await tapText(tester, 'E-posta doğrulama hakkında');
-      expect(find.byType(EmailVerificationPage), findsOneWidget);
-      await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
       expect(find.byType(LoginPage), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
@@ -371,7 +290,7 @@ void main() {
     await tester.pumpWidget(const SmartNutritionApp());
     await tester.pumpAndSettle();
     await openLoginFromWelcome(tester);
-    await tapText(tester, 'Hesabınız yok mu? Kayıt ol');
+    await tapText(tester, 'Hesabın yok mu? Kayıt ol');
     expect(find.byType(OnboardingPage), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -455,8 +374,8 @@ void main() {
           );
 
           for (final (page, title, action) in [
-            (const LoginPage(), 'Tekrar hoş geldiniz', 'Giriş yap'),
-            (const RegisterPage(), 'Size özel bir başlangıç', 'Kayıt ol'),
+            (const LoginPage(), 'Yeniden merhaba!', 'Giriş yap'),
+            (const RegisterPage(), 'Birlikte\nbaşlayalım.', 'Hesabımı oluştur'),
             (
               const ForgotPasswordPage(),
               'Şifrenizi mi unuttunuz?',
@@ -487,8 +406,10 @@ void main() {
             await tester.pumpAndSettle();
             expect(button.hitTestable(), findsOneWidget);
             expect(
-              Theme.of(tester.element(find.byType(AuthPageLayout))).brightness,
-              brightness,
+              Theme.of(tester.element(heading)).brightness,
+              page is LoginPage || page is RegisterPage
+                  ? Brightness.light
+                  : brightness,
             );
             if (page is RegisterPage) {
               for (final field in find.byType(TextFormField).evaluate()) {
@@ -499,9 +420,6 @@ void main() {
                   findsOneWidget,
                 );
               }
-              await tapText(tester, 'KVKK aydınlatma metni');
-              expect(find.byType(BottomSheet), findsOneWidget);
-              await tapText(tester, 'Kapat');
               expect(find.byType(RegisterPage), findsOneWidget);
             }
             expect(tester.takeException(), isNull);

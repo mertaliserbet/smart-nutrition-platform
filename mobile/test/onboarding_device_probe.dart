@@ -92,7 +92,7 @@ Future<void> main() async {
     await capture('04-ozet');
 
     phase = 'edit';
-    await tap(controller, 'onboarding-edit');
+    await tap(controller, 'onboarding-back');
     final weight = controller.widget<TextField>(
       find.byKey(const ValueKey('onboarding-weight')),
     );

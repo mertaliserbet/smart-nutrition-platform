@@ -332,8 +332,8 @@ void main() {
     expect(session.isAuthenticated, isFalse);
     expect(session.user, isNull);
     expect(session.hasEndedSession, isTrue);
-    await tester.ensureVisible(find.text('Hesabınız yok mu? Kayıt ol'));
-    await tester.tap(find.text('Hesabınız yok mu? Kayıt ol'));
+    await tester.ensureVisible(find.text('Hesabın yok mu? Kayıt ol'));
+    await tester.tap(find.text('Hesabın yok mu? Kayıt ol'));
     await tester.pumpAndSettle();
     expect(find.byType(OnboardingPage), findsOneWidget);
     expect(find.text('Merhaba, ben\nLimely!'), findsOneWidget);

@@ -107,11 +107,9 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
+      expect(find.text('Yeniden merhaba!'), findsOneWidget);
       expect(calls, isEmpty);
-      final apply = find.textContaining(
-        'Diyetisyen misiniz? Web paneline gidin',
-      );
+      final apply = find.text('Diyetisyen misin?');
       await tester.ensureVisible(apply);
       await tester.tap(apply);
       await tester.pumpAndSettle();
@@ -127,7 +125,7 @@ void main() {
         Theme.of(tester.element(find.byType(LoginPage))).brightness,
         brightness,
       );
-      expect(find.text('Tekrar hoş geldiniz'), findsOneWidget);
+      expect(find.text('Yeniden merhaba!'), findsOneWidget);
     });
 
     testWidgets(

@@ -3,11 +3,14 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../auth/limely_auth_widgets.dart';
+import '../auth/register_page.dart';
+
 import 'limely_mascot.dart';
 import 'onboarding_theme.dart';
 import 'onboarding_controls.dart';
 
-enum _Step { welcome, goal, details, summary }
+enum _Step { welcome, goal, details, summary, account }
 
 enum _Goal {
   lose('Kilo vermek', 'body-scale'),
@@ -125,7 +128,28 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) {
+    if (_step == _Step.account) {
+      return RegisterPage(onBack: _back, onLogin: widget.onLogin);
+    }
+    if (_step == _Step.summary) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) _back();
+        },
+        child: LimelyAuthLayout(
+          onBack: _back,
+          backKey: const ValueKey('onboarding-back'),
+          progress: 3,
+          children: _summary(),
+        ),
+      );
+    }
+    return _introduction(context);
+  }
+
+  Widget _introduction(BuildContext context) => Theme(
     data: OnboardingTheme.data,
     child: AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -174,7 +198,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                                   _Step.welcome => _welcome(heroSize),
                                   _Step.goal => _goals(),
                                   _Step.details => _details(),
-                                  _Step.summary => _summary(),
+                                  _Step.summary || _Step.account => const [],
                                 },
                               ],
                             ),
@@ -224,12 +248,12 @@ class _OnboardingPageState extends State<OnboardingPage>
   );
 
   Widget _progress() => Semantics(
-    label: 'Tanışma adımı ${_step.index} / 3',
+    label: 'Tanışma adımı ${_step.index} / 4',
     child: Padding(
       padding: const EdgeInsets.only(top: 20, bottom: 26),
       child: Row(
         children: [
-          for (var i = 0; i < 3; i++) ...[
+          for (var i = 0; i < 4; i++) ...[
             if (i > 0) const SizedBox(width: 6),
             Expanded(
               child: Container(
@@ -465,89 +489,119 @@ class _OnboardingPageState extends State<OnboardingPage>
   ];
 
   List<Widget> _summary() => [
-    const SizedBox(height: 28),
-    Center(
-      child: Container(
-        width: 90,
-        height: 90,
-        decoration: const BoxDecoration(
-          color: OnboardingTheme.soft,
-          shape: BoxShape.circle,
-        ),
-        child: const Center(child: OnboardingIcon('sprout', size: 42)),
+    Container(
+      decoration: BoxDecoration(
+        color: OnboardingTheme.soft,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                'Güzel bir\nbaşlangıç!',
+                style: OnboardingTheme.heading(29),
+              ),
+            ),
+          ),
+          Image.asset(
+            'assets/limely/maskotlar/limely-maskot-kutlama.png',
+            width: 128,
+            height: 128,
+            cacheWidth: 512,
+            filterQuality: FilterQuality.high,
+            excludeFromSemantics: true,
+          ),
+        ],
       ),
     ),
-    const SizedBox(height: 24),
-    Semantics(
-      header: true,
-      child: Text(
-        'Güzel bir\nbaşlangıç!',
-        textAlign: TextAlign.center,
-        style: OnboardingTheme.heading(38),
-      ),
-    ),
-    const SizedBox(height: 14),
+    const SizedBox(height: 20),
     const Text(
       'Hedefin ve günlük ritmin bir arada.',
-      textAlign: TextAlign.center,
-      style: OnboardingTheme.body,
+      style: TextStyle(
+        fontSize: 16,
+        height: 1.45,
+        color: OnboardingTheme.muted,
+      ),
     ),
-    const SizedBox(height: 28),
+    const SizedBox(height: 16),
     Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: OnboardingTheme.border),
+        border: Border.all(color: const Color(0xFFDFE7DA)),
         borderRadius: BorderRadius.circular(24),
         boxShadow: OnboardingTheme.shadow,
       ),
       child: Column(
         children: [
           for (final (index, row) in [
-            ('Hedefin', _goal.label),
-            ('Yaşın', '${int.parse(_age.text.trim())} yaş'),
-            ('Boyun', '${int.parse(_height.text.trim())} cm'),
-            ('Kilon', '${_weight.text.trim().replaceAll('.', ',')} kg'),
-            ('Günlük ritmin', _activity.label),
+            ('sprout', 'Hedefin', _goal.label),
+            ('calendar-days', 'Yaşın', '${int.parse(_age.text.trim())} yaş'),
+            ('height', 'Boyun', '${int.parse(_height.text.trim())} cm'),
+            (
+              'body-scale',
+              'Kilon',
+              '${_weight.text.trim().replaceAll('.', ',')} kg',
+            ),
+            ('walk', 'Günlük ritmin', _activity.label),
           ].indexed) ...[
-            if (index > 0)
-              const Divider(height: 30, color: OnboardingTheme.border),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: Text(row.$1, style: OnboardingTheme.hint)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    row.$2,
-                    textAlign: TextAlign.right,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.4,
-                      fontWeight: FontWeight.w600,
-                      color: OnboardingTheme.ink,
+            if (index > 0) const Divider(height: 1, color: Color(0xFFE9EDE4)),
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: Row(
+                  children: [
+                    OnboardingIcon(row.$1, size: 22),
+                    const SizedBox(width: 14),
+                    Expanded(child: Text(row.$2, style: OnboardingTheme.hint)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        row.$3,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          height: 1.2,
+                          fontWeight: FontWeight.w600,
+                          color: OnboardingTheme.ink,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ],
         ],
       ),
     ),
+    const SizedBox(height: 24),
+    const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        OnboardingIcon('leaf', size: 18),
+        SizedBox(width: 10),
+        Flexible(
+          child: Text('Küçük adımlar. Sana göre.', style: OnboardingTheme.hint),
+        ),
+      ],
+    ),
     const SizedBox(height: 28),
     const Spacer(),
     FilledButton(
-      key: const ValueKey('onboarding-edit'),
-      onPressed: () => _go(_Step.details),
-      child: const Text('Bilgilerimi düzenle', textAlign: TextAlign.center),
+      key: const ValueKey('onboarding-account'),
+      onPressed: () => _go(_Step.account),
+      child: const Text('Devam et'),
     ),
-    const SizedBox(height: 18),
+    const SizedBox(height: 16),
     const Text(
-      'Küçük adımlar. Sana göre.',
+      'Şimdi hesabını oluşturalım.',
       textAlign: TextAlign.center,
       style: OnboardingTheme.hint,
     ),
-    const SizedBox(height: 8),
   ];
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Presentation for the Limely introduction only; existing screens keep their theme.
+/// Shared Limely presentation for the introduction and approved account screens.
 abstract final class OnboardingTheme {
   static const background = Color(0xFFF8FAF2);
   static const ink = Color(0xFF203B2F);

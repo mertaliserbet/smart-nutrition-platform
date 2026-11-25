@@ -5,17 +5,21 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/network/web_config.dart';
 import 'auth_session.dart';
 import 'auth_widgets.dart';
+import 'limely_auth_widgets.dart';
+import '../onboarding/onboarding_theme.dart';
 
 class WebPanelLink extends StatefulWidget {
   const WebPanelLink({
     this.enabled = true,
     this.webBaseUrl,
     this.onOpening,
+    this.limely = false,
     super.key,
   });
   final bool enabled;
   final String? webBaseUrl;
   final VoidCallback? onOpening;
+  final bool limely;
   @override
   State<WebPanelLink> createState() => _WebPanelLinkState();
 }
@@ -90,14 +94,41 @@ class _WebPanelLinkState extends State<WebPanelLink> {
           onPressed: widget.enabled && !_opening
               ? () => _open(destination)
               : null,
-          child: Text(
-            'Diyetisyen misiniz? Web paneline gidin\n$destination',
-            textAlign: TextAlign.center,
-          ),
+          child: widget.limely
+              ? const Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OnboardingIcon('globe', size: 19),
+                        SizedBox(width: 10),
+                        Flexible(child: Text('Diyetisyen misin?')),
+                        SizedBox(width: 10),
+                        LimelyLineIcon(LimelySymbol.external, size: 18),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Web paneline geç',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: OnboardingTheme.muted,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  'Diyetisyen misiniz? Web paneline gidin\n$destination',
+                  textAlign: TextAlign.center,
+                ),
         ),
         if (_opening)
           const LinearProgressIndicator(semanticsLabel: 'Web paneli açılıyor'),
         if (_error != null) ...[
+          if (widget.limely)
+            Text(destination.toString(), textAlign: TextAlign.center),
           Semantics(
             liveRegion: true,
             child: Text(_error!, textAlign: TextAlign.center),

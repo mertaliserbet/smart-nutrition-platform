@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-25",
+  "scope": [
+    "Approved Limely login",
+    "Approved onboarding summary",
+    "Approved account creation",
+    "Navigation between these screens"
+  ],
+  "commands": {
+    "flutter pub get --offline": "passed; no dependency version changes",
+    "flutter analyze --no-pub": "passed",
+    "flutter test --no-pub": {
+      "passed": 714,
+      "failed": 0
+    },
+    "flutter test --no-pub --dart-define=CAPTURE_LIMELY_AUTH=true test/limely_auth_test.dart": {
+      "passed": 3,
+      "failed": 0
+    },
+    "flutter build apk --debug --no-pub": "passed",
+    "git diff --check": "passed"
+  },
+  "visualReview": "Reviewed actual Flutter renders against the approved three-screen concept",
+  "assets": "All 26 mobile brand assets match their package sources; five newly included assets verified inside the APK",
+  "accountRegistration": "Existing displayName/email/password registration API; successful response opens existing email verification; no automatic login",
+  "onboardingAnswers": "In-memory draft; retained between summary and account back navigation, discarded when leaving the introduction; no new health persistence/API",
+  "androidDevice": "Not run: no connected Android device or emulator",
+  "ios": "Not run: Windows environment",
+  "liveApiProbes": "Not rerun; existing probe selectors updated",
+  "contractsChanged": false,
+  "webChanged": false,
+  "committed": false,
+  "preExistingBuildWarning": "health Kotlin Gradle Plugin future compatibility warning",
+  "apkSha256": "87f01684e8d013f7031e1cbee6dd6213c8d79b97792f246238db30f43f9d2e24"
+}

@@ -60,7 +60,7 @@ void main() {
       ]) {
         expect(find.text(answer), findsOneWidget);
       }
-      await _tap(tester, 'onboarding-edit');
+      await _tap(tester, 'onboarding-back');
       expect(
         tester.widget<TextField>(_key('onboarding-age')).controller!.text,
         '28',
@@ -121,7 +121,7 @@ void main() {
         await _fill(tester, 'weight', '72');
         await _tap(tester, 'onboarding-review');
         expect(find.text('Güzel bir\nbaşlangıç!'), findsOneWidget);
-        await _tap(tester, 'onboarding-edit');
+        await _tap(tester, 'onboarding-back');
         await _tap(tester, 'onboarding-back');
         await _tap(tester, 'onboarding-back');
         expect(find.text('Merhaba, ben\nLimely!'), findsOneWidget);

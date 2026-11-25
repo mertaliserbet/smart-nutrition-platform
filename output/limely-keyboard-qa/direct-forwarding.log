@@ -1,0 +1,535 @@
+INFO         | Android emulator version 36.6.11.0 (build_id 15507667) (CL:N/A)
+INFO         | Graphics backend: gfxstream
+INFO         | Found systemPath C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\
+INFO         | Guest usage of host flag 'VulkanVirtualQueue' will be ignored.
+INFO         | Feature 'KeycodeForwarding' (69) is overridden to 'enabled'
+INFO         | Increasing RAM size to 2560MB
+INFO         | IPv4 server found: 192.168.1.1
+INFO         | Ignore IPv6 address: c059:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: c059:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: c059:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f05f:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f05f:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f05f:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: e067:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: e067:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: e067:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f06d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f06d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: f06d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 874:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 874:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 9881:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 9881:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 9881:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: b087:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: b087:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: b087:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 988d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 988d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Ignore IPv6 address: 988d:6cdf:af01:0:c059:6cdf:af01:0
+INFO         | Guest GLES Driver: Auto (ext controls)
+INFO         | emuglConfig_get_vulkan_hardware_gpu_support_info: Found physical GPU 'NVIDIA GeForce RTX 5060 Laptop GPU', type: VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU, apiVersion: 1.4.357, driverVersion: 621.24
+
+INFO         | emuglConfig_init: vulkan_mode_selected:host gles_mode_selected:host
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasCompatibleHypervisor
+INFO         |      Ok: Hypervisor compatibility to run avd: `deneme_cihazi` are met
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `deneme_cihazi` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `deneme_cihazi` are passed
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `deneme_cihazi` are met
+INFO         | Critical: Failed to load opengl32sw (Belirtilen modül bulunamadı.) (:0, )
+INFO         | Warning: Software OpenGL failed. Falling back to system OpenGL. (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_default_environment_selected() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_none_selected() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_custom_image_selected() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_custom_video_selected() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_custom_360_image_selected() (:0, )
+INFO         | Storing crashdata in: C:\Users\merta\AppData\Local\Temp\\AndroidEmulator\emu-crash-36.6.11.db, detection is enabled for process: 43988
+INFO         | Initializing gfxstream backend
+INFO         | startOpenglesRendererImpl: gpu info
+INFO         | GPU #1
+  Make: 10de
+  Model: NVIDIA GeForce RTX 5060 Laptop GPU
+  Device ID: 2d19
+
+INFO         | Disabling implicit Vulkan layers to avoid compatibility issues. Set VK_LOADER_LAYERS_DISABLE manually to disable this behavior.
+INFO         | SharedLibrary::open for [C:\Users\merta\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\lib64\vulkan\vulkan-1.dll]
+INFO         | SharedLibrary::open for [C:\Users\merta\AppData\Local\Android\Sdk\emulator\lib64\vulkan\vulkan-1.dll]
+INFO         | Added library: C:\Users\merta\AppData\Local\Android\Sdk\emulator\lib64\vulkan\vulkan-1.dll
+INFO         | Selecting Vulkan device: NVIDIA GeForce RTX 5060 Laptop GPU, Version: 1.4.357
+INFO         | Using Vulkan externalMemoryMode: OpaqueWin32 for VkEmulation
+INFO         | Initializing VkEmulation features:
+INFO         |     glInteropSupported: true
+INFO         |     useDeferredCommands: true
+INFO         |     createResourceWithRequirements: true
+INFO         |     useVulkanComposition: false
+INFO         |     useVulkanNativeSwapchain: false
+INFO         |     enable guestRenderDoc: false
+INFO         |     ASTC LDR emulation mode: Gpu
+INFO         |     enable ETC2 emulation: true
+INFO         |     enable Ycbcr emulation: false
+INFO         |     guestVulkanOnly: false
+INFO         |     useDedicatedAllocations: false
+INFO         |     guestVulkanMaxApiVersion: 1.3.0
+INFO         |     enableProtectedMemoryEmulation: false
+INFO         | Graphics Adapter Vendor Google (NVIDIA Corporation)
+INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (NVIDIA GeForce RTX 5060 Laptop GPU/PCIe/SSE2)
+INFO         | Graphics API Version OpenGL ES 3.0 (4.5.0 NVIDIA 621.24)
+INFO         | Graphics API Extensions GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_OVR_multiview2 GL_EXT_multiview_texture_multisample GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 GL_EXT_texture_buffer 
+INFO         | Graphics Device Extensions N/A
+INFO         | Disabling sparse binding feature support
+INFO         | Setting vsync to 60 hz
+INFO         | Sending adb public key [QAAAAJXAr5hD9Wp1qZWhWCYLbO8IA0tp77ra8DV0w1WQO66ppDWaT3AbIqoy7b5hdLjodP4KqnJgZqhXPMXycYjE5iyLu7xPxfwa22+kY11qMYOq0SJ1WKsxl4OVGlBq0k8R5fRCEJ9uQm2Dby5JP3XNSUpojCm4aM7HC0RhYE3paziz8yOHBXKb43Hq1JJm2RiXeZL0h8sdvxkp+B7iXyNIXFK9J45kmWsHl/831o+k/Db7u+9EWmgq5cBKFUyfcbNYi6ZlGbgKlzeUvBnmC9lMPw5hf/+/12UNOF03lqts7yPVUSjaL+7UdxYkfB87fYquUVHAFm7ibodsSWd1s4MMghPLmgTOHYQMzFDgLczOC3SdkyOWn7vK7l/B6WPvR2SaRmZL3sypW1y+gZzpjyJvdNZ6pR51uKmEuQfe6OdwtN8ffXs/MW4AXWqLQoJvbno1YLQaGAfYUKVSQmOLBpbF39zPOTmg0J3CSqCEHtHk0USE6ZCdSmaTIxuvNBYroF4GVPCi4ovqyM7KniRy0OSJQCv81c7y1giOaTsxVZ0D6tqInQvWTMHqMME/Vehipnsz5xbbV2cUsu1762UgrAQu1v/2g3ZCc1Yun9jXZPIHG3LtZTQu0rMQU+0zj7VUdHzImBwrg85KmTXwp7qFQOCYHYFjnTiuefiRJx3IfgsSfNwWuCd7iAEAAQA= @unknown]
+INFO         | Userspace boot properties:
+INFO         |   androidboot.boot_devices=pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0
+INFO         |   androidboot.dalvik.vm.heapsize=576m
+INFO         |   androidboot.debug.hwui.renderer=skiagl
+INFO         |   androidboot.hardware=ranchu
+INFO         |   androidboot.hardware.gltransport=pipe
+INFO         |   androidboot.hardware.vulkan=ranchu
+INFO         |   androidboot.logcat=*:V
+INFO         |   androidboot.opengles.version=196609
+INFO         |   androidboot.qemu=1
+INFO         |   androidboot.qemu.adb.pubkey=QAAAAJXAr5hD9Wp1qZWhWCYLbO8IA0tp77ra8DV0w1WQO66ppDWaT3AbIqoy7b5hdLjodP4KqnJgZqhXPMXycYjE5iyLu7xPxfwa22+kY11qMYOq0SJ1WKsxl4OVGlBq0k8R5fRCEJ9uQm2Dby5JP3XNSUpojCm4aM7HC0RhYE3paziz8yOHBXKb43Hq1JJm2RiXeZL0h8sdvxkp+B7iXyNIXFK9J45kmWsHl/831o+k/Db7u+9EWmgq5cBKFUyfcbNYi6ZlGbgKlzeUvBnmC9lMPw5hf/+/12UNOF03lqts7yPVUSjaL+7UdxYkfB87fYquUVHAFm7ibodsSWd1s4MMghPLmgTOHYQMzFDgLczOC3SdkyOWn7vK7l/B6WPvR2SaRmZL3sypW1y+gZzpjyJvdNZ6pR51uKmEuQfe6OdwtN8ffXs/MW4AXWqLQoJvbno1YLQaGAfYUKVSQmOLBpbF39zPOTmg0J3CSqCEHtHk0USE6ZCdSmaTIxuvNBYroF4GVPCi4ovqyM7KniRy0OSJQCv81c7y1giOaTsxVZ0D6tqInQvWTMHqMME/Vehipnsz5xbbV2cUsu1762UgrAQu1v/2g3ZCc1Yun9jXZPIHG3LtZTQu0rMQU+0zj7VUdHzImBwrg85KmTXwp7qFQOCYHYFjnTiuefiRJx3IfgsSfNwWuCd7iAEAAQA= @unknown
+INFO         |   androidboot.qemu.avd_name=deneme_cihazi
+INFO         |   androidboot.qemu.camera_hq_edge_processing=0
+INFO         |   androidboot.qemu.camera_protocol_ver=1
+INFO         |   androidboot.qemu.cpuvulkan.version=4206592
+INFO         |   androidboot.qemu.gltransport.drawFlushInterval=800
+INFO         |   androidboot.qemu.gltransport.name=pipe
+INFO         |   androidboot.qemu.hwcodec.avcdec=2
+INFO         |   androidboot.qemu.hwcodec.hevcdec=2
+INFO         |   androidboot.qemu.hwcodec.vpxdec=2
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout=2147483647
+INFO         |   androidboot.qemu.skin=pixel_8
+INFO         |   androidboot.qemu.virtiowifi=1
+INFO         |   androidboot.qemu.vsync=60
+INFO         |   androidboot.serialno=EMULATOR36X6X11X0
+INFO         |   androidboot.vbmeta.digest=43d61dbc053c8dbf3adaff951e5bdfcf174ece9dd24ffe8e6120f951cb412b2a
+INFO         |   androidboot.vbmeta.hash_alg=sha256
+INFO         |   androidboot.vbmeta.size=6784
+INFO         |   androidboot.veritymode=enforcing
+INFO         | Android bootconfig:
+INFO         |   androidboot.boot_devices="pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0"
+INFO         |   androidboot.dalvik.vm.heapsize="576m"
+INFO         |   androidboot.debug.hwui.renderer="skiagl"
+INFO         |   androidboot.hardware="ranchu"
+INFO         |   androidboot.hardware.gltransport="pipe"
+INFO         |   androidboot.hardware.vulkan="ranchu"
+INFO         |   androidboot.logcat="*:V"
+INFO         |   androidboot.opengles.version="196609"
+INFO         |   androidboot.qemu="1"
+INFO         |   androidboot.qemu.adb.pubkey="QAAAAJXAr5hD9Wp1qZWhWCYLbO8IA0tp77ra8DV0w1WQO66ppDWaT3AbIqoy7b5hdLjodP4KqnJgZqhXPMXycYjE5iyLu7xPxfwa22+kY11qMYOq0SJ1WKsxl4OVGlBq0k8R5fRCEJ9uQm2Dby5JP3XNSUpojCm4aM7HC0RhYE3paziz8yOHBXKb43Hq1JJm2RiXeZL0h8sdvxkp+B7iXyNIXFK9J45kmWsHl/831o+k/Db7u+9EWmgq5cBKFUyfcbNYi6ZlGbgKlzeUvBnmC9lMPw5hf/+/12UNOF03lqts7yPVUSjaL+7UdxYkfB87fYquUVHAFm7ibodsSWd1s4MMghPLmgTOHYQMzFDgLczOC3SdkyOWn7vK7l/B6WPvR2SaRmZL3sypW1y+gZzpjyJvdNZ6pR51uKmEuQfe6OdwtN8ffXs/MW4AXWqLQoJvbno1YLQaGAfYUKVSQmOLBpbF39zPOTmg0J3CSqCEHtHk0USE6ZCdSmaTIxuvNBYroF4GVPCi4ovqyM7KniRy0OSJQCv81c7y1giOaTsxVZ0D6tqInQvWTMHqMME/Vehipnsz5xbbV2cUsu1762UgrAQu1v/2g3ZCc1Yun9jXZPIHG3LtZTQu0rMQU+0zj7VUdHzImBwrg85KmTXwp7qFQOCYHYFjnTiuefiRJx3IfgsSfNwWuCd7iAEAAQA= @unknown"
+INFO         |   androidboot.qemu.avd_name="deneme_cihazi"
+INFO         |   androidboot.qemu.camera_hq_edge_processing="0"
+INFO         |   androidboot.qemu.camera_protocol_ver="1"
+INFO         |   androidboot.qemu.cpuvulkan.version="4206592"
+INFO         |   androidboot.qemu.gltransport.drawFlushInterval="800"
+INFO         |   androidboot.qemu.gltransport.name="pipe"
+INFO         |   androidboot.qemu.hwcodec.avcdec="2"
+INFO         |   androidboot.qemu.hwcodec.hevcdec="2"
+INFO         |   androidboot.qemu.hwcodec.vpxdec="2"
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout="2147483647"
+INFO         |   androidboot.qemu.skin="pixel_8"
+INFO         |   androidboot.qemu.virtiowifi="1"
+INFO         |   androidboot.qemu.vsync="60"
+INFO         |   androidboot.serialno="EMULATOR36X6X11X0"
+INFO         |   androidboot.vbmeta.digest="43d61dbc053c8dbf3adaff951e5bdfcf174ece9dd24ffe8e6120f951cb412b2a"
+INFO         |   androidboot.vbmeta.hash_alg="sha256"
+INFO         |   androidboot.vbmeta.size="6784"
+INFO         |   androidboot.veritymode="enforcing"
+INFO         | Content of hardware configuration file:
+INFO         | 	hw.cpu.arch = x86_64
+INFO         | 	hw.cpu.ncore = 4
+INFO         | 	hw.ramSize = 2560
+INFO         | 	hw.screen = multi-touch
+INFO         | 	hw.mainKeys = false
+INFO         | 	hw.touchpad0 = false
+INFO         | 	hw.touchpad0.width = 600
+INFO         | 	hw.touchpad0.height = 400
+INFO         | 	hw.trackBall = false
+INFO         | 	hw.keyboard = true
+INFO         | 	hw.keyboard.lid = false
+INFO         | 	hw.keyboard.charmap = qwerty2
+INFO         | 	hw.dPad = false
+INFO         | 	hw.rotaryInput = false
+INFO         | 	hw.gsmModem = true
+INFO         | 	hw.gps = true
+INFO         | 	hw.battery = true
+INFO         | 	hw.accelerometer = true
+INFO         | 	hw.accelerometer_uncalibrated = true
+INFO         | 	hw.gyroscope = true
+INFO         | 	hw.audioInput = true
+INFO         | 	hw.audioOutput = true
+INFO         | 	hw.sdCard = true
+INFO         | 	hw.sdCard.path = C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\sdcard.img
+INFO         | 	disk.cachePartition = true
+INFO         | 	disk.cachePartition.path = C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\cache.img
+INFO         | 	disk.cachePartition.size = 66m
+INFO         | 	test.quitAfterBootTimeOut = -1
+INFO         | 	test.delayAdbTillBootComplete = 0
+INFO         | 	test.monitorAdb = 0
+INFO         | 	hw.lcd.width = 1080
+INFO         | 	hw.lcd.height = 2400
+INFO         | 	hw.lcd.depth = 32
+INFO         | 	hw.lcd.circular = false
+INFO         | 	hw.lcd.density = 420
+INFO         | 	hw.lcd.transparent = false
+INFO         | 	hw.lcd.backlight = true
+INFO         | 	hw.lcd.vsync = 60
+INFO         | 	hw.gltransport = pipe
+INFO         | 	hw.gltransport.asg.writeBufferSize = 1048576
+INFO         | 	hw.gltransport.asg.writeStepSize = 4096
+INFO         | 	hw.gltransport.asg.dataRingSize = 32768
+INFO         | 	hw.gltransport.drawFlushInterval = 800
+INFO         | 	hw.displayRegion.0.1.xOffset = -1
+INFO         | 	hw.displayRegion.0.1.yOffset = -1
+INFO         | 	hw.displayRegion.0.1.width = 0
+INFO         | 	hw.displayRegion.0.1.height = 0
+INFO         | 	hw.displayRegion.0.2.xOffset = -1
+INFO         | 	hw.displayRegion.0.2.yOffset = -1
+INFO         | 	hw.displayRegion.0.2.width = 0
+INFO         | 	hw.displayRegion.0.2.height = 0
+INFO         | 	hw.displayRegion.0.3.xOffset = -1
+INFO         | 	hw.displayRegion.0.3.yOffset = -1
+INFO         | 	hw.displayRegion.0.3.width = 0
+INFO         | 	hw.displayRegion.0.3.height = 0
+INFO         | 	hw.display1.width = 0
+INFO         | 	hw.display1.height = 0
+INFO         | 	hw.display1.density = 0
+INFO         | 	hw.display1.xOffset = -1
+INFO         | 	hw.display1.yOffset = -1
+INFO         | 	hw.display1.flag = 0
+INFO         | 	hw.display2.width = 0
+INFO         | 	hw.display2.height = 0
+INFO         | 	hw.display2.density = 0
+INFO         | 	hw.display2.xOffset = -1
+INFO         | 	hw.display2.yOffset = -1
+INFO         | 	hw.display2.flag = 0
+INFO         | 	hw.display3.width = 0
+INFO         | 	hw.display3.height = 0
+INFO         | 	hw.display3.density = 0
+INFO         | 	hw.display3.xOffset = -1
+INFO         | 	hw.display3.yOffset = -1
+INFO         | 	hw.display3.flag = 0
+INFO         | 	hw.multi_display_window = false
+INFO         | 	hw.hotplug_multi_display = false
+INFO         | 	hw.gpu.enabled = true
+INFO         | 	hw.gpu.mode = host
+INFO         | 	hw.initialOrientation = portrait
+INFO         | 	hw.camera.back = virtualscene
+INFO         | 	hw.camera.back.orientation = 90
+INFO         | 	hw.camera.front = emulated
+INFO         | 	hw.camera.front.orientation = 90
+INFO         | 	vm.heapSize = 576
+INFO         | 	hw.sensors.light = true
+INFO         | 	hw.sensors.pressure = true
+INFO         | 	hw.sensors.humidity = true
+INFO         | 	hw.sensors.proximity = true
+INFO         | 	hw.sensors.magnetic_field = true
+INFO         | 	hw.sensors.magnetic_field_uncalibrated = true
+INFO         | 	hw.sensors.gyroscope_uncalibrated = true
+INFO         | 	hw.sensors.orientation = true
+INFO         | 	hw.sensors.temperature = true
+INFO         | 	hw.sensors.rgbclight = false
+INFO         | 	hw.sensor.hinge = false
+INFO         | 	hw.sensor.hinge.count = 0
+INFO         | 	hw.sensor.hinge.type = 0
+INFO         | 	hw.sensor.hinge.sub_type = 0
+INFO         | 	hw.sensor.hinge.resizable.config = 1
+INFO         | 	hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture = 1
+INFO         | 	hw.sensor.roll = false
+INFO         | 	hw.sensor.roll.count = 0
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.1_at_posture = 6
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.2_at_posture = 6
+INFO         | 	hw.sensor.roll.resize_to_displayRegion.0.3_at_posture = 6
+INFO         | 	hw.sensors.heart_rate = false
+INFO         | 	hw.sensors.wrist_tilt = false
+INFO         | 	hw.sensors.heading = false
+INFO         | 	hw.useext4 = true
+INFO         | 	hw.device.name = pixel_8
+INFO         | 	kernel.path = C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu
+INFO         | 	kernel.newDeviceNaming = yes
+INFO         | 	kernel.supportsYaffs2 = no
+INFO         | 	disk.ramdisk.path = C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\ramdisk.img
+INFO         | 	disk.systemPartition.initPath = C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img
+INFO         | 	disk.systemPartition.size = 2225m
+INFO         | 	disk.vendorPartition.initPath = C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img
+INFO         | 	disk.vendorPartition.size = 800m
+INFO         | 	disk.dataPartition.path = C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\userdata-qemu.img
+INFO         | 	disk.dataPartition.size = 10g
+INFO         | 	disk.encryptionKeyPartition.path = C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\encryptionkey.img
+INFO         | 	PlayStore.enabled = true
+INFO         | 	avd.name = deneme_cihazi
+INFO         | 	avd.id = deneme_cihazi
+INFO         | 	fastboot.forceColdBoot = false
+INFO         | 	userdata.useQcow2 = true
+INFO         | 	firstboot.bootFromDownloadableSnapshot = true
+INFO         | 	firstboot.bootFromLocalSnapshot = true
+INFO         | 	firstboot.saveToLocalSnapshot = true
+INFO         | 	android.sdk.root = C:\Users\merta\AppData\Local\Android\Sdk
+INFO         | 	android.avd.home = C:\Users\merta\.android\avd
+INFO         | 	environment.width = 0
+INFO         | 	environment.height = 0
+INFO         | .
+INFO         | QEMU options list:
+INFO         | 	 argv[00] = "C:\Users\merta\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe"
+INFO         | 	 argv[01] = "-dns-server"
+INFO         | 	 argv[02] = "192.168.1.1"
+INFO         | 	 argv[03] = "-mem-path"
+INFO         | 	 argv[04] = "C:\Users\merta\.android\avd\deneme_cihazi.avd\snapshots\default_boot\ram.img"
+INFO         | 	 argv[05] = "-serial"
+INFO         | 	 argv[06] = "null"
+INFO         | 	 argv[07] = "-device"
+INFO         | 	 argv[08] = "goldfish_pstore,addr=0xff018000,size=0x10000,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\data\misc\pstore\pstore.bin"
+INFO         | 	 argv[09] = "-cpu"
+INFO         | 	 argv[10] = "android64"
+INFO         | 	 argv[11] = "-enable-whpx"
+INFO         | 	 argv[12] = "-smp"
+INFO         | 	 argv[13] = "cores=4"
+INFO         | 	 argv[14] = "-m"
+INFO         | 	 argv[15] = "2560"
+INFO         | 	 argv[16] = "-lcd-density"
+INFO         | 	 argv[17] = "420"
+INFO         | 	 argv[18] = "-nodefaults"
+INFO         | 	 argv[19] = "-kernel"
+INFO         | 	 argv[20] = "C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu"
+INFO         | 	 argv[21] = "-initrd"
+INFO         | 	 argv[22] = "C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\initrd"
+INFO         | 	 argv[23] = "-drive"
+INFO         | 	 argv[24] = "if=none,index=0,id=system,if=none,file=C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img,read-only"
+INFO         | 	 argv[25] = "-device"
+INFO         | 	 argv[26] = "virtio-blk-pci,drive=system,modern-pio-notify"
+INFO         | 	 argv[27] = "-drive"
+INFO         | 	 argv[28] = "if=none,index=1,id=cache,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\cache.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[29] = "-device"
+INFO         | 	 argv[30] = "virtio-blk-pci,drive=cache,modern-pio-notify"
+INFO         | 	 argv[31] = "-drive"
+INFO         | 	 argv[32] = "if=none,index=2,id=userdata,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\userdata-qemu.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[33] = "-device"
+INFO         | 	 argv[34] = "virtio-blk-pci,drive=userdata,modern-pio-notify"
+INFO         | 	 argv[35] = "-drive"
+INFO         | 	 argv[36] = "if=none,index=3,id=encrypt,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\encryptionkey.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[37] = "-device"
+INFO         | 	 argv[38] = "virtio-blk-pci,drive=encrypt,modern-pio-notify"
+INFO         | 	 argv[39] = "-drive"
+INFO         | 	 argv[40] = "if=none,index=4,id=vendor,if=none,file=C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img,read-only"
+INFO         | 	 argv[41] = "-device"
+INFO         | 	 argv[42] = "virtio-blk-pci,drive=vendor,modern-pio-notify"
+INFO         | 	 argv[43] = "-drive"
+INFO         | 	 argv[44] = "if=none,index=5,id=sdcard,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\sdcard.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576"
+INFO         | 	 argv[45] = "-device"
+INFO         | 	 argv[46] = "virtio-blk-pci,drive=sdcard,modern-pio-notify"
+INFO         | 	 argv[47] = "-netdev"
+INFO         | 	 argv[48] = "user,id=mynet"
+INFO         | 	 argv[49] = "-device"
+INFO         | 	 argv[50] = "virtio-net-pci,netdev=mynet"
+INFO         | 	 argv[51] = "-chardev"
+INFO         | 	 argv[52] = "null,id=forhvc0"
+INFO         | 	 argv[53] = "-chardev"
+INFO         | 	 argv[54] = "null,id=forhvc1"
+INFO         | 	 argv[55] = "-device"
+INFO         | 	 argv[56] = "virtio-serial-pci,ioeventfd=off"
+INFO         | 	 argv[57] = "-device"
+INFO         | 	 argv[58] = "virtconsole,chardev=forhvc0"
+INFO         | 	 argv[59] = "-device"
+INFO         | 	 argv[60] = "virtconsole,chardev=forhvc1"
+INFO         | 	 argv[61] = "-chardev"
+INFO         | 	 argv[62] = "netsim,id=uwb"
+INFO         | 	 argv[63] = "-device"
+INFO         | 	 argv[64] = "virtconsole,chardev=uwb,name=uwb"
+INFO         | 	 argv[65] = "-chardev"
+INFO         | 	 argv[66] = "netsim,id=bluetooth"
+INFO         | 	 argv[67] = "-device"
+INFO         | 	 argv[68] = "virtserialport,chardev=bluetooth,name=bluetooth"
+INFO         | 	 argv[69] = "-device"
+INFO         | 	 argv[70] = "virtio-serial,ioeventfd=off"
+INFO         | 	 argv[71] = "-chardev"
+INFO         | 	 argv[72] = "socket,port=50099,host=::1,nowait,nodelay,reconnect=10,ipv6,id=modem"
+INFO         | 	 argv[73] = "-device"
+INFO         | 	 argv[74] = "virtserialport,chardev=modem,name=modem"
+INFO         | 	 argv[75] = "-device"
+INFO         | 	 argv[76] = "virtio-rng-pci"
+INFO         | 	 argv[77] = "-show-cursor"
+INFO         | 	 argv[78] = "-device"
+INFO         | 	 argv[79] = "virtio_input_multi_touch_pci_1"
+INFO         | 	 argv[80] = "-device"
+INFO         | 	 argv[81] = "virtio_input_multi_touch_pci_2"
+INFO         | 	 argv[82] = "-device"
+INFO         | 	 argv[83] = "virtio_input_multi_touch_pci_3"
+INFO         | 	 argv[84] = "-device"
+INFO         | 	 argv[85] = "virtio_input_multi_touch_pci_4"
+INFO         | 	 argv[86] = "-device"
+INFO         | 	 argv[87] = "virtio_input_multi_touch_pci_5"
+INFO         | 	 argv[88] = "-device"
+INFO         | 	 argv[89] = "virtio_input_multi_touch_pci_6"
+INFO         | 	 argv[90] = "-device"
+INFO         | 	 argv[91] = "virtio_input_multi_touch_pci_7"
+INFO         | 	 argv[92] = "-device"
+INFO         | 	 argv[93] = "virtio_input_multi_touch_pci_8"
+INFO         | 	 argv[94] = "-device"
+INFO         | 	 argv[95] = "virtio_input_multi_touch_pci_9"
+INFO         | 	 argv[96] = "-device"
+INFO         | 	 argv[97] = "virtio_input_multi_touch_pci_10"
+INFO         | 	 argv[98] = "-device"
+INFO         | 	 argv[99] = "virtio_input_multi_touch_pci_11"
+INFO         | 	 argv[100] = "-device"
+INFO         | 	 argv[101] = "virtio-keyboard-pci"
+INFO         | 	 argv[102] = "-netdev"
+INFO         | 	 argv[103] = "user,id=virtio-wifi,dhcpstart=10.0.2.16"
+INFO         | 	 argv[104] = "-device"
+INFO         | 	 argv[105] = "virtio-wifi-pci,netdev=virtio-wifi"
+INFO         | 	 argv[106] = "-device"
+INFO         | 	 argv[107] = "virtio-vsock-pci,guest-cid=77"
+INFO         | 	 argv[108] = "-L"
+INFO         | 	 argv[109] = "C:\Users\merta\AppData\Local\Android\Sdk\emulator/lib/pc-bios"
+INFO         | 	 argv[110] = "-soundhw"
+INFO         | 	 argv[111] = "virtio-snd-pci"
+INFO         | 	 argv[112] = "-vga"
+INFO         | 	 argv[113] = "none"
+INFO         | 	 argv[114] = "-append"
+INFO         | 	 argv[115] = "8250.nr_uarts=1 clocksource=pit no_timer_check console=0 loop.max_part=7 ramoops.mem_address=0xff018000 ramoops.mem_size=0x10000 memmap=0x10000$0xff018000 printk.devkmsg=on bootconfig"
+INFO         | 	 argv[116] = "-android-hw"
+INFO         | 	 argv[117] = "C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\hardware-qemu.ini"
+INFO         | Concatenated QEMU options: C:\Users\merta\AppData\Local\Android\Sdk\emulator\qemu\windows-x86_64\qemu-system-x86_64.exe -dns-server 192.168.1.1 -mem-path C:\Users\merta\.android\avd\deneme_cihazi.avd\snapshots\default_boot\ram.img -serial null -device goldfish_pstore,addr=0xff018000,size=0x10000,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\data\misc\pstore\pstore.bin -cpu android64 -enable-whpx -smp cores=4 -m 2560 -lcd-density 420 -nodefaults -kernel C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\kernel-ranchu -initrd C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\initrd -drive if=none,index=0,id=system,if=none,file=C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\system.img,read-only -device virtio-blk-pci,drive=system,modern-pio-notify -drive if=none,index=1,id=cache,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\cache.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=cache,modern-pio-notify -drive if=none,index=2,id=userdata,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\userdata-qemu.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=userdata,modern-pio-notify -drive if=none,index=3,id=encrypt,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\encryptionkey.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=encrypt,modern-pio-notify -drive if=none,index=4,id=vendor,if=none,file=C:\Users\merta\AppData\Local\Android\Sdk\system-images\android-36\google_apis_playstore\x86_64\\vendor.img,read-only -device virtio-blk-pci,drive=vendor,modern-pio-notify -drive if=none,index=5,id=sdcard,if=none,file=C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\sdcard.img.qcow2,overlap-check=none,cache=unsafe,l2-cache-size=1048576 -device virtio-blk-pci,drive=sdcard,modern-pio-notify -netdev user,id=mynet -device virtio-net-pci,netdev=mynet -chardev null,id=forhvc0 -chardev null,id=forhvc1 -device virtio-serial-pci,ioeventfd=off -device virtconsole,chardev=forhvc0 -device virtconsole,chardev=forhvc1 -chardev netsim,id=uwb -device virtconsole,chardev=uwb,name=uwb -chardev netsim,id=bluetooth -device virtserialport,chardev=bluetooth,name=bluetooth -device virtio-serial,ioeventfd=off -chardev socket,port=50099,host=::1,nowait,nodelay,reconnect=10,ipv6,id=modem -device virtserialport,chardev=modem,name=modem -device virtio-rng-pci -show-cursor -device virtio_input_multi_touch_pci_1 -device virtio_input_multi_touch_pci_2 -device virtio_input_multi_touch_pci_3 -device virtio_input_multi_touch_pci_4 -device virtio_input_multi_touch_pci_5 -device virtio_input_multi_touch_pci_6 -device virtio_input_multi_touch_pci_7 -device virtio_input_multi_touch_pci_8 -device virtio_input_multi_touch_pci_9 -device virtio_input_multi_touch_pci_10 -device virtio_input_multi_touch_pci_11 -device virtio-keyboard-pci -netdev user,id=virtio-wifi,dhcpstart=10.0.2.16 -device virtio-wifi-pci,netdev=virtio-wifi -device virtio-vsock-pci,guest-cid=77 -L C:\Users\merta\AppData\Local\Android\Sdk\emulator/lib/pc-bios -soundhw virtio-snd-pci -vga none -append "8250.nr_uarts=1 clocksource=pit no_timer_check console=0 loop.max_part=7 ramoops.mem_address=0xff018000 ramoops.mem_size=0x10000 memmap=0x10000$0xff018000 printk.devkmsg=on bootconfig" -android-hw C:\Users\merta\.android\avd\..\avd\deneme_cihazi.avd\hardware-qemu.ini
+WHPX on Windows 10.0.26200 detected.
+Windows Hypervisor Platform accelerator is operational
+INFO         | Monitoring duration of emulator setup.
+WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
+INFO         | Using security allow list from: C:\Users\merta\AppData\Local\Android\Sdk\emulator\lib\emulator_access.json
+INFO         | The active JSON Web Key Sets can be found here: C:\Users\merta\AppData\Local\Temp\avd\running\43988\jwks\b3b20799-32a2-4fde-9f44-87d5506263be\active.jwk
+INFO         | Scanning C:\Users\merta\AppData\Local\Temp\avd\running\43988\jwks\b3b20799-32a2-4fde-9f44-87d5506263be for jwk keys.
+INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
+INFO         | Advertising in: C:\Users\merta\AppData\Local\Temp\avd\running\pid_43988.ini
+INFO         | Successfully initialized netsim WiFi
+INFO         | Activated packet streamer for uwb emulation
+INFO         | Activated packet streamer for bluetooth emulation
+INFO         | Setting display: 0 configuration to: 1080x2400, dpi: 420x420 
+INFO         | setDisplayActiveConfig: id:0, 1080x2400
+WARNING      | getEnvironmentConfig: No environment config is provided
+INFO         | getEnvironmentConfig: Using default virtual scene mode for the environment.
+INFO         | getEnvironmentConfig: Using default configuration for mode mesh3d for the environment.
+INFO         | Initializing a scene with mode: mesh3d, argument: Toren1BD.obj
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasCompatibleHypervisor
+INFO         |      Ok: Hypervisor compatibility to run avd: `deneme_cihazi` are met
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `deneme_cihazi` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `deneme_cihazi` are passed
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `deneme_cihazi` are met
+USER_INFO    | Emulator is performing a full startup. This may take upto two minutes, or more.
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_rgbcSensorValueWidget_valueChanged() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_posture_valueChanged(int) (:0, )
+INFO         | Warning: QObject::connect: Cannot queue arguments of type 'std::vector<android::emulation::control::SnapshotInfo>'
+(Make sure 'std::vector<android::emulation::control::SnapshotInfo>' is registered using qRegisterMetaType().) (:0, )
+INFO         | AVD supportsNativeGLES=1, supportsGuestAngle=1
+INFO         | Guest Angle is still unstable for API > 35.
+INFO         | Created extended window in 192.711ms
+WARNING      | adb command 'C:\Users\merta\AppData\Local\Android\Sdk\platform-tools\adb.exe -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb.exe: device offline'
+INFO         | Critical: UpdateLayeredWindowIndirect failed for ptDst=(220, 125), size=(375x26), dirty=(375x26 0, 0) (Sisteme bağlı bir aygıt çalışmıyor.) (:0, )
+INFO         | Boot completed in 18707 ms
+INFO         | Increasing screen off timeout, logcat buffer size to 2M.
+INFO         | IPv4 server found: 192.168.1.1
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | IPv4 server found: 192.168.1.1
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | IPv4 server found: 192.168.1.1
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 200d:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5013:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 401b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 5021:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 6827:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f834:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: 103b:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+INFO         | Ignore IPv6 address: f840:c28:b001:0:200d:c28:b001:0
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x017,down] [0x017, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x017,down] [0x017, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x028,down] [0x028, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x033,down] [0x033, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x034,down] [0x034, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x032,down] [0x032, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x01a,down] [0x01a, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x010,down] [0x010, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x011,down] [0x011, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x012,down] [0x012, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x018,down] [0x018, up ] [0x02a, up ]
+>> skin_keycode_buffer_flush KEY [0x02a,down] [0x010,down] [0x010, up ] [0x02a, up ]
+INFO         | Wait for emulator (pid 43988) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+
+WARNING      | Not saving state: RAM not mapped as shared
+INFO         | Saving snapshot 'default_boot' using 1 ms
+INFO         | Wait for emulator (pid 43988) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+
+INFO         | removeScene: scene=0x1b0d7018ca0
+INFO         | removeAll
+WARNING      | Netsim Wifi localhost:50121 is gone due to CANCELLED

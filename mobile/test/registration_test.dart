@@ -14,6 +14,76 @@ import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
 
 void main() {
+  testWidgets(
+    'Unicode names and IME composition survive platform keyboards',
+    (tester) async {
+      final api = PendingRegistrationApi();
+      await pumpRegistration(tester, api);
+      final nameField = find.byType(TextFormField).first;
+      await tester.ensureVisible(nameField);
+      await tester.showKeyboard(nameField);
+      expect(tester.testTextInput.setClientArgs!['inputType'], {
+        'name': 'TextInputType.text',
+        'signed': null,
+        'decimal': null,
+      });
+      expect(
+        tester.testTextInput.setClientArgs!['textCapitalization'],
+        'TextCapitalization.none',
+      );
+      const composingName = 'I\u0307pek S\u0327en';
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: composingName,
+          selection: TextSelection.collapsed(offset: composingName.length),
+          composing: TextRange(start: 0, end: composingName.length),
+        ),
+      );
+      await tester.pump();
+      expect(
+        tester
+            .widget<TextField>(find.byType(TextField).first)
+            .controller!
+            .value,
+        const TextEditingValue(
+          text: composingName,
+          selection: TextSelection.collapsed(offset: composingName.length),
+          composing: TextRange(start: 0, end: composingName.length),
+        ),
+      );
+      const name = 'Şule İpek Ğül ıiİI ÇçÖöÜü 李明 محمد';
+      tester.testTextInput.updateEditingValue(
+        const TextEditingValue(
+          text: name,
+          selection: TextSelection.collapsed(offset: name.length),
+        ),
+      );
+      await tester.pump();
+      await tester.enterText(
+        find.byType(TextFormField).at(1),
+        'unicode@example.test',
+      );
+      await tester.enterText(
+        find.byType(TextFormField).at(2),
+        'Sentetik şifre',
+      );
+      final submit = find.widgetWithText(FilledButton, 'Hesabımı oluştur');
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pump();
+      expect(api.calls, 1);
+      expect(api.payload!['displayName'], name);
+      await tester.pumpWidget(const SizedBox.shrink());
+      api.result.complete();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+    }),
+  );
+
   for (final brightness in Brightness.values) {
     testWidgets(
       'successful registration waits for the API in ${brightness.name}',
@@ -23,7 +93,7 @@ void main() {
         addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
         await pumpRegistration(tester, api);
         await fillRegistration(tester);
-        final button = find.widgetWithText(FilledButton, 'Kayıt ol');
+        final button = find.widgetWithText(FilledButton, 'Hesabımı oluştur');
         await tester.ensureVisible(button);
         await tester.pumpAndSettle();
         final submit = tester.widget<FilledButton>(button).onPressed!;
@@ -107,7 +177,7 @@ void main() {
       final api = PendingRegistrationApi();
       await pumpRegistration(tester, api);
       await fillRegistration(tester);
-      final submit = find.widgetWithText(FilledButton, 'Kayıt ol');
+      final submit = find.widgetWithText(FilledButton, 'Hesabımı oluştur');
       await tester.ensureVisible(submit);
       await tester.pumpAndSettle();
       await tester.tap(submit);
@@ -137,7 +207,7 @@ void main() {
   ) async {
     final api = PendingRegistrationApi();
     await pumpRegistration(tester, api);
-    final submit = find.widgetWithText(FilledButton, 'Kayıt ol');
+    final submit = find.widgetWithText(FilledButton, 'Hesabımı oluştur');
     await tester.ensureVisible(submit);
     await tester.pumpAndSettle();
     await tester.tap(submit);
@@ -159,7 +229,7 @@ void main() {
     final api = PendingRegistrationApi();
     await pumpRegistration(tester, api);
     await fillRegistration(tester);
-    final submit = find.widgetWithText(FilledButton, 'Kayıt ol');
+    final submit = find.widgetWithText(FilledButton, 'Hesabımı oluştur');
     await tester.ensureVisible(submit);
     await tester.pumpAndSettle();
     await tester.tap(submit);
@@ -193,7 +263,6 @@ Future<void> fillRegistration(WidgetTester tester) async {
     (0, 'İpek Şen'),
     (1, ' synthetic@example.test '),
     (2, '  Sentetik 😀 şifre  '),
-    (3, '  Sentetik 😀 şifre  '),
   ]) {
     final field = find.byType(TextFormField).at(index);
     await tester.ensureVisible(field);

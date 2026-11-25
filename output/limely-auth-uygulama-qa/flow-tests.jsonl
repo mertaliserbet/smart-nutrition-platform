@@ -1,0 +1,17 @@
+{"protocolVersion":"0.1.1","runnerVersion":null,"pid":19372,"type":"start","time":0}
+{"suite":{"id":0,"platform":"vm","path":"C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart"},"type":"suite","time":0}
+{"test":{"id":1,"name":"loading C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":0}
+{"count":1,"time":3,"type":"allSuites"}
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1495}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":3,"line":null,"column":null,"url":null},"type":"group","time":1497}
+{"test":{"id":3,"name":"(setUpAll)","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":14,"column":3,"url":"file:///C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart"},"type":"testStart","time":1497}
+{"testID":3,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":1515}
+{"test":{"id":4,"name":"account back returns to the actual summary without losing answers","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":21,"root_column":3,"root_url":"file:///C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart"},"type":"testStart","time":1516}
+{"testID":4,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":2776}
+{"test":{"id":5,"name":"account login shortcut discards the anonymous draft","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":60,"root_column":3,"root_url":"file:///C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart"},"type":"testStart","time":2776}
+{"testID":5,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":3250}
+{"test":{"id":6,"name":"capture the implemented login summary and account screens","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":87,"root_column":5,"root_url":"file:///C:/Users/merta/smart-nutrition-platform/mobile/test/limely_auth_test.dart"},"type":"testStart","time":3251}
+{"testID":6,"result":"success","skipped":false,"hidden":false,"type":"testDone","time":3769}
+{"test":{"id":7,"name":"(tearDownAll)","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":3769}
+{"testID":7,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":3771}
+{"success":true,"type":"done","time":3797}

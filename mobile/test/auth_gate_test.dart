@@ -47,7 +47,7 @@ void main() {
     );
 
     for (final (route, page, backLabel) in [
-      ('/register', RegisterPage, 'Zaten hesabınız var mı? Girişe dön'),
+      ('/register', RegisterPage, 'Giriş yap'),
       ('/email-verification', EmailVerificationPage, 'Önceki ekrana dön'),
       ('/forgot-password', ForgotPasswordPage, 'Giriş ekranına dön'),
     ]) {

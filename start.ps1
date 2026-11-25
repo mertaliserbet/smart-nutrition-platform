@@ -374,7 +374,8 @@ function Start-Development {
                     if ($avds.Count -eq 1) {
                         $startedAvdName = $avds[0]
                         Write-ServiceLog 'Mobil' "Mevcut Android emülatörü açılıyor: $startedAvdName. Veriler sıfırlanmaz." Cyan
-                        $avdProcess = Start-ServiceProcess 'Emülatör' $emulatorTool @('-avd', $startedAvdName, '-no-snapshot') $mobile
+                        # Preserve physical key positions for layouts such as Turkish Q.
+                        $avdProcess = Start-ServiceProcess 'Emülatör' $emulatorTool @('-avd', $startedAvdName, '-no-snapshot', '-use-keycode-forwarding', '-feature', 'KeycodeForwarding') $mobile
                         $bootTimer = [Diagnostics.Stopwatch]::StartNew()
                         while (-not $emulator -and $bootTimer.Elapsed.TotalSeconds -lt 120) {
                             Pump-ServiceLogs
