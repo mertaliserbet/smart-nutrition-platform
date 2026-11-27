@@ -27,7 +27,7 @@ function HowItWorks() {
     </div>
     <div className="marketing-info"><Icon name="info" />Fotoğraf analizi bir tahmindir. Fotoğraf ve barkod akışları planlanıyor; kartlar açıklayıcı örnektir.</div>
     <section className="marketing-together"><TrackingIllustration /><div><h2>Kendi başına veya diyetisyeninle</h2><p>Günlük kayıtlarını takip et; diyetisyeninle çalışıyorsan<br />atanan planını ve geri bildirimlerini aynı yerde gör.</p></div><ul><li><Icon name="check" />Manuel kayıt her zaman kullanılabilir</li><li><Icon name="check" />Programın güncel hali uygulamada</li><li><Icon name="check" />Ölçüm ve su kayıtları bir arada</li></ul></section>
-    <section className="marketing-cta"><h2>İlk öğününü eklemeye hazır mısın?</h2><Link className="button button-primary" to="/uzman-basvurusu">Ücretsiz başla<Icon name="arrow" /></Link></section>
+    <section className="marketing-cta"><div><h2>Diyetisyen olarak danışan takibine başla</h2><p>Danışan kaydı ve öğün ekleme mobil uygulamada yapılır.</p></div><Link className="button button-primary" to="/uzman-basvurusu">Diyetisyen hesabı aç<Icon name="arrow" /></Link></section>
   </>
 }
 

@@ -12,7 +12,14 @@ export function AppointmentsPage() {
   const start = new Date(date.getFullYear(), date.getMonth(), date.getDate() - (date.getDay() + 6) % 7)
   const days = Array.from({ length: view === 'day' ? 1 : 7 }, (_, index) => new Date((view === 'day' ? date : start).getFullYear(), (view === 'day' ? date : start).getMonth(), (view === 'day' ? date : start).getDate() + index))
   const label = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(date)
-  function move(direction: number) { setDate(value => new Date(value.getFullYear(), value.getMonth() + (view === 'month' ? direction : 0), value.getDate() + (view === 'month' ? 0 : direction * (view === 'week' ? 7 : 1)))) }
+  function move(direction: number) {
+    setDate(value => {
+      if (view !== 'month') return new Date(value.getFullYear(), value.getMonth(), value.getDate() + direction * (view === 'week' ? 7 : 1))
+      const target = new Date(value.getFullYear(), value.getMonth() + direction, 1)
+      const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+      return new Date(target.getFullYear(), target.getMonth(), Math.min(value.getDate(), lastDay))
+    })
+  }
   return <>
     <div className="dashboard-heading"><div className="page-heading"><h1 tabIndex={-1}>Randevular</h1><p>Görüşmeleriniz ve randevu talepleri için takvim alanı.</p></div><button className="button button-primary" disabled aria-describedby="appointments-unavailable"><Icon name="plus" />Randevu oluştur</button></div>
     <div className="calendar-layout"><section className="calendar-main"><div className="calendar-toolbar"><button className="icon-button" aria-label="Önceki dönem" onClick={() => move(-1)}><Icon name="back" /></button><label className="calendar-date"><Icon name="calendar" /><span className="sr-only">Takvim tarihi</span><span className="calendar-range">{view === 'week' ? `${days[0]!.getDate()}–${days[6]!.getDate()} ${days[6]!.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}` : date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span><DateField type="date" value={`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`} onChange={event => { if (event.target.value) setDate(new Date(`${event.target.value}T12:00:00`)) }} /></label><button className="icon-button" aria-label="Sonraki dönem" onClick={() => move(1)}><Icon name="arrow" /></button><button className="button button-secondary" onClick={() => setDate(new Date())}>Bugün</button><div className="calendar-view" role="group" aria-label="Takvim görünümü">{([['day', 'Gün'], ['week', 'Hafta'], ['month', 'Ay']] as const).map(([value, text]) => <button key={value} className={`button ${view === value ? 'button-primary' : 'button-secondary'}`} aria-pressed={view === value} onClick={() => setView(value)}>{text}</button>)}</div></div>
