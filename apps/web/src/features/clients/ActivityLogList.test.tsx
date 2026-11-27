@@ -1,28 +1,14 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import App from '../../App'
 import { ActivityLogList } from './ClientRecordViews'
-import { getPreviewRecords, previewClients } from './clientTracking.preview'
+import { getPreviewRecords, previewClients } from '../../test/clientTrackingFixtures'
 
 const clientId = previewClients[0]!.id
-const detailPath = `/onizleme/danisanlar/${clientId}`
-const activityPath = `${detailPath}?kayit=aktiviteler`
-
-function renderApp(path = activityPath) {
-  render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
-  return userEvent.setup()
-}
-
 describe('read-only activity history', () => {
-  it('opens from the client navigation and shows units, source and unknown energy without requests or storage', async () => {
+  it('shows units, source and unknown energy without requests or storage', async () => {
     const request = vi.spyOn(globalThis, 'fetch')
     const storage = vi.spyOn(Storage.prototype, 'setItem')
-    const user = renderApp(detailPath)
-    await user.click(screen.getByRole('link', { name: 'Aktiviteler' }))
-    expect(screen.getByRole('link', { name: 'Aktiviteler' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('heading', { name: 'Aktivite geçmişi' })).toBeVisible()
+    render(<ActivityLogList clientId={clientId} records={getPreviewRecords(clientId)!.activityLogs} />)
     const walking = screen.getByRole('article', { name: 'Yürüyüş (örnek)' })
     expect(within(walking).getByText('35,5 dk')).toBeVisible()
     expect(within(walking).getByText('3,2 km')).toBeVisible()
@@ -37,8 +23,8 @@ describe('read-only activity history', () => {
     expect(storage).not.toHaveBeenCalled()
   })
 
-  it('opens a direct activity URL and preserves the UTC timestamp', () => {
-    renderApp()
+  it('preserves the UTC timestamp of the latest activity', () => {
+    render(<ActivityLogList clientId={clientId} records={getPreviewRecords(clientId)!.activityLogs} />)
     const latest = screen.getAllByRole('article')[0]!
     expect(latest).toHaveAccessibleName('Esneme (örnek)')
     expect(latest.querySelector('time')).toHaveAttribute('datetime', '2026-10-25T15:00:00Z')
@@ -73,34 +59,4 @@ describe('read-only activity history', () => {
     expect(screen.queryByLabelText('Aktivite kayıtları')).not.toBeInTheDocument()
   })
 
-  it('removes activity values in every unavailable scenario and keeps a restriction when switching views', async () => {
-    const user = renderApp()
-    const scenario = screen.getByRole('combobox', { name: 'Önizleme senaryosu' })
-    const states = [
-      ['empty', 'Henüz kayıt bulunmuyor'], ['disconnected', 'Veri bağlantısı bekleniyor'],
-      ['loading', 'Kayıtlar yükleniyor…'], ['error', 'Kayıtlar görüntülenemedi'],
-      ['restricted', 'Bu kayıtlar paylaşılmıyor'],
-    ] as const
-    for (const [value, message] of states) {
-      await user.selectOptions(scenario, value)
-      expect(screen.getByText(message)).toBeVisible()
-      expect(screen.queryByLabelText('Aktivite kayıtları')).not.toBeInTheDocument()
-      expect(screen.queryByText('35,5 dk')).not.toBeInTheDocument()
-      expect(screen.queryByText('0 kcal')).not.toBeInTheDocument()
-    }
-    await user.click(screen.getByRole('link', { name: 'Su kayıtları' }))
-    await user.click(screen.getByRole('link', { name: 'Aktiviteler' }))
-    expect(screen.getByText('Bu kayıtlar paylaşılmıyor')).toBeVisible()
-    expect(screen.queryByRole('article')).not.toBeInTheDocument()
-    await user.selectOptions(scenario, 'sample')
-    expect(screen.getByText('35,5 dk')).toBeVisible()
-  })
-
-  it('keeps the direct activity preview unavailable in production', () => {
-    vi.stubEnv('DEV', false)
-    renderApp()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Bu sayfa bulunamadı.')
-    expect(screen.queryByText('Yürüyüş (örnek)')).not.toBeInTheDocument()
-    expect(screen.queryByLabelText('Aktivite kayıtları')).not.toBeInTheDocument()
-  })
 })

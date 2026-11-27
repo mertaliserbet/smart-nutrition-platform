@@ -55,7 +55,7 @@ export function MealLogList({ clientId, clientName, records, page, renderComment
       <ul className="meal-items">
         {record.items.filter((item) => item.mealLogId === record.id).map((item) => <li key={item.id}>
           <div className="meal-item-title"><h4>{item.displayName}</h4>{item.isEstimated && <span className="estimate-badge">Tahmini</span>}{collapseValues && <span className="meal-item-portion">{item.quantityGrams === null ? 'Bilinmiyor' : `${numberFormatter.format(item.quantityGrams)} g`}</span>}</div>
-          <details className="meal-nutrition-values" open={!collapseValues}><summary>Besin değerleri</summary><dl className="record-quantities">
+          <details className="meal-nutrition-values" open={!collapseValues}><summary title="Besin değerleri"><span className="meal-nutrition-label">Besin değerleri</span><Icon name="info" className="meal-nutrition-icon" /></summary><dl className="record-quantities">
             <Quantity label="Porsiyon" value={item.quantityGrams} unit="g" /><Quantity label="Enerji" value={item.caloriesKcal} unit="kcal" /><Quantity label="Protein" value={item.proteinGrams} unit="g" /><Quantity label="Karbonhidrat" value={item.carbsGrams} unit="g" /><Quantity label="Yağ" value={item.fatGrams} unit="g" />
           </dl></details>
         </li>)}

@@ -4,10 +4,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Brand, Icon } from '../../core/components/Icon'
 import type { IconName } from '../../core/components/Icon'
 import { logout } from '../auth/webSessionApi'
+import { isUuid } from '../relationships/relationshipApi'
 import { WorkspaceProfileMenu } from './WorkspaceProfileMenu'
 import './workspace.css'
 
 type WorkspaceProfile = { displayName: string; email: string; token: string }
+const clientFeatureRoutes = ['/calisma-alani/ogun-incelemeleri', '/calisma-alani/programlar', '/calisma-alani/raporlar']
 
 export function WorkspaceLayout({ audience, profile, children }: {
   audience: 'dietitian' | 'admin'; profile?: WorkspaceProfile; children: ReactNode
@@ -31,6 +33,14 @@ export function WorkspaceLayout({ audience, profile, children }: {
       { to: '/calisma-alani/raporlar', label: 'Raporlar', icon: 'chart' },
     ]
   const selectedSection = new URLSearchParams(search).get('bolum')
+  const requestedClientId = clientFeatureRoutes.includes(pathname)
+    ? new URLSearchParams(search).get('clientId')
+    : pathname.match(/^\/calisma-alani\/danisanlar\/([^/]+)$/)?.[1]
+  function navigationTarget(to: string) {
+    return clientFeatureRoutes.includes(to) && isUuid(requestedClientId)
+      ? { pathname: to, search: `?${new URLSearchParams({ clientId: requestedClientId })}` }
+      : to
+  }
   function isCurrent(to: string) {
     if (pathname.startsWith('/calisma-alani/danisanlar/')) {
       const sectionRoutes: Record<string, string> = { program: '/calisma-alani/programlar', ogunler: '/calisma-alani/ogun-incelemeleri', 'olcum-su': '/calisma-alani/raporlar' }
@@ -66,7 +76,7 @@ export function WorkspaceLayout({ audience, profile, children }: {
         <Icon name={menuOpen ? 'close' : 'menu'} /></button></div>
       <div id="live-navigation" className={`sidebar-content ${menuOpen ? 'is-open' : ''}`}>
         <nav aria-label={admin ? 'Yönetici paneli' : 'Diyetisyen çalışma alanı'}>
-          {navigation.map(item => <Link key={item.to} to={item.to} className={isCurrent(item.to) ? 'active' : undefined} aria-current={isCurrent(item.to) ? 'page' : undefined} onClick={() => setMenuOpen(false)}><Icon name={item.icon} />{item.label}</Link>)}
+          {navigation.map(item => <Link key={item.to} to={navigationTarget(item.to)} className={isCurrent(item.to) ? 'active' : undefined} aria-current={isCurrent(item.to) ? 'page' : undefined} onClick={() => setMenuOpen(false)}><Icon name={item.icon} />{item.label}</Link>)}
         </nav>
         <div className="sidebar-account"><Link className={pathname === '/hesabim' ? 'active' : ''} to="/hesabim" onClick={() => setMenuOpen(false)}><Icon name="settings" />Ayarlar</Link></div>
         {profile && <WorkspaceProfileMenu key={pathname} displayName={profile.displayName} email={profile.email} showName>

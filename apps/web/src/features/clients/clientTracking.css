@@ -207,10 +207,11 @@
 .meal-content-grid .meal-items { padding: 0; }
 .meal-content-grid .meal-items > li:first-child { padding-top: 10px; }
 .meal-content-grid .record-quantities { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 1250px) { .meal-content-grid { grid-template-columns: minmax(0, 1fr); } .meal-photo-placeholder { min-height: 140px; } }
+@media (max-width: 1450px) { .meal-content-grid { grid-template-columns: minmax(0, 1fr); } .meal-photo-placeholder { min-height: 140px; } }
 @media (max-width: 600px) { .meal-content-grid { padding: 16px; } }
 
 .meal-nutrition-values > summary { cursor: pointer; color: var(--brand-primary); font-size: 14px; padding-block: 6px; }
+.meal-nutrition-values > summary .meal-nutrition-icon { display: none; }
 .meal-item-portion { margin-left: auto; border-left: 1px solid var(--border); padding-left: 18px; white-space: nowrap; font-size: 18px; }
 .meal-review-detail .record-header { border-bottom: 0; }
 .meal-review-detail .record-header time { font-size: 18px; }
@@ -219,7 +220,16 @@
 .meal-review-detail .meal-comments form { margin-top: 16px; }
 .meal-review-detail .meal-comments form label { font-size: 18px; font-weight: 750; }
 .meal-review-detail .meal-record { min-height: 714px; background: var(--surface); border-radius: 16px; }
-@media (min-width: 1251px) { .meal-review-detail .meal-nutrition-values:not([open]) { position: absolute; right: 8px; top: 0; } .meal-review-detail .meal-nutrition-values:not([open]) > summary { width: 38px; height: 44px; font-size: 0; list-style: none; } .meal-review-detail .meal-nutrition-values:not([open]) > summary::after { content: 'ⓘ'; font-size: 23px; } .meal-review-detail .meal-item-portion { padding-right: 28px; } }
+@media (min-width: 1251px) {
+  .meal-review-detail .meal-item-title { min-height: 24px; padding-right: 44px; flex-wrap: nowrap; }
+  .meal-review-detail .meal-item-title h4 { flex: 1; min-width: 0; }
+  .meal-review-detail .meal-item-portion { flex-shrink: 0; }
+  .meal-review-detail .meal-nutrition-values > summary { position: absolute; top: 2px; right: 4px; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 10px; list-style: none; }
+  .meal-review-detail .meal-nutrition-values > summary:hover { background: var(--brand-soft); }
+  .meal-review-detail .meal-nutrition-values > summary:focus-visible { outline-offset: -3px; }
+  .meal-review-detail .meal-nutrition-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .meal-review-detail .meal-nutrition-values > summary .meal-nutrition-icon { display: inline-flex; width: 22px; height: 22px; }
+}
 
 .meal-comments-inline .meal-comment-content { display: flex; flex-direction: column; }
 .meal-comments-inline .meal-comment-content > h4 { display: none; }
