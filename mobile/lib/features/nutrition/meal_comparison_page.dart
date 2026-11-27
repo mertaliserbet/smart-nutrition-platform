@@ -6,17 +6,23 @@ import '../auth/login_page.dart';
 import '../water/water_log_api.dart';
 import 'meal_comparison_api.dart';
 import 'nutrition_plan_api.dart';
+import 'meal_log_api.dart';
+import 'plan_review_view.dart';
 
 class MealComparisonPage extends StatefulWidget {
   const MealComparisonPage({
     this.planApi,
     this.api,
     this.initialDate,
+    this.mealApi,
+    this.sheet = false,
     super.key,
   });
   final NutritionPlanApi? planApi;
   final MealComparisonApi? api;
   final DateTime? initialDate;
+  final MealLogApi? mealApi;
+  final bool sheet;
   @override
   State<MealComparisonPage> createState() => _MealComparisonPageState();
 }
@@ -28,6 +34,10 @@ class _MealComparisonPageState extends State<MealComparisonPage>
   MealComparisonApi? _api;
   String? _owner, _error, _empty;
   NutritionPlanMealComparisonResponse? _data;
+  List<MealLog>? _records;
+  String? _recordsError;
+  bool _showLogs = false, _recordsLoading = false;
+  int _recordsRevision = 0;
   late DateTime _date;
   bool _loading = false, _loaded = false;
   bool _foreground =
@@ -47,6 +57,10 @@ class _MealComparisonPageState extends State<MealComparisonPage>
 
   void _clear() {
     ++_revision;
+    ++_recordsRevision;
+    _records = null;
+    _recordsError = null;
+    _recordsLoading = false;
     _data = null;
     _error = null;
     _empty = null;
@@ -102,7 +116,12 @@ class _MealComparisonPageState extends State<MealComparisonPage>
       _empty = null;
       _loading = true;
       _loaded = false;
+      ++_recordsRevision;
+      _records = null;
+      _recordsError = null;
+      _recordsLoading = false;
     });
+    if (widget.sheet && _showLogs) _loadRecords();
     bool current() => mounted && _authorized && revision == _revision;
     try {
       final plan = await _plans!.active();
@@ -168,9 +187,35 @@ class _MealComparisonPageState extends State<MealComparisonPage>
     await _load();
   }
 
+  Future<void> _loadRecords() async {
+    if (!_authorized || _session == null || _recordsLoading) return;
+    final session = _session!, revision = ++_recordsRevision;
+    final day = WaterDayRange.forDate(_date);
+    setState(() {
+      _recordsLoading = true;
+      _records = null;
+      _recordsError = null;
+    });
+    bool current() => mounted && _authorized && revision == _recordsRevision;
+    final api = identical(widget.mealApi?.session, session)
+        ? widget.mealApi!
+        : MealLogApi(session);
+    try {
+      final rows = await api.forRange(from: day.from, to: day.to);
+      if (current()) setState(() => _records = rows);
+    } catch (_) {
+      if (current()) {
+        setState(() => _recordsError = 'Öğün kayıtları yüklenemedi.');
+      }
+    } finally {
+      if (current()) setState(() => _recordsLoading = false);
+    }
+  }
+
   @override
   void dispose() {
     ++_revision;
+    ++_recordsRevision;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -311,6 +356,31 @@ class _MealComparisonPageState extends State<MealComparisonPage>
   Widget build(BuildContext context) {
     if (_session?.isAuthenticated != true) {
       return const LoginPage();
+    }
+    if (widget.sheet) {
+      return PlanReviewView(
+        data: _authorized ? _data : null,
+        date: _date,
+        loading: _loading,
+        error: _error,
+        empty: _empty,
+        authorized: _authorized,
+        showLogs: _showLogs,
+        records: _authorized ? _records : null,
+        recordsLoading: _recordsLoading,
+        recordsError: _recordsError,
+        onRetry: _load,
+        onRecordsRetry: _loadRecords,
+        onTab: (logs) {
+          setState(() => _showLogs = logs);
+          if (logs &&
+              _records == null &&
+              !_recordsLoading &&
+              _recordsError == null) {
+            _loadRecords();
+          }
+        },
+      );
     }
     return Scaffold(
       appBar: AppBar(title: const Text('Program ve tüketim')),

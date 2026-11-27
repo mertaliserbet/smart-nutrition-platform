@@ -61,10 +61,10 @@ class _MainShellState extends State<MainShell> {
         if (!didPop) _selectTab(0);
       },
       child: Scaffold(
-        backgroundColor: _selectedIndex <= 1
+        backgroundColor: _selectedIndex <= 2
             ? OnboardingTheme.background
             : null,
-        appBar: _selectedIndex <= 1
+        appBar: _selectedIndex <= 2
             ? null
             : AppBar(
                 automaticallyImplyLeading: false,
@@ -93,7 +93,7 @@ class _MainShellState extends State<MainShell> {
                 ),
               ),
         body: SafeArea(
-          top: _selectedIndex <= 1,
+          top: _selectedIndex <= 2,
           bottom: false,
           child: IndexedStack(
             index: _selectedIndex,
@@ -112,6 +112,7 @@ class _MainShellState extends State<MainShell> {
               NutritionPage(
                 active: _selectedIndex == 2,
                 refreshRevision: _nutritionRevision,
+                onViewProfile: () => _selectTab(4),
               ),
               Theme(
                 data: OnboardingTheme.data,

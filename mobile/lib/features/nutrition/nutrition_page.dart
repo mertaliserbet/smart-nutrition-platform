@@ -1,22 +1,34 @@
 import 'package:flutter/material.dart';
-
-import '../../core/theme/app_tokens.dart';
 import '../auth/auth_session.dart';
+import '../dietitians/dietitian_api.dart';
+import '../onboarding/onboarding_theme.dart';
+import '../water/water_log_api.dart';
 import 'manual_meal_log_page.dart';
+import 'meal_comparison_page.dart';
+import 'meal_log_api.dart';
 import 'meal_log_history_page.dart';
 import 'nutrition_plan_api.dart';
-import 'meal_comparison_page.dart';
+import 'nutrition_plan_view.dart';
+import 'nutrition_plan_info.dart';
 
 class NutritionPage extends StatefulWidget {
   const NutritionPage({
     this.active = true,
     this.refreshRevision = 0,
     this.api,
+    this.mealApi,
+    this.dietitianApi,
+    this.initialDate,
+    this.onViewProfile,
     super.key,
   });
   final bool active;
   final int refreshRevision;
   final NutritionPlanApi? api;
+  final MealLogApi? mealApi;
+  final DietitianApi? dietitianApi;
+  final DateTime? initialDate;
+  final VoidCallback? onViewProfile;
   @override
   State<NutritionPage> createState() => _NutritionPageState();
 }
@@ -25,34 +37,60 @@ class _NutritionPageState extends State<NutritionPage>
     with WidgetsBindingObserver {
   AuthSession? _session;
   NutritionPlanApi? _api;
+  MealLogApi? _meals;
+  DietitianApi? _experts;
   NutritionPlanResponse? _plan;
-  String? _owner, _error;
-  int _revision = 0;
+  String? _owner, _error, _expert, _mealError;
+  List<MealLog>? _records;
+  int _revision = 0, _dayRevision = 0;
   bool _loading = false, _loaded = false;
   bool _foreground =
       WidgetsBinding.instance.lifecycleState == null ||
       WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+  late DateTime _date = widget.initialDate ?? DateTime.now();
   bool get _canRead =>
-      widget.active && _foreground && _session?.isAuthenticated == true;
+      widget.active &&
+      _foreground &&
+      _session?.isAuthenticated == true &&
+      _session?.user?.id == _owner;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }
 
+  void _bindApis() {
+    final session = _session;
+    _api = session == null
+        ? null
+        : identical(widget.api?.session, session)
+        ? widget.api
+        : NutritionPlanApi(session);
+    _meals = session == null
+        ? null
+        : identical(widget.mealApi?.session, session)
+        ? widget.mealApi
+        : MealLogApi(session);
+    _experts = session == null
+        ? null
+        : identical(widget.dietitianApi?.session, session)
+        ? widget.dietitianApi
+        : DietitianApi(session);
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final session = AuthSessionScope.maybeOf(context);
-    final owner = session?.user?.id;
-    if (!identical(session, _session) || owner != _owner) {
+    if (!identical(session, _session) || session?.user?.id != _owner) {
       _clear();
+      _date = widget.initialDate ?? DateTime.now();
       _session = session;
-      _owner = owner;
-      _api = widget.api ?? (session == null ? null : NutritionPlanApi(session));
+      _owner = session?.user?.id;
+      _bindApis();
     }
-    if (session?.isAuthenticated != true) _clear();
-    if (_canRead && !_loaded && !_loading) _load();
+    if (!_canRead) _clear();
+    if (_canRead && !_loaded && !_loading && _error == null) _load();
   }
 
   @override
@@ -60,25 +98,32 @@ class _NutritionPageState extends State<NutritionPage>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.active != widget.active ||
         oldWidget.refreshRevision != widget.refreshRevision ||
-        oldWidget.api != widget.api) {
+        oldWidget.api != widget.api ||
+        oldWidget.mealApi != widget.mealApi ||
+        oldWidget.dietitianApi != widget.dietitianApi) {
       _clear();
-      _api =
-          widget.api ?? (_session == null ? null : NutritionPlanApi(_session!));
+      _bindApis();
       if (_canRead) _load();
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    _foreground = state == AppLifecycleState.resumed;
-    setState(_clear);
+    setState(() {
+      _foreground = state == AppLifecycleState.resumed;
+      _clear();
+    });
     if (_canRead) _load();
   }
 
   void _clear() {
     ++_revision;
+    ++_dayRevision;
     _plan = null;
+    _expert = null;
     _error = null;
+    _records = null;
+    _mealError = null;
     _loading = false;
     _loaded = false;
   }
@@ -93,19 +138,22 @@ class _NutritionPageState extends State<NutritionPage>
     final revision = ++_revision;
     setState(() {
       _loading = true;
-      _loaded = false;
-      _plan = null;
       _error = null;
     });
+    bool current() => mounted && revision == _revision && _canRead;
     try {
       final plan = await _api!.active();
-      if (!mounted || revision != _revision || !_canRead) return;
+      if (!current()) return;
       setState(() {
         _plan = plan;
         _loaded = true;
       });
+      if (plan != null) {
+        _loadRecords();
+        _loadExpert(plan, revision);
+      }
     } catch (error) {
-      if (mounted && revision == _revision && _canRead) {
+      if (current()) {
         setState(
           () => _error = error is NutritionPlanApiException
               ? error.message
@@ -113,228 +161,159 @@ class _NutritionPageState extends State<NutritionPage>
         );
       }
     } finally {
-      if (mounted && revision == _revision) setState(() => _loading = false);
+      if (current()) setState(() => _loading = false);
     }
+  }
+
+  // Only credit the expert who assigned this plan. Directory errors do not hide it.
+  Future<void> _loadExpert(NutritionPlanResponse plan, int revision) async {
+    if (plan.dietitianId == null || _experts == null) return;
+    bool current() => mounted && _canRead && revision == _revision;
+    final experts = _experts!;
+    try {
+      var page = 1, seen = 0;
+      while (current()) {
+        final result = await experts.search(page: page);
+        if (!current()) return;
+        for (final expert in result.items) {
+          if (expert.id == plan.dietitianId) {
+            setState(() => _expert = expert.displayName);
+            return;
+          }
+        }
+        seen += result.items.length;
+        if (result.items.isEmpty || seen >= result.totalCount) return;
+        page++;
+      }
+    } catch (_) {
+      /* Keep the generic credit when the directory is unavailable. */
+    }
+  }
+
+  Future<void> _loadRecords() async {
+    if (!_canRead || _meals == null || _plan == null) return;
+    final revision = ++_dayRevision, planRevision = _revision;
+    final day = WaterDayRange.forDate(_date);
+    setState(() {
+      _records = null;
+      _mealError = null;
+    });
+    bool current() =>
+        mounted &&
+        _canRead &&
+        revision == _dayRevision &&
+        planRevision == _revision;
+    try {
+      final records = await _meals!.forRange(from: day.from, to: day.to);
+      if (current()) setState(() => _records = records);
+    } catch (_) {
+      if (current()) setState(() => _mealError = 'Öğün kayıtları yüklenemedi.');
+    }
+  }
+
+  void _selectDate(DateTime date) {
+    setState(() => _date = date);
+    _loadRecords();
+  }
+
+  Future<void> _review() async {
+    if (!_canRead || _plan?.dietitianId == null) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: OnboardingTheme.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: .94,
+        child: MealComparisonPage(
+          planApi: _api,
+          initialDate: _date,
+          mealApi: _meals,
+          sheet: true,
+        ),
+      ),
+    );
+    if (mounted && _canRead) _loadRecords();
+  }
+
+  Future<void> _info() async {
+    final owner = _owner, plan = _plan, expert = _expert;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: OnboardingTheme.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      builder: (_) => NutritionPlanInfo(
+        plan: plan,
+        expert: expert,
+        owner: owner,
+        onAction: (action) async {
+          Navigator.of(context).pop();
+          if (!mounted || !_canRead || owner != _owner) return;
+          switch (action) {
+            case 'add':
+              await Navigator.of(context).push<bool>(
+                MaterialPageRoute(builder: (_) => const ManualMealLogPage()),
+              );
+            case 'history':
+              await Navigator.of(context).push<void>(
+                MaterialPageRoute(builder: (_) => const MealLogHistoryPage()),
+              );
+            case 'targets':
+              await Navigator.of(
+                context,
+              ).pushNamed('/personal-nutrition-targets');
+            case 'expert':
+              await Navigator.of(context).pushNamed('/dietitians');
+          }
+          if (mounted && _canRead && owner == _owner) await _reload();
+        },
+      ),
+    );
   }
 
   @override
   void dispose() {
     ++_revision;
+    ++_dayRevision;
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  Widget _card(List<Widget> children) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(AppTokens.spacingMedium),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
+  @override
+  Widget build(BuildContext context) => Theme(
+    data: OnboardingTheme.data,
+    child: RefreshIndicator(
+      onRefresh: _reload,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: NutritionPlanView(
+          plan: _plan,
+          date: _date,
+          name: _canRead ? _session?.user?.displayName : null,
+          expert: _expert,
+          authorized: _canRead,
+          loading: _loading,
+          loaded: _loaded,
+          error: _error,
+          records: _records,
+          mealError: _mealError,
+          onDate: _selectDate,
+          onRetry: _reload,
+          onRecordsRetry: _loadRecords,
+          onInfo: _info,
+          onReview: _review,
+          onProfile: widget.onViewProfile,
+        ),
       ),
     ),
   );
-  static const _days = [
-    'Her gün',
-    'Pazartesi',
-    'Salı',
-    'Çarşamba',
-    'Perşembe',
-    'Cuma',
-    'Cumartesi',
-    'Pazar',
-  ];
-  String _date(String value) =>
-      '${value.substring(8, 10)}.${value.substring(5, 7)}.${value.substring(0, 4)}';
-  List<Widget> _content(NutritionPlanResponse plan) {
-    final theme = Theme.of(context);
-    final groups = plan.items
-        .map((item) => item.alternativeGroupId)
-        .whereType<String>()
-        .toSet()
-        .toList();
-    return [
-      Text(plan.title, style: theme.textTheme.titleLarge),
-      Text(
-        plan.dietitianId == null
-            ? 'Kişisel programınız · Salt okunur görünüm'
-            : 'Diyetisyeniniz tarafından atanmış program · Salt okunur',
-      ),
-      Text('Aktif program · Sürüm ${plan.versionNumber}'),
-      if (plan.dietitianId != null)
-        OutlinedButton.icon(
-          onPressed: () => Navigator.of(context).push<void>(
-            MaterialPageRoute<void>(
-              builder: (_) => MealComparisonPage(planApi: _api),
-            ),
-          ),
-          icon: const Icon(Icons.compare_arrows),
-          label: const Text('Program ve tüketimi karşılaştır'),
-        ),
-      Text(
-        'Başlangıç: ${_date(plan.startDate)}${plan.endDate == null ? '' : ' · Bitiş: ${_date(plan.endDate!)}'}',
-      ),
-      if (plan.dailyCaloriesTargetKcal != null)
-        Text(
-          'Programdaki günlük enerji hedefi: ${plan.dailyCaloriesTargetKcal.toString().replaceAll('.', ',')} kcal',
-        )
-      else
-        const Text('Kalori: Henüz hedef belirlenmedi'),
-      if (plan.dailyWaterTargetMl != null)
-        Text(
-          'Programdaki günlük su hedefi: ${plan.dailyWaterTargetMl.toString().replaceAll('.', ',')} mL',
-        )
-      else
-        const Text('Su: Henüz hedef belirlenmedi'),
-      for (final day in <int?>[null, 1, 2, 3, 4, 5, 6, 7])
-        if (plan.items.any((item) => item.dayOfWeek == day)) ...[
-          const SizedBox(height: 16),
-          Semantics(
-            header: true,
-            child: Text(_days[day ?? 0], style: theme.textTheme.titleLarge),
-          ),
-          for (final meal in nutritionMealLabels.entries)
-            if (plan.items.any(
-              (item) => item.dayOfWeek == day && item.mealType == meal.key,
-            )) ...[
-              const SizedBox(height: 8),
-              Text(meal.value, style: theme.textTheme.titleMedium),
-              for (final item in plan.items.where(
-                (item) => item.dayOfWeek == day && item.mealType == meal.key,
-              ))
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.description),
-                      Text(
-                        'Miktar önerisi: ${item.recommendedQuantity ?? 'Belirtilmemiş'}',
-                      ),
-                      if (item.alternativeGroupId != null)
-                        Text(
-                          'Alternatif ${groups.indexOf(item.alternativeGroupId!) + 1}',
-                        ),
-                    ],
-                  ),
-                ),
-            ],
-        ],
-      if (groups.isNotEmpty)
-        const Text(
-          'Aynı alternatif grubundaki öneriler birbirinin yerine geçer; birlikte tüketim zorunluluğu değildir.',
-        ),
-      const SizedBox(height: 8),
-      const Text(
-        'Bu program önerileri, kaydettiğiniz gerçek tüketimden ayrıdır.',
-      ),
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final readable = _canRead;
-    return RefreshIndicator(
-      onRefresh: _reload,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppTokens.spacingMedium),
-        children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _card([
-                    Text(
-                      'Beslenme alanınız',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const Text(
-                      'Öğünlerinizi kaydedin ve aktif beslenme programınızı görüntüleyin.',
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Kaydettiğiniz öğünleri geçmişinizden inceleyebilir, düzenleyebilir ve silebilirsiniz.',
-                    ),
-                    const SizedBox(height: 16),
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pushNamed('/personal-nutrition-targets'),
-                      child: const Text('Günlük hedeflerim'),
-                    ),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        final saved = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute<bool>(
-                            builder: (context) => const ManualMealLogPage(),
-                          ),
-                        );
-                        if (context.mounted) {
-                          if (saved == true) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Öğün kaydedildi.')),
-                            );
-                          }
-                          await _reload();
-                        }
-                      },
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Öğün ekle'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).push<void>(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MealLogHistoryPage(),
-                        ),
-                      ),
-                      icon: const Icon(Icons.history),
-                      label: const Text('Öğün geçmişi'),
-                    ),
-                  ]),
-                  _card([
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        'Beslenme Programım',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                    ),
-                    if (!readable)
-                      const Text(
-                        'Programı görüntülemek için oturumunuz doğrulanmalıdır.',
-                      )
-                    else ...[
-                      if (_loading)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: LinearProgressIndicator(
-                            semanticsLabel: 'Aktif program yükleniyor',
-                          ),
-                        ),
-                      if (_error != null)
-                        Semantics(liveRegion: true, child: Text(_error!)),
-                      if (_loaded && _plan == null)
-                        const Text(
-                          'Henüz aktif bir beslenme programınız bulunmuyor. Diyetisyeniniz programı etkinleştirdiğinde burada görebilirsiniz.',
-                        ),
-                      if (_plan != null) ..._content(_plan!),
-                      TextButton.icon(
-                        onPressed: _loading ? null : _reload,
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: Text(
-                          _error == null ? 'Programı yenile' : 'Yeniden dene',
-                        ),
-                      ),
-                    ],
-                  ]),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

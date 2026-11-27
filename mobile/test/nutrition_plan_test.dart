@@ -90,6 +90,7 @@ void main() {
               api: api,
               active: active,
               refreshRevision: revision,
+              initialDate: DateTime(2026, 11, 23),
             ),
           ),
         ),
@@ -116,25 +117,22 @@ void main() {
         );
         await tester.pumpAndSettle();
         for (final text in [
-          'Beslenme Programım',
+          'Planın hazır,\nadım adım.',
           'Sentetik haftalık program',
-          'Her gün',
           'Kahvaltı',
           'Yulaf ve yoğurt 🥣',
-          'Miktar önerisi: 1 kâse',
-          'Pazartesi',
           'Öğle',
-          'Mercimek çorbası',
-          'Sebze çorbası',
         ]) {
           await see(tester, find.text(text));
           expect(find.text(text).hitTestable(), findsOneWidget);
         }
-        expect(find.text('Alternatif 1'), findsNWidgets(2));
-        expect(
-          find.textContaining('Diyetisyeniniz tarafından atanmış'),
-          findsOneWidget,
-        );
+        await see(tester, find.text('2 porsiyon alternatifi'));
+        await tester.tap(find.text('2 porsiyon alternatifi'));
+        await tester.pumpAndSettle();
+        expect(find.text('Mercimek çorbası'), findsOneWidget);
+        expect(find.text('Sebze çorbası'), findsOneWidget);
+        expect(find.text('veya'), findsOneWidget);
+        expect(find.text('Diyetisyeninin hazırladığı plan'), findsOneWidget);
         expect(find.byType(TextField), findsNothing);
         expect(find.textContaining('Düzenle'), findsNothing);
         expect(find.textContaining('0 kcal'), findsNothing);
@@ -190,7 +188,7 @@ void main() {
         await tester.tap(find.text('Yeniden dene'));
         await tester.pumpAndSettle();
         expect(find.text('Yeni sunucu programı'), findsOneWidget);
-        expect(find.text('Aktif program · Sürüm 2'), findsOneWidget);
+        expect(find.textContaining('Sürüm 2'), findsOneWidget);
       },
     );
   }
@@ -286,10 +284,7 @@ void main() {
       api.value = plan(personal: true);
       await open(tester);
       await tester.pumpAndSettle();
-      expect(
-        find.text('Kişisel programınız · Salt okunur görünüm'),
-        findsOneWidget,
-      );
+      expect(find.text('KİŞİSEL PLANIN'), findsOneWidget);
       expect(find.byType(TextField), findsNothing);
     },
   );
@@ -297,6 +292,9 @@ void main() {
     'manual meal form stays available and return refreshes the program',
     (tester) async {
       await open(tester);
+      await tester.pumpAndSettle();
+      await see(tester, find.text('Plan bilgisi ve işlemler'));
+      await tester.tap(find.text('Plan bilgisi ve işlemler'));
       await tester.pumpAndSettle();
       await see(tester, find.text('Öğün ekle'));
       await tester.tap(find.text('Öğün ekle'));
@@ -367,7 +365,11 @@ void main() {
         ),
         hasLength(4),
       );
-      await tester.tap(find.byTooltip('Diyetisyen Bul'));
+      await see(tester, find.text('Plan bilgisi ve işlemler'));
+      await tester.tap(find.text('Plan bilgisi ve işlemler'));
+      await tester.pumpAndSettle();
+      await see(tester, find.text('Diyetisyen Bul'));
+      await tester.tap(find.text('Diyetisyen Bul'));
       await tester.pumpAndSettle();
       await tester.pageBack();
       await tester.pumpAndSettle();

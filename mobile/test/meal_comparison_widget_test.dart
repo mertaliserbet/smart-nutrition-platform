@@ -6,6 +6,7 @@ import 'package:smart_nutrition_mobile/features/auth/auth_session.dart';
 import 'package:smart_nutrition_mobile/features/auth/login_page.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/meal_comparison_api.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/meal_comparison_page.dart';
+import 'package:smart_nutrition_mobile/features/nutrition/meal_log_api.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_plan_api.dart';
 import 'package:smart_nutrition_mobile/features/water/water_log_api.dart';
@@ -26,6 +27,7 @@ void main() {
     WidgetTester tester, {
     bool settle = true,
     bool dark = false,
+    bool sheet = false,
     Size size = const Size(400, 1000),
   }) async {
     tester.view.physicalSize = size;
@@ -47,6 +49,8 @@ void main() {
             planApi: plans,
             api: api,
             initialDate: DateTime(2026, 11, 18),
+            sheet: sheet,
+            mealApi: _Meals(session),
           ),
         ),
       ),
@@ -220,6 +224,40 @@ void main() {
     },
   );
   testWidgets(
+    'approved sheet keeps unknown nutrients and actual logs separate',
+    (tester) async {
+      await open(tester, sheet: true, size: const Size(320, 700));
+      expect(find.text('Planın ve kayıtların'), findsOneWidget);
+      expect(
+        find.text('125,5 kcal bilinen toplam · 1 kalemde eksik'),
+        findsOneWidget,
+      );
+      expect(find.text('Belirtilmemiş'), findsOneWidget);
+      expect(find.text('Protein: 0'), findsNothing);
+      await tap(tester, 'Kaydettiğin öğünler');
+      expect(find.text('Sentetik tüketim'), findsOneWidget);
+      expect(find.text('Enerji belirtilmemiş'), findsOneWidget);
+      expect(find.text('Yulaf'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'approved sheet refresh uses latest plan version and removes stale values on failure',
+    (tester) async {
+      await open(tester, sheet: true);
+      plans.value = comparisonPlan(version: 2);
+      await tap(tester, 'Karşılaştırmayı yenile');
+      expect(find.text('Sentetik atanmış program · Sürüm 2'), findsOneWidget);
+      api.failure = const MealComparisonApiException('Sentetik erişim hatası');
+      await tap(tester, 'Karşılaştırmayı yenile');
+      expect(find.text('Sentetik erişim hatası'), findsOneWidget);
+      expect(find.textContaining('125,5 kcal'), findsNothing);
+      session.end();
+      await tester.pumpAndSettle();
+      expect(find.text('Planın ve kayıtların'), findsNothing);
+    },
+  );
+  testWidgets(
     'assigned program view exposes comparison without affecting meal actions',
     (tester) async {
       await tester.pumpWidget(
@@ -232,11 +270,11 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Program ve tüketimi karşılaştır'),
+        find.text('Plan ve tüketimimi karşılaştır'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Program ve tüketimi karşılaştır'), findsOneWidget);
+      expect(find.text('Plan ve tüketimimi karşılaştır'), findsOneWidget);
     },
   );
 }
@@ -268,4 +306,30 @@ class _Comparison extends MealComparisonApi {
     return pending ??
         comparisonResponse(plan, day, empty: empty, complete: complete);
   }
+}
+
+class _Meals extends MealLogApi {
+  _Meals(super.session);
+  @override
+  Future<List<MealLog>> forRange({
+    required DateTime from,
+    required DateTime to,
+  }) async => [
+    MealLog(
+      id: 'log',
+      clientId: comparisonClientId,
+      mealType: 'breakfast',
+      consumedAt: from.add(const Duration(hours: 8)),
+      createdAt: from,
+      source: 'manual',
+      items: const [
+        MealLogItem(
+          id: 'item',
+          mealLogId: 'log',
+          displayName: 'Sentetik tüketim',
+          isEstimated: false,
+        ),
+      ],
+    ),
+  ];
 }

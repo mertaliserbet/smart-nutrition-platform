@@ -17,8 +17,7 @@ void main() {
     (
       label: 'Planım',
       page: NutritionPage,
-      description:
-          'Öğünlerinizi kaydedin ve aktif beslenme programınızı görüntüleyin.',
+      description: 'Planını görüntülemek için oturumun doğrulanmalıdır.',
     ),
     (
       label: 'Ölçüm',

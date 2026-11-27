@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "font": "Figtree",
+  "assetsLoaded": true,
+  "navigationOrder": true,
+  "viewportWidths": [
+    320,
+    360,
+    390,
+    430
+  ],
+  "dayAndWeekSelection": true,
+  "outsidePlanDateState": true,
+  "expandableMeals": true,
+  "alternativeGroupReadOnly": true,
+  "separatePlanAndActual": true,
+  "comparisonTabsAndKeyboard": true,
+  "dialogs": true,
+  "externalRequests": 0,
+  "errors": []
+}
