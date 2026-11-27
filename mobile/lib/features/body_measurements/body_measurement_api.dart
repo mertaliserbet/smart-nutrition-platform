@@ -16,6 +16,46 @@ String measurementUnit(String key) => key == 'weightKg'
     : key == 'bodyFatPercent'
     ? '%'
     : 'cm';
+String measurementValue(num value, {bool minimumDecimal = false}) {
+  final fixed = value.toStringAsFixed(3);
+  if (!fixed.contains('.') || value != 0 && num.tryParse(fixed) == 0) {
+    return value.toString().replaceAll('.', ',');
+  }
+  final parts = fixed.split('.');
+  var fraction = parts[1].replaceFirst(RegExp(r'0+$'), '');
+  if (fraction.isEmpty && minimumDecimal) fraction = '0';
+  return fraction.isEmpty ? parts[0] : '${parts[0]},$fraction';
+}
+
+const measurementMonths = [
+  'Ocak',
+  'Şubat',
+  'Mart',
+  'Nisan',
+  'Mayıs',
+  'Haziran',
+  'Temmuz',
+  'Ağustos',
+  'Eylül',
+  'Ekim',
+  'Kasım',
+  'Aralık',
+];
+String measurementDate(DateTime value, {bool year = true}) {
+  final local = value.toLocal();
+  return '${local.day} ${measurementMonths[local.month - 1]}${year ? ' ${local.year}' : ''}';
+}
+
+String measurementClock(DateTime value) {
+  final local = value.toLocal();
+  return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+}
+
+String measurementSource(String source) => switch (source) {
+  'manual' => 'Manuel',
+  'wearable' => 'Cihaz',
+  _ => 'AI destekli',
+};
 String formatMeasurementTime(DateTime value) {
   final local = value.toLocal();
   return '${local.day}.${local.month}.${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';

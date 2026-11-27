@@ -99,11 +99,10 @@ class _BodyMeasurementDetailPageState extends State<BodyMeasurementDetailPage>
 
   Future<void> _edit() async {
     if (_measurement == null || _busy || !_authorized) return;
-    final changed = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) =>
-            BodyMeasurementFormPage(api: _api, initial: _measurement),
-      ),
+    final changed = await showBodyMeasurementForm(
+      context,
+      api: _api!,
+      initial: _measurement,
     );
     if (!mounted || !_authorized) return;
     if (changed == true) {

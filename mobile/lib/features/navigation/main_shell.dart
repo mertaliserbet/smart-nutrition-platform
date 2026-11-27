@@ -42,10 +42,12 @@ class _MainShellState extends State<MainShell> {
 
   late int _selectedIndex = widget.initialIndex;
   int _nutritionRevision = 0;
+  int _measurementRevision = 0;
 
   void _selectTab(int index) {
     if (index == _selectedIndex) {
       if (index == 0 || index == 2) setState(() => ++_nutritionRevision);
+      if (index == 1) setState(() => ++_measurementRevision);
       return;
     }
     setState(() => _selectedIndex = index);
@@ -59,10 +61,10 @@ class _MainShellState extends State<MainShell> {
         if (!didPop) _selectTab(0);
       },
       child: Scaffold(
-        backgroundColor: _selectedIndex == 0
+        backgroundColor: _selectedIndex <= 1
             ? OnboardingTheme.background
             : null,
-        appBar: _selectedIndex == 0
+        appBar: _selectedIndex <= 1
             ? null
             : AppBar(
                 automaticallyImplyLeading: false,
@@ -91,7 +93,7 @@ class _MainShellState extends State<MainShell> {
                 ),
               ),
         body: SafeArea(
-          top: _selectedIndex == 0,
+          top: _selectedIndex <= 1,
           bottom: false,
           child: IndexedStack(
             index: _selectedIndex,
@@ -102,7 +104,11 @@ class _MainShellState extends State<MainShell> {
                 onViewNutrition: () => _selectTab(2),
                 onViewProfile: () => _selectTab(4),
               ),
-              ProgressPage(active: _selectedIndex == 1),
+              ProgressPage(
+                active: _selectedIndex == 1,
+                refreshRevision: _measurementRevision,
+                onViewProfile: () => _selectTab(4),
+              ),
               NutritionPage(
                 active: _selectedIndex == 2,
                 refreshRevision: _nutritionRevision,

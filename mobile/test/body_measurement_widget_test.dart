@@ -55,7 +55,13 @@ void main() {
   Future<void> tap(WidgetTester tester, String text) async {
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pumpAndSettle();
-    final target = find.text(text);
+    final target = find.text(
+      text == 'Kaydet'
+          ? (find.text('Ölçümümü kaydet').evaluate().isNotEmpty
+                ? 'Ölçümümü kaydet'
+                : 'Değişiklikleri kaydet')
+          : text,
+    );
     await tester.scrollUntilVisible(
       target,
       180,
@@ -179,17 +185,17 @@ void main() {
       expect(find.text('En az bir ölçüm girin.'), findsOneWidget);
       expect(api.creates, 0);
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Kilo (kg)'),
+        find.byKey(const ValueKey('measurement-field-weightKg')),
         '-1',
       );
       await tap(tester, 'Kaydet');
       expect(find.text('Sıfırdan büyük bir ölçüm girin.'), findsOneWidget);
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Kilo (kg)'),
+        find.byKey(const ValueKey('measurement-field-weightKg')),
         '',
       );
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Vücut yağ oranı (%)'),
+        find.byKey(const ValueKey('measurement-field-bodyFatPercent')),
         '101',
       );
       await tap(tester, 'Kaydet');
@@ -203,11 +209,11 @@ void main() {
     final row = bodySample(waist: 84, note: 'Sentetik not');
     api.rows = [row];
     await pump(tester, BodyMeasurementFormPage(api: api, initial: row));
-    await tester.enterText(find.widgetWithText(TextFormField, 'Bel (cm)'), '');
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Not (isteğe bağlı)'),
+      find.byKey(const ValueKey('measurement-field-waistCm')),
       '',
     );
+    await tester.enterText(find.byKey(const ValueKey('measurement-note')), '');
     await tap(tester, 'Kaydet');
     expect(api.updates, 1);
     expect(api.changes, {'waistCm': null, 'note': null});
@@ -238,14 +244,16 @@ void main() {
       );
       await pump(tester, BodyMeasurementFormPage(api: api));
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Kilo (kg)'),
+        find.byKey(const ValueKey('measurement-field-weightKg')),
         '73,5',
       );
       await tap(tester, 'Kaydet');
       expect(api.creates, 1);
       expect(
         tester
-            .widget<FilledButton>(find.widgetWithText(FilledButton, 'Kaydet'))
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Ölçümümü kaydet'),
+            )
             .onPressed,
         isNull,
       );

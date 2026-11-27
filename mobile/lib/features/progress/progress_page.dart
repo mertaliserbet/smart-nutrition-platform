@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
-
 import '../auth/auth_session.dart';
 import '../body_measurements/body_measurement_api.dart';
-import '../body_measurements/measurement_chart.dart';
+import '../body_measurements/measurement_overview.dart';
 import '../body_measurements/body_measurement_detail_page.dart';
 import '../body_measurements/body_measurement_form_page.dart';
+import '../onboarding/onboarding_theme.dart';
 
 class ProgressPage extends StatefulWidget {
-  const ProgressPage({this.api, this.active = true, super.key});
+  const ProgressPage({
+    this.api,
+    this.active = true,
+    this.onViewProfile,
+    this.refreshRevision = 0,
+    this.now = DateTime.now,
+    super.key,
+  });
   final bool active;
   final BodyMeasurementApi? api;
+  final VoidCallback? onViewProfile;
+  final int refreshRevision;
+  final DateTime Function() now;
   @override
   State<ProgressPage> createState() => _ProgressPageState();
 }
@@ -20,8 +30,11 @@ class _ProgressPageState extends State<ProgressPage>
   BodyMeasurementApi? _api;
   String? _owner, _error;
   List<BodyMeasurement>? _data;
-  int _page = 1, _generation = 0;
-  bool _loading = false, _foreground = true;
+  int _generation = 0;
+  bool _loading = false;
+  bool _foreground =
+      WidgetsBinding.instance.lifecycleState == null ||
+      WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
   bool get _authorized =>
       widget.active &&
       _foreground &&
@@ -39,12 +52,9 @@ class _ProgressPageState extends State<ProgressPage>
     final session = AuthSessionScope.maybeOf(context) ?? widget.api?.session;
     if (!identical(session, _session) || _owner != session?.user?.id) {
       _clear();
-      _page = 1;
       _session = session;
       _owner = session?.user?.id;
-      _api = widget.api != null && identical(widget.api!.session, session)
-          ? widget.api
-          : (session == null ? null : BodyMeasurementApi(session));
+      _resolveApi();
     }
     if (!_authorized) {
       _clear();
@@ -53,11 +63,20 @@ class _ProgressPageState extends State<ProgressPage>
     }
   }
 
+  void _resolveApi() {
+    _api = widget.api != null && identical(widget.api!.session, _session)
+        ? widget.api
+        : (_session == null ? null : BodyMeasurementApi(_session!));
+  }
+
   @override
-  void didUpdateWidget(covariant ProgressPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.active != widget.active) {
+  void didUpdateWidget(covariant ProgressPage old) {
+    super.didUpdateWidget(old);
+    if (old.active != widget.active ||
+        old.api != widget.api ||
+        old.refreshRevision != widget.refreshRevision) {
       _clear();
+      _resolveApi();
       if (_authorized) _load();
     }
   }
@@ -83,19 +102,18 @@ class _ProgressPageState extends State<ProgressPage>
     super.dispose();
   }
 
-  Future<void> _load({int? page}) async {
+  Future<void> _load() async {
     if (!_authorized || _api == null || _loading) return;
     final generation = ++_generation;
     setState(() {
       _loading = true;
       _data = null;
       _error = null;
-      _page = page ?? _page;
     });
     try {
-      final data = await _api!.history();
+      final rows = await _api!.history();
       if (mounted && _authorized && generation == _generation) {
-        setState(() => _data = data);
+        setState(() => _data = rows);
       }
     } catch (error) {
       if (mounted && _authorized && generation == _generation) {
@@ -112,120 +130,62 @@ class _ProgressPageState extends State<ProgressPage>
     }
   }
 
-  Future<void> _open(Widget page) async {
-    final saved = await Navigator.of(
-      context,
-    ).push<bool>(MaterialPageRoute<bool>(builder: (_) => page));
-    if (!mounted || !_authorized) return;
+  Future<void> _add() async {
+    if (!_authorized || _api == null) return;
+    final owner = _owner;
+    final saved = await showBodyMeasurementForm(context, api: _api!);
+    await _afterOpen(saved, owner);
+  }
+
+  Future<void> _detail(BodyMeasurement row) async {
+    if (!_authorized || _api == null) return;
+    final owner = _owner;
+    final saved = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => Theme(
+          data: OnboardingTheme.data,
+          child: BodyMeasurementDetailPage(id: row.id, api: _api),
+        ),
+      ),
+    );
+    await _afterOpen(saved, owner);
+  }
+
+  Future<void> _afterOpen(bool? saved, String? owner) async {
+    if (!mounted || !_authorized || owner != _owner) return;
     if (saved == true) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Ölçüm işlemi tamamlandı.')));
     }
-    await _load(page: 1);
+    await _load();
   }
 
   @override
-  Widget build(BuildContext context) {
-    final history = _data?.toList();
-    history?.sort((a, b) {
-      final at = b.measuredAt.compareTo(a.measuredAt);
-      return at == 0 ? a.id.compareTo(b.id) : at;
-    });
-    final visible =
-        history?.skip((_page - 1) * 10).take(10).toList() ??
-        <BodyMeasurement>[];
-    return RefreshIndicator(
-      onRefresh: () => _load(page: 1),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'Gelişiminizi takip edin',
-            style: Theme.of(context).textTheme.headlineSmall,
+  Widget build(BuildContext context) => Theme(
+    data: OnboardingTheme.data,
+    child: ColoredBox(
+      color: OnboardingTheme.background,
+      child: RefreshIndicator(
+        onRefresh: _load,
+        child: SingleChildScrollView(
+          key: ValueKey('measurement-scroll-$_owner'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: MeasurementOverview(
+            key: ValueKey(_owner),
+            rows: _authorized ? (_data ?? []) : [],
+            now: widget.now(),
+            authorized: _authorized,
+            loading: _loading,
+            error: _error,
+            name: _authorized ? _session?.user?.displayName : null,
+            onAdd: _add,
+            onRetry: _load,
+            onOpen: _detail,
+            onProfile: widget.onViewProfile,
           ),
-          if (!_authorized)
-            const Text(
-              'Ölçümleri görüntülemek için oturumunuz doğrulanmalıdır.',
-            )
-          else ...[
-            FilledButton.icon(
-              onPressed: _loading
-                  ? null
-                  : () => _open(BodyMeasurementFormPage(api: _api)),
-              icon: const Icon(Icons.add),
-              label: const Text('Ölçüm ekle'),
-            ),
-            if (_loading)
-              const LinearProgressIndicator(
-                semanticsLabel: 'Ölçümler yükleniyor',
-              ),
-            if (_error != null)
-              Semantics(liveRegion: true, child: Text(_error!)),
-            if (_data != null) ...[
-              if (_data!.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'Henüz ölçüm yok. İlk ölçümünüzü ekleyebilirsiniz.',
-                  ),
-                )
-              else ...[
-                for (final field in ['weightKg', 'waistCm', 'hipCm', 'chestCm'])
-                  MeasurementChart(rows: _data!, field: field),
-                Text(
-                  'Ölçüm geçmişi',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                Text('${_data!.length} ölçüm · Sayfa $_page'),
-                for (final row in visible)
-                  Card(
-                    child: ListTile(
-                      title: Text(formatMeasurementTime(row.measuredAt)),
-                      subtitle: Text(
-                        row.values.entries
-                            .where((e) => e.value != null)
-                            .map(
-                              (e) =>
-                                  '${measurementLabels[e.key]}: ${e.value} ${measurementUnit(e.key)}',
-                            )
-                            .join(' · '),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _open(
-                        BodyMeasurementDetailPage(id: row.id, api: _api),
-                      ),
-                    ),
-                  ),
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  spacing: 12,
-                  children: [
-                    TextButton(
-                      onPressed: _page <= 1
-                          ? null
-                          : () => setState(() => _page--),
-                      child: const Text('Önceki sayfa'),
-                    ),
-                    TextButton(
-                      onPressed: _page * 10 >= history!.length
-                          ? null
-                          : () => setState(() => _page++),
-                      child: const Text('Sonraki sayfa'),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-            TextButton.icon(
-              onPressed: _loading ? null : () => _load(page: 1),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Ölçümleri yenile'),
-            ),
-          ],
-        ],
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
