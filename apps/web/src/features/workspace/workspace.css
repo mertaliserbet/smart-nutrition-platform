@@ -167,7 +167,7 @@
 .profile-initials { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); font-size: 16px; font-weight: 800; }
 .profile-name { flex: 1; min-width: 0; overflow-wrap: anywhere; white-space: normal; line-height: 1.35; font-size: 14px; }
 .sidebar-profile .workspace-avatar > .icon { width: 16px; }
-.sidebar-profile .workspace-profile-panel { top: auto; bottom: calc(100% + 8px); inset-inline-end: 0; }
+.sidebar-profile .workspace-profile-panel { top: auto; bottom: calc(100% + 8px); inset-inline-start: 0; inset-inline-end: auto; width: min(280px, 100%); }
 
 .feature-client-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin: 0 0 24px; min-height: 46px; }
 .feature-client-toolbar form { display: flex; align-items: center; gap: 8px; }
@@ -342,7 +342,7 @@
 .report-highlights .icon { box-sizing: content-box; width: 23px; height: 23px; padding: 8px; background: var(--brand-soft); border-radius: 50%; }
 .report-summary-grid .expert-pagination { margin-top: 18px; }
 @media (max-width: 1200px) { .report-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .report-chart-grid, .report-summary-grid { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 600px) { .reports-controls { align-items: stretch; } .reports-controls > label { flex-wrap: wrap; width: 100%; } .reports-controls > label > span { flex: 1; } .reports-controls > div { width: 100%; } .reports-controls > div > .button { flex: 1; } .report-metrics .metric-card { padding: 16px; gap: 10px; } .report-metrics .metric-icon { width: 36px; height: 36px; } .report-metrics .metric-icon .icon { width: 21px; height: 21px; } .report-metrics h2 { font-size: 12px; } .report-metrics .metric-value { font-size: 27px; } .report-chart-card { padding: 16px; } .report-chart-card h2 { font-size: 22px; } .report-chart-card > header { flex-wrap: wrap; } }
+@media (max-width: 600px) { .reports-controls { align-items: stretch; } .reports-controls > label { width: 100%; } .reports-controls > label > .report-date-caption { flex: 1; } .reports-controls > div { width: 100%; } .reports-controls > div > .button { flex: 1; } .report-metrics .metric-card { padding: 16px; gap: 10px; } .report-metrics .metric-icon { width: 36px; height: 36px; } .report-metrics .metric-icon .icon { width: 21px; height: 21px; } .report-metrics h2 { font-size: 12px; } .report-metrics .metric-value { font-size: 27px; } .report-chart-card { padding: 16px; } .report-chart-card h2 { font-size: 22px; } .report-chart-card > header { flex-wrap: wrap; } }
 
 .client-list-status > span { display: inline-flex; align-items: center; gap: 12px; padding: 10px 24px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--surface); }
 .client-list-status > .selected { background: var(--brand-primary); color: var(--on-brand); border-color: var(--brand-primary); }
@@ -410,7 +410,7 @@
  .settings-identity .large-avatar { width: 76px; height: 76px; font-size: 30px; }
 }
 @media (max-width: 1300px) { .clients-heading { flex-direction: column; align-items: stretch; gap: 0; } .client-page-actions { flex-wrap: wrap; margin-bottom: 24px; } .client-page-actions, .client-page-actions form { gap: 10px; } .client-page-actions form { flex: 1; } .client-page-actions .search-field { width: auto; flex: 1; min-width: 0; } .client-page-actions > .button { min-width: 180px; flex-shrink: 0; } }
-@media (max-width: 900px) { .sidebar-content { overflow: visible; } .sidebar-profile .workspace-profile-panel { bottom: auto; top: calc(100% + 8px); } .live-workspace .workspace-main { padding-top: 20px; } }
+@media (max-width: 900px) { .sidebar-content { overflow: visible; } .live-workspace .workspace-main { padding-top: 20px; } }
 @media (max-width: 600px) { .client-page-actions { flex-wrap: wrap; width: 100%; } .client-page-actions form { flex: 1 1 100%; } .client-page-actions .search-field { width: auto; flex: 1; } .client-filter-row { grid-template-columns: minmax(0, 1fr); } .calendar-range { min-width: 170px; font-size: 16px; } }
 
 .feature-search-disclosure { position: relative; flex-shrink: 0; z-index: 12; }
@@ -443,10 +443,12 @@
 .settings-security > .button { margin-top: 4px; }
 @media (min-width: 1251px) { .settings-profile { min-height: 820px; } }
 
-.report-period { position: relative; }
-.report-period > input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.report-period { position: relative; min-width: 0; max-width: 100%; cursor: pointer; }
+.report-period > .date-control { position: absolute; inset: 0; width: 100%; }
+.report-period .date-control > input { height: 100%; padding: 0; opacity: 0; }
+.report-period .date-calendar-toggle { inset: 0; width: 100%; height: 100%; transform: none; opacity: 0; }
 .report-period:focus-within { outline: 3px solid var(--focus); outline-offset: 3px; }
-.report-date-caption { font-size: 18px; font-weight: 750; }
+.report-date-caption { min-width: 0; overflow-wrap: anywhere; font-size: 18px; font-weight: 750; }
 @media (min-width: 1251px) {
  .reports-overview { margin-inline: -7px -11px; }
  .reports-controls > .report-period { width: 302px; }

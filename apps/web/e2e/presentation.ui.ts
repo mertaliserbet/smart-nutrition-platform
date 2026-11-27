@@ -82,6 +82,76 @@ async function fits(page: Page) {
   expect(escapedCards).toEqual([])
 }
 
+for (const long of [false, true]) {
+  test('nutrition program print ' + (long ? 'fragments a long program into A4 pages' : 'retains Limely layout on desktop and mobile'), async ({ page }, testInfo) => {
+    const errors = await fixtures(page)
+    const items = Array.from({ length: long ? 100 : 23 }, (_, index) => ({
+      ...plan.items[0]!, id: '90000000-0000-4000-8000-' + String(index + 1).padStart(12, '0'), sortOrder: index,
+      dayOfWeek: index === 0 ? null : long || index <= 2 ? 1 : (index - 1) % 7 + 1,
+      mealType: index <= 2 || long ? 'breakfast' : (['lunch', 'dinner', 'snack', 'other'] as const)[Math.floor(index / 7)]!,
+      description: 'SENTETIK-' + String(index + 1).padStart(3, '0') + ' · Çığ, öğün, ıspanak ve yoğurt önerisi. ' +
+        (long ? 'Bu açıklama yalnız sayfa bölünmesi ve Türkçe karakter doğrulaması içindir. '.repeat(4) + 'UzunBesinAçıklaması'.repeat(8) : 'Diyetisyenin kaydettiği öneri metni.'),
+      recommendedQuantity: index % 3 === 0 ? null : '½ kase · kayıtlı miktar',
+      alternativeGroupId: !long && (index === 1 || index === 2) ? '80000000-0000-4000-8000-000000000001' : null,
+    }))
+    const printable = { ...plan, status: 'active', title: 'Sentetik Çıktı Programı', items }
+    await page.route('**/api/v1/nutrition-plans**', async route => {
+      const path = new URL(route.request().url()).pathname
+      if (path === '/api/v1/nutrition-plans') return route.fulfill({ json: { items: [printable], totalCount: 1 } })
+      if (path === '/api/v1/nutrition-plans/' + planId) return route.fulfill({ json: printable })
+      if (path === '/api/v1/nutrition-plans/' + planId + '/versions/' + versionId) return route.fulfill({ json: {
+        id: versionId, nutritionPlanId: planId, versionNumber: 1, createdAt: plan.createdAt,
+        snapshot: { title: printable.title, startDate: plan.startDate, endDate: plan.endDate,
+          dailyCaloriesTargetKcal: plan.dailyCaloriesTargetKcal, dailyWaterTargetMl: plan.dailyWaterTargetMl, items },
+      } })
+      errors.push('Unexpected print fixture request: ' + path)
+      return route.fulfill({ status: 501, json: { error: { code: 'unexpected_test_request', message: 'No fixture' } } })
+    })
+    await page.setViewportSize({ width: 1440, height: 1000 })
+    await page.goto('/calisma-alani/programlar?clientId=' + client.id)
+    await page.getByRole('button', { name: printable.title + ' programını yazdır', exact: true }).waitFor()
+    await page.screenshot({ path: testInfo.outputPath('program-cards.png') })
+    await page.getByRole('button', { name: printable.title + ' programını yazdır', exact: true }).click()
+    const printButton = page.getByRole('button', { name: 'Yazdır / PDF', exact: true })
+    await expect(printButton).toBeEnabled()
+    const document = page.getByRole('article', { name: 'Yazdırılabilir beslenme programı' })
+    await expect(document.locator('.nutrition-print-item')).toHaveCount(items.length)
+    await expect(document.getByRole('heading', { name: 'Her gün', exact: true })).toBeVisible()
+    expect(await document.locator('.nutrition-print-days').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(2)
+    await expect(page.getByRole('heading', { name: 'Programlar', exact: true })).not.toBeVisible()
+    expect(await document.locator('h1').evaluate(element => getComputedStyle(element).fontFamily)).toContain('Manrope')
+    await page.screenshot({ path: testInfo.outputPath('print-desktop.png'), fullPage: !long })
+    if (!long) {
+      for (const width of [768, 390, 320]) {
+        await page.setViewportSize({ width, height: 900 })
+        await fits(page)
+        expect(await document.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true)
+        if (width <= 700) expect(await document.locator('.nutrition-print-days').evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length)).toBe(1)
+        await page.screenshot({ path: testInfo.outputPath('print-mobile-' + width + '.png'), fullPage: true })
+      }
+      await page.setViewportSize({ width: 1440, height: 1000 })
+    }
+    await page.emulateMedia({ media: 'print' })
+    await expect(page.locator('.sidebar')).not.toBeVisible()
+    await expect(printButton).not.toBeVisible()
+    await expect(page.locator('.nutrition-panel')).not.toBeVisible()
+    await expect(document).toBeVisible()
+    const pdf = await page.pdf({ path: testInfo.outputPath(long ? 'program-long-a4.pdf' : 'program-a4.pdf'),
+      format: 'A4', preferCSSPageSize: true, printBackground: false, displayHeaderFooter: false })
+    expect(pdf.subarray(0, 4).toString()).toBe('%PDF')
+    if (long) expect((pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? []).length).toBeGreaterThan(1)
+    await page.emulateMedia({ media: 'screen' })
+    await page.getByRole('button', { name: 'Programlara dön' }).click()
+    await expect(page.getByRole('heading', { name: 'Programlar', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: printable.title + ' programını yazdır', exact: true })).toBeFocused()
+    await page.goto('/calisma-alani/raporlar?clientId=' + client.id)
+    await expect(page.getByRole('heading', { name: 'Raporlar', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Yazdır|PDF/ })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'CSV indir' })).toBeEnabled()
+    expect(errors).toEqual([])
+  })
+}
+
 for (const width of [1585, 1024, 768, 390]) {
   test(`reference screens and responsive layout at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 992 })
