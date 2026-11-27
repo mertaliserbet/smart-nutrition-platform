@@ -76,7 +76,7 @@ button.text-link { border: 0; padding: 0; background: transparent; text-align: s
 .sidebar-content { min-width: 0; width: 100%; display: flex; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; gap: 8px; }
 .nav-heading { font-size: 10px; font-weight: 650; letter-spacing: .9px; color: var(--text-muted); padding: 0 14px; margin-bottom: 8px; }
 .sidebar nav { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; width: 100%; gap: 8px; }
-.sidebar nav a { min-height: 48px; min-width: 0; width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-size: 16px; font-weight: 450; line-height: 1.35; overflow-wrap: anywhere; color: var(--text-primary); }
+.sidebar nav a, .sidebar-account > a { min-height: 48px; min-width: 0; width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; font-size: 16px; font-weight: 450; line-height: 1.35; overflow-wrap: anywhere; color: var(--text-primary); }
 .sidebar nav a:hover { background: var(--brand-soft); }
 .sidebar nav a.active { color: var(--on-brand); background: var(--brand-fill); font-weight: 800; }
 .sidebar nav .icon { width: 24px; height: 24px; }
@@ -176,7 +176,7 @@ button.text-link { border: 0; padding: 0; background: transparent; text-align: s
 @media (max-width: 1150px) {
   .workspace { grid-template-columns: 210px minmax(0, 1fr); }
   .sidebar { padding-inline: 10px; }
-  .sidebar nav a { padding-inline: 10px; font-size: 15px; }
+  .sidebar nav a, .sidebar-account > a { padding-inline: 10px; font-size: 15px; }
   .workspace-main, .workspace-header, .workspace-notice { padding-inline: 22px; }
   .dashboard-columns { grid-template-columns: minmax(0, 1fr); }
   .dashboard-secondary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
