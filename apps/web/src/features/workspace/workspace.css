@@ -78,8 +78,7 @@
   .client-profile-card { padding: 18px; }
 }
 
-.sidebar-account { margin-top: auto; padding-top: 28px; }
-.sidebar-account > a { display: flex; align-items: center; gap: 16px; min-height: 48px; margin-bottom: 16px; padding: 12px 18px; border-top: 1px solid var(--border); font-size: 18px; border-radius: 12px; }
+.sidebar-account { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .sidebar-account > a:hover, .sidebar-account > a.active { background: var(--brand-primary); color: var(--on-brand); font-weight: 800; }
 .sidebar-account p { display: flex; align-items: center; gap: 7px; padding: 12px 8px; font-size: 10px; color: var(--text-secondary); }
 .sidebar-account p .icon { width: 14px; height: 14px; }
