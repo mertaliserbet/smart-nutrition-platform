@@ -6,6 +6,7 @@ import 'package:smart_nutrition_mobile/features/navigation/main_shell.dart';
 import 'package:smart_nutrition_mobile/features/nutrition/nutrition_page.dart';
 import 'package:smart_nutrition_mobile/features/profile/profile_page.dart';
 import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
+import 'package:smart_nutrition_mobile/features/chat/chat_page.dart';
 
 void main() {
   const screens = [
@@ -23,6 +24,11 @@ void main() {
       label: 'Ölçüm',
       page: ProgressPage,
       description: 'Ölçümleri görüntülemek için oturumunuz doğrulanmalıdır.',
+    ),
+    (
+      label: 'Sohbet',
+      page: ChatPage,
+      description: 'Sohbeti görüntülemek için oturumun doğrulanmalıdır.',
     ),
     (
       label: 'Hesabım',
@@ -78,7 +84,7 @@ void main() {
       expect(find.text(screen.description), findsOneWidget);
       expect(
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-        [0, 2, 1, 4][index],
+        [0, 2, 1, 3, 4][index],
       );
 
       await selectTab(tester, screen.label);

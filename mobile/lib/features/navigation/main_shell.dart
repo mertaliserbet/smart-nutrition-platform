@@ -5,6 +5,7 @@ import '../home/home_page.dart';
 import '../nutrition/nutrition_page.dart';
 import '../profile/profile_page.dart';
 import '../progress/progress_page.dart';
+import '../chat/chat_page.dart';
 import '../onboarding/onboarding_theme.dart';
 
 class MainShell extends StatefulWidget {
@@ -43,11 +44,13 @@ class _MainShellState extends State<MainShell> {
   late int _selectedIndex = widget.initialIndex;
   int _nutritionRevision = 0;
   int _measurementRevision = 0;
+  int _chatRevision = 0;
 
   void _selectTab(int index) {
     if (index == _selectedIndex) {
       if (index == 0 || index == 2) setState(() => ++_nutritionRevision);
       if (index == 1) setState(() => ++_measurementRevision);
+      if (index == 3) setState(() => ++_chatRevision);
       return;
     }
     setState(() => _selectedIndex = index);
@@ -61,10 +64,10 @@ class _MainShellState extends State<MainShell> {
         if (!didPop) _selectTab(0);
       },
       child: Scaffold(
-        backgroundColor: _selectedIndex <= 2
+        backgroundColor: _selectedIndex <= 3
             ? OnboardingTheme.background
             : null,
-        appBar: _selectedIndex <= 2
+        appBar: _selectedIndex <= 3
             ? null
             : AppBar(
                 automaticallyImplyLeading: false,
@@ -93,7 +96,7 @@ class _MainShellState extends State<MainShell> {
                 ),
               ),
         body: SafeArea(
-          top: _selectedIndex <= 2,
+          top: _selectedIndex <= 3,
           bottom: false,
           child: IndexedStack(
             index: _selectedIndex,
@@ -114,24 +117,10 @@ class _MainShellState extends State<MainShell> {
                 refreshRevision: _nutritionRevision,
                 onViewProfile: () => _selectTab(4),
               ),
-              Theme(
-                data: OnboardingTheme.data,
-                child: const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        OnboardingIcon('message-circle', size: 40),
-                        SizedBox(height: 16),
-                        Text(
-                          'Sohbet henüz kullanıma açık değil.',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              ChatPage(
+                active: _selectedIndex == 3,
+                refreshRevision: _chatRevision,
+                onViewProfile: () => _selectTab(4),
               ),
               const ProfilePage(),
             ],
