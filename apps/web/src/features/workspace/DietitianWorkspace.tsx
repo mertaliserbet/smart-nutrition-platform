@@ -37,7 +37,7 @@ export function DietitianWorkspace() {
       const profile = await getDietitianStatus(controller.signal)
       if (!controller.signal.aborted) {
         if (!profile.isVerified) navigate('/uzman/basvuru-durumu', { replace: true })
-        else { setSession({ token, dietitianId: profile.id, onFailure }); setProfile({ token, displayName: profile.displayName, email: user.email }) }
+        else { setSession({ token, dietitianId: profile.id, dietitianName: profile.displayName, onFailure }); setProfile({ token, displayName: profile.displayName, email: user.email }) }
       }
     } catch (error) {
       if (!controller.signal.aborted && !onFailure(error)) setMessage(error instanceof WebSessionError ? error.message : 'Çalışma alanı açılamadı.')

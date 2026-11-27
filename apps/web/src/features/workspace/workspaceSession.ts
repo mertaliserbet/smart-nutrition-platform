@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { WebSessionError } from '../auth/webSessionApi'
 
-export type WorkspaceSession = { token: string; dietitianId: string; onFailure: (error: unknown) => boolean }
+export type WorkspaceSession = { token: string; dietitianId: string; dietitianName?: string; onFailure: (error: unknown) => boolean }
 export const WorkspaceContext = createContext<WorkspaceSession | null>(null)
 export function useWorkspaceSession() {
   const value = useContext(WorkspaceContext)
