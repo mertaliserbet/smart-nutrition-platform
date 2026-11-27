@@ -1,3 +1,5 @@
+import { DateField } from '../../core/components/DateField'
+import { Select } from '../../core/components/Select'
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { mealLabels } from './nutritionPlanApi'
@@ -63,8 +65,8 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, compact =
     {seed && <p>Yalnız öğün yapısı kopyalandı. Serbest metin kişiye özel bilgi içerebilir; açıklama ve miktarları kaydetmeden önce inceleyin. Başlık, tarihler ve hedefleri bu danışan için girin.</p>}
     <fieldset disabled={busy}><legend>Program bilgileri</legend>
       <div className="form-field"><label htmlFor="plan-title">Program başlığı</label><input ref={titleInput} id="plan-title" {...field('plan-title')} value={draft.title} required onChange={event => updateDraft({ title: event.target.value })} />{error('plan-title')}</div>
-      <div className="plan-grid"><div className="form-field"><label htmlFor="plan-start">Başlangıç tarihi</label><input id="plan-start" {...field('plan-start')} type="date" value={draft.start} required onChange={event => updateDraft({ start: event.target.value })} />{error('plan-start')}</div>
-        <div className="form-field"><label htmlFor="plan-end">Bitiş tarihi (isteğe bağlı)</label><input id="plan-end" {...field('plan-end')} type="date" value={draft.end} onChange={event => updateDraft({ end: event.target.value })} />{error('plan-end')}</div></div>
+      <div className="plan-grid"><div className="form-field"><label htmlFor="plan-start">Başlangıç tarihi</label><DateField id="plan-start" {...field('plan-start')} type="date" value={draft.start} required onChange={event => updateDraft({ start: event.target.value })} />{error('plan-start')}</div>
+        <div className="form-field"><label htmlFor="plan-end">Bitiş tarihi (isteğe bağlı)</label><DateField id="plan-end" {...field('plan-end')} type="date" value={draft.end} onChange={event => updateDraft({ end: event.target.value })} />{error('plan-end')}</div></div>
       <div className="plan-grid"><div className="form-field"><label htmlFor="plan-kcal">Günlük enerji hedefi (kcal, isteğe bağlı)</label><input id="plan-kcal" {...field('plan-kcal')} inputMode="decimal" value={draft.calories} onChange={event => updateDraft({ calories: event.target.value })} />{error('plan-kcal')}</div>
         <div className="form-field"><label htmlFor="plan-water">Günlük su hedefi (mL, isteğe bağlı)</label><input id="plan-water" {...field('plan-water')} inputMode="decimal" value={draft.water} onChange={event => updateDraft({ water: event.target.value })} />{error('plan-water')}</div></div>
       <p>Hedefler otomatik hesaplanmaz. Ondalık için virgül veya nokta kullanabilirsiniz.</p>
@@ -77,19 +79,19 @@ export function NutritionPlanEditor({ initial, seed, clientName, busy, compact =
         const expanded = event.currentTarget.open
         setOpen(current => expanded ? current.includes(item.key) ? current : [...current, item.key] : current.filter(key => key !== item.key))
       }}><summary>{mealLabels[item.meal]} · Öğün önerisi {index + 1}{item.description && ` · ${item.description.slice(0, 60)}`}</summary>
-        <div className="plan-grid"><label>Gün<select aria-label={`Öğün ${index + 1} günü`} value={item.day} onChange={event => { update(item.key, { day: event.target.value }); selectDay(event.target.value) }}>{planDays.map((label, i) => <option key={label} value={i ? String(i) : ''}>{label}</option>)}</select></label>
-          <label>Öğün türü<select aria-label={`Öğün ${index + 1} türü`} value={item.meal} onChange={event => update(item.key, { meal: event.target.value as MealType })}>{Object.entries(mealLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
+        <div className="plan-grid"><label>Gün<Select aria-label={`Öğün ${index + 1} günü`} value={item.day} onChange={event => { update(item.key, { day: event.target.value }); selectDay(event.target.value) }}>{planDays.map((label, i) => <option key={label} value={i ? String(i) : ''}>{label}</option>)}</Select></label>
+          <label>Öğün türü<Select aria-label={`Öğün ${index + 1} türü`} value={item.meal} onChange={event => update(item.key, { meal: event.target.value as MealType })}>{Object.entries(mealLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select></label></div>
         <div className="form-field"><label htmlFor={`description-${item.key}`}>Öğün {index + 1} açıklaması</label><textarea id={`description-${item.key}`} {...field(`description-${item.key}`)} rows={3} value={item.description} required onChange={event => update(item.key, { description: event.target.value })} />{error(`description-${item.key}`)}</div>
         <div className="form-field"><label htmlFor={`quantity-${item.key}`}>Öğün {index + 1} miktar önerisi (isteğe bağlı)</label><input id={`quantity-${item.key}`} {...field(`quantity-${item.key}`)} value={item.quantity} onChange={event => update(item.key, { quantity: event.target.value })} />{error(`quantity-${item.key}`)}</div>
-        <label>Alternatif grubu<select id={`group-${item.key}`} {...field(`group-${item.key}`)} aria-label={`Öğün ${index + 1} alternatif grubu`} value={item.group} onChange={event => {
+        <label>Alternatif grubu<Select id={`group-${item.key}`} {...field(`group-${item.key}`)} aria-label={`Öğün ${index + 1} alternatif grubu`} value={item.group} onChange={event => {
           if (event.target.value === 'new') { const id = crypto.randomUUID(); setGroups(current => [...current, id]); update(item.key, { group: id }) }
           else update(item.key, { group: event.target.value })
-        }}><option value="">Bağımsız öneri</option>{groups.map((group, i) => <option key={group} value={group}>Alternatif {i + 1}</option>)}<option value="new">Yeni alternatif grubu</option></select></label>{error(`group-${item.key}`)}
+        }}><option value="">Bağımsız öneri</option>{groups.map((group, i) => <option key={group} value={group}>Alternatif {i + 1}</option>)}<option value="new">Yeni alternatif grubu</option></Select></label>{error(`group-${item.key}`)}
         <button className="button button-secondary" type="button" disabled={draft.items.length === 1} onClick={() => updateDraft({ items: draft.items.filter(row => row.key !== item.key) })}>Öğün {index + 1} önerisini kaldır</button>
       </details>)}
       <button id="plan-add-item" className="button button-secondary" type="button" disabled={draft.items.length >= 100} onClick={() => { const item = blankItem(day); updateDraft({ items: [...draft.items, item] }); setOpen(current => [...current, item.key]) }}>Öğün önerisi ekle</button>{error('plan-add-item')}
     </fieldset>
-    {day !== '' && <fieldset disabled={busy}><legend>Günü kopyala</legend><label>Hedef gün<select value={copyDay} onChange={event => setCopyDay(event.target.value)}>{planDays.slice(1).map((label, i) => <option key={label} value={String(i + 1)} disabled={day === String(i + 1)}>{label}</option>)}</select></label>
+    {day !== '' && <fieldset disabled={busy}><legend>Günü kopyala</legend><label>Hedef gün<Select value={copyDay} onChange={event => setCopyDay(event.target.value)}>{planDays.slice(1).map((label, i) => <option key={label} value={String(i + 1)} disabled={day === String(i + 1)}>{label}</option>)}</Select></label>
       <button className="button button-secondary" type="button" onClick={() => copy()}>Günü kopyala</button></fieldset>}
     <p>Aynı gün ve öğündeki en az iki öneriyi aynı alternatif grubuna alabilirsiniz. Alternatifler birlikte tüketilecek ayrı öğünler değildir.</p>
     {message && <p className="error-message" role="alert">{message}</p>}

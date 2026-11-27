@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Limely web tasarım önizlemesi. Tamamen sentetik içerik; canlı sisteme bağlı değildir.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; font-src 'self'; script-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+  <title>Limely · Web tasarım önizlemesi</title>
+  <link rel="icon" href="varliklar/logolar/limely-yazili-logo-renkli.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="onizleme.css">
+  <link rel="stylesheet" href="secim-kontrolleri.css">
+  <script src="secim-kontrolleri.js" defer></script>
+  <script src="onizleme.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">İçeriğe geç</a>
+  <div class="preview-bar" aria-label="Önizleme ekranları">
+    <span><b>ÖNİZLEME</b><span class="preview-detail"> · Sentetik veriler · Canlı sisteme bağlı değil</span></span>
+    <nav aria-label="Tasarım önizlemesi"><a href="#giris">Giriş</a><a href="#danisanlar">Danışanlar</a><a href="#programlar">Programlar</a><a href="karsilastirma.html">Karşılaştır</a></nav>
+  </div>
+  <div id="app"></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="modal" aria-labelledby="modal-title"><div id="modal-content"></div></dialog>
+</body>
+</html>

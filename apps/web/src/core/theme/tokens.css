@@ -1,41 +1,45 @@
-/* Limely web presentation. API names and the mobile theme are independent. */
-@font-face { font-family: 'Nunito Sans'; src: url('/fonts/nunito-sans.ttf') format('truetype'); font-style: normal; font-weight: 200 1000; font-display: swap; }
-@font-face { font-family: 'Roboto'; src: url('/fonts/roboto.ttf') format('truetype'); font-style: normal; font-weight: 100 900; font-stretch: 75% 100%; font-display: swap; }
+/* Approved Limely shared palette and locally bundled fonts. */
+@font-face { font-family: 'Manrope'; src: url('/limely/fontlar/manrope/manrope.ttf') format('truetype'); font-style: normal; font-weight: 200 800; font-display: swap; }
+@font-face { font-family: 'Inter'; src: url('/limely/fontlar/inter/inter.ttf') format('truetype'); font-style: normal; font-weight: 100 900; font-display: swap; }
 :root {
-  font-family: 'Roboto', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color-scheme: light;
   --sidebar-width: 250px;
   --control-height: 46px;
   --page-gutter: 24px;
-  --font-heading: 'Roboto', 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
-  --brand-primary: #005b49;
-  --brand-strong: #004537;
-  --brand-soft: #e9f1df;
-  --brand-accent: #dff0b6;
-  --brand-fill: radial-gradient(ellipse at 16% 15%, #008a6699, transparent 40%), radial-gradient(ellipse at 60% 100%, #003e3580, transparent 45%), linear-gradient(115deg, #00654e, #00483e);
+  --font-heading: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --brand-primary: #203B2F;
+  --brand-strong: #203B2F;
+  --brand-soft: #EAF3DE;
+  --brand-accent: #C9E879;
+  --brand-fill: #203B2F;
   --on-brand: #ffffff;
+  --on-accent: #203B2F;
+  --mascot-body: #83B977;
+  --leaf: #3D7756;
+  --yellow: #F5D96A;
   --surface: #ffffff;
-  --surface-page: #f9f6f3;
-  --page-wash: radial-gradient(ellipse at 15% 20%, #fff9f880, transparent 45%), radial-gradient(ellipse at 85% 75%, #fffaf780, transparent 50%);
-  --surface-subtle: #f1f3eb;
-  --text-primary: #101b1c;
-  --text-secondary: #48536a;
-  --text-muted: #616c71;
-  --border: #d9d9dc;
-  --border-strong: #bfc6cd;
+  --surface-page: #F8FAF2;
+  --page-wash: none;
+  --surface-subtle: #F1F5EA;
+  --text-primary: #203B2F;
+  --text-secondary: #52605B;
+  --text-muted: #65735D;
+  --border: #D9DFD5;
+  --border-strong: #BECBBC;
   --error: #a63131;
   --error-soft: #fff0ed;
-  --focus: #00745a;
+  --focus: #3D7756;
   --space-small: 8px;
   --space-medium: 16px;
   --space-large: 24px;
   --space-extra-large: 32px;
-  --radius-small: 8px;
-  --radius-medium: 14px;
-  --radius-large: 22px;
+  --radius-small: 12px;
+  --radius-medium: 18px;
+  --radius-large: 24px;
   --shadow-card: 0 2px 4px #18382c06;
-  --shadow-popover: 0 12px 32px #1533291c;
+  --shadow-popover: 0 16px 44px #203B2F21, 0 3px 10px #203B2F0D;
   --tone-amber-bg: #ffead4;
   --tone-amber-text: #754413;
   --tone-blue-bg: #edf3f7;

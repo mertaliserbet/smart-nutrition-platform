@@ -1,3 +1,5 @@
+import { DateField } from '../../core/components/DateField'
+import { Select } from '../../core/components/Select'
 import { useCallback, useEffect, useState } from 'react'
 import { WebSessionError } from '../auth/webSessionApi'
 import { useWorkspaceRead, useWorkspaceSession } from '../workspace/workspaceSession'
@@ -57,11 +59,11 @@ function ComparisonContent({ plan, onClose }: { plan: NutritionPlanResponse; onC
     <h4>Seçilen sürümle günlük karşılaştırma</h4>
     <p>Program önerileri ve kaydedilen tüketim öğün türüne göre gösterilir. Seçilen sürümün geçmişte o gün aktif olduğu anlamına gelmez.</p>
     <div className="comparison-controls">
-      <label>Karşılaştırma günü<input type="date" value={date} onChange={event => setDate(event.target.value)} /></label>
-      <label>Karşılaştırılacak sürüm<select value={versionId} onChange={event => setVersionId(event.target.value)}>
+      <label>Karşılaştırma günü<DateField type="date" value={date} onChange={event => setDate(event.target.value)} /></label>
+      <label>Karşılaştırılacak sürüm<Select value={versionId} onChange={event => setVersionId(event.target.value)}>
         <option value={plan.versionId}>Güncel sürüm {plan.versionNumber}</option>
         {versions.data?.kind === 'ready' && versions.data.value.items.filter(row => row.id !== plan.versionId).map(row => <option key={row.id} value={row.id}>Sürüm {row.versionNumber} · {new Date(row.createdAt).toLocaleString('tr-TR')}</option>)}
-      </select></label>
+      </Select></label>
     </div>
     <p className="comparison-zone">Gün sınırları: {Intl.DateTimeFormat().resolvedOptions().timeZone} · {boundary || 'Geçerli gün seçin'}. Bitiş sınırı hariçtir.</p>
     {versions.pending && <p role="status">Sürüm seçenekleri okunuyor…</p>}{versions.message && <p role="alert">{versions.message}</p>}

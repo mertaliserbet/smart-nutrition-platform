@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useId, useState } from 'react'
 import type { FormEvent } from 'react'
 import { isDirtyDraft, taskContent } from './clientTaskForm'
@@ -15,7 +16,7 @@ export function ClientTaskEditor({ draft, disabled, checking, conflicted, onChan
       <textarea id={`${id}-description`} rows={4} value={draft.description} onChange={event => { onChange({ ...draft, description: event.target.value }); setDiscard(false) }} required aria-describedby={`${id}-length`} />
       <p id={`${id}-length`} className="task-help">{[...draft.description].length} / 2000 karakter</p>
       <label htmlFor={`${id}-due`}>Son tarih ve saat (isteğe bağlı)</label>
-      <input id={`${id}-due`} type="datetime-local" step="1" value={draft.dueInput} onChange={event => { onChange({ ...draft, dueInput: event.target.value }); setDiscard(false) }} aria-describedby={`${id}-zone`} />
+      <DateField id={`${id}-due`} type="datetime-local" step="1" value={draft.dueInput} onChange={event => { onChange({ ...draft, dueInput: event.target.value }); setDiscard(false) }} aria-describedby={`${id}-zone`} />
       <p id={`${id}-zone`} className="task-help">Saat dilimi: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Seçtiğiniz yerel saat kaydedilir. Son tarih olmadan da görev atayabilirsiniz.</p>
       {error && <p role="alert" className="error-message">{error}</p>}
       {conflicted && <p role="alert">Görevin güncel durumu değişti. Yazdıklarınız kaydedilmedi; güncel görevi inceleyin.</p>}

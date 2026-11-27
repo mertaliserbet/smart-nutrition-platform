@@ -14,14 +14,7 @@ function MealIllustration({ bowl = false }: { bowl?: boolean }) {
 }
 
 function TrackingIllustration() {
-  return <svg className="tracking-illustration" viewBox="0 0 200 110" fill="none" aria-hidden="true">
-    <defs><filter id="calendar-shadow" x="-30%" y="-20%" width="160%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="2" floodColor="#356520" floodOpacity=".22" /></filter></defs>
-    <ellipse cx="97" cy="62" rx="82" ry="45" fill="#edf2dd" />
-    <g filter="url(#calendar-shadow)"><rect x="49" y="15" width="77" height="79" rx="9" fill="#fffef9" stroke="#286e1d" strokeWidth="5" /><path d="M50 40h75M69 8v21m35-21v21" stroke="#286e1d" strokeWidth="5" strokeLinecap="round" />
-      {[65, 87, 109].map(x => [55, 72].map(y => <circle key={`${x}:${y}`} cx={x} cy={y} r="4" fill="#286e1d" />))}</g>
-    <circle cx="137" cy="80" r="26" fill="#ffd19d" /><path d="M129 73a8 8 0 1 0 16 0 8 8 0 0 0-16 0Zm-4 23v-4a12 12 0 0 1 24 0v4" stroke="#122a25" strokeWidth="3.5" strokeLinecap="round" />
-    <path d="m140 13 3-12m4 18 9-10m-3 17 12-3" stroke="#ffad67" strokeWidth="4" strokeLinecap="round" />
-  </svg>
+  return <div className="tracking-illustration" aria-hidden="true"><Icon name="calendar" /><span className="tracking-person"><Icon name="user" /></span></div>
 }
 
 function HowItWorks() {
@@ -66,5 +59,5 @@ function ForDietitians() {
 }
 
 export function MarketingPage({ page }: { page: 'how' | 'features' | 'dietitians' }) {
-  return <div className="marketing-page"><header className="marketing-header"><Link to="/" aria-label="Limely ana sayfa"><Brand subtitle="" /></Link><nav aria-label="Tanıtım sayfaları"><NavLink to="/nasil-calisir">Nasıl çalışır?</NavLink><NavLink to="/ozellikler">Özellikler</NavLink><NavLink to="/diyetisyenler-icin">Diyetisyenler için</NavLink></nav><div><Link className="button button-secondary" to="/giris">Giriş yap</Link><Link className="button button-primary" to="/uzman-basvurusu">Ücretsiz başla</Link></div></header><main id="main-content">{page === 'how' ? <HowItWorks /> : page === 'features' ? <Features /> : <ForDietitians />}</main><footer className={`marketing-footer${page === 'how' ? ' how-footer' : ''}`}><Brand subtitle="" /><span /><LegalLinks contact className="marketing-footer-links" />{page === 'how' && <img className="footer-mascot" src="/images/limely-mascot-lime.png" alt="" aria-hidden="true" />}</footer></div>
+  return <div className="marketing-page"><header className="marketing-header"><Link to="/" aria-label="Limely ana sayfa"><Brand subtitle="" /></Link><nav aria-label="Tanıtım sayfaları"><NavLink to="/nasil-calisir">Nasıl çalışır?</NavLink><NavLink to="/ozellikler">Özellikler</NavLink><NavLink to="/diyetisyenler-icin">Diyetisyenler için</NavLink></nav><div><Link className="button button-secondary" to="/giris">Giriş yap</Link><Link className="button button-primary" to="/uzman-basvurusu">Ücretsiz başla</Link></div></header><main id="main-content">{page === 'how' ? <HowItWorks /> : page === 'features' ? <Features /> : <ForDietitians />}</main><footer className={`marketing-footer${page === 'how' ? ' how-footer' : ''}`}><Brand subtitle="" /><span /><LegalLinks contact className="marketing-footer-links" />{page === 'how' && <img className="footer-mascot" src="/limely/maskotlar/limely-maskot-merhaba.svg" alt="" aria-hidden="true" />}</footer></div>
 }

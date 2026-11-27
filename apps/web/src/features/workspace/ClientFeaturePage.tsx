@@ -1,3 +1,4 @@
+import { Select } from '../../core/components/Select'
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../core/components/Icon'
@@ -41,7 +42,7 @@ export function ClientFeaturePage({ feature }: { feature: keyof typeof content }
         <label className="search-field"><Icon name="search" /><span className="sr-only">Danışan ara</span><input type="search" value={input} placeholder="Danışan adıyla ara" onChange={event => setInput(event.target.value)} /></label>
         <button className="button button-secondary" disabled={state.pending || busy}>Ara</button>
       </form></details>
-      {state.data && state.data.items.length > 0 && <label className="feature-client-select"><Icon name="users" /><span className="sr-only">Danışan seç</span><select value={client?.id ?? ''} disabled={busy} onChange={event => { const id = event.target.value; changeClient(() => setSelected(id)) }}>{state.data.items.map(item => <option key={item.id} value={item.id}>{item.displayName}</option>)}</select></label>}
+      {state.data && state.data.items.length > 0 && <label className="feature-client-select"><Icon name="users" /><span className="sr-only">Danışan seç</span><Select value={client?.id ?? ''} disabled={busy} onChange={event => { const id = event.target.value; changeClient(() => setSelected(id)) }}>{state.data.items.map(item => <option key={item.id} value={item.id}>{item.displayName}</option>)}</Select></label>}
       {client && <Link className="text-link" to={`/calisma-alani/danisanlar/${client.id}?bolum=${copy.section}`}>Danışan profilini aç<Icon name="arrow" /></Link>}
     </div>
     {state.pending && <p className="form-message" role="status">Danışanlar okunuyor…</p>}

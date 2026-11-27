@@ -1,0 +1,362 @@
+[
+  {
+    "source": "output/limely-marka-paketi-v1/logolar/limely-yazili-logo-renkli.svg",
+    "target": "varliklar/logolar/limely-yazili-logo-renkli.svg",
+    "sha256": "fc2cc7312360e5f071dedf6ca854d7e816c09e9e2779034127ae10dbc86438b2"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/maskotlar/limely-maskot-merhaba.svg",
+    "target": "varliklar/maskotlar/limely-maskot-merhaba.svg",
+    "sha256": "8697185d474ca0e2da10691ec7f520c249cc523263c7265750cd954d3167d963"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/lisanslar/LUCIDE-LICENSE.txt",
+    "target": "varliklar/lisanslar/LUCIDE-LICENSE.txt",
+    "sha256": "6fc5b7332939dd5c61af3a5f97450f7bc05d4a396dd0bc21ac341716b3b05096"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/grid-2x2.svg",
+    "target": "varliklar/ikonlar/koyu/grid-2x2.svg",
+    "sha256": "745f41aeaa1730b8af38062a26c2e872498891f96499b71945cba0b2c7906f9e"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/users.svg",
+    "target": "varliklar/ikonlar/koyu/users.svg",
+    "sha256": "2f8849eecf45caed4fb280d4b425117400b2b5a27e81242cf029a7f49f2def45"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/salad.svg",
+    "target": "varliklar/ikonlar/koyu/salad.svg",
+    "sha256": "0a97e613166f1b99af105cfa76ac527be40f2f1aff376fbac20837a85a3b34d5"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/clipboard-list.svg",
+    "target": "varliklar/ikonlar/koyu/clipboard-list.svg",
+    "sha256": "910e9ac1d94cf01d4a4e92fd2cb71b5370fc1de7270b1bac982fd6e9179ec4e3"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/calendar-days.svg",
+    "target": "varliklar/ikonlar/koyu/calendar-days.svg",
+    "sha256": "5aa0eb11be33af60463da51594014fc9109c4498cc64e3c78c219d79b7321aaa"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/messages-square.svg",
+    "target": "varliklar/ikonlar/koyu/messages-square.svg",
+    "sha256": "a0cafa464b31e58b492bd3192c257f6ae0a654323d410497458c05f7736b50a9"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/chart-column.svg",
+    "target": "varliklar/ikonlar/koyu/chart-column.svg",
+    "sha256": "2e91fdcbe6a3947601aeebb3b10d9ac0234677202bcbeffaa7e7e1240fa4e9b3"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/settings.svg",
+    "target": "varliklar/ikonlar/koyu/settings.svg",
+    "sha256": "a15b2b25c9205c20bb6d376c323754d29acd00bba5217a3cdecaef53a060c80f"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/chevron-down.svg",
+    "target": "varliklar/ikonlar/koyu/chevron-down.svg",
+    "sha256": "ca281581dbf172eeab5f09e60a3fd13c4069f80ebebea653363fee71da679bab"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/chevron-left.svg",
+    "target": "varliklar/ikonlar/koyu/chevron-left.svg",
+    "sha256": "992e6b3d4e52dcc8f7eef8697936f49fc38ef967eb5e9f9874daef858a02f7e9"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/chevron-right.svg",
+    "target": "varliklar/ikonlar/koyu/chevron-right.svg",
+    "sha256": "1df938d579d8ad464977e72969620ec4e4bd6d7b87cb82c08cc0ac21dfe97e24"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/arrow-right.svg",
+    "target": "varliklar/ikonlar/koyu/arrow-right.svg",
+    "sha256": "94d8af79e2b3c19f816c21e2596afe3bb593cea25e4007891c0c5fc83ce78272"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/arrow-left.svg",
+    "target": "varliklar/ikonlar/koyu/arrow-left.svg",
+    "sha256": "cc83f1b67d939e925b6f318b53b89f0eafe0c070e78283597a0ef66d9e4287e4"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/bell.svg",
+    "target": "varliklar/ikonlar/koyu/bell.svg",
+    "sha256": "3868cb18f928ca04356c72a176ac01b17a5cc19ed00043f447cd9c095cb04959"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/plus.svg",
+    "target": "varliklar/ikonlar/koyu/plus.svg",
+    "sha256": "ac6b1d591f92f52a70f71ce452e77f385842674998f82880817140cab0337cd5"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/search.svg",
+    "target": "varliklar/ikonlar/koyu/search.svg",
+    "sha256": "531149c02b3a267cd5601f37ee763b6f3f52c60f2d23a90eb1510579fc18a248"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/layers.svg",
+    "target": "varliklar/ikonlar/koyu/layers.svg",
+    "sha256": "e4aa9bb432bb8e9e7e44b514c4d3c61df8e3357d813c77754487094740841e0d"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/clock.svg",
+    "target": "varliklar/ikonlar/koyu/clock.svg",
+    "sha256": "a1384e49be9087dc116fdfb5e4b9027ed599490bff8cc42274819b8112bfcd10"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/check.svg",
+    "target": "varliklar/ikonlar/koyu/check.svg",
+    "sha256": "4c88f5be896146bb60af2cbc7dc08eac3ac7097683a5c7b993f7fd7137ce77c6"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/circle-check.svg",
+    "target": "varliklar/ikonlar/koyu/circle-check.svg",
+    "sha256": "af30eebd107a4e8642abaee264999a2154e550bad61f55080e70a1e2276ae7c0"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/user-round.svg",
+    "target": "varliklar/ikonlar/koyu/user-round.svg",
+    "sha256": "0549716b1cdc14cb639fcdb85e5200b15d7bf52701673840d61195aad1868b32"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/shield-check.svg",
+    "target": "varliklar/ikonlar/koyu/shield-check.svg",
+    "sha256": "45f297c9f882bc9346d7e06aef0f27ef0fd76ebc3a17219a4949a27745c6e5fd"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/menu.svg",
+    "target": "varliklar/ikonlar/koyu/menu.svg",
+    "sha256": "f9ebdf1c8e31c5bbdcbf1b0d97036564c774cf7e0f6bdde085a06331fad9d32d"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/x.svg",
+    "target": "varliklar/ikonlar/koyu/x.svg",
+    "sha256": "0e192a0869390771e0eddfc17f56f25c2abfc8f3d4db4e7eade1b36cd19c7706"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/utensils.svg",
+    "target": "varliklar/ikonlar/koyu/utensils.svg",
+    "sha256": "90a986477a8e82950558d341540d3356dd8f865a1dd62bc67b81cc32faeb569c"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/pencil.svg",
+    "target": "varliklar/ikonlar/koyu/pencil.svg",
+    "sha256": "bc9eaf3a72ba30f10cbcd399d9450851c886187c01781de4819e00ae3eb7c444"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/info.svg",
+    "target": "varliklar/ikonlar/koyu/info.svg",
+    "sha256": "116104d6aa2665cdb195677765c19af7b39d4c1e80629191fa43509c88ca4a0b"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/leaf.svg",
+    "target": "varliklar/ikonlar/koyu/leaf.svg",
+    "sha256": "6a1ddef4d7bcb0c31cbfe4f3f8be4be52554877f3f3e235fc9f35deb25409314"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/notebook-pen.svg",
+    "target": "varliklar/ikonlar/koyu/notebook-pen.svg",
+    "sha256": "787665ce585f4838cfd234f9488499d7a8b25c7abaff3b364b489875b2efd0bb"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/koyu/rotate-ccw.svg",
+    "target": "varliklar/ikonlar/koyu/rotate-ccw.svg",
+    "sha256": "3c21cfeef462d6a965029ea0bd92cee078a239152bc28700a2e902c43a0ac714"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/grid-2x2.svg",
+    "target": "varliklar/ikonlar/beyaz/grid-2x2.svg",
+    "sha256": "ec9548a88354102410418a2435cc5322c867f7e23aa4cd9fd860c14af4669350"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/users.svg",
+    "target": "varliklar/ikonlar/beyaz/users.svg",
+    "sha256": "3ee659d3eac7167855d6effb480df5b8fa142ba6450cde440984a8b8078edb5e"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/salad.svg",
+    "target": "varliklar/ikonlar/beyaz/salad.svg",
+    "sha256": "07180e3a280bb7b3def0cd70ae9804cb5060fcebf0b5218d9188811ce618d158"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/clipboard-list.svg",
+    "target": "varliklar/ikonlar/beyaz/clipboard-list.svg",
+    "sha256": "3974e74c0af6d3cc4ba28df682ff508fb68f8e79775cbb07b4254ecefe10aa3d"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/calendar-days.svg",
+    "target": "varliklar/ikonlar/beyaz/calendar-days.svg",
+    "sha256": "cc4a79e3f6fabc67d65a42ed797f5dca8f4df216699fc0d121020907d66107db"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/messages-square.svg",
+    "target": "varliklar/ikonlar/beyaz/messages-square.svg",
+    "sha256": "abe2f96aa3b20d6b46ee3daff1a1092378ee5c44587a4132c8a3f53e67a8dace"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/chart-column.svg",
+    "target": "varliklar/ikonlar/beyaz/chart-column.svg",
+    "sha256": "cbaf5aae069ee26f4586b76243241089736ffce0be6cf92f96f9701e1e5d971b"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/settings.svg",
+    "target": "varliklar/ikonlar/beyaz/settings.svg",
+    "sha256": "025dfbdd5f6e7dfb9573ecef64b6469aac0da57f8d25c1d0364b2cf8ba100fea"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/chevron-down.svg",
+    "target": "varliklar/ikonlar/beyaz/chevron-down.svg",
+    "sha256": "79bee6a21f7f7358b19dbdc10512b79d934aa2b5de354f404cb095000f1e91a7"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/chevron-left.svg",
+    "target": "varliklar/ikonlar/beyaz/chevron-left.svg",
+    "sha256": "c028c6a8d72318de0554eff976572a0620c49a616acc826ffb8311624ec72a9a"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/chevron-right.svg",
+    "target": "varliklar/ikonlar/beyaz/chevron-right.svg",
+    "sha256": "2bf4fbbefc0a0fa4766cb68e4c6c1648a056c6e7512e735968881c5a0ede9b39"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/arrow-right.svg",
+    "target": "varliklar/ikonlar/beyaz/arrow-right.svg",
+    "sha256": "88241526d1d4121f8e4528aac63efc2fb0b125638a161a929c6e9d0724787698"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/arrow-left.svg",
+    "target": "varliklar/ikonlar/beyaz/arrow-left.svg",
+    "sha256": "0227fe5e0f71666fa75f7628c8bfb07acf91fd214b3d3bc714f7847cda3b8aeb"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/bell.svg",
+    "target": "varliklar/ikonlar/beyaz/bell.svg",
+    "sha256": "4aaab6a2d6dcb62c6dc4ac04f9ccf10d77499fabd433e792ea445cc5cdd51804"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/plus.svg",
+    "target": "varliklar/ikonlar/beyaz/plus.svg",
+    "sha256": "f36fcbf33a73a06eb433203f6b48bd36f21983bd06cbb093f07726e2dbf63c72"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/search.svg",
+    "target": "varliklar/ikonlar/beyaz/search.svg",
+    "sha256": "fd48d2ba67df07a3b332d4e9101449dc2d2d598ad535eab2598ac6ef7d11fa4a"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/layers.svg",
+    "target": "varliklar/ikonlar/beyaz/layers.svg",
+    "sha256": "9430771ef9c38aecaa66147fcd52f9388033762fadc20e97afa856846e6a5b38"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/clock.svg",
+    "target": "varliklar/ikonlar/beyaz/clock.svg",
+    "sha256": "c4993fe683ddcc20ef34d4347d971290c10b439bde36642593c3682b0036be7a"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/check.svg",
+    "target": "varliklar/ikonlar/beyaz/check.svg",
+    "sha256": "94b5854ea0f2d1b9154e07e9759b5195fd61132d6337007d7b595d90b6e01c73"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/circle-check.svg",
+    "target": "varliklar/ikonlar/beyaz/circle-check.svg",
+    "sha256": "4e80057adbdb6d7ba0b6173f0fb40b5f1ec58a803f36e3525daa721fc70f7cbd"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/user-round.svg",
+    "target": "varliklar/ikonlar/beyaz/user-round.svg",
+    "sha256": "0b8753a81d28cb8d2972a150e4e619d049626ed6560dbe1359999e14f7d0e3d6"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/shield-check.svg",
+    "target": "varliklar/ikonlar/beyaz/shield-check.svg",
+    "sha256": "8519f6d3254db0e7870b2952627644fc67f48cf566f6723d6ff361b84191588b"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/menu.svg",
+    "target": "varliklar/ikonlar/beyaz/menu.svg",
+    "sha256": "89061ab67279aac2ab779ce0452bbdf2868f172845f19f360381acd102b97546"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/x.svg",
+    "target": "varliklar/ikonlar/beyaz/x.svg",
+    "sha256": "c7085779f87b4efeea134d86460765abc4b46ad536f5f8b33643f643a1cf1a64"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/utensils.svg",
+    "target": "varliklar/ikonlar/beyaz/utensils.svg",
+    "sha256": "6a747e9377d3dc1690f673b5d32f29cccd8df0af59b54ae474b61fa6313181d6"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/pencil.svg",
+    "target": "varliklar/ikonlar/beyaz/pencil.svg",
+    "sha256": "6d82e4bdbb1a46cb9285e0a7311248026f1772d26fe6e105b05210e080bb00a1"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/info.svg",
+    "target": "varliklar/ikonlar/beyaz/info.svg",
+    "sha256": "1d9394ad8fea1991c30c701eab36b3958fe11fcc8dd511659c4d4c1dfba4e94b"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/leaf.svg",
+    "target": "varliklar/ikonlar/beyaz/leaf.svg",
+    "sha256": "3eadf23c8389190c3a63525d72e1b3130fb1f301c1cfb2e668e3fae20d848468"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/notebook-pen.svg",
+    "target": "varliklar/ikonlar/beyaz/notebook-pen.svg",
+    "sha256": "1f2ef8de0c2e8a9b623fde813c16a560532745b7a0db1606f51b5244133d45df"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/ikonlar/beyaz/rotate-ccw.svg",
+    "target": "varliklar/ikonlar/beyaz/rotate-ccw.svg",
+    "sha256": "1d775eec091fd3095235afdaf85c0851efc1690d838b18ac0d642fa487fdaf77"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/gorseller/breakfast-bowl.webp",
+    "target": "varliklar/gorseller/breakfast-bowl.webp",
+    "sha256": "79262d0571ec703c1a7162d93dd72a29528935c28654e7e4485d0e1f3f3c0253"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/gorseller/balanced-plate.webp",
+    "target": "varliklar/gorseller/balanced-plate.webp",
+    "sha256": "c5c237688454fdedee0baced50b3e7f5676c5f8628c4eb1662bf7f76ed75c862"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/gorseller/food-salad.webp",
+    "target": "varliklar/gorseller/food-salad.webp",
+    "sha256": "f590c2270a96ef71c901b68459af427a8e03bed7bf0eae4a6980dd640112314a"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/gorseller/food-chicken.webp",
+    "target": "varliklar/gorseller/food-chicken.webp",
+    "sha256": "b1c6acd967a62e48d1675869e877f84939044aab37505107cab6fe8ade0502fe"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/gorseller/food-bulgur.webp",
+    "target": "varliklar/gorseller/food-bulgur.webp",
+    "sha256": "5017906be9297aa57d5bd9e2ecc9a4d73718b9bb3e765f9811b248f22d8bc7cc"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/fontlar/manrope/manrope.ttf",
+    "target": "varliklar/fontlar/manrope/manrope.ttf",
+    "sha256": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/fontlar/manrope/OFL.txt",
+    "target": "varliklar/fontlar/manrope/OFL.txt",
+    "sha256": "4b8929f05a122b7abb9059501dc7dc4df86f8c97d5a1769d60d82cf2d2795dde"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/fontlar/inter/inter.ttf",
+    "target": "varliklar/fontlar/inter/inter.ttf",
+    "sha256": "29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031"
+  },
+  {
+    "source": "output/limely-marka-paketi-v1/fontlar/inter/OFL.txt",
+    "target": "varliklar/fontlar/inter/OFL.txt",
+    "sha256": "f14f2b95a38f4f20cad4d27f7710593f37534c046641be0348da7c28365f4e39"
+  }
+]

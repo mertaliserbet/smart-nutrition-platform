@@ -20,7 +20,7 @@ export function AuthLayout({ title, description, children, isLogin = false, regi
         <p className="auth-description">{description}</p>
         <div className="auth-form-surface">{children}</div>
       </main>
-      {isLogin && <div className="auth-encouragement" aria-hidden="true"><img src="/images/limely-mascot-lime.png" width="1536" height="1024" alt="" /><p>Küçük adımlar,<br />düzenli takip.</p></div>}
+      {isLogin && <div className="auth-encouragement" aria-hidden="true"><img src="/limely/maskotlar/limely-maskot-merhaba.svg" width="1536" height="1024" alt="" /><p>Küçük adımlar,<br />düzenli takip.</p></div>}
       <footer className="auth-footer">{isLogin ? <LegalLinks /> : <><Icon name="shield" /><span>Paylaşım danışanın kontrolünde. Her adımda izinli erişim.</span><span className="auth-footer-brand">Limely</span></>}</footer>
       {secondary}
       {isLogin && <p className="auth-mobile-note">Danışan kaydı ve danışan işlemleri mobil uygulamada yapılır.</p>}

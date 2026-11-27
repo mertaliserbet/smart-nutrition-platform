@@ -1,0 +1,43 @@
+.custom-select{flex:1;min-width:0;width:100%;position:relative}
+.select-trigger,.date-trigger{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;width:100%;min-height:30px;padding:0;border:0;background:transparent;text-align:left;font-size:16px;line-height:1.35;cursor:pointer}
+.select-value,.date-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.select-trigger>.icon,.date-trigger>.icon:last-child{height:19px;width:19px;flex:none;transition:transform .15s ease}
+.select-trigger[aria-expanded=true]>.icon,.date-trigger[aria-expanded=true]>.icon:last-child{transform:rotate(180deg)}
+.select-trigger:focus-visible,.date-trigger:focus-visible{outline:none}
+.filter-control:focus-within{outline:3px solid var(--focus);outline-offset:3px}
+.filter-control:has([aria-expanded=true]),.input-wrap:has([aria-expanded=true]){border-color:var(--leaf);background:#fff}
+.floating-menu{position:fixed;inset:auto;margin:0;padding:7px;border:1px solid #D0DBCA;border-radius:16px;background:#fff;color:var(--text-primary);box-shadow:0 16px 44px #203B2F21,0 3px 10px #203B2F0D;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#B7C9AE transparent;z-index:60;display:none}
+.floating-menu:popover-open,.floating-menu.is-open{display:block}
+.select-option{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:43px;margin:2px 0;padding:10px 12px;border-radius:10px;font-size:15px;font-weight:450;line-height:1.4;cursor:pointer;overflow-wrap:anywhere}
+.select-option>span:first-child{min-width:0}
+.select-option.is-active{background:#F1F6EB}
+.select-option[aria-selected=true]{background:var(--brand-soft);font-weight:650}
+.select-option[aria-selected=true].is-active{background:#E1EFCD}
+.option-check{display:grid;place-items:center;width:23px;height:23px;border-radius:50%;background:var(--brand-accent);flex:none;visibility:hidden}
+.select-option .option-check .icon{width:16px;height:16px}
+.select-option[aria-selected=true] .option-check{visibility:visible}
+.date-control{min-width:0}
+.date-trigger{font-size:16px}
+.date-trigger>.icon:first-child{width:23px;height:23px}
+.date-value{flex:1}
+.calendar-menu{padding:15px}
+.calendar-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px}
+.calendar-header h2{font-size:17px;line-height:1.4;font-weight:750;letter-spacing:0;text-transform:capitalize}
+.calendar-arrow{display:grid;place-items:center;min-width:32px;min-height:32px;padding:5px;border:1px solid var(--border);border-radius:10px;background:#fff}
+.calendar-arrow .icon{height:18px;width:18px}
+.calendar-arrow:hover,.calendar-today:hover{background:var(--brand-soft)}
+.calendar-weekdays,.calendar-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.calendar-weekdays{padding-bottom:7px;border-bottom:1px solid var(--border);margin-bottom:7px}
+.calendar-weekdays span{text-align:center;font-size:11px;font-weight:650;color:var(--text-secondary);line-height:25px}
+.calendar-day{display:grid;place-items:center;height:35px;padding:0;border-radius:10px;background:transparent;font-size:13px;line-height:1;font-weight:500}
+.calendar-day:hover{background:var(--brand-soft)}
+.calendar-day.is-adjacent{color:#879282}
+.calendar-day.is-today{box-shadow:inset 0 0 0 1px var(--leaf)}
+.calendar-day.is-selected{background:var(--brand-accent);color:var(--text-primary);font-weight:750;box-shadow:none}
+.calendar-day:focus-visible{outline:2px solid var(--leaf);outline-offset:-2px}
+.calendar-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--border);padding-top:11px;margin-top:10px}
+.calendar-footer>span{font-size:10px;color:var(--text-secondary);white-space:nowrap}
+.calendar-today,.calendar-done{min-height:31px;border-radius:9px;padding:6px 9px;font-size:12px;font-weight:650;background:var(--brand-soft)}
+.calendar-done{background:var(--brand-primary);color:#fff}
+@media(max-width:760px){.select-trigger{font-size:14px}.select-trigger>.icon{width:17px;height:17px}.select-option{font-size:14px;min-height:44px}.date-trigger{font-size:14px;gap:9px}.calendar-menu{padding:13px}}
+@media(prefers-reduced-motion:reduce){.select-trigger>.icon,.date-trigger>.icon{transition:none}}

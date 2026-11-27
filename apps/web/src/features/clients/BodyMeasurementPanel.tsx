@@ -1,3 +1,4 @@
+import { DateField } from '../../core/components/DateField'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { EmptyState } from '../../core/components/EmptyState'
@@ -62,8 +63,8 @@ function BodyMeasurementContent({ clientId }: { clientId: string }) {
     <form className="meal-preview-filters" aria-label="Ölçüm tarihi filtresi" onSubmit={applyFilter}
       onReset={() => { setError(''); setFromInput(''); setToInput(''); setPage(1); setRange({}) }}>
       <p id="measurement-time-zone">Filtre saatleri UTC (UTC+00:00); başlangıç dahil, bitiş hariçtir. Kayıt saatleri cihazın saat diliminde gösterilir.</p>
-      <label>Ölçüm başlangıcı<input name="from" type="datetime-local" step="1" value={fromInput} onChange={event => setFromInput(event.target.value)} aria-describedby="measurement-time-zone" /></label>
-      <label>Ölçüm bitişi<input name="to" type="datetime-local" step="1" value={toInput} onChange={event => setToInput(event.target.value)} aria-describedby="measurement-time-zone" /></label>
+      <label>Ölçüm başlangıcı<DateField name="from" type="datetime-local" step="1" value={fromInput} onChange={event => setFromInput(event.target.value)} aria-describedby="measurement-time-zone" /></label>
+      <label>Ölçüm bitişi<DateField name="to" type="datetime-local" step="1" value={toInput} onChange={event => setToInput(event.target.value)} aria-describedby="measurement-time-zone" /></label>
       <div className="meal-preview-actions"><button className="button button-primary" type="submit">Ölçümleri filtrele</button><button className="button button-secondary" type="reset">Ölçüm filtresini temizle</button></div>
       {error && <p role="alert">{error}</p>}
     </form>
