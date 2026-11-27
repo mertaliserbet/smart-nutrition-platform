@@ -133,9 +133,6 @@ function LoginOptions() {
           <Icon name="arrow" />
         </Link>
       ))}
-      {import.meta.env.DEV && (
-        <Link className="text-link login-preview-link" to="/onizleme"><Icon name="grid" />Panel tasarımını incele</Link>
-      )}
     </nav>
   )
 }
