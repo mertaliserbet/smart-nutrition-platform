@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "font": "Figtree",
+  "originalBrandAssets": true,
+  "navigationOrder": true,
+  "widths": [
+    320,
+    360,
+    390,
+    430
+  ],
+  "compactHeight": 520,
+  "composerAboveNavigation": true,
+  "emptyState": true,
+  "textAndUnicodeInput": true,
+  "safeTextRendering": true,
+  "enterAndShiftEnter": true,
+  "attachmentPreviewOnly": true,
+  "accessibleDialogs": true,
+  "newIcons": [
+    "file",
+    "send",
+    "eye",
+    "printer"
+  ],
+  "externalRequests": 0,
+  "errors": []
+}

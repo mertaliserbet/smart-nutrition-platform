@@ -2,8 +2,8 @@
   "verified": true,
   "protectedFilesVerified": 20,
   "checks": [
-    "150 SVG are pure vector with no external dependencies",
-    "150 PNG match their SVG render pixel for pixel",
+    "158 SVG are pure vector with no external dependencies",
+    "158 PNG match their SVG render pixel for pixel",
     "All PNG include transparent and antialiased pixels",
     "All artwork stays inside the canvas",
     "The initial 20 logo and mascot files are unchanged"
@@ -2408,6 +2408,134 @@
       "pngMatchesSvg": true,
       "svgSha256": "c5ce3b021a68ebf0d53494dc586cc50f43f61e5bbd27f226b73292f7849699d3",
       "pngSha256": "3fa732a0f6376471665db87fc7cc77c2b03ccf6e59767e266063fceed2853866"
+    },
+    {
+      "id": "ikonlar-koyu-file",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 634,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b92694387b5c92d8729adc9a44d150c65ed4611088f14e3f0d7b8a771fdf006d",
+      "pngSha256": "2e4ce736b6c5dc9247a2e65c9f286039330bf32c04778142fa66df9c685f6c12"
+    },
+    {
+      "id": "ikonlar-beyaz-file",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 634,
+      "artworkBounds": [
+        12,
+        4,
+        83,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b38fbefd6b360143d1cac6eac0c43cb729384c598653e60008d845b484582c4e",
+      "pngSha256": "5ccbaca2c324325639516ef6322b5a059e4aaa9f59e5e4bc4cdb6a5d4662396e"
+    },
+    {
+      "id": "ikonlar-koyu-send",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 686,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "931eb602b554b3579d3e98017a2c13a836e91032a80a71596b95c0ed922776d5",
+      "pngSha256": "7d29dcf46fcf14cca261bd06ed79555a34c5cfe999dbf29c72c4dcdfc159b258"
+    },
+    {
+      "id": "ikonlar-beyaz-send",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 686,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "46c4a1db45293f053d3aa66da3448525d88a174cf2ca13de23d15577deea605e",
+      "pngSha256": "91ef96e62cf8fc1c90f994f95d3f40d486f41f035616754e00c4f071a0be012a"
+    },
+    {
+      "id": "ikonlar-koyu-eye",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 685,
+      "artworkBounds": [
+        4,
+        16,
+        91,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "822118584c9a41fd9b9e2d768a2003ae44f6eebdd6a0d453ca2dae4c55c4be8e",
+      "pngSha256": "d0694f7a88e36f77def1ef4dd2eb57ce7f770f8e92716d7b9689a733be632fd4"
+    },
+    {
+      "id": "ikonlar-beyaz-eye",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 685,
+      "artworkBounds": [
+        4,
+        16,
+        91,
+        79
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "ae811cef6b9d789ffa583d8e2c1b3928b7f050a3b0bc224e0d0b697aa4760593",
+      "pngSha256": "86fffb4652216bc2df2fd5806e56f278e5c3e752852f3371e3613ed8ac304efb"
+    },
+    {
+      "id": "ikonlar-koyu-printer",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 828,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "7627b37506d48833d1d4a0d4011c854c7adc1727aec00e8489c73fe0a02e72a8",
+      "pngSha256": "3c72337363b5f534cba04fc15ada55f909d9c7cbb2d433ac08fe89f98ab8b774"
+    },
+    {
+      "id": "ikonlar-beyaz-printer",
+      "width": 96,
+      "height": 96,
+      "hasTransparency": true,
+      "antialiasedPixels": 828,
+      "artworkBounds": [
+        4,
+        4,
+        91,
+        91
+      ],
+      "pngMatchesSvg": true,
+      "svgSha256": "b38d5f0b1f6960ba39a469838cb4d12b6d0e4c059462c8ea4ecf5cd7e492e024",
+      "pngSha256": "d27155b0f096e001883ed65e73ee1a28be5e24be8394b29b2edd98de01eb11a0"
     }
   ]
 }

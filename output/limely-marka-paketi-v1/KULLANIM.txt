@@ -1,5 +1,5 @@
 LIMELY — MERT VE UĞUR İÇİN ORTAK GÖRSEL KAYNAK PAKETİ
-Paket içeriği: 1.1.0 | klasör adı bağlantıları korumak için limely-marka-paketi-v1
+Paket içeriği: 1.2.0 | klasör adı bağlantıları korumak için limely-marka-paketi-v1
 
 1. ORTAK KULLANIM
 
@@ -22,8 +22,8 @@ ortak çizgi stilinde Lucide ve dört özel SVG çizimiyle karşılandı.
 
 logolar/             Lime simgesi ve yazılı logo; renkli, koyu, beyaz.
 maskotlar/           Merhaba, göz kırpma, su molası, kutlama ve ölçüm.
-ikonlar/koyu/        60 ikon; SVG ve 96 px şeffaf PNG.
-ikonlar/beyaz/       Aynı 60 ikonun koyu zemin için beyaz karşılıkları.
+ikonlar/koyu/        64 ikon; SVG ve 96 px şeffaf PNG.
+ikonlar/beyaz/       Aynı 64 ikonun koyu zemin için beyaz karşılıkları.
 bilesenler/          Su şişesi/bardağı, seçim ve ilerleme görselleri.
 dekorlar/            Maskot halesi, çekirdekler, banner ve kart köşeleri.
 gorseller/           Mevcut web uygulamasındaki altı yemek görseli.
@@ -72,7 +72,7 @@ Uyarı=triangle-alert; yeni işlem=clipboard-check; not=notebook-pen.
 İkonların ortak kutusu 24x24; çizgi 1.8; uçlar/köşeler yuvarlaktır.
 Normal gösterim 24 logical px/CSS px; PNG dosyası 96 px olduğu için
 24 px gösterimde 4x yoğunluk sağlar. Koyu ve beyaz varyantlar aynı çizimdir.
-60 ikonun 56'sı Lucide; body-scale, height, walk, run özel çizimlerdir.
+64 ikonun 60'ı Lucide; body-scale, height, walk, run özel çizimlerdir.
 scale, özgün HTML'deki Lucide terazi ikonudur; ekrandaki banyo tartısı
 görünümü için body-scale kullanılır.
 triangle-alert dosyasının resmî kaynak adı triangle-exclamation-point'tir;
@@ -245,3 +245,23 @@ source/collect-dependencies.ps1 yalnız kaynakları yeniden indirmek içindir;
 normal entegrasyonda çalıştırmayın.
 
 Sonraki adım: ikinizin de bu paketteki aynı dosya adlarıyla entegrasyon yapması.
+
+
+9. YENİ ARAYÜZ İKONLARI — MERT VE UĞUR
+
+Dosya:         ikonlar/koyu/file.svg       veya file.png
+Gönder:        ikonlar/koyu/send.svg       veya send.png
+Şifreyi göster: ikonlar/koyu/eye.svg        veya eye.png
+Yazdır:        ikonlar/koyu/printer.svg    veya printer.png
+
+Koyu zeminde aynı dosya adlarını ikonlar/beyaz/ klasöründen kullanın.
+Her ikonun 24x24 çizim kutusu, 1.8 çizgi kalınlığı, yuvarlak uç/köşe ve
+96x96 şeffaf PNG karşılığı vardır. Webde SVG, Flutter'da PNG kullanılabilir.
+
+İkon önizlemesi: ikonlar/ek-ikonlar.html
+Göster düğmesinde erişilebilir ad “Şifreyi göster”; gösterilirken
+“Şifreyi gizle” olmalıdır. Bu paket uygulamadaki şifre davranışını değiştirmez.
+Gönder düğmesinin adı “Mesajı gönder”, yazdır düğmesinin adı “Yazdır”,
+dosya düğmesinin adı bağlama göre “Dosya ekle” veya “Dosyayı aç” olmalıdır.
+Mevcut logo, maskot ve ikon dosyaları korunmuştur. Yeni dört kaynak aynı
+sabit Lucide commit'inden alınmıştır; kaynak ve lisans kayıtları manifesttedir.

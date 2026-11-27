@@ -1,6 +1,6 @@
 {
   "package": "Limely ortak web ve mobil görsel kaynak paketi",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "source": "source/onayli-konsept.png",
   "sourceSha256": "707eab2a414cb89c239a526be4a3824ca85f7b563e9267237f3fd8552584ddd1",
   "method": "Kaynak görselin konturları Bezier eğrilerine dönüştürüldü ve kenarlar yumuşatıldı; dolgu gradyanları düzenlendi. Su bardağının açık kenarı vektör konturla tamamlandı. PNG dosyaları SVG ana dosyalarından render edildi. Bu işlem raster kaynağın piksel kopyası değil, aynı kimliğin vektör uyarlamasıdır.",
@@ -1646,6 +1646,94 @@
       "category": "decoration",
       "source": "Limely çizimi",
       "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-file",
+      "title": "Dosya — koyu",
+      "svg": "ikonlar/koyu/file.svg",
+      "png": "ikonlar/koyu/file.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-file",
+      "title": "Dosya — beyaz",
+      "svg": "ikonlar/beyaz/file.svg",
+      "png": "ikonlar/beyaz/file.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-send",
+      "title": "Gönder — koyu",
+      "svg": "ikonlar/koyu/send.svg",
+      "png": "ikonlar/koyu/send.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-send",
+      "title": "Gönder — beyaz",
+      "svg": "ikonlar/beyaz/send.svg",
+      "png": "ikonlar/beyaz/send.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-eye",
+      "title": "Şifreyi göster — koyu",
+      "svg": "ikonlar/koyu/eye.svg",
+      "png": "ikonlar/koyu/eye.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-eye",
+      "title": "Şifreyi göster — beyaz",
+      "svg": "ikonlar/beyaz/eye.svg",
+      "png": "ikonlar/beyaz/eye.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-koyu-printer",
+      "title": "Yazdır — koyu",
+      "svg": "ikonlar/koyu/printer.svg",
+      "png": "ikonlar/koyu/printer.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
+    },
+    {
+      "id": "ikonlar-beyaz-printer",
+      "title": "Yazdır — beyaz",
+      "svg": "ikonlar/beyaz/printer.svg",
+      "png": "ikonlar/beyaz/printer.png",
+      "width": 96,
+      "height": 96,
+      "category": "icon",
+      "source": "Lucide 7981a0798a4f7184296bf42e94b6a8677f3ef2a0; lisanslar/LUCIDE-LICENSE.txt",
+      "opaque": false
     }
   ],
   "files": [
@@ -2077,6 +2165,26 @@
         "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/x.svg",
         "file": "source/lucide/x.svg",
         "sha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/file.svg",
+        "file": "source/lucide/file.svg",
+        "sha256": "499039795d7412d67664ff79d2eb6b7412e746b24c18c8fd8aba383c24ddada0"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/send.svg",
+        "file": "source/lucide/send.svg",
+        "sha256": "a489257f447b808ab6b258ae888fa49686885bbc30a7a2774d97a01f11f9cd5e"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/eye.svg",
+        "file": "source/lucide/eye.svg",
+        "sha256": "5bf90197dd7629cad64a2e48d1186a71559deb6121207d10e3dc5b19ebaffdcf"
+      },
+      {
+        "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/printer.svg",
+        "file": "source/lucide/printer.svg",
+        "sha256": "fa9a6381687bc519a62eb9eac2492d5d51e8e659182822296b6e14bf2f00ecfb"
       }
     ],
     "googleFontsCommit": "83c62e30d87daa70216dab6b984d00d20d96d585"

@@ -335,6 +335,26 @@
       "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/x.svg",
       "file": "source/lucide/x.svg",
       "sha256": "4a9cdab38fbb96162e7dace28e33f4ca0e49d8963a6162abc3d4691b7d675117"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/file.svg",
+      "file": "source/lucide/file.svg",
+      "sha256": "499039795d7412d67664ff79d2eb6b7412e746b24c18c8fd8aba383c24ddada0"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/send.svg",
+      "file": "source/lucide/send.svg",
+      "sha256": "a489257f447b808ab6b258ae888fa49686885bbc30a7a2774d97a01f11f9cd5e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/eye.svg",
+      "file": "source/lucide/eye.svg",
+      "sha256": "5bf90197dd7629cad64a2e48d1186a71559deb6121207d10e3dc5b19ebaffdcf"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/lucide-icons/lucide/7981a0798a4f7184296bf42e94b6a8677f3ef2a0/icons/printer.svg",
+      "file": "source/lucide/printer.svg",
+      "sha256": "fa9a6381687bc519a62eb9eac2492d5d51e8e659182822296b6e14bf2f00ecfb"
     }
   ],
   "googleFontsCommit": "83c62e30d87daa70216dab6b984d00d20d96d585"
