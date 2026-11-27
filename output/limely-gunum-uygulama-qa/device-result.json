@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "device": "Android API 36 emulator",
+  "syntheticOnly": true,
+  "waterCreateCount": 1,
+  "screenshots": [
+    "01-gunum.png",
+    "02-ogun.png",
+    "03-plan.png",
+    "04-bos-gunum.png"
+  ],
+  "navigationStayedFixed": true,
+  "widgetTestsPassed": 724,
+  "normalDebugAppRestored": true
+}

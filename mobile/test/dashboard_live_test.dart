@@ -122,8 +122,8 @@ void main() {
     }
   }
 
-  Future<void> tap(WidgetTester tester, String label) async {
-    final action = find.text(label);
+  Future<void> tap(WidgetTester tester, Object label) async {
+    final action = label is Finder ? label : find.text(label as String);
     await Scrollable.ensureVisible(tester.element(action), alignment: 0.5);
     await tester.pumpAndSettle();
     await tester.tap(action);
@@ -141,19 +141,16 @@ void main() {
     (tester) async {
       await pump(tester);
       expect(find.text('0 kcal'), findsOneWidget);
-      expect(find.text('Protein: 0 g'), findsOneWidget);
-      expect(find.text('Karbonhidrat: 0 g'), findsOneWidget);
-      expect(find.text('Yağ: 0 g'), findsOneWidget);
-      expect(find.text('0 mL'), findsOneWidget);
+      expect(find.text('Protein'), findsOneWidget);
+      expect(find.text('Karbonhidrat'), findsOneWidget);
+      expect(find.text('Yağ'), findsOneWidget);
+      expect(find.text('0 ml'), findsOneWidget);
       expect(find.text('Henüz hedef belirlenmedi'), findsWidgets);
       expect(
-        find.text('Henüz aktif bir beslenme programınız bulunmuyor.'),
+        find.text('Henüz aktif bir beslenme programın bulunmuyor.'),
         findsOneWidget,
       );
-      expect(
-        find.text('Henüz öğün kaydı yok. İlk öğününüzü ekleyebilirsiniz.'),
-        findsOneWidget,
-      );
+      expect(find.text('Bugün henüz öğün kaydın yok.'), findsOneWidget);
       for (final fake in [
         '1680',
         '2200',
@@ -178,11 +175,10 @@ void main() {
       water.total = 750;
       await pump(tester);
       expect(find.text('125 kcal · Bilinen toplam'), findsOneWidget);
-      expect(find.text('Protein: 10 g · Bilinen toplam'), findsOneWidget);
-      expect(find.text('Karbonhidrat: 40 g'), findsOneWidget);
-      expect(find.text('Yağ: 10 g'), findsOneWidget);
-      expect(find.text('750 mL'), findsOneWidget);
-      expect(find.text('Besin değeri eksik'), findsOneWidget);
+      expect(find.text('10 g · Bilinen toplam'), findsOneWidget);
+      expect(find.text('40 g'), findsOneWidget);
+      expect(find.text('10 g'), findsOneWidget);
+      expect(find.text('750 ml'), findsOneWidget);
       expect(
         find.textContaining('tam tüketim toplamı bilinmiyor'),
         findsOneWidget,
@@ -200,7 +196,7 @@ void main() {
       water.pendingTotal = waterResponse.future;
       await pump(tester, settle: false);
       expect(find.text('0 kcal'), findsNothing);
-      expect(find.text('0 mL'), findsNothing);
+      expect(find.text('0 ml'), findsNothing);
       expect(find.text('Henüz hedef belirlenmedi'), findsNothing);
       expect(find.textContaining('Henüz öğün kaydı yok'), findsNothing);
       expect(find.byType(LinearProgressIndicator), findsWidgets);
@@ -215,7 +211,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('0 kcal'), findsNothing);
-      expect(find.text('0 mL'), findsNothing);
+      expect(find.text('0 ml'), findsNothing);
       expect(find.text('Henüz hedef belirlenmedi'), findsNothing);
       expect(find.text('Hedef bilgisi alınamadı.'), findsWidgets);
       meals.result = null;
@@ -256,18 +252,15 @@ void main() {
           now: () => now,
         ),
       );
-      expect(
-        find.text('Hedef: 1800 kcal · Kaynak: Diyetisyen programı'),
-        findsOneWidget,
-      );
+      expect(find.text('0 / 1.800 kcal'), findsOneWidget);
       expect(find.text('Gerçek API programı'), findsOneWidget);
-      expect(find.text('Programdaki su hedefi: 2100 mL'), findsOneWidget);
+      expect(find.text('0 / 2.100 ml'), findsOneWidget);
       expect(
-        find.text('Diyetisyeniniz tarafından atanmış program · Salt okunur'),
+        find.text('Diyetisyeninin atadığı program · Salt okunur'),
         findsOneWidget,
       );
       expect(find.text('Örnek Diyetisyen'), findsNothing);
-      await tap(tester, 'Beslenmeye göz at');
+      await tap(tester, find.byTooltip('Planımı aç'));
       expect(opened, isTrue);
     },
   );
@@ -301,7 +294,7 @@ void main() {
       expect(find.textContaining('999'), findsNothing);
       expect(find.textContaining('Önceki kullanıcının'), findsNothing);
       expect(find.text('0 kcal'), findsOneWidget);
-      expect(find.text('0 mL'), findsOneWidget);
+      expect(find.text('0 ml'), findsOneWidget);
       meals.rows = [meal(calories: 321)];
       water.total = 321;
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
@@ -318,7 +311,7 @@ void main() {
       session.changeOwner();
       await tester.pumpAndSettle();
       expect(find.text('0 kcal'), findsOneWidget);
-      expect(find.text('0 mL'), findsOneWidget);
+      expect(find.text('0 ml'), findsOneWidget);
     },
   );
   testWidgets(
@@ -334,25 +327,26 @@ void main() {
         dailyWaterTargetMl: 2000,
       );
       await pump(tester);
-      expect(find.text('125 / 500 kcal · %25'), findsOneWidget);
-      expect(find.text('500 / 2000 mL · %25'), findsOneWidget);
-      expect(find.text('Hedef: 40 g · Kaynak: Kişisel hedef'), findsOneWidget);
+      expect(find.text('125 / 500 kcal'), findsOneWidget);
+      expect(find.text('500 / 2.000 ml'), findsOneWidget);
+      expect(find.text('10 / 40 g'), findsOneWidget);
+      final semantics = tester.ensureSemantics();
       expect(
         tester
-            .widgetList<LinearProgressIndicator>(
-              find.byType(LinearProgressIndicator),
-            )
-            .map((w) => w.value),
-        everyElement(.25),
+            .getSemantics(find.bySemanticsLabel('Günlük enerji ilerlemesi'))
+            .getSemanticsData()
+            .value,
+        '125 / 500',
       );
-      await tap(tester, 'Günlük hedeflerim');
+      semantics.dispose();
+      await tap(tester, find.byKey(const ValueKey('day-targets')));
       await tester.enterText(
         find.byKey(const ValueKey('dailyCaloriesTargetKcal')),
         '1000',
       );
       await tap(tester, 'Hedefleri kaydet');
       expect(targets.writes.single, {'dailyCaloriesTargetKcal': 1000});
-      expect(find.text('125 / 1000 kcal · %12,5'), findsOneWidget);
+      expect(find.text('125 / 1.000 kcal'), findsOneWidget);
       expect(targets.reads, greaterThanOrEqualTo(3));
     },
   );
@@ -370,7 +364,7 @@ void main() {
         dailyWaterTargetMl: 2000,
       );
       await tap(tester, 'Hedefleri yenile');
-      expect(find.text('0 / 2000 mL · %0'), findsOneWidget);
+      expect(find.text('0 / 2.000 ml'), findsOneWidget);
     },
   );
   testWidgets(
@@ -388,10 +382,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(meals.ranges.last.from, DateTime(2026, 11, 18));
       expect(find.text('0 kcal'), findsOneWidget);
-      expect(find.text('0 mL'), findsOneWidget);
+      expect(find.text('0 ml'), findsOneWidget);
       await pump(tester, active: false);
       expect(find.text('0 kcal'), findsNothing);
-      expect(find.text('0 mL'), findsNothing);
+      expect(find.text('0 ml'), findsNothing);
       await pump(tester);
       expect(find.text('0 kcal'), findsOneWidget);
     },

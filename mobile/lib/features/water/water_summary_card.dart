@@ -5,6 +5,7 @@ import '../home/dashboard_widgets.dart';
 import 'water_log_api.dart';
 import 'water_log_form_page.dart';
 import '../personal_nutrition_targets/target_progress.dart';
+import 'day_water_card.dart';
 
 class WaterHistoryPage extends StatelessWidget {
   const WaterHistoryPage({this.api, this.now = DateTime.now, super.key});
@@ -25,10 +26,12 @@ class WaterSummaryCard extends StatefulWidget {
     this.refreshRevision = 0,
     this.showHistory = false,
     this.target,
+    this.limely = false,
     super.key,
   });
   final WaterLogApi? api;
   final EffectiveNutritionTarget? target;
+  final bool limely;
   final DateTime Function() now;
   final bool active, showHistory;
   final int refreshRevision;
@@ -246,8 +249,71 @@ class _WaterSummaryCardState extends State<WaterSummaryCard>
     }
   }
 
+  Future<void> _quickAdd() async {
+    if (!_authorized ||
+        _api == null ||
+        _loading ||
+        _mutating ||
+        _error != null ||
+        _total == null) {
+      return;
+    }
+    final now = widget.now().toLocal();
+    if (_day?.key != WaterDayRange.forDate(now).key) {
+      await _load();
+      return;
+    }
+    final owner = _owner, generation = _generation;
+    setState(() => _mutating = true);
+    var saved = false;
+    try {
+      await _api!.create(amountMl: 250, consumedAt: now);
+      saved = true;
+    } catch (error) {
+      if (mounted &&
+          _authorized &&
+          owner == _owner &&
+          generation == _generation) {
+        setState(() {
+          _total = null;
+          _error =
+              '${error is WaterLogApiException ? error.message : 'Su kaydı doğrulanamadı.'} Yeniden işlem yapmadan önce su bilgilerini yenileyin.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _mutating = false);
+        if (_authorized && (saved || generation != _generation)) {
+          await _load(page: 1);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.limely && !widget.showHistory) {
+      return DayWaterCard(
+        authorized: _authorized,
+        loading: _loading,
+        saving: _mutating,
+        total: _total,
+        target: widget.target,
+        error: _error,
+        onAdd:
+            _authorized &&
+                !_loading &&
+                !_mutating &&
+                _error == null &&
+                _total != null
+            ? _quickAdd
+            : null,
+        onHistory: _authorized && !_loading && !_mutating
+            ? () => _open(WaterHistoryPage(api: _api, now: widget.now))
+            : null,
+        onRetry: _load,
+      );
+    }
     final day = _day?.from ?? widget.now().toLocal();
     final children = <Widget>[
       DashboardSectionHeading(

@@ -209,4 +209,25 @@ INFO         | Ignore IPv6 address: f0d2:274e:eb02:0:c0cc:274e:eb02:0
 INFO         | Ignore IPv6 address: f0d2:274e:eb02:0:c0cc:274e:eb02:0
 INFO         | Ignore IPv6 address: e0da:274e:eb02:0:c0cc:274e:eb02:0
 INFO         | Ignore IPv6 address: e0da:274e:eb02:0:c0cc:274e:eb02:0
-INFO         | Ignore IPv6 address: e0da:274e:
+INFO         | Ignore IPv6 address: e0da:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: f0e0:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: f0e0:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: f0e0:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 8e7:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 8e7:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 98f4:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 98f4:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 98f4:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: b0fa:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: b0fa:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: b0fa:274e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 9800:284e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 9800:284e:eb02:0:c0cc:274e:eb02:0
+INFO         | Ignore IPv6 address: 9800:284e:eb02:0:c0cc:274e:eb02:0
+INFO         | Wait for emulator (pid 49704) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)
+
+WARNING      | Not saving state: RAM not mapped as shared
+INFO         | Saving snapshot 'default_boot' using 1 ms
+INFO         | removeScene: scene=0x2eb4be7fe50
+INFO         | removeAll
+WARNING      | Netsim Wifi localhost:61439 is gone due to CANCELLED

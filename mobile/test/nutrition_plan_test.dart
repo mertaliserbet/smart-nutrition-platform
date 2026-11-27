@@ -329,7 +329,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Beslenme'),
+          matching: find.text('Planım'),
         ),
       );
       await tester.pumpAndSettle();
@@ -342,7 +342,7 @@ void main() {
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Beslenme'),
+          matching: find.text('Planım'),
         ),
       );
       await tester.pumpAndSettle();
@@ -352,12 +352,12 @@ void main() {
         ),
         hasLength(3),
       );
-      await tester.tap(find.text('Profil'));
+      await tester.tap(find.text('Hesabım'));
       await tester.pumpAndSettle();
       await tester.tap(
         find.descendant(
           of: find.byType(NavigationBar),
-          matching: find.text('Beslenme'),
+          matching: find.text('Planım'),
         ),
       );
       await tester.pumpAndSettle();

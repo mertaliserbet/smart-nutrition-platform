@@ -308,7 +308,12 @@ void main() {
       );
       await tester.pumpWidget(SmartNutritionApp(session: session));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Profil'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Hesabım'),
+        ),
+      );
       await tester.pumpAndSettle();
       expect(find.text('Diyetisyen Profili ve Başvuru'), findsNothing);
       Navigator.of(

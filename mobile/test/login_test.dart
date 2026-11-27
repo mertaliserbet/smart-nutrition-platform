@@ -326,6 +326,13 @@ void main() {
   ) async {
     final (session, api) = await setup(tester);
     await authenticate(tester, session, api);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(NavigationBar),
+        matching: find.text('Hesabım'),
+      ),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Çıkış yap'));
     await tester.pumpAndSettle();
     expect(find.byType(LoginPage), findsOneWidget);

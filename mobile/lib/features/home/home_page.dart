@@ -1,25 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_tokens.dart';
 import '../nutrition/manual_meal_log_page.dart';
 import '../auth/auth_session.dart';
 import '../nutrition/meal_log_api.dart';
-import '../nutrition/meal_log_history_page.dart';
 import '../nutrition/nutrition_plan_api.dart';
 import '../water/water_log_api.dart';
-import '../water/water_log_form_page.dart';
 import '../water/water_summary_card.dart';
 import '../personal_nutrition_targets/personal_nutrition_target_api.dart';
 import '../personal_nutrition_targets/personal_nutrition_target_page.dart';
 import '../personal_nutrition_targets/target_progress.dart';
 import 'dashboard_data.dart';
-import 'dashboard_live_cards.dart';
-import 'dashboard_widgets.dart';
+import '../onboarding/onboarding_theme.dart';
+import 'day_widgets.dart';
+import 'day_nutrition_card.dart';
+import 'day_plan_cards.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({
     required this.onViewNutrition,
+    this.onViewProfile,
     this.active = true,
     this.waterApi,
     this.mealApi,
@@ -31,6 +31,7 @@ class HomePage extends StatefulWidget {
   });
 
   final VoidCallback onViewNutrition;
+  final VoidCallback? onViewProfile;
   final bool active;
   final WaterLogApi? waterApi;
   final MealLogApi? mealApi;
@@ -296,266 +297,97 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     await _refresh();
   }
 
-  Future<void> _history() async {
-    final owner = _owner;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => MealLogHistoryPage(api: _mealApi),
-      ),
-    );
-    if (mounted && _canRead && owner == _owner) await _refresh();
-  }
-
-  Future<void> _addWater() async {
-    final owner = _owner;
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(
-        builder: (_) => WaterLogFormPage(api: widget.waterApi, now: widget.now),
-      ),
-    );
-    if (!mounted || !_canRead || owner != _owner) return;
-    if (saved == true) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Su kaydı tamamlandı.')));
-    }
-    setState(() => ++_waterRevision);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final energy = DashboardLiveCards.energy(
-      context,
-      _meals,
-      _plan,
-      _loadMeals,
-      _targets,
-      _loadTargets,
-      _openTargets,
-    );
-    final macros = DashboardLiveCards.macros(_meals, _targets);
-    final water = WaterSummaryCard(
-      api: widget.waterApi,
-      now: widget.now,
-      active: widget.active,
-      refreshRevision: _waterRevision,
-      target: EffectiveNutritionTarget.resolve(
-        'dailyWaterTargetMl',
-        _targets,
-        plan: _plan,
-      ),
-    );
-    final plan = DashboardLiveCards.program(
-      _plan,
-      widget.onViewNutrition,
-      _loadPlan,
-    );
-
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        primary: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1080),
-            child: Padding(
-              padding: const EdgeInsets.all(AppTokens.spacingMedium),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // Startup/layout transitions can temporarily have no width.
-                  // Wait for usable constraints before laying out the cards.
-                  if (constraints.maxWidth <= 0) return const SizedBox.shrink();
-
-                  final wide =
-                      constraints.maxWidth >= 840 &&
-                      MediaQuery.textScalerOf(context).scale(1) <= 1.3;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Semantics(
-                        header: true,
-                        child: Text(
-                          'Gününüz, bir bakışta.',
-                          style: theme.textTheme.headlineMedium,
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.spacingSmall),
-                      Text(
-                        '${(_day?.from ?? widget.now()).day}.${(_day?.from ?? widget.now()).month}.${(_day?.from ?? widget.now()).year}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppTokens.spacingLarge),
-                      if (wide)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  energy,
-                                  const SizedBox(
-                                    height: AppTokens.spacingMedium,
-                                  ),
-                                  macros,
-                                ],
-                              ),
+    final day = _day?.from ?? widget.now().toLocal();
+    final plannedMeals = dayPlanMeals(_plan.data, day);
+    final assigned = _plan.data?.dietitianId != null;
+    // A recording opportunity, not a claim that earlier recommendations were eaten.
+    final unrecorded = _meals.hasData
+        ? plannedMeals
+              .where(
+                (items) => !_meals.data!.records.any(
+                  (meal) => meal.mealType == items.first.mealType,
+                ),
+              )
+              .toList()
+        : <List<NutritionPlanItem>>[];
+    return Theme(
+      data: OnboardingTheme.data,
+      child: ColoredBox(
+        color: OnboardingTheme.background,
+        child: RefreshIndicator(
+          onRefresh: _refresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            primary: false,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth < 240) {
+                      return const SizedBox.shrink();
+                    }
+                    final inset = constraints.maxWidth <= 410 ? 17.0 : 20.0;
+                    return Padding(
+                      padding: EdgeInsets.fromLTRB(inset, 26, inset, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DayHeader(
+                            day: day,
+                            name: _session?.user?.displayName,
+                            onProfile: widget.onViewProfile,
+                          ),
+                          DayMealActions(onAdd: _addMeal),
+                          const SizedBox(height: 16),
+                          DayEnergyCard(
+                            meals: _meals,
+                            plan: _plan,
+                            targets: _targets,
+                            onRetryMeals: _loadMeals,
+                            onRetryTargets: _loadTargets,
+                            onTargets: _openTargets,
+                          ),
+                          const SizedBox(height: 17),
+                          WaterSummaryCard(
+                            api: widget.waterApi,
+                            now: widget.now,
+                            active: widget.active,
+                            refreshRevision: _waterRevision,
+                            limely: true,
+                            target: EffectiveNutritionTarget.resolve(
+                              'dailyWaterTargetMl',
+                              _targets,
+                              plan: _plan,
                             ),
-                            const SizedBox(width: AppTokens.spacingLarge),
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  water,
-                                  const SizedBox(
-                                    height: AppTokens.spacingMedium,
-                                  ),
-                                  plan,
-                                ],
-                              ),
+                          ),
+                          if (assigned && unrecorded.isNotEmpty) ...[
+                            const SizedBox(height: 22),
+                            DayPlannedMeal(
+                              items: unrecorded.first,
+                              onSave: _addMeal,
                             ),
                           ],
-                        )
-                      else ...[
-                        energy,
-                        const SizedBox(height: AppTokens.spacingMedium),
-                        macros,
-                        const SizedBox(height: AppTokens.spacingMedium),
-                        water,
-                      ],
-                      const SizedBox(height: AppTokens.spacingLarge),
-                      _QuickActions(onWater: _addWater, onMeal: _addMeal),
-                      if (!wide) ...[
-                        const SizedBox(height: AppTokens.spacingLarge),
-                        plan,
-                      ],
-                      const SizedBox(height: AppTokens.spacingLarge),
-                      DashboardLiveCards.recent(_meals, _history),
-                      const SizedBox(height: AppTokens.spacingMedium),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _QuickActions extends StatelessWidget {
-  const _QuickActions({required this.onWater, required this.onMeal});
-  final Future<void> Function() onWater;
-  final Future<void> Function() onMeal;
-
-  static const _actions = [
-    (label: 'Öğün ekle', icon: Icons.restaurant_outlined),
-    (label: 'Su ekle', icon: Icons.water_drop_outlined),
-    (label: 'Aktivite ekle', icon: Icons.directions_walk_rounded),
-    (label: 'Tahlil ekle', icon: Icons.science_outlined),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const DashboardSectionHeading(
-          title: 'Hızlı işlemler',
-          subtitle:
-              'Öğün ve su kaydedin; aktivite ve tahlil işlemleri önizlemedir.',
-        ),
-        const SizedBox(height: AppTokens.spacingMedium),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
-            final columns = largeText || constraints.maxWidth < 320
-                ? 1
-                : (constraints.maxWidth >= 700 ? 4 : 2);
-            final width =
-                (constraints.maxWidth -
-                    (columns - 1) * AppTokens.spacingSmall) /
-                columns;
-            return Wrap(
-              spacing: AppTokens.spacingSmall,
-              runSpacing: AppTokens.spacingSmall,
-              children: [
-                for (final action in _actions)
-                  SizedBox(
-                    width: width,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.all(AppTokens.spacingMedium),
-                        foregroundColor: colors.onSurface,
-                        side: BorderSide(color: colors.outlineVariant),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            AppTokens.radiusMedium,
+                          const Padding(
+                            padding: EdgeInsets.only(top: 24, bottom: 21),
+                            child: DayAppointment(),
                           ),
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (action.label == 'Öğün ekle') {
-                          await onMeal();
-                        } else if (action.label == 'Su ekle') {
-                          await onWater();
-                        } else {
-                          _showPreview(context, action.label);
-                        }
-                      },
-                      child: Column(
-                        children: [
-                          Icon(action.icon, color: colors.primary),
-                          const SizedBox(height: AppTokens.spacingSmall),
-                          Text(action.label, textAlign: TextAlign.center),
+                          DayPlanCard(
+                            plan: _plan,
+                            meals: _meals,
+                            day: day,
+                            onOpen: widget.onViewNutrition,
+                            onRetry: _loadPlan,
+                          ),
                         ],
                       ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  void _showPreview(BuildContext context, String label) {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (context) => SingleChildScrollView(
-        padding: const EdgeInsets.all(AppTokens.spacingLarge),
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                '$label · Demo',
-                style: Theme.of(context).textTheme.titleLarge,
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: AppTokens.spacingMedium),
-              const Text('Bu demo önizlemesinde yeni kayıt oluşturulmaz.'),
-              const SizedBox(height: AppTokens.spacingLarge),
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Kapat'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

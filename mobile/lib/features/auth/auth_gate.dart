@@ -32,9 +32,9 @@ class AuthGate extends StatelessWidget {
       '/register' => const RegisterPage(),
       '/email-verification' => const EmailVerificationPage(),
       '/forgot-password' => const ForgotPasswordPage(),
-      '/nutrition' => const AuthGate(initialIndex: 1),
-      '/progress' => const AuthGate(initialIndex: 2),
-      '/profile' => const AuthGate(initialIndex: 3),
+      '/nutrition' => const AuthGate(initialIndex: 2),
+      '/progress' => const AuthGate(initialIndex: 1),
+      '/profile' => const AuthGate(initialIndex: 4),
       '/personal-nutrition-targets' => const AuthGate(
         child: PersonalNutritionTargetPage(),
       ),

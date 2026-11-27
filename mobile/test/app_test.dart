@@ -10,23 +10,23 @@ import 'package:smart_nutrition_mobile/features/progress/progress_page.dart';
 void main() {
   const screens = [
     (
-      label: 'Ana Sayfa',
+      label: 'Günüm',
       page: HomePage,
-      description: 'Bugün kaydettiğiniz öğünler',
+      description: 'Bugün kendine iyi gelecek bir adım seç.',
     ),
     (
-      label: 'Beslenme',
+      label: 'Planım',
       page: NutritionPage,
       description:
           'Öğünlerinizi kaydedin ve aktif beslenme programınızı görüntüleyin.',
     ),
     (
-      label: 'İlerleme',
+      label: 'Ölçüm',
       page: ProgressPage,
       description: 'Ölçümleri görüntülemek için oturumunuz doğrulanmalıdır.',
     ),
     (
-      label: 'Profil',
+      label: 'Hesabım',
       page: ProfilePage,
       description:
           'Profil bilgileriniz ve gizlilik tercihleriniz burada yer alacak.',
@@ -43,8 +43,8 @@ void main() {
       await pumpMainShell(tester);
       await tester.pumpAndSettle();
 
-      expect(find.text('Smart Nutrition'), findsOneWidget);
-      expect(find.text('Gününüz, bir bakışta.'), findsOneWidget);
+      expect(find.text('Smart Nutrition'), findsNothing);
+      expect(find.text('Günün, senin\nritminde.'), findsOneWidget);
       expect(find.text(screens.first.description), findsOneWidget);
       expect(
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
@@ -79,7 +79,7 @@ void main() {
       expect(find.text(screen.description), findsOneWidget);
       expect(
         tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-        index,
+        [0, 2, 1, 4][index],
       );
 
       await selectTab(tester, screen.label);
@@ -90,7 +90,7 @@ void main() {
 
   testWidgets('home action opens the nutrition tab', (tester) async {
     await pumpMainShell(tester);
-    final action = find.text('Beslenmeye göz at');
+    final action = find.byTooltip('Planımı aç');
     await Scrollable.ensureVisible(tester.element(action), alignment: 0.5);
     await tester.pumpAndSettle();
     await tester.tap(action);
@@ -99,14 +99,14 @@ void main() {
     expect(find.byType(NutritionPage), findsOneWidget);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      1,
+      2,
     );
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('system back returns from another tab to home', (tester) async {
     await pumpMainShell(tester);
-    await selectTab(tester, 'Profil');
+    await selectTab(tester, 'Hesabım');
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -124,7 +124,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
 
     await pumpMainShell(tester);
-    await selectTab(tester, 'Profil');
+    await selectTab(tester, 'Hesabım');
     expect(
       Theme.of(tester.element(find.byType(ProfilePage))).brightness,
       Brightness.light,
@@ -139,7 +139,7 @@ void main() {
     );
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
-      3,
+      4,
     );
     expect(tester.takeException(), isNull);
   });
@@ -197,7 +197,7 @@ void main() {
             );
 
             if (screen.page == HomePage) {
-              final action = find.text('Beslenmeye göz at');
+              final action = find.byTooltip('Planımı aç');
               await Scrollable.ensureVisible(
                 tester.element(action),
                 alignment: 0.5,
@@ -221,7 +221,7 @@ void main() {
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
     await pumpMainShell(tester);
-    await selectTab(tester, 'İlerleme');
+    await selectTab(tester, 'Ölçüm');
     await tester.ensureVisible(find.text(screens[2].description));
     await tester.pumpAndSettle();
 
@@ -232,8 +232,8 @@ void main() {
     final offset = tester.state<ScrollableState>(scrollable).position.pixels;
     expect(offset, greaterThan(0));
 
-    await selectTab(tester, 'Profil');
-    await selectTab(tester, 'İlerleme');
+    await selectTab(tester, 'Hesabım');
+    await selectTab(tester, 'Ölçüm');
 
     expect(tester.state<ScrollableState>(scrollable).position.pixels, offset);
     expect(tester.takeException(), isNull);

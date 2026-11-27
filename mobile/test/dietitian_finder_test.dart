@@ -858,12 +858,24 @@ void main() {
     (tester) async {
       await tester.pumpWidget(SmartNutritionApp(session: session));
       await tester.pumpAndSettle();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Hesabım'),
+        ),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Diyetisyen Bul'));
       await tester.pumpAndSettle();
       expect(find.byType(DietitianFinderPage), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Profil'));
+      await tester.tap(
+        find.descendant(
+          of: find.byType(NavigationBar),
+          matching: find.text('Hesabım'),
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.ensureVisible(
         find.widgetWithText(FilledButton, 'Diyetisyen Bul'),

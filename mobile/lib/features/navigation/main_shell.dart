@@ -5,6 +5,7 @@ import '../home/home_page.dart';
 import '../nutrition/nutrition_page.dart';
 import '../profile/profile_page.dart';
 import '../progress/progress_page.dart';
+import '../onboarding/onboarding_theme.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({this.initialIndex = 0, this.onLogout, super.key});
@@ -18,24 +19,24 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   static const _destinations = [
     NavigationDestination(
-      icon: Icon(Icons.home_outlined),
-      selectedIcon: Icon(Icons.home_rounded),
-      label: 'Ana Sayfa',
+      icon: OnboardingIcon('house', size: 25),
+      label: 'Günüm',
     ),
     NavigationDestination(
-      icon: Icon(Icons.restaurant_outlined),
-      selectedIcon: Icon(Icons.restaurant_rounded),
-      label: 'Beslenme',
+      icon: OnboardingIcon('chart-no-axes-column', size: 25),
+      label: 'Ölçüm',
     ),
     NavigationDestination(
-      icon: Icon(Icons.insights_outlined),
-      selectedIcon: Icon(Icons.insights_rounded),
-      label: 'İlerleme',
+      icon: OnboardingIcon('calendar', size: 25),
+      label: 'Planım',
     ),
     NavigationDestination(
-      icon: Icon(Icons.person_outline_rounded),
-      selectedIcon: Icon(Icons.person_rounded),
-      label: 'Profil',
+      icon: OnboardingIcon('message-circle', size: 25),
+      label: 'Sohbet',
+    ),
+    NavigationDestination(
+      icon: OnboardingIcon('user-round', size: 25),
+      label: 'Hesabım',
     ),
   ];
 
@@ -44,7 +45,7 @@ class _MainShellState extends State<MainShell> {
 
   void _selectTab(int index) {
     if (index == _selectedIndex) {
-      if (index == 0 || index == 1) setState(() => ++_nutritionRevision);
+      if (index == 0 || index == 2) setState(() => ++_nutritionRevision);
       return;
     }
     setState(() => _selectedIndex = index);
@@ -52,45 +53,45 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return PopScope(
       canPop: _selectedIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) _selectTab(0);
       },
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          centerTitle: false,
-          titleSpacing: AppTokens.spacingLarge,
-          actions: [
-            IconButton(
-              onPressed: () async {
-                await Navigator.of(context).pushNamed('/dietitians');
-                if (mounted) setState(() => ++_nutritionRevision);
-              },
-              tooltip: 'Diyetisyen Bul',
-              icon: const Icon(Icons.person_search_outlined),
-            ),
-            if (widget.onLogout != null)
-              IconButton(
-                onPressed: widget.onLogout,
-                tooltip: 'Çıkış yap',
-                icon: const Icon(Icons.logout_rounded),
+        backgroundColor: _selectedIndex == 0
+            ? OnboardingTheme.background
+            : null,
+        appBar: _selectedIndex == 0
+            ? null
+            : AppBar(
+                automaticallyImplyLeading: false,
+                centerTitle: false,
+                titleSpacing: AppTokens.spacingLarge,
+                actions: [
+                  IconButton(
+                    onPressed: () async {
+                      await Navigator.of(context).pushNamed('/dietitians');
+                      if (mounted) setState(() => ++_nutritionRevision);
+                    },
+                    tooltip: 'Diyetisyen Bul',
+                    icon: const Icon(Icons.person_search_outlined),
+                  ),
+                  if (widget.onLogout != null)
+                    IconButton(
+                      onPressed: widget.onLogout,
+                      tooltip: 'Çıkış yap',
+                      icon: const Icon(Icons.logout_rounded),
+                    ),
+                ],
+                title: Text(
+                  _destinations[_selectedIndex].label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-          ],
-          title: Text(
-            _selectedIndex == 0
-                ? 'Smart Nutrition'
-                : _destinations[_selectedIndex].label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
         body: SafeArea(
-          top: false,
+          top: _selectedIndex == 0,
           bottom: false,
           child: IndexedStack(
             index: _selectedIndex,
@@ -98,41 +99,94 @@ class _MainShellState extends State<MainShell> {
               HomePage(
                 active: _selectedIndex == 0,
                 refreshRevision: _nutritionRevision,
-                onViewNutrition: () => _selectTab(1),
+                onViewNutrition: () => _selectTab(2),
+                onViewProfile: () => _selectTab(4),
               ),
+              ProgressPage(active: _selectedIndex == 1),
               NutritionPage(
-                active: _selectedIndex == 1,
+                active: _selectedIndex == 2,
                 refreshRevision: _nutritionRevision,
               ),
-              ProgressPage(active: _selectedIndex == 2),
+              Theme(
+                data: OnboardingTheme.data,
+                child: const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        OnboardingIcon('message-circle', size: 40),
+                        SizedBox(height: 16),
+                        Text(
+                          'Sohbet henüz kullanıma açık değil.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               const ProfilePage(),
             ],
           ),
         ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppTokens.spacingMedium,
-              AppTokens.spacingSmall,
-              AppTokens.spacingMedium,
-              AppTokens.spacingMedium,
-            ),
-            child: Material(
-              color: colors.surfaceContainerLow,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppTokens.radiusMedium),
-                side: BorderSide(color: colors.outlineVariant),
+        bottomNavigationBar: Theme(
+          data: OnboardingTheme.data.copyWith(
+            navigationBarTheme: NavigationBarThemeData(
+              labelTextStyle: WidgetStateProperty.resolveWith(
+                (states) => TextStyle(
+                  fontFamily: 'Figtree',
+                  fontSize: 13,
+                  color: OnboardingTheme.ink,
+                  fontWeight: states.contains(WidgetState.selected)
+                      ? FontWeight.w800
+                      : FontWeight.w500,
+                ),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: NavigationBar(
-                selectedIndex: _selectedIndex,
-                onDestinationSelected: _selectTab,
-                labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-                backgroundColor: Colors.transparent,
-                indicatorColor: colors.primaryContainer,
-                elevation: 0,
-                destinations: _destinations,
+            ),
+          ),
+          child: ColoredBox(
+            color: OnboardingTheme.background,
+            child: SafeArea(
+              top: false,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Color(0xFFD7E1D0))),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) => Stack(
+                    children: [
+                      NavigationBar(
+                        height: 82,
+                        selectedIndex: _selectedIndex,
+                        onDestinationSelected: _selectTab,
+                        labelBehavior:
+                            NavigationDestinationLabelBehavior.alwaysShow,
+                        backgroundColor: OnboardingTheme.background,
+                        surfaceTintColor: Colors.transparent,
+                        indicatorColor: Colors.transparent,
+                        elevation: 0,
+                        destinations: _destinations,
+                      ),
+                      Positioned(
+                        left:
+                            constraints.maxWidth / 5 * (_selectedIndex + .5) -
+                            15.5,
+                        bottom: 5,
+                        child: IgnorePointer(
+                          child: Container(
+                            width: 31,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3D7756),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

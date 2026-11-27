@@ -114,7 +114,7 @@ Future<void> main() async {
     await login(owner);
     results['realLogin'] = true;
     phase = 'empty_nutrition';
-    await tab('Beslenme');
+    await tab('Planım');
     await pump(10);
     await text('Öğün geçmişi');
     await wait(
@@ -157,7 +157,7 @@ Future<void> main() async {
     results['realMealCreateAndHistory'] = true;
     await back();
     phase = 'measurements';
-    await tab('İlerleme');
+    await tab('Ölçüm');
     await wait(
       () => find
           .text('Henüz ölçüm yok. İlk ölçümünüzü ekleyebilirsiniz.')
@@ -178,7 +178,7 @@ Future<void> main() async {
     await wait(() => find.byType(MeasurementChart).evaluate().isNotEmpty);
     results['realMeasurementCharts'] = true;
     phase = 'profile_and_tasks';
-    await tab('Profil');
+    await tab('Hesabım');
     await text('Günlük hedeflerim');
     await pump(10);
     check(find.byType(EditableText).evaluate().isNotEmpty);
@@ -252,7 +252,7 @@ Future<void> main() async {
         .evaluate()
         .isEmpty;
     await login(other);
-    await tab('Beslenme');
+    await tab('Planım');
     await text('Öğün geçmişi');
     await wait(
       () => find
@@ -263,7 +263,7 @@ Future<void> main() async {
     check(find.textContaining('Synthetic M6 device meal').evaluate().isEmpty);
     results['accountIsolationMeals'] = true;
     await back();
-    await tab('İlerleme');
+    await tab('Ölçüm');
     await wait(
       () => find
           .text('Henüz ölçüm yok. İlk ölçümünüzü ekleyebilirsiniz.')

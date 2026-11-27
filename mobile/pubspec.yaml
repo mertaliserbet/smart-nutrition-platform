@@ -26,6 +26,8 @@ flutter:
     - assets/limely/ikonlar/koyu/
     - assets/limely/ikonlar/beyaz/
     - assets/limely/dekorlar/
+    - assets/limely/bilesenler/
+    - assets/limely/gorseller/
     - assets/limely/lisanslar/
   fonts:
     - family: Figtree

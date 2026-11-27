@@ -79,15 +79,13 @@ void main() {
         tester,
         HomePage(onViewNutrition: () {}, waterApi: api, now: () => now),
       );
-      expect(find.text('725 mL'), findsOneWidget);
+      expect(find.text('725 ml'), findsOneWidget);
       expect(find.textContaining('2500 mL'), findsNothing);
       expect(find.textContaining('Örnek su hedefi'), findsNothing);
-      await tapVisible(tester, find.text('Su ekle'));
-      expect(find.byType(WaterLogFormPage), findsOneWidget);
-      await tapVisible(tester, find.widgetWithText(ActionChip, '500 mL'));
-      await tapVisible(tester, find.text('Kaydet'));
+      await tapVisible(tester, find.byKey(const ValueKey('day-water-add')));
       expect(api.creates, 1);
-      expect(find.text('1225 mL'), findsOneWidget);
+      expect(find.text('975 ml'), findsOneWidget);
+      expect(api.lastAmount, 250);
       expect(api.days.length, 2);
     },
   );

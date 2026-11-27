@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Limely · Günüm tasarımı</title>
+  <style>
+    @font-face {
+      font-family: Figtree;
+      src: url('../limely-marka-paketi-v1/fontlar/figtree/figtree.ttf') format('truetype');
+      font-weight: 300 900;
+      font-display: swap;
+    }
+    :root {
+      --background: #F8FAF2;
+      --ink: #203B2F;
+      --lime: #C9E879;
+      --sage: #83B977;
+      --leaf: #3D7756;
+      --yellow: #F5D96A;
+      --soft: #EAF3DE;
+      --muted: #627365;
+      --border: #E1E7DB;
+      font-family: Figtree, sans-serif;
+      color: var(--ink);
+      background: var(--background);
+      font-synthesis: none;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    button:focus-visible { outline: 3px solid var(--leaf); outline-offset: 4px; }
+    button[aria-disabled="true"] { cursor: default; }
+    img { display: block; max-width: 100%; }
+    [hidden] { display: none !important; }
+    .icon { width: 24px; height: 24px; flex: 0 0 auto; }
+    .preview { max-width: 1120px; margin: auto; padding: 38px 28px 48px; }
+    .preview-header { display: flex; justify-content: space-between; align-items: start; gap: 24px; margin-bottom: 30px; }
+    .preview-header h1 { margin: 0 0 8px; font-size: 27px; letter-spacing: -.7px; }
+    .preview-header p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+    .preview-badge { border: 1px solid var(--border); border-radius: 99px; padding: 9px 14px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .preview-layout { display: grid; grid-template-columns: minmax(0, 1fr) 430px minmax(0, 1fr); align-items: start; gap: 32px; }
+    .preview-settings { grid-column: 1; padding-top: 22px; }
+    .preview-settings h2 { font-size: 16px; margin: 0 0 12px; }
+    .preview-settings p, .preview-notes p { font-size: 14px; line-height: 1.65; color: var(--muted); }
+    .scenario { display: flex; flex-direction: column; gap: 8px; margin: 18px 0 28px; }
+    .scenario button { border: 1px solid var(--border); background: transparent; border-radius: 12px; padding: 11px 13px; text-align: left; font-size: 14px; font-weight: 650; }
+    .scenario button[aria-pressed="true"] { background: var(--soft); border-color: #BACF92; }
+    .expand-control { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 1.45; }
+    .expand-control input { accent-color: var(--ink); width: 17px; height: 17px; }
+    .preview-notes { grid-column: 3; padding-top: 22px; }
+    .preview-notes h2 { font-size: 16px; margin: 0 0 12px; }
+    .preview-notes ol { padding-left: 19px; color: var(--muted); font-size: 14px; line-height: 1.75; }
+    .palette { display: flex; gap: 7px; margin: 22px 0 12px; }
+    .palette span { width: 23px; height: 23px; border-radius: 7px; border: 1px solid #203B2F18; }
+    .phone { grid-column: 2; grid-row: 1; width: 430px; height: 900px; max-width: 100%; display: flex; flex-direction: column; overflow: hidden; background: var(--background); border: 1px solid var(--border); border-radius: 34px; box-shadow: 0 18px 55px #203B2F10; }
+    .page-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #C9D5BF transparent; }
+    .page-content { padding: 27px 20px 24px; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; height: 55px; }
+    .logo { width: 155px; height: 56px; object-fit: contain; }
+    .header-actions { display: flex; align-items: center; gap: 15px; }
+    .notification { width: 42px; height: 44px; border: 0; background: transparent; display: grid; place-items: center; position: relative; padding: 8px; }
+    .notification .icon { width: 26px; height: 26px; }
+    .notification::after { content: ''; position: absolute; right: 6px; top: 6px; width: 9px; height: 9px; background: var(--yellow); border-radius: 50%; box-shadow: 0 0 0 3px var(--background); }
+    .avatar { width: 45px; height: 45px; border-radius: 50%; border: 0; background: #E1EDD3; display: grid; place-items: center; font-size: 18px; font-weight: 750; }
+    .date-row { display: flex; align-items: center; justify-content: space-between; margin-top: 29px; font-size: 14px; font-weight: 750; }
+    .date-row time { letter-spacing: .2px; }
+    .date-select { background: transparent; border: 0; padding: 7px 0 7px 10px; display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 650; }
+    .date-select .icon { width: 19px; height: 19px; }
+    .hero { position: relative; min-height: 143px; display: flex; align-items: center; margin-top: 6px; }
+    .hero h1 { margin: 0; font-weight: 800; font-size: 40px; line-height: 1.06; letter-spacing: -1.55px; position: relative; z-index: 1; }
+    .hero h1 span { white-space: nowrap; }
+    .hero-mascot { width: 153px; height: 153px; object-fit: contain; position: absolute; top: -5px; right: -6px; transform-origin: 50% 90%; animation: hello 2.3s ease-in-out 2; }
+    .greeting { font-size: 15px; line-height: 1.5; margin: 1px 0 26px; color: var(--muted); letter-spacing: -.1px; }
+    .add-meal { display: flex; align-items: center; gap: 15px; width: 100%; min-height: 60px; border: 0; border-radius: 17px; background: var(--ink); color: var(--background); padding: 12px 18px; font-size: 22px; font-weight: 750; text-align: left; }
+    .add-meal > .icon:first-child { width: 33px; height: 33px; }
+    .add-meal .chevron { margin-left: auto; width: 23px; height: 23px; }
+    .entry-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 10px 0 16px; }
+    .entry-methods button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 9px 6px; border: 0; border-radius: 12px; background: var(--soft); font-size: 14px; font-weight: 650; }
+    .entry-methods .icon { width: 21px; height: 21px; }
+    .energy-card { padding: 17px 16px 18px; border: 1px solid var(--border); border-radius: 19px; background: #FFFFFFB3; }
+    .energy-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 11px; }
+    .energy-heading h2 { font-size: 18px; font-weight: 800; letter-spacing: -.35px; margin: 0; }
+    .energy-total { font-size: 14px; color: var(--muted); white-space: nowrap; }
+    .energy-total strong { font-size: 16px; color: var(--ink); font-weight: 750; }
+    .track { height: 7px; border-radius: 20px; background: #E1E7DB; overflow: hidden; }
+    .track > span { display: block; height: 100%; background: linear-gradient(90deg, var(--sage), var(--lime)); border-radius: inherit; }
+    .energy-track { height: 12px; margin-bottom: 17px; }
+    .macro-list { display: grid; gap: 12px; }
+    .macro { display: grid; grid-template-columns: 97px minmax(0, 1fr) 83px; gap: 10px; align-items: center; font-size: 13px; }
+    .macro-name { font-weight: 650; }
+    .macro-total { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .water-card { margin-top: 17px; padding: 12px 10px; min-height: 112px; border-radius: 21px; display: grid; grid-template-columns: 80px minmax(0, 1fr) 107px; gap: 10px; align-items: center; background: var(--soft); }
+    .water-mascot { width: 100px; max-width: none; height: 88px; margin-left: -10px; object-fit: cover; }
+    .water-copy { border-left: 1px solid #CCDDC0; padding-left: 12px; min-width: 0; }
+    .water-copy h2 { font-size: 21px; letter-spacing: -.45px; margin: 0 0 5px; font-weight: 750; }
+    .water-total { margin: 0; color: #536655; font-size: 15px; line-height: 1.3; white-space: nowrap; }
+    .water-total strong { color: var(--ink); font-size: 18px; font-weight: 750; }
+    .water-meta { margin: 5px 0 0; font-size: 11px; line-height: 1.4; color: var(--muted); }
+    .water-tools { display: flex; align-items: center; gap: 7px; }
+    .water-bottle { width: 25px; height: 62px; object-fit: cover; }
+    .water-add { border: 1.3px solid var(--ink); border-radius: 12px; background: transparent; font-size: 14px; font-weight: 750; min-height: 44px; padding: 8px 7px; white-space: nowrap; transition: background .18s; }
+    .water-add:hover { background: #F8FAF280; }
+    .water-add:active { background: #C9E87980; }
+    .water-add .plus { font-size: 20px; line-height: 14px; vertical-align: -1px; margin-right: 2px; font-weight: 500; }
+    .next-meal { position: relative; isolation: isolate; min-height: 263px; overflow: hidden; background: var(--ink); color: var(--background); border-radius: 24px; margin-top: 22px; padding: 24px 20px 18px; }
+    /* Clip only the original reference's plate area; the logo/mascots stay unaltered. */
+    .meal-art { position: absolute; z-index: -2; right: 0; top: 0; width: 59%; height: 190px; overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 19%); mask-image: linear-gradient(90deg, transparent, #000 19%); }
+    .meal-art img { max-width: none; width: 460px; height: auto; position: absolute; top: -411.4px; right: -16px; }
+    .meal-art::after { position: absolute; content: ''; inset: 0; background: linear-gradient(0deg, var(--ink) 0, transparent 24%); }
+    .next-meal::before { position: absolute; z-index: -1; content: ''; inset: 0; background: linear-gradient(90deg, #203B2F14 32%, transparent 63%); }
+    .meal-eyebrow { margin: 0 0 7px; color: var(--lime); font-size: 13px; line-height: 1.2; font-weight: 750; letter-spacing: 1.1px; }
+    .next-meal h2 { margin: 0 0 11px; font-size: 34px; letter-spacing: -1px; font-weight: 750; line-height: 1.1; }
+    .meal-time { display: inline-block; padding: 4px 13px 5px; font-size: 17px; line-height: 1; border-radius: 20px; background: var(--soft); color: var(--ink); font-weight: 800; }
+    .meal-description { font-size: 15px; line-height: 1.45; margin: 13px 0 19px; max-width: 175px; }
+    .save-meal { width: 100%; min-height: 52px; border: 0; border-radius: 17px; background: var(--lime); color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 9px; padding: 11px; font-size: 20px; font-weight: 750; }
+    .save-meal .icon { width: 27px; height: 27px; }
+    .appointment { width: 100%; display: flex; align-items: center; gap: 15px; padding: 20px 3px; border: 0; border-top: 1px solid #D7E1D0; border-bottom: 1px solid #D7E1D0; background: transparent; text-align: left; margin: 24px 0 21px; }
+    .appointment > .icon:first-child { width: 29px; height: 29px; }
+    .appointment-title { display: block; font-size: 19px; font-weight: 750; letter-spacing: -.35px; }
+    .appointment-time { display: block; font-size: 14px; color: var(--muted); margin-top: 4px; }
+    .appointment .chevron { margin-left: auto; width: 22px; height: 22px; }
+    .plan-card { padding: 18px 17px 20px; background: #FFFFFFB3; border: 1px solid var(--border); border-radius: 19px; }
+    .plan-card h2 { margin: 0 0 17px; font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+    .timeline { margin: 0; padding: 0; list-style: none; display: grid; gap: 18px; }
+    .timeline li { display: grid; grid-template-columns: 20px 48px minmax(0,1fr); gap: 11px; align-items: start; position: relative; }
+    .timeline li:not(:last-child)::before { content: ''; position: absolute; width: 1.5px; left: 9px; top: 20px; bottom: -20px; background: #C9DDAD; }
+    .timeline-mark { width: 19px; height: 19px; border: 2px solid #B2D66A; border-radius: 50%; margin-top: 1px; position: relative; }
+    .complete .timeline-mark { background: var(--lime); border-color: var(--lime); display: grid; place-items: center; }
+    .timeline-mark img { width: 13px; height: 13px; }
+    .timeline time { font-size: 14px; color: #536655; font-weight: 600; padding-top: 1px; font-variant-numeric: tabular-nums; }
+    .timeline-main { display: flex; align-items: start; justify-content: space-between; gap: 5px; }
+    .timeline-title { display: block; font-size: 16px; font-weight: 750; line-height: 1.25; }
+    .timeline-detail { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+    .completed { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; margin-top: -1px; border-radius: 20px; background: var(--soft); font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .completed .icon { width: 12px; height: 12px; }
+    .bottom-nav { flex: 0 0 auto; border-top: 1px solid #D7E1D0; background: var(--background); display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); min-height: 85px; padding: 10px 7px 15px; }
+    .bottom-nav button { display: flex; flex-direction: column; align-items: center; justify-content: start; gap: 6px; position: relative; background: transparent; border: 0; padding: 1px 0 12px; font-size: 13px; font-weight: 500; }
+    .bottom-nav .icon { width: 25px; height: 25px; }
+    .bottom-nav [aria-current="page"] { font-weight: 800; }
+    .bottom-nav [aria-current="page"]::after { content: ''; width: 31px; height: 4px; background: var(--leaf); border-radius: 10px; position: absolute; bottom: 1px; }
+    .phone.expanded { height: auto; }
+    .phone.expanded .page-scroll { overflow: visible; }
+    @keyframes hello { 0%, 100% { transform: rotate(0); } 50% { transform: translateY(-3px) rotate(2deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    @media (max-width: 990px) { .preview-layout { grid-template-columns: minmax(0,1fr) 430px; gap: 26px; } .preview-notes { grid-column: 1; grid-row: 1; padding: 0; margin-top: 390px; } }
+    @media (max-width: 700px) {
+      .preview { padding: 22px 15px 30px; }
+      .preview-header { margin-bottom: 18px; }
+      .preview-header h1 { font-size: 22px; }
+      .preview-badge { display: none; }
+      .preview-layout { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+      .preview-settings { padding: 0; width: 430px; max-width: 100%; }
+      .preview-settings h2, .preview-settings > p { display: none; }
+      .scenario { flex-direction: row; margin: 0 0 12px; }
+      .scenario button { flex: 1; font-size: 13px; text-align: center; }
+      .preview-notes { width: 430px; max-width: 100%; margin: 0; }
+      .phone { order: 1; }
+      .preview-notes { order: 2; }
+    }
+    @media (max-width: 410px) {
+      .page-content { padding: 24px 17px 22px; }
+      .hero { min-height: 132px; }
+      .hero h1 { font-size: 36px; letter-spacing: -1.4px; }
+      .hero-mascot { width: 138px; height: 138px; }
+      .greeting { font-size: 14px; }
+      .macro { grid-template-columns: 88px minmax(0,1fr) 79px; gap: 8px; }
+      .water-card { grid-template-columns: 66px minmax(0,1fr) 99px; gap: 7px; padding: 11px 9px; }
+      .water-mascot { width: 86px; height: 80px; }
+      .water-copy { padding-left: 9px; }
+      .water-copy h2 { font-size: 19px; }
+      .water-total { font-size: 14px; }
+      .water-total strong { font-size: 16px; }
+      .water-tools { gap: 5px; }
+      .water-bottle { width: 24px; }
+      .water-add { font-size: 13px; padding: 7px 6px; }
+      .timeline li { grid-template-columns: 20px 44px minmax(0,1fr); gap: 8px; }
+      .completed { font-size: 10px; padding: 4px 6px; }
+    }
+    @media (max-width: 355px) {
+      .page-content { padding-left: 14px; padding-right: 14px; }
+      .hero h1 { font-size: 31px; letter-spacing: -1.25px; }
+      .hero-mascot { width: 118px; height: 118px; top: 2px; }
+      .hero { min-height: 120px; }
+      .logo { width: 140px; }
+      .header-actions { gap: 7px; }
+      .entry-methods { gap: 6px; }
+      .entry-methods button { font-size: 14px; gap: 5px; }
+      .entry-methods .icon { width: 18px; height: 18px; }
+      .energy-card { padding: 15px 12px; }
+      .energy-heading h2 { font-size: 16px; }
+      .energy-total { font-size: 12px; }
+      .macro { grid-template-columns: 83px minmax(0,1fr) 73px; gap: 6px; font-size: 12px; }
+      .water-card { grid-template-columns: 54px minmax(0,1fr) 90px; gap: 5px; }
+      .water-mascot { width: 70px; height: 76px; margin-left: -8px; object-fit: contain; }
+      .water-bottle { width: 20px; height: 56px; }
+      .water-tools { gap: 3px; }
+      .water-copy { padding-left: 7px; }
+      .water-copy h2 { font-size: 18px; }
+      .water-total { font-size: 12px; }
+      .water-total strong { font-size: 14px; }
+      .water-add { font-size: 12px; padding: 6px 5px; }
+      .water-meta { font-size: 10px; }
+      .next-meal { padding-left: 16px; padding-right: 16px; }
+      .next-meal h2 { font-size: 30px; }
+      .meal-description { font-size: 14px; max-width: 144px; }
+      .timeline li { grid-template-columns: 18px 40px minmax(0,1fr); gap: 7px; }
+      .timeline time { font-size: 13px; }
+      .timeline-title { font-size: 15px; }
+      .timeline-main { flex-wrap: wrap; gap: 6px; }
+      .completed { font-size: 11px; padding: 4px 7px; gap: 3px; }
+      .completed .icon { width: 12px; height: 12px; }
+    }
+    body.screen-only .preview { padding: 0; max-width: none; }
+    body.screen-only .preview-header, body.screen-only .preview-settings, body.screen-only .preview-notes { display: none; }
+    body.screen-only .preview-layout { display: block; }
+    body.screen-only .phone { width: 100%; max-width: 480px; height: 100dvh; margin: auto; border: 0; border-radius: 0; box-shadow: none; }
+    body.screen-only .phone.expanded { height: auto; }
+  </style>
+</head>
+<body>
+  <main class="preview">
+    <header class="preview-header">
+      <div><h1>Limely · Günüm</h1><p>İki referanstan tek, kaydırılabilir mobil sayfa.</p></div>
+      <span class="preview-badge">TASARIM ÖNİZLEMESİ · V1</span>
+    </header>
+    <div class="preview-layout">
+      <aside class="preview-settings" aria-label="Tasarım önizleme ayarları">
+        <h2>Öğün kartı senaryosu</h2>
+        <p>Atanmış sıradaki öğün varsa kart su molasının hemen altında görünür.</p>
+        <div class="scenario" role="group" aria-label="Atanmış öğün görünümü">
+          <button type="button" data-assigned="true" aria-pressed="true">Atanmış öğün var</button>
+          <button type="button" data-assigned="false" aria-pressed="false">Atanmış öğün yok</button>
+        </div>
+        <label class="expand-control"><input id="expand" type="checkbox" checked>Tüm sayfayı göster</label>
+        <p>Kapatıldığında sayfanın içinde kaydırabilir, alt menünün sabit konumunu görebilirsin.</p>
+      </aside>
+
+      <article class="phone expanded" aria-label="Mert Ali için Günüm sayfası tasarımı">
+        <div class="page-scroll">
+          <div class="page-content">
+            <header class="app-header">
+              <img class="logo" src="../limely-marka-paketi-v1/logolar/limely-yazili-logo-renkli.svg" width="155" height="56" alt="Limely">
+              <div class="header-actions">
+                <button class="notification" type="button" aria-label="Bildirimler, yeni bildirim var" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/bell.svg" alt=""></button>
+                <button class="avatar" type="button" aria-label="Mert Ali'nin hesabı" aria-disabled="true">MA</button>
+              </div>
+            </header>
+            <div class="date-row">
+              <time datetime="2026-11-24">24 KASIM · SALI</time>
+              <button class="date-select" type="button" aria-disabled="true">Bugün<img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/chevron-down.svg" alt=""></button>
+            </div>
+            <section aria-label="Günlük karşılama">
+              <div class="hero">
+                <h1><span>Günün, senin</span><br>ritminde.</h1>
+                <img class="hero-mascot" src="../limely-marka-paketi-v1/maskotlar/limely-maskot-merhaba.svg" width="153" height="153" alt="El sallayan Limely maskotu">
+              </div>
+              <p class="greeting">Mert Ali, bugün kendine iyi gelecek bir adım seç.</p>
+            </section>
+
+            <section aria-label="Öğün ekleme ve günlük beslenme özeti">
+              <button class="add-meal" type="button" aria-disabled="true"><img class="icon" src="assets/camera-light.svg" alt=""><span>Öğün ekle</span><img class="icon chevron" src="../limely-marka-paketi-v1/ikonlar/beyaz/chevron-right.svg" alt=""></button>
+              <div class="entry-methods" aria-label="Öğün ekleme yöntemleri">
+                <button type="button" aria-disabled="true"><img class="icon" src="assets/image.svg" alt="">Fotoğraf</button>
+                <button type="button" aria-disabled="true"><img class="icon" src="assets/barcode.svg" alt="">Barkod</button>
+                <button type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/pencil.svg" alt="">Manuel</button>
+              </div>
+              <section class="energy-card" aria-labelledby="energy-heading">
+                <div class="energy-heading"><h2 id="energy-heading">Günlük enerji</h2><span class="energy-total"><strong>980</strong> / 1.700 kcal</span></div>
+                <div class="track energy-track" role="progressbar" aria-label="Günlük enerji, kcal" aria-valuenow="980" aria-valuemin="0" aria-valuemax="1700"><span style="width:57.65%"></span></div>
+                <div class="macro-list">
+                  <div class="macro"><span class="macro-name">Protein</span><div class="track" role="progressbar" aria-label="Protein, gram" aria-valuenow="62" aria-valuemin="0" aria-valuemax="110"><span style="width:56.36%"></span></div><span class="macro-total">62 / 110 g</span></div>
+                  <div class="macro"><span class="macro-name">Karbonhidrat</span><div class="track" role="progressbar" aria-label="Karbonhidrat, gram" aria-valuenow="110" aria-valuemin="0" aria-valuemax="180"><span style="width:61.11%"></span></div><span class="macro-total">110 / 180 g</span></div>
+                  <div class="macro"><span class="macro-name">Yağ</span><div class="track" role="progressbar" aria-label="Yağ, gram" aria-valuenow="32" aria-valuemin="0" aria-valuemax="60"><span style="width:53.33%"></span></div><span class="macro-total">32 / 60 g</span></div>
+                </div>
+              </section>
+            </section>
+
+            <section class="water-card" aria-labelledby="water-heading">
+              <img class="water-mascot" src="../limely-marka-paketi-v1/maskotlar/limely-maskot-su-molasi.svg" width="80" height="87" alt="Su bardağı tutan Limely maskotu">
+              <div class="water-copy"><h2 id="water-heading">Su molası</h2><p class="water-total"><strong id="water-amount">750</strong> / 2.000 ml</p><p class="water-meta"><span id="water-glasses">3</span> / 8 bardak · 250 ml/bardak</p></div>
+              <div class="water-tools"><img id="water-bottle" class="water-bottle" src="../limely-marka-paketi-v1/bilesenler/su-sisesi-az.svg" width="23" height="62" alt="Su hedefinin yaklaşık üçte biri tamamlandı"><button class="water-add" id="water-add" type="button" aria-label="Önizlemede 250 mililitre su ekle"><span class="plus" aria-hidden="true">+</span>250 ml</button></div>
+            </section>
+
+            <section class="next-meal" id="next-meal" aria-labelledby="meal-title">
+              <div class="meal-art" aria-hidden="true"><img src="../limely-tasarim-konseptleri/limely-danisan-yeni-duzen-v3.png" alt=""></div>
+              <p class="meal-eyebrow">SIRADAKİ ÖĞÜN</p>
+              <h2 id="meal-title">Öğle vakti</h2>
+              <time class="meal-time" datetime="2026-11-24T13:00">13:00</time>
+              <p class="meal-description">Izgara tavuk · Bulgur ·<br>Salata</p>
+              <button class="save-meal" type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/plus.svg" alt="">Öğünümü kaydet</button>
+            </section>
+
+            <button class="appointment" type="button" aria-disabled="true" aria-label="Uğur ile görüşme, cuma 18.30">
+              <img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/calendar-days.svg" alt="">
+              <span><span class="appointment-title">Uğur ile görüşme</span><span class="appointment-time">Cuma · 18:30</span></span>
+              <img class="icon chevron" src="../limely-marka-paketi-v1/ikonlar/koyu/chevron-right.svg" alt="">
+            </button>
+
+            <section class="plan-card" aria-labelledby="plan-heading">
+              <h2 id="plan-heading">Bugünkü planım</h2>
+              <ol class="timeline">
+                <li class="complete"><span class="timeline-mark" aria-hidden="true"><img src="../limely-marka-paketi-v1/ikonlar/koyu/check.svg" alt=""></span><time datetime="2026-11-24T08:00">08:00</time><div class="timeline-main"><span class="timeline-title">Kahvaltı</span><span class="completed"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/check.svg" alt="">Tamamlandı</span></div></li>
+                <li><span class="timeline-mark" aria-hidden="true"></span><time datetime="2026-11-24T13:00">13:00</time><div><span class="timeline-title">Öğle</span><span class="timeline-detail">Izgara tavuk, bulgur, salata</span></div></li>
+                <li><span class="timeline-mark" aria-hidden="true"></span><time datetime="2026-11-24T16:00">16:00</time><div><span class="timeline-title">Ara öğün</span><span class="timeline-detail">Meyve ve badem</span></div></li>
+              </ol>
+            </section>
+          </div>
+        </div>
+        <nav class="bottom-nav" aria-label="Ana menü">
+          <button type="button" aria-current="page"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/house.svg" alt="">Günüm</button>
+          <button type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/chart-no-axes-column.svg" alt="">Ölçüm</button>
+          <button type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/calendar.svg" alt="">Planım</button>
+          <button type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/message-circle.svg" alt="">Sohbet</button>
+          <button type="button" aria-disabled="true"><img class="icon" src="../limely-marka-paketi-v1/ikonlar/koyu/user-round.svg" alt="">Hesabım</button>
+        </nav>
+      </article>
+
+      <aside class="preview-notes">
+        <h2>Tek sayfadaki sıra</h2>
+        <ol><li>Karşılama ve maskot</li><li>Öğün ekleme, enerji ve makrolar</li><li>Su molası</li><li>Varsa sıradaki atanmış öğün</li><li>Uğur ile görüşme</li><li>Bugünkü planım</li></ol>
+        <div class="palette" aria-label="Limely renk paleti"><span style="background:#F8FAF2"></span><span style="background:#203B2F"></span><span style="background:#C9E879"></span><span style="background:#83B977"></span><span style="background:#F5D96A"></span><span style="background:#EAF3DE"></span></div>
+        <p>Tek yazı ailesi: Figtree.<br>Mevcut Limely logo ve maskot kaynakları. Aynı çizgide Lucide ikonlar.</p>
+        <p>İsimler ve değerler tasarım örneğidir. Su düğmesi yalnız önizlemeyi değiştirir. Diğer sayfalar ve kayıt işlemleri bu önizlemenin kapsamı dışındadır.</p>
+      </aside>
+    </div>
+    <span id="preview-status" role="status" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></span>
+  </main>
+  <script>
+    const phone = document.querySelector('.phone');
+    const params = new URLSearchParams(location.search);
+    if (params.get('view') === 'mobile') {
+      document.body.classList.add('screen-only');
+      phone.classList.remove('expanded');
+      document.getElementById('expand').checked = false;
+    }
+    document.getElementById('expand').addEventListener('change', event => phone.classList.toggle('expanded', event.target.checked));
+    document.querySelectorAll('[data-assigned]').forEach(button => button.addEventListener('click', () => {
+      const assigned = button.dataset.assigned === 'true';
+      document.getElementById('next-meal').hidden = !assigned;
+      document.querySelectorAll('[data-assigned]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+    }));
+    let water = 750;
+    document.getElementById('water-add').addEventListener('click', () => {
+      water += 250;
+      document.getElementById('water-amount').textContent = water.toLocaleString('tr-TR');
+      document.getElementById('water-glasses').textContent = String(water / 250);
+      const level = water < 1000 ? 'az' : water < 2000 ? 'yari' : 'dolu';
+      const bottle = document.getElementById('water-bottle');
+      bottle.src = '../limely-marka-paketi-v1/bilesenler/su-sisesi-' + level + '.svg';
+      bottle.alt = 'Su hedefinin yüzde ' + Math.round(water / 2000 * 100) + ' kadarı tamamlandı';
+      document.getElementById('preview-status').textContent = 'Önizlemede toplam ' + water + ' mililitre su, ' + water / 250 + ' bardak.';
+    });
+  </script>
+</body>
+</html>
