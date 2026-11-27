@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_tokens.dart';
 import '../home/home_page.dart';
 import '../nutrition/nutrition_page.dart';
 import '../profile/profile_page.dart';
@@ -11,7 +10,7 @@ import '../onboarding/onboarding_theme.dart';
 class MainShell extends StatefulWidget {
   const MainShell({this.initialIndex = 0, this.onLogout, super.key});
   final int initialIndex;
-  final VoidCallback? onLogout;
+  final Future<void> Function()? onLogout;
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -45,12 +44,14 @@ class _MainShellState extends State<MainShell> {
   int _nutritionRevision = 0;
   int _measurementRevision = 0;
   int _chatRevision = 0;
+  int _profileRevision = 0;
 
   void _selectTab(int index) {
     if (index == _selectedIndex) {
       if (index == 0 || index == 2) setState(() => ++_nutritionRevision);
       if (index == 1) setState(() => ++_measurementRevision);
       if (index == 3) setState(() => ++_chatRevision);
+      if (index == 4) setState(() => ++_profileRevision);
       return;
     }
     setState(() => _selectedIndex = index);
@@ -64,39 +65,8 @@ class _MainShellState extends State<MainShell> {
         if (!didPop) _selectTab(0);
       },
       child: Scaffold(
-        backgroundColor: _selectedIndex <= 3
-            ? OnboardingTheme.background
-            : null,
-        appBar: _selectedIndex <= 3
-            ? null
-            : AppBar(
-                automaticallyImplyLeading: false,
-                centerTitle: false,
-                titleSpacing: AppTokens.spacingLarge,
-                actions: [
-                  IconButton(
-                    onPressed: () async {
-                      await Navigator.of(context).pushNamed('/dietitians');
-                      if (mounted) setState(() => ++_nutritionRevision);
-                    },
-                    tooltip: 'Diyetisyen Bul',
-                    icon: const Icon(Icons.person_search_outlined),
-                  ),
-                  if (widget.onLogout != null)
-                    IconButton(
-                      onPressed: widget.onLogout,
-                      tooltip: 'Çıkış yap',
-                      icon: const Icon(Icons.logout_rounded),
-                    ),
-                ],
-                title: Text(
-                  _destinations[_selectedIndex].label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
+        backgroundColor: OnboardingTheme.background,
         body: SafeArea(
-          top: _selectedIndex <= 3,
           bottom: false,
           child: IndexedStack(
             index: _selectedIndex,
@@ -122,7 +92,11 @@ class _MainShellState extends State<MainShell> {
                 refreshRevision: _chatRevision,
                 onViewProfile: () => _selectTab(4),
               ),
-              const ProfilePage(),
+              ProfilePage(
+                active: _selectedIndex == 4,
+                refreshRevision: _profileRevision,
+                onLogout: widget.onLogout,
+              ),
             ],
           ),
         ),

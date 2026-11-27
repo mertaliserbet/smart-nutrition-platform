@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_tokens.dart';
 import '../auth/auth_session.dart';
 import 'dietitian_api.dart';
-import 'dietitian_workspace_page.dart';
+import '../auth/web_panel_link.dart';
 
 class DietitianAccountPage extends StatefulWidget {
   const DietitianAccountPage({this.showSignOut = false, super.key});
@@ -127,13 +127,10 @@ class _DietitianAccountPageState extends State<DietitianAccountPage> {
                     FilledButton(
                       onPressed: () => Navigator.of(context).push<void>(
                         MaterialPageRoute(
-                          builder: (context) => DietitianWorkspacePage(
-                            api: _api!,
-                            dietitianId: profile.id,
-                          ),
+                          builder: (context) => const WebPanelPage(),
                         ),
                       ),
-                      child: const Text('Danışanlar ve bağlantılar'),
+                      child: const Text('Diyetisyen Paneline Git'),
                     ),
                   ],
                 ],

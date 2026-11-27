@@ -333,7 +333,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Çıkış yap'));
+    await tester.ensureVisible(find.text('Çıkış yap'));
+    await tester.tap(find.text('Çıkış yap'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Çıkış yap'));
     await tester.pumpAndSettle();
     expect(find.byType(LoginPage), findsOneWidget);
     expect(session.isAuthenticated, isFalse);

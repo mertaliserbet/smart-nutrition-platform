@@ -294,7 +294,7 @@ void main() {
   });
 
   testWidgets(
-    'client profile has no expert entry and legacy route only offers web handoff',
+    'legacy account route offers only web handoff and logout removes it',
     (tester) async {
       final session = AuthSession(api: _LoginApi(), store: _MemoryStore());
       addTearDown(session.dispose);
@@ -317,7 +317,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Diyetisyen Profili ve Başvuru'), findsNothing);
       Navigator.of(
-        tester.element(find.text('Kişisel alanınız')),
+        tester.element(find.text('Kendine iyi\ngelen alanın.')),
       ).pushNamed('/dietitian-account');
       await tester.pumpAndSettle();
       expect(find.byType(WebPanelPage), findsOneWidget);

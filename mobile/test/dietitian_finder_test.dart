@@ -854,7 +854,7 @@ void main() {
     },
   );
   testWidgets(
-    'profile and app bar open guarded route; logout removes it and back cannot restore it',
+    'profile links open guarded route; logout removes it and back cannot restore it',
     (tester) async {
       await tester.pumpWidget(SmartNutritionApp(session: session));
       await tester.pumpAndSettle();
@@ -865,7 +865,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Diyetisyen Bul'));
+      await tester.ensureVisible(find.text('Diyetisyen Bul'));
+      await tester.tap(find.text('Diyetisyen Bul'));
       await tester.pumpAndSettle();
       expect(find.byType(DietitianFinderPage), findsOneWidget);
       await tester.pageBack();
@@ -877,10 +878,8 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(
-        find.widgetWithText(FilledButton, 'Diyetisyen Bul'),
-      );
-      await tester.tap(find.widgetWithText(FilledButton, 'Diyetisyen Bul'));
+      await tester.ensureVisible(find.text('Diyetisyen Bul'));
+      await tester.tap(find.text('Diyetisyen Bul'));
       await tester.pumpAndSettle();
       expect(find.byType(DietitianFinderPage), findsOneWidget);
       final manageButton = find.widgetWithText(

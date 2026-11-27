@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "font": "Figtree",
+  "existingBrandAssetsOnly": true,
+  "navigationOrder": true,
+  "widths": [
+    320,
+    360,
+    390,
+    430
+  ],
+  "compactHeight": 520,
+  "readOnlyAccountDetails": true,
+  "independentSharingCategories": true,
+  "cancelDiscardsPermissionDraft": true,
+  "waterSharingDisabled": true,
+  "securitySheet": true,
+  "sameAccountExpertEntry": true,
+  "logoutConfirmationOnly": true,
+  "dialogsAndFocusReturn": true,
+  "externalRequests": 0,
+  "errors": []
+}

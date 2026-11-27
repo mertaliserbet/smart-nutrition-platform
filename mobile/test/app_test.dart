@@ -33,8 +33,7 @@ void main() {
     (
       label: 'Hesabım',
       page: ProfilePage,
-      description:
-          'Profil bilgileriniz ve gizlilik tercihleriniz burada yer alacak.',
+      description: 'Hesabını görüntülemek için oturumun doğrulanmalıdır.',
     ),
   ];
 
