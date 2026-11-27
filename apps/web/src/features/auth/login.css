@@ -30,7 +30,6 @@
 .login-option { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 8px; color: var(--brand-primary); font-size: 13px; text-decoration: underline; text-underline-offset: 4px; }
 .login-option:hover { background: var(--brand-soft); }
 .login-option > .icon, .login-option-icon { display: none; }
-.login-preview-link { font-size: 13px; min-height: 36px; padding: 4px 8px; margin: 0; }
 .input-icon-field { position: relative; }
 .input-icon-field > .icon, .password-lock { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-secondary); }
 .form-field .input-icon-field input { padding-left: 14px; }.form-field .input-icon-field:has(> .icon) input, .password-field:has(.password-lock) input { padding-left: 52px; }

@@ -1,7 +1,6 @@
-import type { ActivityLog, BodyMeasurement, ClientProfileListItem, LabReport, MealLog, WaterLog } from './clientTracking.types'
+import type { ActivityLog, BodyMeasurement, ClientProfileListItem, LabReport, MealLog, WaterLog } from '../features/clients/clientTracking.types'
 
-// Fictional, development-only presentation fixtures. No dashboard, permission,
-// category, Auth or open-schema API response is defined here.
+// Fictional test fixtures for record formatting and ownership checks.
 export const previewClients: ClientProfileListItem[] = [
   { id: '10000000-0000-4000-8000-000000000001', displayName: 'Örnek Deniz' },
   { id: '10000000-0000-4000-8000-000000000002', displayName: 'Örnek İpek' },

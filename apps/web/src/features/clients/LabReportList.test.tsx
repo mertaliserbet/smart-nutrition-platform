@@ -1,20 +1,10 @@
 import { render, screen, within } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
-import App from '../../App'
 import { LabReportList } from './ClientRecordViews'
-import { getPreviewRecords, previewClients } from './clientTracking.preview'
+import { getPreviewRecords, previewClients } from '../../test/clientTrackingFixtures'
 import type { LabResult } from './clientTracking.types'
 
 const clientId = previewClients[0]!.id
-const detailPath = `/onizleme/danisanlar/${clientId}`
-const labPath = `${detailPath}?kayit=tahliller`
-
-function renderApp(path = labPath) {
-  render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
-  return userEvent.setup()
-}
 
 function resultReport(overrides: Partial<LabResult> = {}) {
   const report = getPreviewRecords(clientId)!.labReports[1]!
@@ -22,13 +12,10 @@ function resultReport(overrides: Partial<LabResult> = {}) {
 }
 
 describe('read-only lab report history', () => {
-  it('opens from navigation with units, genuine zero references and no requests or storage', async () => {
+  it('shows units, genuine zero references and no requests or storage', async () => {
     const request = vi.spyOn(globalThis, 'fetch')
     const storage = vi.spyOn(Storage.prototype, 'setItem')
-    const user = renderApp(detailPath)
-    await user.click(screen.getByRole('link', { name: 'Tahliller' }))
-    expect(screen.getByRole('link', { name: 'Tahliller' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('heading', { name: 'Tahlil geçmişi' })).toBeVisible()
+    render(<LabReportList clientId={clientId} records={getPreviewRecords(clientId)!.labReports} />)
     const report = screen.getByRole('article', { name: 'Örnek laboratuvar' })
     const zero = within(report).getByRole('listitem', { name: 'Örnek analit A' })
     expect(within(zero).getAllByText('0 birim')).toHaveLength(2)
@@ -38,7 +25,6 @@ describe('read-only lab report history', () => {
     expect(within(partial).getByText('1,2 birim')).toBeVisible()
     expect(within(partial).getByText('Bilinmiyor')).toBeVisible()
     expect(within(partial).getByText('Değerlendirilemiyor')).toBeVisible()
-    expect(screen.getByText(/tahliller için ayrıca açık onay gerekir/)).toBeVisible()
     expect(screen.queryByRole('button', { name: /düzenle|sil|kaydet|analiz|yükle/i })).not.toBeInTheDocument()
     expect(request).not.toHaveBeenCalled()
     expect(storage).not.toHaveBeenCalled()
@@ -102,33 +88,4 @@ describe('read-only lab report history', () => {
     expect(screen.getByText(/bu görünüm tanı veya tedavi önerisi üretmez/)).toBeVisible()
   })
 
-  it('hides report values in unavailable states and preserves restrictions across record views', async () => {
-    const user = renderApp()
-    const scenario = screen.getByRole('combobox', { name: 'Önizleme senaryosu' })
-    expect(screen.getByRole('article', { name: 'Örnek laboratuvar' })).toBeVisible()
-    for (const [value, message] of [
-      ['empty', 'Henüz kayıt bulunmuyor'], ['disconnected', 'Veri bağlantısı bekleniyor'],
-      ['loading', 'Kayıtlar yükleniyor…'], ['error', 'Kayıtlar görüntülenemedi'],
-      ['restricted', 'Bu kayıtlar paylaşılmıyor'],
-    ] as const) {
-      await user.selectOptions(scenario, value)
-      expect(screen.getByText(message)).toBeVisible()
-      expect(screen.queryByLabelText('Tahlil raporları')).not.toBeInTheDocument()
-      expect(screen.queryByText('Örnek laboratuvar')).not.toBeInTheDocument()
-      expect(screen.queryByText('0 birim')).not.toBeInTheDocument()
-    }
-    await user.click(screen.getByRole('link', { name: 'Aktiviteler' }))
-    await user.click(screen.getByRole('link', { name: 'Tahliller' }))
-    expect(screen.getByText('Bu kayıtlar paylaşılmıyor')).toBeVisible()
-    expect(screen.queryByRole('article')).not.toBeInTheDocument()
-    await user.selectOptions(scenario, 'sample')
-    expect(screen.getByRole('article', { name: 'Örnek laboratuvar' })).toBeVisible()
-  })
-
-  it('blocks the direct lab preview URL in production', () => {
-    vi.stubEnv('DEV', false)
-    renderApp()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Bu sayfa bulunamadı.')
-    expect(screen.queryByLabelText('Tahlil raporları')).not.toBeInTheDocument()
-  })
 })

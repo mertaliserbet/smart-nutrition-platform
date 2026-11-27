@@ -5,72 +5,38 @@ import { describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { setSystemTheme } from './test/setup'
 
-function renderApp(path = '/onizleme') {
+function renderApp(path = '/giris') {
   const user = userEvent.setup()
   render(<MemoryRouter initialEntries={[path]}><App /></MemoryRouter>)
   return user
 }
 
-describe('workspace preview and navigation', () => {
-  it('keeps unknown metrics distinct from zero and makes no data requests', async () => {
+describe.each([
+  { environment: 'development', dev: true },
+  { environment: 'production', dev: false },
+])('navigation in $environment', ({ dev }) => {
+  it.each(['/onizleme', '/onizleme/danisanlar', '/onizleme/danisanlar/10000000-0000-4000-8000-000000000001?kayit=tahliller', '/onizleme/baglanti-istekleri'])('rejects the removed preview URL %s without requesting data', (path) => {
+    vi.stubEnv('DEV', dev)
     const request = vi.spyOn(globalThis, 'fetch')
-    const user = renderApp()
-    expect(screen.getAllByLabelText('Veri henüz alınmadı')).toHaveLength(4)
-    expect(screen.queryByText('0')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('link', { name: 'Danışanlarımı görüntüle' }))
-    expect(screen.getByRole('heading', { level: 1, name: 'Danışanlarım' })).toHaveFocus()
-    expect(screen.getByRole('searchbox', { name: 'Danışan ara' })).toBeEnabled()
-    await user.click(screen.getByRole('link', { name: 'Bağlantı isteklerini incele' }))
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Bağlantı istekleri')
-    expect(request).not.toHaveBeenCalled()
-  })
-
-  it('closes the mobile menu with Escape and returns focus to its trigger', async () => {
-    const user = renderApp()
-    const trigger = screen.getByRole('button', { name: 'Menüyü aç' })
-    await user.click(trigger)
-    expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    await user.keyboard('{Escape}')
-    expect(trigger).toHaveAttribute('aria-expanded', 'false')
-    expect(trigger).toHaveFocus()
-  })
-
-  it('replaces the preview header login link with an avatar menu without reading an account', async () => {
-    const request = vi.spyOn(globalThis, 'fetch')
-    const user = renderApp()
-    const avatar = screen.getByRole('button', { name: 'Profil menüsü' })
-    expect(screen.queryByRole('link', { name: 'Giriş ekranı' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Giriş yap' })).not.toBeInTheDocument()
-    await user.click(avatar)
-    expect(avatar).toHaveAttribute('aria-expanded', 'true')
-    await user.tab()
-    expect(screen.getByRole('link', { name: 'Giriş yap' })).toHaveFocus()
-    await user.keyboard('{Escape}')
-    expect(avatar).toHaveFocus()
-    expect(avatar).toHaveAttribute('aria-expanded', 'false')
-    await user.click(avatar)
-    await user.click(screen.getByRole('link', { name: 'Giriş yap' }))
-    expect(screen.getByRole('heading', { name: 'Tekrar hoş geldin' })).toBeVisible()
-    expect(request).not.toHaveBeenCalled()
-  })
-
-  it('blocks direct preview URLs and removes the preview link in a production environment', () => {
-    vi.stubEnv('DEV', false)
-    renderApp('/onizleme/danisanlar')
+    renderApp(path)
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Bu sayfa bulunamadı.')
-    expect(screen.queryByRole('navigation', { name: 'Diyetisyen paneli' })).not.toBeInTheDocument()
-  })
-
-  it('never exposes panel preview access on the production login screen', () => {
-    vi.stubEnv('DEV', false)
-    renderApp('/giris')
-    expect(screen.queryByRole('link', { name: 'Panel tasarımını incele' })).not.toBeInTheDocument()
-  })
-
-  it('provides a safe destination for unknown routes', () => {
-    renderApp('/unknown')
     expect(screen.getByRole('link', { name: 'Giriş ekranına dön' })).toHaveAttribute('href', '/giris')
+    expect(screen.queryByRole('navigation', { name: 'Diyetisyen paneli' })).not.toBeInTheDocument()
+    expect(request).not.toHaveBeenCalled()
   })
+
+  it.each(['/giris', '/diyetisyenler-icin'])('exposes no panel preview entry on %s', (path) => {
+    vi.stubEnv('DEV', dev)
+    renderApp(path)
+    expect(screen.queryByRole('link', { name: 'Panel tasarımını incele' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Paneli incele' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link').some(link => link.getAttribute('href')?.startsWith('/onizleme'))).toBe(false)
+  })
+})
+
+it('provides a safe destination for unknown routes', () => {
+  renderApp('/unknown')
+  expect(screen.getByRole('link', { name: 'Giriş ekranına dön' })).toHaveAttribute('href', '/giris')
 })
 
 describe('appearance', () => {
