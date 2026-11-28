@@ -1,0 +1,2388 @@
+{
+  "previewOnly": true,
+  "foodCount": 397,
+  "foods": [
+    {
+      "fdcId": 2758994,
+      "nameTr": "%100 tam buğday ekmeği, ticari üretim",
+      "visualCategoryId": "bread",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170935,
+      "nameTr": "Adaçayı, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2346410,
+      "nameTr": "Ahududu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2346398,
+      "nameTr": "Ananas",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 171316,
+      "nameTr": "Anason tohumu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2515379,
+      "nameTr": "Antep fıstığı içi",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 169426,
+      "nameTr": "Antep fıstığı, kuru kavrulmuş, tuzlu",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 170185,
+      "nameTr": "Antep fıstığı, kuru kavrulmuş, tuzsuz",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2747652,
+      "nameTr": "Ançüez, zeytinyağlı tuzlu konserve, süzülmüş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746773,
+      "nameTr": "Armut, Bartlett çeşidi",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2710836,
+      "nameTr": "Armut, yeşil Anjou, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2512376,
+      "nameTr": "Arpa unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2727586,
+      "nameTr": "Arpacık soğan, soyulmuş",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 1750350,
+      "nameTr": "Aspir yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2684444,
+      "nameTr": "Atlantik morinası, doğal avcılık",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 171956,
+      "nameTr": "Atlantik morinası, kuru ısıyla pişmiş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 175139,
+      "nameTr": "Atlantik sardalyası, yağda konserve, süzülmüş, kılçıklı",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2684441,
+      "nameTr": "Atlantik somonu, çiftlik üretimi",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 175168,
+      "nameTr": "Atlantik somonu, çiftlik üretimi, kuru ısıyla pişmiş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 175119,
+      "nameTr": "Atlantik uskumrusu",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 175120,
+      "nameTr": "Atlantik uskumrusu, kuru ısıyla pişmiş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2710824,
+      "nameTr": "Avokado, Hass, kabuksuz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 170168,
+      "nameTr": "Avrupa kestanesi, haşlanmış veya buharda pişmiş",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 170190,
+      "nameTr": "Avrupa kestanesi, kavrulmuş",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 170575,
+      "nameTr": "Avrupa kestanesi, çiğ, soyulmuş",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2515381,
+      "nameTr": "Ay çekirdeği içi",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 325524,
+      "nameTr": "Ay çekirdeği içi, tuzlu kuru kavrulmuş",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 1750349,
+      "nameTr": "Ayçiçek yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2262074,
+      "nameTr": "Badem ezmesi, pürüzsüz",
+      "visualCategoryId": "spreads",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 1999631,
+      "nameTr": "Badem içeceği, şekersiz, sade, raf ömürlü",
+      "visualCategoryId": "plant-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2257045,
+      "nameTr": "Badem içeceği, şekersiz, sade, soğutulmuş",
+      "visualCategoryId": "plant-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2261420,
+      "nameTr": "Badem unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346393,
+      "nameTr": "Badem, bütün",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 323294,
+      "nameTr": "Badem, tuzlu kuru kavrulmuş",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 169640,
+      "nameTr": "Bal",
+      "visualCategoryId": "sweet-products",
+      "visualGroupId": "sweets"
+    },
+    {
+      "fdcId": 2685570,
+      "nameTr": "Bal kabağı, butternut tipi",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2727578,
+      "nameTr": "Bal kabağı, kabuksuz ve çekirdeksiz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2710816,
+      "nameTr": "Bal kavunu (honeydew)",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2258587,
+      "nameTr": "Bebek havuç",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2710822,
+      "nameTr": "Bebek roka",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 1999632,
+      "nameTr": "Bebek ıspanak",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170933,
+      "nameTr": "Beyaz biber, baharat",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2644281,
+      "nameTr": "Beyaz cannellini fasulyesi, kuru",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2758993,
+      "nameTr": "Beyaz ekmek, ticari üretim",
+      "visualCategoryId": "bread",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 175203,
+      "nameTr": "Beyaz fasulye, haşlanmış, tuzsuz",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 1104962,
+      "nameTr": "Beyaz kuru soğan",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 1999629,
+      "nameTr": "Beyaz kültür mantarı",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 790214,
+      "nameTr": "Beyaz pirinç unu, zenginleştirilmemiş",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2512381,
+      "nameTr": "Beyaz pirinç, uzun taneli, zenginleştirilmemiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 169757,
+      "nameTr": "Beyaz pirinç, uzun taneli, zenginleştirilmemiş, tuzsuz pişmiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2003593,
+      "nameTr": "Beyaz üzüm suyu, konsantreden, C vitamini eklenmiş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 170017,
+      "nameTr": "Bezelye, dondurulmuş, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170420,
+      "nameTr": "Bezelye, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 171333,
+      "nameTr": "Biberiye, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2515373,
+      "nameTr": "Brezilya cevizi",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 747447,
+      "nameTr": "Brokoli",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 169967,
+      "nameTr": "Brokoli, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2685575,
+      "nameTr": "Brüksel lahanası",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2710820,
+      "nameTr": "Bulgur, kuru",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170287,
+      "nameTr": "Bulgur, pişmiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 169722,
+      "nameTr": "Buğday kepeği",
+      "visualCategoryId": "oats",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 168892,
+      "nameTr": "Buğday ruşeymi",
+      "visualCategoryId": "oats",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2758996,
+      "nameTr": "Buğday unlu tortilla",
+      "visualCategoryId": "bread",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2003586,
+      "nameTr": "Buğday unu, 00 tipi",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 790018,
+      "nameTr": "Buğday unu, çok amaçlı, zenginleştirilmemiş, ağartılmamış",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 789890,
+      "nameTr": "Buğday unu, çok amaçlı, zenginleştirilmiş, ağartılmış",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2644284,
+      "nameTr": "Börülce, kuru",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2644293,
+      "nameTr": "Börülce, tuzlu konserve, süzülüp yıkanmış",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2727581,
+      "nameTr": "Böğürtlen",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 329490,
+      "nameTr": "Bütün yumurta tozu",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 748967,
+      "nameTr": "Bütün yumurta, büyük boy, Grade A",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 323604,
+      "nameTr": "Bütün yumurta, dondurulmuş, pastörize",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2644287,
+      "nameTr": "Cannellini fasulyesi, tuzlu konserve, süzülüp yıkanmış",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2346394,
+      "nameTr": "Ceviz içi, yarım taneler",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 328637,
+      "nameTr": "Cheddar peyniri",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2710819,
+      "nameTr": "Chia tohumu, kuru",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 328841,
+      "nameTr": "Cottage peyniri, %2 yağlı",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2346384,
+      "nameTr": "Cottage peyniri, tam yağlı",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2646172,
+      "nameTr": "Dana antrikot, kemiksiz (USDA Choice)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2727573,
+      "nameTr": "Dana bonfile",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746758,
+      "nameTr": "Dana bonfile, yağsız et, kemiksiz, fırında pişmiş (USDA Select)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2646173,
+      "nameTr": "Dana but üstü, kemiksiz (USDA Choice)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2646175,
+      "nameTr": "Dana döş yanı (flank), kemiksiz (USDA Choice)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2646174,
+      "nameTr": "Dana kol, kemiksiz (USDA Choice)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2727574,
+      "nameTr": "Dana kontrfile üstü (top sirloin)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2514743,
+      "nameTr": "Dana kıyma, %10 yağlı",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 171794,
+      "nameTr": "Dana kıyma, %10 yağlı, ufalanarak tavada pişmiş",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2514744,
+      "nameTr": "Dana kıyma, %20 yağlı",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 171799,
+      "nameTr": "Dana kıyma, %20 yağlı, ufalanarak tavada pişmiş",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746760,
+      "nameTr": "Dana nuar, yağsız et, kemiksiz (USDA Select)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746763,
+      "nameTr": "Dana T-bone, yağsız et, ızgara (USDA Choice)",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2512379,
+      "nameTr": "Darı, tam tahıl",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170917,
+      "nameTr": "Defne yaprağı",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 171890,
+      "nameTr": "Demlenmiş filtre kahve",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 171889,
+      "nameTr": "Demlenmiş filtre kahve, kafeinsiz",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 171946,
+      "nameTr": "Demlenmiş hibiskus çayı",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 174156,
+      "nameTr": "Demlenmiş papatya çayı",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 173227,
+      "nameTr": "Demlenmiş siyah çay",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 171917,
+      "nameTr": "Demlenmiş yeşil çay",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 171322,
+      "nameTr": "Dereotu, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 333281,
+      "nameTr": "Domates konservesi, doğranmış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2685582,
+      "nameTr": "Domates püresi, konserve",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 2685580,
+      "nameTr": "Domates salçası, tuzsuz konserve",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 2685579,
+      "nameTr": "Domates sosu, tuzlu konserve",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 2003596,
+      "nameTr": "Domates suyu, konsantreden, katkı malzemeli",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2685578,
+      "nameTr": "Domates, bütün konserve, suyuyla, tuzlu",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2685581,
+      "nameTr": "Domates, ezilmiş konserve",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2758981,
+      "nameTr": "Edamame, dondurulmuş, hazırlanmış",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 790146,
+      "nameTr": "Ekmeklik beyaz un, zenginleştirilmiş, ağartılmamış",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346387,
+      "nameTr": "Ekşi krema, tam yağlı",
+      "visualCategoryId": "cream",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2346414,
+      "nameTr": "Elma püresi, şekersiz, C vitamini eklenmiş",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2003590,
+      "nameTr": "Elma suyu, konsantreden, C vitamini eklenmiş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 1750340,
+      "nameTr": "Elma, Fuji, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1750341,
+      "nameTr": "Elma, Gala, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1750342,
+      "nameTr": "Elma, Granny Smith, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1750339,
+      "nameTr": "Elma, Red Delicious, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1104812,
+      "nameTr": "Esmer pirinç unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 169704,
+      "nameTr": "Esmer pirinç, uzun taneli, pişmiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2512380,
+      "nameTr": "Esmer pirinç, uzun taneli, zenginleştirilmemiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 168833,
+      "nameTr": "Esmer şeker",
+      "visualCategoryId": "sweet-products",
+      "visualGroupId": "sweets"
+    },
+    {
+      "fdcId": 171891,
+      "nameTr": "Espresso, restoran tipi",
+      "visualCategoryId": "hot-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 171317,
+      "nameTr": "Fesleğen, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2259796,
+      "nameTr": "Feta peyniri, tam yağlı süt, ufalanmış",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2515375,
+      "nameTr": "Fındık içi",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 170583,
+      "nameTr": "Fındık, kuru kavrulmuş, tuzsuz",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2758977,
+      "nameTr": "Greyfurt",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 746771,
+      "nameTr": "Göbekli portakal (navel)",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 173717,
+      "nameTr": "Gökkuşağı alabalığı, çiftlik üretimi",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 173718,
+      "nameTr": "Gökkuşağı alabalığı, çiftlik üretimi, kuru ısıyla pişmiş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 174182,
+      "nameTr": "Hamsi (Avrupa hamsisi)",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 170929,
+      "nameTr": "Hardal tohumu, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 746764,
+      "nameTr": "Havuç, dondurulmuş, hazırlanmamış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170394,
+      "nameTr": "Havuç, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2258586,
+      "nameTr": "Havuç, olgun",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 332282,
+      "nameTr": "Hazır domatesli makarna sosu (marinara)",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 321358,
+      "nameTr": "Hazır humus (USDA)",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 746777,
+      "nameTr": "Hazır salsa sosu",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 326698,
+      "nameTr": "Hazır sarı hardal",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 171330,
+      "nameTr": "Haşhaş tohumu",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2514747,
+      "nameTr": "Hindi kıyma, %7 yağlı",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746785,
+      "nameTr": "Hindi kıyma, %7 yağlı, tavada pişmiş",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2515382,
+      "nameTr": "Hindistan cevizi unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 330458,
+      "nameTr": "Hindistan cevizi yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 171726,
+      "nameTr": "Hurma, Deglet Noor",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 168191,
+      "nameTr": "Hurma, Medjool",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2346388,
+      "nameTr": "Iceberg marul",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 168463,
+      "nameTr": "Ispanak, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 1999633,
+      "nameTr": "Ispanak, olgun yaprak",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170284,
+      "nameTr": "İnci arpa, pişmemiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170285,
+      "nameTr": "İnci arpa, pişmiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2003589,
+      "nameTr": "İrmik, ince",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2003588,
+      "nameTr": "İrmik, iri ve orta iri",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 1999627,
+      "nameTr": "İstiridye mantarı",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 746767,
+      "nameTr": "İsviçre tipi peynir (Swiss)",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2758987,
+      "nameTr": "İtalyan tipi salata sosu, standart",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 746775,
+      "nameTr": "İyotlu sofra tuzu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2747661,
+      "nameTr": "Jalapeno biber, çekirdeksiz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2515380,
+      "nameTr": "Kabak çekirdeği içi",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2003601,
+      "nameTr": "Kahverengi kültür mantarı (crimini)",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2515374,
+      "nameTr": "Kaju",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 170919,
+      "nameTr": "Kakule",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2747671,
+      "nameTr": "Kalamar, dondurulmuş, gövde",
+      "visualCategoryId": "seafood",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 326196,
+      "nameTr": "Kale, dondurulmuş, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 748278,
+      "nameTr": "Kanola yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 746770,
+      "nameTr": "Kantalup kavun",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 170931,
+      "nameTr": "Karabiber",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2512374,
+      "nameTr": "Karabuğday unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2512378,
+      "nameTr": "Karabuğday, tam tahıl",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 171321,
+      "nameTr": "Karanfil, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 171971,
+      "nameTr": "Karides, nemli ısıyla pişmiş (nem tutucu katkı içerebilir)",
+      "visualCategoryId": "seafood",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 171970,
+      "nameTr": "Karides, pane kaplı kızartılmış",
+      "visualCategoryId": "seafood",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2684443,
+      "nameTr": "Karides, çiftlik üretimi",
+      "visualCategoryId": "seafood",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2685573,
+      "nameTr": "Karnabahar",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170397,
+      "nameTr": "Karnabahar, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2747675,
+      "nameTr": "Karpuz, çekirdeksiz, yalnız iç kısmı",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2710828,
+      "nameTr": "Kavuzlu buğday (farro), kabuğu soyulmuş, kuru",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2003587,
+      "nameTr": "Kavuzlu buğday unu, tam tahıl (spelt)",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170645,
+      "nameTr": "Kayısı reçeli",
+      "visualCategoryId": "sweet-products",
+      "visualGroupId": "sweets"
+    },
+    {
+      "fdcId": 2710815,
+      "nameTr": "Kayısı, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 171328,
+      "nameTr": "Kekik (oregano), kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 170938,
+      "nameTr": "Kekik (thyme), kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2515377,
+      "nameTr": "Kestane unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2262075,
+      "nameTr": "Keten tohumu, öğütülmüş",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 747693,
+      "nameTr": "Ketçap, restoran tipi",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 170923,
+      "nameTr": "Kimyon tohumu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2512372,
+      "nameTr": "Kinoa unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 168874,
+      "nameTr": "Kinoa, pişmemiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 168917,
+      "nameTr": "Kinoa, pişmiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346399,
+      "nameTr": "Kiraz, koyu kırmızı, tatlı",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 170922,
+      "nameTr": "Kişniş tohumu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 321611,
+      "nameTr": "Konserve taze fasulye, süzülmüş",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2758980,
+      "nameTr": "Koyu kuru üzüm, çekirdeksiz",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2644289,
+      "nameTr": "Koyu kırmızı kidney fasulyesi, tuzlu ve şekerli konserve, süzülüp yıkanmış",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2003599,
+      "nameTr": "Kral istiridye mantarı",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346385,
+      "nameTr": "Krem peynir, tam yağlı, blok",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2346386,
+      "nameTr": "Krema, yüksek yağlı (heavy)",
+      "visualCategoryId": "cream",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2758978,
+      "nameTr": "Kuru erik",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2727587,
+      "nameTr": "Kuru erik suyu, raf ömürlü",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 746768,
+      "nameTr": "Kuru incir",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 173941,
+      "nameTr": "Kuru kayısı, kükürtlenmiş, pişmemiş",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2727570,
+      "nameTr": "Kuzu kıyma",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 172544,
+      "nameTr": "Kuzu kıyma, ızgarada pişmiş",
+      "visualCategoryId": "red-meat",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 170924,
+      "nameTr": "Köri tozu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2259792,
+      "nameTr": "Kültürlü süt (buttermilk), az yağlı",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2747672,
+      "nameTr": "Kılıç balığı, dondurulmuş, doğal avcılık",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 170932,
+      "nameTr": "Kırmızı acı biber (cayenne), baharat",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2258590,
+      "nameTr": "Kırmızı dolmalık biber",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2003595,
+      "nameTr": "Kırmızı greyfurt suyu, doğrudan sıkılmış, soğutulmuş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2747664,
+      "nameTr": "Kırmızı hindiba (radicchio)",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 175194,
+      "nameTr": "Kırmızı kidney fasulyesi, haşlanmış, tuzsuz",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2346408,
+      "nameTr": "Kırmızı lahana",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2685576,
+      "nameTr": "Kırmızı pancar",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346402,
+      "nameTr": "Kırmızı patates, kabuksuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2710838,
+      "nameTr": "Kırmızı pirinç, zenginleştirilmemiş, kuru",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2684440,
+      "nameTr": "Kırmızı somon (sockeye), doğal avcılık",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 790577,
+      "nameTr": "Kırmızı soğan",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2747665,
+      "nameTr": "Kırmızı turp",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 173964,
+      "nameTr": "Kırmızı ve beyaz frenk üzümü",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2346390,
+      "nameTr": "Kırmızı yaprak marul",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346412,
+      "nameTr": "Kırmızı üzüm, çekirdeksiz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 323505,
+      "nameTr": "Kıvırcık yaprak lahana (kale)",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 169976,
+      "nameTr": "Lahana, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 167746,
+      "nameTr": "Limon, kabuksuz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2515378,
+      "nameTr": "Makademya fındığı",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 169737,
+      "nameTr": "Makarna, pişmiş, zenginleştirilmiş, tuz eklenmemiş",
+      "visualCategoryId": "pasta",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2710832,
+      "nameTr": "Mandalina, çekirdeksiz, kabuksuz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2710833,
+      "nameTr": "Mango, Tommy Atkins, kabuksuz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 170930,
+      "nameTr": "Maydanoz, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2758986,
+      "nameTr": "Mayonez, standart",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 170928,
+      "nameTr": "Mercanköşk, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 172421,
+      "nameTr": "Mercimek, haşlanmış, tuzsuz",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2644283,
+      "nameTr": "Mercimek, kuru",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 333374,
+      "nameTr": "Mezgit (haddock)",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 168155,
+      "nameTr": "Misket limonu (lime)",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2003592,
+      "nameTr": "Mor üzüm suyu, konsantreden, C vitamini eklenmiş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 329370,
+      "nameTr": "Mozzarella, az nemli, kısmen yağsız süt",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 171326,
+      "nameTr": "Muskat, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 1105314,
+      "nameTr": "Muz, olgun veya az olgun",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1105073,
+      "nameTr": "Muz, çok olgun",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2758997,
+      "nameTr": "Mısır unlu tortilla",
+      "visualCategoryId": "bread",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 748323,
+      "nameTr": "Mısır yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 169134,
+      "nameTr": "Nar",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2727588,
+      "nameTr": "Nar suyu, konsantreden, raf ömürlü",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 327357,
+      "nameTr": "Nektarin",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 174288,
+      "nameTr": "Nohut unu (besan)",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 173757,
+      "nameTr": "Nohut, haşlanmış, tuzsuz",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2644282,
+      "nameTr": "Nohut, kuru",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 2644288,
+      "nameTr": "Nohut, tuzlu konserve, süzülüp yıkanmış",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 169094,
+      "nameTr": "Olgun siyah zeytin, konserve, küçük–çok iri boy",
+      "visualCategoryId": "olives",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 172185,
+      "nameTr": "Omlet, USDA genel kaydı",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2747653,
+      "nameTr": "Pancar yaprağı",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 324317,
+      "nameTr": "Pane soğan halkası, dondurulmuş, fırında ısıtılmış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2259795,
+      "nameTr": "Parmesan, rendelenmiş, soğutulmuş",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 1104913,
+      "nameTr": "Pastalık un, zenginleştirilmemiş, ağartılmamış",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2261422,
+      "nameTr": "Patates unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170093,
+      "nameTr": "Patates, kabuklu fırınlanmış, tuzsuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170440,
+      "nameTr": "Patates, kabuksuz haşlanmış, tuzsuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170438,
+      "nameTr": "Patates, kabuğunda haşlanmış, iç kısmı, tuzsuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346401,
+      "nameTr": "Patates, Russet, kabuksuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2685577,
+      "nameTr": "Patlıcan",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346395,
+      "nameTr": "Pekan cevizi, yarım taneler",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 175200,
+      "nameTr": "Pinto fasulyesi, haşlanmış, tuzsuz",
+      "visualCategoryId": "legumes",
+      "visualGroupId": "legumes"
+    },
+    {
+      "fdcId": 333476,
+      "nameTr": "Pollock balığı",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2003597,
+      "nameTr": "Portakal suyu, doğrudan sıkılmış, posasız, soğutulmuş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2003591,
+      "nameTr": "Portakal suyu, konsantreden, posasız, soğutulmuş",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 2003598,
+      "nameTr": "Portobello mantarı",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 172186,
+      "nameTr": "Poşe yumurta",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2647440,
+      "nameTr": "Provolone peyniri, dilimlenmiş",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2727584,
+      "nameTr": "Pırasa, kökü ayıklanmış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2758988,
+      "nameTr": "Ranch sosu",
+      "visualCategoryId": "sauces",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 2747655,
+      "nameTr": "Rezene kökü",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 171323,
+      "nameTr": "Rezene tohumu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 169641,
+      "nameTr": "Reçel, genel kayıt (meyve belirtilmemiş)",
+      "visualCategoryId": "sweet-products",
+      "visualGroupId": "sweets"
+    },
+    {
+      "fdcId": 746766,
+      "nameTr": "Ricotta peyniri, tam yağlı süt",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 1999634,
+      "nameTr": "Roma domates",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170934,
+      "nameTr": "Safran",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 324653,
+      "nameTr": "Salatalık turşusu, dereotlu",
+      "visualCategoryId": "pickles",
+      "visualGroupId": "condiments"
+    },
+    {
+      "fdcId": 2346406,
+      "nameTr": "Salatalık, kabuklu",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346405,
+      "nameTr": "Sap kereviz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2747660,
+      "nameTr": "Sarı biber (banana / Hungarian wax), çekirdeksiz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2258589,
+      "nameTr": "Sarı dolmalık biber",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 790646,
+      "nameTr": "Sarı kuru soğan",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2758979,
+      "nameTr": "Sarı kuru üzüm, çekirdeksiz",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 790276,
+      "nameTr": "Sarı mısır unu, ince, zenginleştirilmiş",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346403,
+      "nameTr": "Sarı patates, kabuksuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2685569,
+      "nameTr": "Sarı yaz kabağı, kabuklu",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2747673,
+      "nameTr": "Sarı yüzgeçli ton balığı, dondurulmuş, doğal avcılık",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 325430,
+      "nameTr": "Sarı şeftali",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 1104647,
+      "nameTr": "Sarımsak",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 171325,
+      "nameTr": "Sarımsak tozu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2710837,
+      "nameTr": "Siyah erik, kabuklu",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 173963,
+      "nameTr": "Siyah frenk üzümü",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2710825,
+      "nameTr": "Siyah pirinç, zenginleştirilmemiş",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2710827,
+      "nameTr": "Siyez buğdayı, tane, kuru",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2257044,
+      "nameTr": "Soya içeceği, şekerli, sade, soğutulmuş",
+      "visualCategoryId": "plant-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 1999630,
+      "nameTr": "Soya içeceği, şekersiz, sade, raf ömürlü",
+      "visualCategoryId": "plant-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 1104766,
+      "nameTr": "Soya unu, tam yağlı",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 1104705,
+      "nameTr": "Soya unu, yağı alınmış",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 748366,
+      "nameTr": "Soya yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 171327,
+      "nameTr": "Soğan tozu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2758998,
+      "nameTr": "Spagetti makarna, kuru, zenginleştirilmiş",
+      "visualCategoryId": "pasta",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170150,
+      "nameTr": "Susam, bütün, kurutulmuş",
+      "visualCategoryId": "seeds",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 173412,
+      "nameTr": "Susuz süt yağı (butter oil)",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 746772,
+      "nameTr": "Süt, %1 yağlı, A ve D vitamini eklenmiş",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 746778,
+      "nameTr": "Süt, %2 yağlı, A ve D vitamini eklenmiş",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 746782,
+      "nameTr": "Süt, %3,25 yağlı, D vitamini eklenmiş",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2259794,
+      "nameTr": "Süzme tipi yoğurt (Greek), sade, tam yağlı süt",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 330137,
+      "nameTr": "Süzme tipi yoğurt (Greek), sade, yağsız",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 330415,
+      "nameTr": "Süzme tipi yoğurt (Greek), çilekli, yağsız",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 748608,
+      "nameTr": "Sızma zeytinyağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2262073,
+      "nameTr": "Tahin, pürüzsüz",
+      "visualCategoryId": "spreads",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 790085,
+      "nameTr": "Tam buğday unu, zenginleştirilmemiş",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2261421,
+      "nameTr": "Tam tahıl yulaf unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2759000,
+      "nameTr": "Tam tahıllı spagetti makarna, kuru",
+      "visualCategoryId": "pasta",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 170937,
+      "nameTr": "Tarhun, kurutulmuş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 171320,
+      "nameTr": "Tarçın, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 171329,
+      "nameTr": "Tatlı kırmızı biber (paprika), baharat",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2710826,
+      "nameTr": "Tatlı mısır, sarı ve beyaz taneler, taze",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 168483,
+      "nameTr": "Tatlı patates, kabuğunda fırınlanmış, iç kısmı, tuzsuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2727566,
+      "nameTr": "Tavuk baget, derili",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 331897,
+      "nameTr": "Tavuk baget, derisiz et, az suda pişmiş",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2727569,
+      "nameTr": "Tavuk göğsü, derili",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2646170,
+      "nameTr": "Tavuk göğsü, derisiz, kemiksiz",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 331960,
+      "nameTr": "Tavuk göğsü, derisiz, kemiksiz, az suda pişmiş",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2727567,
+      "nameTr": "Tavuk kalça, derili",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2646171,
+      "nameTr": "Tavuk kalça, derisiz, kemiksiz",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2727568,
+      "nameTr": "Tavuk kanat, derili",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 2514746,
+      "nameTr": "Tavuk kıyma, katkı malzemeli",
+      "visualCategoryId": "poultry",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 172233,
+      "nameTr": "Taze dereotu",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 172232,
+      "nameTr": "Taze fesleğen",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 173021,
+      "nameTr": "Taze incir",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 169997,
+      "nameTr": "Taze kişniş yaprağı",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 170416,
+      "nameTr": "Taze maydanoz",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 173475,
+      "nameTr": "Taze nane (spearmint)",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2727585,
+      "nameTr": "Taze soğan, kökü ayıklanmış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346400,
+      "nameTr": "Taze yeşil fasulye",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 169231,
+      "nameTr": "Taze zencefil kökü",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 790508,
+      "nameTr": "Tereyağı, tuzlu",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 789828,
+      "nameTr": "Tereyağı, tuzsuz",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2684442,
+      "nameTr": "Tilapya, çiftlik üretimi",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 334194,
+      "nameTr": "Ton balığı, suda konserve, süzülmüş",
+      "visualCategoryId": "fish",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 746784,
+      "nameTr": "Toz şeker",
+      "visualCategoryId": "sweet-products",
+      "visualGroupId": "sweets"
+    },
+    {
+      "fdcId": 2758976,
+      "nameTr": "Turna yemişi, kurutulmuş, şekerli",
+      "visualCategoryId": "dried-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2258591,
+      "nameTr": "Turuncu dolmalık biber",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346404,
+      "nameTr": "Turuncu etli tatlı patates, kabuksuz",
+      "visualCategoryId": "tubers",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2727589,
+      "nameTr": "Vişne suyu, konsantreden, raf ömürlü",
+      "visualCategoryId": "cold-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 173954,
+      "nameTr": "Vişne, kırmızı",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2346411,
+      "nameTr": "Yaban mersini",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 173950,
+      "nameTr": "Yaban mersini, dondurulmuş, şekersiz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2747659,
+      "nameTr": "Yabani havuç (parsnip)",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2710821,
+      "nameTr": "Yabani pirinç, kuru",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 746776,
+      "nameTr": "Yağsız süt, A ve D vitamini eklenmiş",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2346389,
+      "nameTr": "Yedikule tipi yeşil marul (romaine)",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 171315,
+      "nameTr": "Yenibahar, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2515376,
+      "nameTr": "Yer fıstığı",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2758989,
+      "nameTr": "Yer fıstığı ezmesi, pürüzsüz",
+      "visualCategoryId": "spreads",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 1750348,
+      "nameTr": "Yer fıstığı yağı",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2644291,
+      "nameTr": "Yeşil bezelye, tuzlu ve şekerli konserve, süzülüp yıkanmış",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2258588,
+      "nameTr": "Yeşil dolmalık biber",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2685568,
+      "nameTr": "Yeşil kabak, kabuklu",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 169292,
+      "nameTr": "Yeşil kabak, kabuklu, haşlanmış, süzülmüş, tuzsuz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2710831,
+      "nameTr": "Yeşil kivi, kabuksuz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2710823,
+      "nameTr": "Yeşil kuşkonmaz",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346407,
+      "nameTr": "Yeşil lahana",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346391,
+      "nameTr": "Yeşil yaprak marul",
+      "visualCategoryId": "leafy-greens",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2346413,
+      "nameTr": "Yeşil üzüm, çekirdeksiz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 170886,
+      "nameTr": "Yoğurt, sade, az yağlı",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2259793,
+      "nameTr": "Yoğurt, sade, tam yağlı süt",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2647437,
+      "nameTr": "Yoğurt, sade, yağsız",
+      "visualCategoryId": "yogurt",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 2346396,
+      "nameTr": "Yulaf ezmesi, tam tahıl, klasik",
+      "visualCategoryId": "oats",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2257046,
+      "nameTr": "Yulaf içeceği, şekersiz, sade, soğutulmuş",
+      "visualCategoryId": "plant-drinks",
+      "visualGroupId": "drinks"
+    },
+    {
+      "fdcId": 168872,
+      "nameTr": "Yulaf kepeği",
+      "visualCategoryId": "oats",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 323793,
+      "nameTr": "Yumurta akı tozu",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 747997,
+      "nameTr": "Yumurta akı, büyük boy, Grade A",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 323697,
+      "nameTr": "Yumurta akı, dondurulmuş, pastörize",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 329716,
+      "nameTr": "Yumurta sarısı tozu",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 748236,
+      "nameTr": "Yumurta sarısı, büyük boy, Grade A",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 329596,
+      "nameTr": "Yumurta sarısı, dondurulmuş, pastörize",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 173424,
+      "nameTr": "Yumurta, katı haşlanmış",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 173423,
+      "nameTr": "Yumurta, kızartılmış, USDA genel kaydı",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 173435,
+      "nameTr": "Yumuşak keçi peyniri",
+      "visualCategoryId": "cheese",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 170926,
+      "nameTr": "Zencefil, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 172231,
+      "nameTr": "Zerdeçal, öğütülmüş",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 1750351,
+      "nameTr": "Zeytinyağı, çok hafif aromalı (extra light)",
+      "visualCategoryId": "oils",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 2346392,
+      "nameTr": "Çam fıstığı",
+      "visualCategoryId": "nuts",
+      "visualGroupId": "fats"
+    },
+    {
+      "fdcId": 168884,
+      "nameTr": "Çavdar tanesi",
+      "visualCategoryId": "grains",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2512375,
+      "nameTr": "Çavdar unu",
+      "visualCategoryId": "flour",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 2346397,
+      "nameTr": "Çelik kesim yulaf, tam tahıl",
+      "visualCategoryId": "oats",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 171324,
+      "nameTr": "Çemen tohumu",
+      "visualCategoryId": "spices",
+      "visualGroupId": "spices"
+    },
+    {
+      "fdcId": 2346409,
+      "nameTr": "Çilek",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 168173,
+      "nameTr": "Çilek, dondurulmuş, şekersiz",
+      "visualCategoryId": "fresh-fruit",
+      "visualGroupId": "fruits"
+    },
+    {
+      "fdcId": 2758995,
+      "nameTr": "Çok tahıllı ekmek, ticari üretim",
+      "visualCategoryId": "bread",
+      "visualGroupId": "carbs"
+    },
+    {
+      "fdcId": 172187,
+      "nameTr": "Çırpılmış yumurta, pişmiş, USDA genel kaydı",
+      "visualCategoryId": "eggs",
+      "visualGroupId": "proteins"
+    },
+    {
+      "fdcId": 321360,
+      "nameTr": "Üzüm domates",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2747674,
+      "nameTr": "Şalgam",
+      "visualCategoryId": "vegetables",
+      "visualGroupId": "vegetables"
+    },
+    {
+      "fdcId": 2758990,
+      "nameTr": "Şekerli yoğunlaştırılmış süt",
+      "visualCategoryId": "milk",
+      "visualGroupId": "dairy"
+    },
+    {
+      "fdcId": 1999628,
+      "nameTr": "Şitake mantarı",
+      "visualCategoryId": "mushrooms",
+      "visualGroupId": "vegetables"
+    }
+  ]
+}

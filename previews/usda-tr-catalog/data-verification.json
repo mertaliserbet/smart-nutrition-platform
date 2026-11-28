@@ -1,0 +1,10 @@
+{
+  "foods": 397,
+  "householdPortionFoods": 157,
+  "exactNutrientComparisons": 1487,
+  "missingNutrientsPreservedAsNull": 95,
+  "negativeSourceValuesRetainedButNotCalculated": 6,
+  "exactPortionComparisons": 281,
+  "embeddedJsonMatches": true,
+  "archiveSha256Matches": true
+}

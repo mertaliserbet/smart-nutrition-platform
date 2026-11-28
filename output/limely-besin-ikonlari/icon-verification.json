@@ -1,0 +1,22 @@
+{
+  "engine": "jsdom",
+  "assignedFoods": 397,
+  "renderedAndFilteredFoods": 397,
+  "uniqueSvgIcons": 36,
+  "activeCategories": 33,
+  "reservedCategories": 3,
+  "checks": [
+    "397 benzersiz kaynak kimliği, her birine tam bir ikon kategorisi",
+    "36 kategorinin her birinde filtrelenen satırların ve gerçek SVG ikonlarının tek tek kontrolü",
+    "İkon atlası, klavye sekmeleri, grup filtresi, FDC ile eşleşme araması",
+    "Besin seçimi, ayrıntı, öğün ve düzenlemede aynı ikon",
+    "Taze fasulye, soya içeceği, fıstık, un, krema/peynir, sos ve balık/deniz ürünü ayrımları",
+    "Boş kategorilerde sahte kayıt yok; ayrıntı paneli gizli",
+    "Kaynak ayrıntısına erişim"
+  ],
+  "errors": [],
+  "limitations": [
+    "DOM doğrulaması gerçek tarayıcıda görsel düzen doğrulaması değildir.",
+    "file:// tarayıcı açılışı URL güvenlik politikası tarafından engellendi."
+  ]
+}

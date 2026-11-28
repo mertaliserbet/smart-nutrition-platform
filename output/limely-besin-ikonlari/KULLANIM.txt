@@ -1,0 +1,15 @@
+LIMELY BESİN İKONLARI
+
+36 özgün SVG simge. viewBox 0 0 24 24, çizgi 1.65, yuvarlatılmış uçlar.
+
+Tekil SVG dosyaları, yeniden kullanılabilir limely-food-sprite.svg,
+renk/kategori tanımları icon-categories.json ve 397 kaydın açık eşleşmesi
+food-icon-map.json / food-icon-map.tsv içindedir.
+
+33 dolu kategori; smoothie, protein içeceği ve su için 3 simge hazır,
+ancak mevcut katalogda bu türlerde doğrulanmış besin kaydı yoktur.
+USDA grupları ve besin değerleri değiştirilmemiştir.
+Bu görsel ayrım uygulama veri modeli veya klinik değişim grubu değildir.
+SVG çizimleri bu görev için özgündür; referans ikonlar kopyalanmadı.
+
+Tüm ikonların görsel tablosu: limely-besin-ikonlari.svg
