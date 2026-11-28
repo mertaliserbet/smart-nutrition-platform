@@ -141,6 +141,8 @@
 .marketing-message-field { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 14px; padding: 5px 8px; font-size: 14px; color: var(--text-muted); }
 .marketing-message-field > span:first-of-type { flex: 1; }
 .example-send { display: grid; place-items: center; width: 40px; height: 32px; border-radius: 14px; background: var(--brand-primary); color: var(--on-brand); }
+.example-send > .icon > .icon-normal { display: none; }
+.example-send > .icon > .icon-inverse { display: block; }
 .appointment-example { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: center; margin-top: 18px; }
 .appointment-example > div { display: flex; align-items: center; gap: 12px; background: var(--brand-soft); padding: 18px; border-radius: 16px; font-size: 17px; }
 .appointment-example strong { flex: 1; }
