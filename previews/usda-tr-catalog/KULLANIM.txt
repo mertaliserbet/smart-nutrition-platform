@@ -1,0 +1,109 @@
+SMART NUTRITION — BAĞIMSIZ USDA KATALOG ÖNİZLEMESİ
+
+LIMELY İKON ATLASI — 28.11.2026
+
+Arayüz Limely'nin güncel Manrope/Inter fontları ve #203B2F / #C9E879 /
+#F8FAF2 paletiyle yenilenmiştir. Fontlar ve logo HTML içine gömülüdür.
+Font lisansları assets/fonts/ altında bulunur.
+
+Besin kataloğu sekmesi: kategori simgeleri, görsel grup ve ikon kategorisi
+filtreleri; mevcut arama, gram/porsiyon ve geçici öğün hesaplaması.
+İkon atlası sekmesi: 36 özgün SVG simge, kategori başına besin sayısı ve
+397 besinin tamamını gösteren aranabilir eşleşme tablosu.
+
+33 kategoride gerçek kayıt vardır. Smoothie, protein içeceği ve su için
+3 ayrı simge hazırdır; mevcut 397 kayıt içinde doğrulanmış karşılığı
+olmadığı için bu kategorilere besin atanmamıştır. Bu görsel sınıflandırma
+klinik besin değişim grubu veya baskın makro sınıflandırması değildir.
+Kaynak USDA grupları ve besin değerleri değiştirilmemiştir.
+
+SVG çizimleri bu önizleme için özgün olarak üretilmiştir; referanstaki
+ikonlar kopyalanmamıştır. Çizimler visual_catalog.py içinde, 397 açık FDC
+eşleşmesi food-icon-map.tsv içindedir. icons/ ayrı SVG dosyalarını ve
+sprite setini içerir.
+
+Proje kökünden output altında ayrı ikon teslimini yeniden üretmek için:
+  python previews/usda-tr-catalog/prepare_catalog.py --icons-out output/limely-besin-ikonlari
+
+Ek denetim: node previews/usda-tr-catalog/verify_icons.cjs
+36 kategorideki 397 eşleşme, SVG ikonlarının DOM'da görünümü, sekmeler,
+grup filtreleri, kayıt seçimi ve öğündeki ikon tutarlılığı kontrol edilir.
+file:// tarayıcı açılışı bu görevde URL güvenlik kuralıyla engellenmiştir;
+güncel tasarımın gerçek tarayıcı ve mobil görsel incelemesi yapılamamıştır.
+
+
+index.html dosyasına çift tıklayın. HTML veriyi içerir; kurulum, sunucu,
+fetch veya internet gerektirecek bir uygulama bağımlılığı yoktur.
+Kaynak/lisans bağlantılarını açmak için internet gerekir.
+Öğün yalnız sayfa belleğinde tutulur; yenileyince silinir.
+
+397 gerçek kayıt / 157 kayıtta kaynaklı ev ölçüsü / 281 kaynaklı ölçü.
+Kaynaklar: USDA Foundation Foods, 29 Ekim 2026 JSON arşivi (277 kayıt)
+ve SR Legacy, Nisan 2018 CSV arşivi (120 kayıt). İki kaynak da teslimata
+dahildir; çevrimdışı yeniden üretilebilir.
+Türk yemekleri, tarif, barkod ve gerçek uygulama entegrasyonu yoktur.
+Türkçe ad ve eş anlamlılar editoryal çeviridir; yerel ürün eşdeğerliği
+veya USDA onayı anlamına gelmez.
+
+Kaynak: https://fdc.nal.usda.gov/download-datasets/
+Lisans: CC0 1.0 Universal (kamu malı).
+USDA lisans beyanı: https://fdc.nal.usda.gov/
+
+VERİYİ YENİDEN ÜRETME
+
+Bu klasörde Python 3.10 veya üstü ile çalıştırın:
+  python prepare_catalog.py
+
+Paket kurulumu gerekmez. sources/ içindeki gerçek, SHA-256 ile denetlenen
+USDA arşivleri ve selection.tsv / selection-sr.tsv kullanılır. index.html ve catalog.json aynı
+hazırlanmış katalogdan tekrar üretilir. preview.template.html arayüzün
+veri gömülmeden önceki kaynağıdır.
+
+Arşivi resmî kaynaktan tekrar indirmek için (internet gerekir):
+  python prepare_catalog.py --download
+
+Seçim dosyaları yalnız kimlik, Türkçe ad ve eş anlamlı içerir; besin
+değerleri ve porsiyon gramları burada elle tanımlanmaz.
+sources/selected-usda-records.json seçilen Foundation kayıtlarını ve
+SR CSV satırlarını içeren izlenebilir bir kaynak görünümüdür. SR CSV
+satırları originalCsvRows alanında özgün metinleriyle korunmuştur.
+
+VERİ POLİTİKASI
+
+Değerler USDA foodNutrients.amount alanından, yenilebilir 100 g üzerinden
+alınır. Sıvılar da kaynakta 100 g temelindedir; ml -> g dönüşümü yapılmaz.
+Enerji seçim sırası 2048 / 2047 / 1008; kaynaktaki kcal aynen kullanılır.
+Protein ID 1003, karbonhidrat 1005, yağ 1004 (g).
+Eksik değer null kalır. 6 kayıttaki negatif kaynak karbonhidratı eşleme
+ve özgün kayıtta saklanır; hesap değeri null/negativeSourceValue olur.
+95 eksik besin öğesi null kalmıştır. Sıfır veya 4/4/9 tahmini üretilmez.
+Toplamlar her besin öğesi için ayrı kısmi olarak işaretlenir.
+
+Porsiyon gramları yalnız ilgili USDA foodPortion kaydından gelir.
+Girilen miktar seçilen kaynak ölçüsünün katıdır. 0,5 ve 1.5 desteklenir.
+USDA cup yerel kase veya su bardağı sayılmaz. RACC düzenleyici referans
+miktarıdır; ev ölçüsü olarak gösterilmez.
+Bu veri biçimi proje API/DTO/veritabanı sözleşmesi değildir.
+
+DOĞRULAMA
+
+  python verify_catalog.py
+Tüm kayıtların değerleri, null'lar, negatif kaynak değerleri, birimler,
+porsiyonlar, kaynak hash'i ve HTML/JSON eşitliği denetlenir.
+
+  node verify_dom.cjs
+Bu test betiği klasör depodaki yerindeyken çalıştırılır.
+Depoda zaten kurulu jsdom kullanılır; yeni paket kurulmaz. Arama,
+filtreler, gram/porsiyon, kesir, geçersiz miktar, öğün ekle/düzenle/sil,
+kısmi toplamlar ve temizleme için 11 senaryo geçti.
+
+  node verify_browser.cjs
+Depoda zaten kurulu Playwright ve Microsoft Edge ile gerçek file://,
+offline, 1440/390 px ve ekran görüntüsü kontrolü için hazırlanmıştır.
+Bu ortamda Edge başlatılamadı (crashpad/named pipe). Native tarayıcı
+denemesi de URL güvenlik denetimi nedeniyle durdu. Gerçek tarayıcıda
+çift tıklama açılışı, offline çalışma, JSON indirme ve görsel masaüstü/
+mobil kontrolleri tamamlandı sayılmaz. DOM testi bunların yerine geçmez.
+Çalıştırılmamış senaryo için başarılı tarayıcı raporu üretilmedi.
+
+Sonraki adım: index.html'i kendi tarayıcınızda açıp akışı inceleyin.

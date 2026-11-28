@@ -1,0 +1,466 @@
+{
+  "name": "Limely besin ikonları",
+  "version": "1.0-preview",
+  "viewBox": "0 0 24 24",
+  "strokeWidth": 1.65,
+  "groups": [
+    {
+      "id": "carbs",
+      "labelTr": "Tahıl ve nişastalılar"
+    },
+    {
+      "id": "proteins",
+      "labelTr": "Et, balık ve yumurta"
+    },
+    {
+      "id": "dairy",
+      "labelTr": "Süt ürünleri"
+    },
+    {
+      "id": "legumes",
+      "labelTr": "Baklagiller"
+    },
+    {
+      "id": "vegetables",
+      "labelTr": "Sebze ve yeşillik"
+    },
+    {
+      "id": "fruits",
+      "labelTr": "Meyveler"
+    },
+    {
+      "id": "fats",
+      "labelTr": "Yağ, kuruyemiş ve tohumlar"
+    },
+    {
+      "id": "drinks",
+      "labelTr": "İçecekler"
+    },
+    {
+      "id": "condiments",
+      "labelTr": "Sos ve turşular"
+    },
+    {
+      "id": "spices",
+      "labelTr": "Baharatlar"
+    },
+    {
+      "id": "sweets",
+      "labelTr": "Tatlı ürünler"
+    }
+  ],
+  "categories": [
+    {
+      "id": "bread",
+      "labelTr": "Ekmek ve tortilla",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Dilim ekmekler, çok tahıllı ekmekler ve tortilla.",
+      "svgBody": "<path d=\"M5 10C2 8 4 4 8 4h8c4 0 6 4 3 6v9H5Z\"/><path d=\"M8 8h8M8 13v3m4-4v4m4-3v3\"/>",
+      "foodCount": 5,
+      "isReserved": false
+    },
+    {
+      "id": "grains",
+      "labelTr": "Pirinç, bulgur ve tahıllar",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Pirinç, bulgur, kinoa, arpa ve diğer tane tahıllar.",
+      "svgBody": "<path d=\"M12 21V4m0 5c-4 0-6-3-5-6 3 0 5 3 5 6Zm0 5c-4 0-6-2-5-5 3 0 5 2 5 5Zm0 5c-4 0-6-2-5-5 3 0 5 2 5 5Zm0-8c4 0 6-3 5-6-3 0-5 3-5 6Zm0 5c4 0 6-2 5-5-3 0-5 2-5 5Z\"/>",
+      "foodCount": 19,
+      "isReserved": false
+    },
+    {
+      "id": "pasta",
+      "labelTr": "Makarna",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Kuru ve pişmiş makarna, tam tahıllı çeşitler.",
+      "svgBody": "<path d=\"M5 4v6m3-6v6m3-6v5c0 3-6 3-6 0m3 3v9m8-16c-2 1-2 4 0 5s2 4 0 5m4-12c-2 1-2 4 0 5s2 4 0 5\"/>",
+      "foodCount": 3,
+      "isReserved": false
+    },
+    {
+      "id": "flour",
+      "labelTr": "Un ve irmik",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Tahıl, baklagil, kuruyemiş unları ve irmik.",
+      "svgBody": "<path d=\"m7 3 1 4-3 4v9h14v-9l-3-4 1-4ZM8 7h8\"/><path d=\"M12 11v6m0-4-2-1m2 4 2-2\"/>",
+      "foodCount": 24,
+      "isReserved": false
+    },
+    {
+      "id": "oats",
+      "labelTr": "Yulaf ve kepek",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Yulaf ezmesi, çelik kesim yulaf, kepek ve ruşeym.",
+      "svgBody": "<path d=\"M3 12h18c-1 6-4 8-9 8s-8-2-9-8Zm3 9h12M16 10l4-7\"/><path d=\"m6 9 2-2 2 2m1-1 2-2 2 2\"/>",
+      "foodCount": 5,
+      "isReserved": false
+    },
+    {
+      "id": "tubers",
+      "labelTr": "Patates ve nişastalı kökler",
+      "groupId": "carbs",
+      "background": "#F8EECF",
+      "color": "#755B1C",
+      "descriptionTr": "Patates ve tatlı patates; havuç ve pancar bu grupta değildir.",
+      "svgBody": "<path d=\"M19 7c4 4 0 11-6 13-5 2-10-2-9-6 0-4 5-9 9-10 2-1 5 0 6 3Z\"/><path d=\"m8 12 1 1m3-5 1 1m2 6 1 1m-6 1h.1\"/>",
+      "foodCount": 8,
+      "isReserved": false
+    },
+    {
+      "id": "poultry",
+      "labelTr": "Tavuk ve hindi",
+      "groupId": "proteins",
+      "background": "#F9E9E6",
+      "color": "#8E3D42",
+      "descriptionTr": "Göğüs, but, kanat ve kümes hayvanı kıymaları.",
+      "svgBody": "<path d=\"M12 6c3-3 8-1 8 3 0 4-4 7-7 6L8 19l-3-3 4-5c-1-2 0-4 3-5Z\"/><path d=\"m6 17-2 2m1-1c-2-2-4 1-2 2s4 0 3-2\"/><path d=\"m14 8 2 1\"/>",
+      "foodCount": 11,
+      "isReserved": false
+    },
+    {
+      "id": "red-meat",
+      "labelTr": "Kırmızı et ve kıyma",
+      "groupId": "proteins",
+      "background": "#F9E9E6",
+      "color": "#8E3D42",
+      "descriptionTr": "Dana ve kuzu eti; pişirme durumu ayrıca korunur.",
+      "svgBody": "<path d=\"M4 9c2-5 8-6 12-3 5 3 6 10 2 13s-6-1-10-1c-5 0-6-4-4-9Z\"/><path d=\"M7 10c2-3 5-3 7-1s5 5 2 7-4-2-7-1c-3 0-4-2-2-5Z\"/><circle cx=\"17\" cy=\"9\" r=\"1\"/>",
+      "foodCount": 15,
+      "isReserved": false
+    },
+    {
+      "id": "fish",
+      "labelTr": "Balık",
+      "groupId": "proteins",
+      "background": "#EDF3F7",
+      "color": "#335E79",
+      "descriptionTr": "Somon, ton balığı, hamsi, uskumru ve diğer balıklar.",
+      "svgBody": "<path d=\"M4 12c4-7 11-7 15 0-4 7-11 7-15 0Zm0 0-2-4v8Zm7-6 3-3 2 4m-5 11 3 3 2-4\"/><path d=\"M15 9c-2 2-2 4 0 6\"/><circle cx=\"17\" cy=\"11\" r=\".7\" fill=\"currentColor\" stroke=\"none\"/>",
+      "foodCount": 18,
+      "isReserved": false
+    },
+    {
+      "id": "seafood",
+      "labelTr": "Deniz ürünleri",
+      "groupId": "proteins",
+      "background": "#EDF3F7",
+      "color": "#335E79",
+      "descriptionTr": "Karides ve kalamar gibi balık dışı deniz ürünleri.",
+      "svgBody": "<path d=\"M19 7c-2-4-8-4-11-1-4 4-2 10 3 11 3 1 6-1 6-4 0-2-2-3-4-2m6-4 3-2m-4 3 4 1M8 8l4 3m-6 1 5 1m-4 3 5-1m0 2 1 4 3-3\"/><circle cx=\"17\" cy=\"7\" r=\".6\" fill=\"currentColor\" stroke=\"none\"/>",
+      "foodCount": 4,
+      "isReserved": false
+    },
+    {
+      "id": "eggs",
+      "labelTr": "Yumurta",
+      "groupId": "proteins",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "Bütün yumurta, ak, sarı ve kurutulmuş yumurta ürünleri.",
+      "svgBody": "<path d=\"M19 14c0 5-3 7-7 7s-7-2-7-7S9 3 12 3s7 6 7 11Z\"/><path d=\"M8 14c0 2 1 4 3 4\"/>",
+      "foodCount": 14,
+      "isReserved": false
+    },
+    {
+      "id": "cheese",
+      "labelTr": "Peynir",
+      "groupId": "dairy",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "Feta, cheddar, mozzarella, cottage ve diğer peynirler.",
+      "svgBody": "<path d=\"m3 10 10-6 8 5v11H3Z\"/><path d=\"M3 10h18M13 4c-1 3 2 5 8 5\"/><circle cx=\"8\" cy=\"14\" r=\"1.1\"/><circle cx=\"16\" cy=\"16\" r=\"1.5\"/><path d=\"M3 17c3-1 4 2 2 3\"/>",
+      "foodCount": 11,
+      "isReserved": false
+    },
+    {
+      "id": "yogurt",
+      "labelTr": "Yoğurt",
+      "groupId": "dairy",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "Sade, süzme tipi ve aromalı yoğurtlar.",
+      "svgBody": "<path d=\"M5 8h14l-2 13H7ZM4 5h16v3H4Z\"/><path d=\"M9 13c1-3 5-3 6 0m-6 3h6M10 3h4\"/>",
+      "foodCount": 6,
+      "isReserved": false
+    },
+    {
+      "id": "milk",
+      "labelTr": "Süt",
+      "groupId": "dairy",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "İnek sütü ve kültürlü süt. Bitkisel içecekler ayrı gruptadır.",
+      "svgBody": "<path d=\"M8 3h7l3 5v13H6V8Zm0 0v5h10M6 8l4-5m2 10c-4 4-4 6 0 6s4-2 0-6Z\"/>",
+      "foodCount": 6,
+      "isReserved": false
+    },
+    {
+      "id": "cream",
+      "labelTr": "Krema",
+      "groupId": "dairy",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "Süt kreması ve ekşi krema; krem peynir peynir grubundadır.",
+      "svgBody": "<path d=\"M4 13h16c-1 5-3 7-8 7s-7-2-8-7Zm3-2c-2-2 1-4 4-4-1-2 0-3 2-4 0 3 5 3 4 6 3 0 3 2 1 2Z\"/>",
+      "foodCount": 2,
+      "isReserved": false
+    },
+    {
+      "id": "legumes",
+      "labelTr": "Baklagiller",
+      "groupId": "legumes",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Kuru ve pişmiş nohut, mercimek, fasulye, börülce; humus.",
+      "svgBody": "<path d=\"M4 14C2 7 8 3 15 4c7 1 6 10 1 10-3 0-1 5-6 6-3 0-5-2-6-6Z\"/><path d=\"M8 8c-2 2-2 6 1 8m2-8c3-1 6 0 6 2\"/>",
+      "foodCount": 15,
+      "isReserved": false
+    },
+    {
+      "id": "vegetables",
+      "labelTr": "Sebzeler",
+      "groupId": "vegetables",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Domates, biber, havuç, kabak ve benzeri sebzeler.",
+      "svgBody": "<path d=\"M15 7c4 3-5 12-11 14C6 15 10 5 15 7Zm-1-1 1-4m1 5 5-3m-6 3 5 2M9 12l2 2m1-5 2 2\"/>",
+      "foodCount": 47,
+      "isReserved": false
+    },
+    {
+      "id": "leafy-greens",
+      "labelTr": "Yapraklılar ve taze otlar",
+      "groupId": "vegetables",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Marul, ıspanak, lahana, roka ve taze aromatik otlar.",
+      "svgBody": "<path d=\"M19 3C8 2 3 6 4 13c0 6 6 8 10 5 5-3 6-8 5-15ZM5 21 16 7m-6 6-3-1m6-2 1-3m-1 7 4-1\"/>",
+      "foodCount": 21,
+      "isReserved": false
+    },
+    {
+      "id": "mushrooms",
+      "labelTr": "Mantarlar",
+      "groupId": "vegetables",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Kültür, istiridye, şitake ve diğer mantarlar.",
+      "svgBody": "<path d=\"M3 12c0-6 4-9 9-9s9 3 9 9H3Zm6 0-1 8h8l-1-8\"/><path d=\"M7 8h.1M12 6h.1M17 9h.1M10 16h4\"/>",
+      "foodCount": 6,
+      "isReserved": false
+    },
+    {
+      "id": "fresh-fruit",
+      "labelTr": "Meyveler",
+      "groupId": "fruits",
+      "background": "#FBEADF",
+      "color": "#8B583B",
+      "descriptionTr": "Taze, şekersiz dondurulmuş meyve, sade meyve püresi ve avokado.",
+      "svgBody": "<path d=\"M12 7c-4-4-9-1-9 4 0 4 4 10 7 10l2-1 2 1c3 0 7-6 7-10 0-5-5-8-9-4Zm0 0V3m1 2c3 0 5-1 5-3-3-1-5 0-5 3Z\"/>",
+      "foodCount": 39,
+      "isReserved": false
+    },
+    {
+      "id": "dried-fruit",
+      "labelTr": "Kuru meyve",
+      "groupId": "fruits",
+      "background": "#FBEADF",
+      "color": "#8B583B",
+      "descriptionTr": "Kuru incir, kayısı, hurma, kuru üzüm ve kuru erik.",
+      "svgBody": "<path d=\"M8 4c3-2 6 1 5 5s-2 9-5 11c-3 2-6-1-5-5S5 6 8 4Zm8 4c3-2 6 1 5 5s-2 7-5 8c-3 1-5-2-4-5\"/><path d=\"m8 7-2 8m11-3-2 5\"/>",
+      "foodCount": 8,
+      "isReserved": false
+    },
+    {
+      "id": "oils",
+      "labelTr": "Yağ ve tereyağı",
+      "groupId": "fats",
+      "background": "#EFF2D9",
+      "color": "#647134",
+      "descriptionTr": "Bitkisel yağlar, tereyağı ve susuz süt yağı.",
+      "svgBody": "<path d=\"M10 3h5v4l3 4v10H6V11l4-4Zm0 4h5M6 12h12m-6 2c-3 3-3 5 0 5s3-2 0-5Z\"/>",
+      "foodCount": 12,
+      "isReserved": false
+    },
+    {
+      "id": "nuts",
+      "labelTr": "Kuruyemiş",
+      "groupId": "fats",
+      "background": "#EFF2D9",
+      "color": "#647134",
+      "descriptionTr": "Ceviz, badem, fındık, Antep fıstığı, kaju ve kestane.",
+      "svgBody": "<path d=\"M11 3c5 3 8 8 8 12 0 8-14 8-14 0 0-4 3-9 6-12Z\"/><path d=\"M11 7c-3 6-3 9-1 12m3-11c3 5 3 8 1 11\"/>",
+      "foodCount": 17,
+      "isReserved": false
+    },
+    {
+      "id": "seeds",
+      "labelTr": "Tohum ve çekirdek",
+      "groupId": "fats",
+      "background": "#EFF2D9",
+      "color": "#647134",
+      "descriptionTr": "Susam, keten, chia, ay çekirdeği ve kabak çekirdeği.",
+      "svgBody": "<path d=\"M8 3C3 8 3 13 7 14s7-4 1-11Zm10 7c-7 3-10 7-7 10s8 1 7-10Z\"/><path d=\"m8 7-1 4m9 3-3 4\"/>",
+      "foodCount": 7,
+      "isReserved": false
+    },
+    {
+      "id": "spreads",
+      "labelTr": "Tahin ve kuruyemiş ezmeleri",
+      "groupId": "fats",
+      "background": "#EFF2D9",
+      "color": "#647134",
+      "descriptionTr": "Tahin, fıstık ve badem ezmeleri; humus baklagil grubundadır.",
+      "svgBody": "<path d=\"M5 8h14v13H5Zm1-5h12v5H6Z\"/><path d=\"M9 13c1-3 5-3 6 0 1 3-5 5-6 2-1-1 0-2 1-2\"/>",
+      "foodCount": 3,
+      "isReserved": false
+    },
+    {
+      "id": "olives",
+      "labelTr": "Zeytin",
+      "groupId": "fats",
+      "background": "#EFF2D9",
+      "color": "#647134",
+      "descriptionTr": "Yeşil ve siyah zeytin kayıtları.",
+      "svgBody": "<path d=\"M5 12c-3 4 1 9 5 6s3-9 0-9-4 1-5 3Zm11-5c-4 2-4 7-1 8s7-3 5-6c-1-2-2-2-4-2Z\"/><path d=\"m9 10 3-7m5 4-2-4m-3 0c0 3-3 4-6 2 1-3 4-3 6-2Z\"/>",
+      "foodCount": 1,
+      "isReserved": false
+    },
+    {
+      "id": "hot-drinks",
+      "labelTr": "Sıcak içecekler",
+      "groupId": "drinks",
+      "background": "#E7EFE8",
+      "color": "#375E45",
+      "descriptionTr": "Demlenmiş kahve ve çay; sunum sıcaklığı besin değerini değiştirmez.",
+      "svgBody": "<path d=\"M4 9h13v7c0 6-13 6-13 0Zm13 1h2c4 0 3 5-2 5M3 22h16M7 6c-2-2 2-3 0-5m5 5c-2-2 2-3 0-5\"/>",
+      "foodCount": 7,
+      "isReserved": false
+    },
+    {
+      "id": "cold-drinks",
+      "labelTr": "Soğuk içecekler ve meyve suları",
+      "groupId": "drinks",
+      "background": "#EDF3F7",
+      "color": "#335E79",
+      "descriptionTr": "Meyve/sebze suları; süt ve bitkisel içecekler ayrı simgelidir.",
+      "svgBody": "<path d=\"M5 7h14l-2 14H7Zm0 0h14M13 16l2-13h5\"/><path d=\"m9 11 3 1-1 3-3-1Z\"/>",
+      "foodCount": 10,
+      "isReserved": false
+    },
+    {
+      "id": "plant-drinks",
+      "labelTr": "Bitkisel içecekler",
+      "groupId": "drinks",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Soya, badem ve yulaf içecekleri; protein içeceği olarak etiketlenmez.",
+      "svgBody": "<path d=\"M8 3h7l3 5v13H6V8Zm0 0v5h10\"/><path d=\"M14 11c-6-1-7 5-3 6 3 1 5-3 3-6Zm-5 8 4-6\"/>",
+      "foodCount": 5,
+      "isReserved": false
+    },
+    {
+      "id": "smoothies",
+      "labelTr": "Smoothie",
+      "groupId": "drinks",
+      "background": "#FBEADF",
+      "color": "#8B583B",
+      "descriptionTr": "Yalnız doğrulanmış smoothie kayıtları için ayrılmış simge.",
+      "svgBody": "<path d=\"M5 7h14l-2 14H7ZM4 4h16v3H4Zm10 0 2-3h4M7 12c3-2 6 2 10 0\"/><path d=\"M10 16h.1m4 1h.1\"/>",
+      "foodCount": 0,
+      "isReserved": true
+    },
+    {
+      "id": "protein-drinks",
+      "labelTr": "Protein içecekleri",
+      "groupId": "drinks",
+      "background": "#EFEAF8",
+      "color": "#695183",
+      "descriptionTr": "Doğrulanmış protein içecekleri için ayrılmış shaker simgesi.",
+      "svgBody": "<path d=\"M7 7h10l2 3-2 11H7L5 10Zm1-4h8v4H8Zm2-2h4v2h-4\"/><path d=\"m13 11-3 4h4l-3 4M5 10h14\"/>",
+      "foodCount": 0,
+      "isReserved": true
+    },
+    {
+      "id": "water",
+      "labelTr": "Su",
+      "groupId": "drinks",
+      "background": "#EDF3F7",
+      "color": "#335E79",
+      "descriptionTr": "Doğrulanmış su kayıtları için ayrılmış simge.",
+      "svgBody": "<path d=\"M12 2C7 9 4 12 4 16c0 8 16 8 16 0 0-4-3-7-8-14Z\"/><path d=\"M8 16c0 2 1 3 3 3\"/>",
+      "foodCount": 0,
+      "isReserved": true
+    },
+    {
+      "id": "sauces",
+      "labelTr": "Soslar",
+      "groupId": "condiments",
+      "background": "#FBEADF",
+      "color": "#8B583B",
+      "descriptionTr": "Domates sosu, salça, hardal, ketçap, mayonez ve salata sosları.",
+      "svgBody": "<path d=\"M9 3h6v4l3 4v10H6V11l3-4Zm0 4h6M6 13h12\"/><path d=\"M11 16h2m-1-1v2\"/>",
+      "foodCount": 10,
+      "isReserved": false
+    },
+    {
+      "id": "pickles",
+      "labelTr": "Turşu",
+      "groupId": "condiments",
+      "background": "#EAF3DE",
+      "color": "#3D7756",
+      "descriptionTr": "Salatalık turşusu gibi kaynaklı turşu kayıtları.",
+      "svgBody": "<path d=\"M6 3h12v4H6Zm1 4-2 3v11h14V10l-2-3\"/><path d=\"M9 11c-3 4-1 8 1 6s3-7 1-7m4 2v5M5 18h14\"/>",
+      "foodCount": 1,
+      "isReserved": false
+    },
+    {
+      "id": "spices",
+      "labelTr": "Baharat ve aromatikler",
+      "groupId": "spices",
+      "background": "#FAF0DA",
+      "color": "#806028",
+      "descriptionTr": "Kuru/öğütülmüş baharat, kurutulmuş ot ve tuz; taze otlar ayrı gruptadır.",
+      "svgBody": "<path d=\"M8 3h8l2 5v3H6V8Zm-2 8h12l-1 10H7ZM9 6h.1m3 0h.1m3 0h.1\"/><path d=\"m10 15 4 3m0-3-4 3\"/>",
+      "foodCount": 32,
+      "isReserved": false
+    },
+    {
+      "id": "sweet-products",
+      "labelTr": "Şeker, bal ve reçel",
+      "groupId": "sweets",
+      "background": "#FBEADF",
+      "color": "#8B583B",
+      "descriptionTr": "Şeker, bal, reçel ve tatlandırılmış meyve püresi.",
+      "svgBody": "<path d=\"M6 4h12v4H6Zm1 4-2 3v10h14V11l-2-3\"/><path d=\"M10 13c-2-2-4 1-1 3l3 2 3-2c3-2 1-5-1-3l-2 1Z\"/>",
+      "foodCount": 5,
+      "isReserved": false
+    }
+  ],
+  "mappingPolicy": "Her FDC kaydına tek bir görsel kategori atanır. Bu bir makro dağılımı veya klinik besin değişim grubu değildir.",
+  "reference": {
+    "url": "https://diyetisyen1.briefikir.com.tr/panel/planlar/p-d5",
+    "observedGroups": [
+      "Tahıl",
+      "Et-balık-yumurta",
+      "Süt ürünleri",
+      "Baklagil",
+      "Sebze",
+      "Meyve",
+      "Yağ & kuruyemiş",
+      "İçecek",
+      "Atıştırmalık"
+    ],
+    "approach": "Genel gruplar incelendi; SVG çizimleri kopyalanmadı. Daha ayrıntılı özgün Limely alt kategorileri çizildi."
+  }
+}

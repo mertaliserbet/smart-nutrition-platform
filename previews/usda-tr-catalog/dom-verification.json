@@ -1,0 +1,24 @@
+{
+  "engine": "jsdom (gerçek tarayıcı/görsel doğrulama değildir)",
+  "passed": 11,
+  "checks": [
+    "gömülü veri açılışı; Türkçe/ascii/büyük harf, İngilizce ve eş anlamlı araması",
+    "sonuç yok, filtre temizleme, daha fazla göster",
+    "besin grubu ve çiğ/pişmiş filtreleri",
+    "150 g tavuk = 168 kcal, 33,75 g protein; öğüne ekleme",
+    "geçersiz miktarlar; kesirli virgül/nokta miktarları",
+    "kaynak ev ölçüsü olmayan besinde yalnız gram",
+    "USDA besine özgü yemek kaşığı; 0,5 porsiyon gram dönüşümü",
+    "öğün düzenleme/silme ve bağımsız iki besin toplamı",
+    "gerçek eksik makrolar ve kısmi/tümü eksik toplamlar; öğünü temizleme",
+    "negatif USDA karbonhidratı kaynakta korunuyor; hesap değeri null",
+    "DOM/JavaScript hatası yok"
+  ],
+  "errors": [],
+  "notVerified": [
+    "Tarayıcıda file:// açılışı ve gerçek offline çalıştırma",
+    "Masaüstü/mobil görsel düzen",
+    "JSON indirme düğmesinin gerçek tarayıcı dosya indirmesi"
+  ],
+  "browserAttempt": "Bu görevde file:// açılışı tarayıcı URL güvenlik politikası tarafından engellendi. DOM testleri gerçek tarayıcı doğrulaması yerine geçmez."
+}

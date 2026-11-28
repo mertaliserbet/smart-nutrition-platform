@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Limely · Besin kataloğu ve ikon atlası</title>
+  <style>__PREVIEW_CSS__</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topline">
+    <div class="brand"><img src="data:image/svg+xml;base64,__LIMELY_LOGO__" alt="Limely"><span class="preview-tag">Besin kütüphanesi / önizleme</span></div>
+    <div class="top-actions"><span class="offline">Çevrimdışı hazır</span><button id="source-link" class="quiet">Kaynak ve kapsam ↗</button></div>
+  </header>
+  <div class="hero"><div><div class="eyebrow">Daha anlaşılır bir besin kütüphanesi</div><h1>Her besin, kendi işaretiyle.</h1><p>Besinleri kategoriler ve özgün simgelerle keşfet. Hazırlama durumunu kontrol et, miktarını seç ve örnek öğününü oluştur.</p></div><div class="stats" id="catalog-meta"></div></div>
+  <div class="tabs" role="tablist" aria-label="Önizleme görünümü">
+    <button role="tab" id="catalog-tab" aria-controls="catalog-view" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M3 10h18m-12 0v10"/></svg>Besin kataloğu <span class="tab-count">397</span></button>
+    <button role="tab" id="atlas-tab" aria-controls="atlas-view" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>İkon atlası <span class="tab-count" id="atlas-tab-count"></span></button>
+  </div>
+  <noscript><p class="load-error">Bu çevrimdışı önizleme için JavaScript açık olmalıdır.</p></noscript>
+  <p id="load-error" class="load-error" hidden>Önizleme verisi açılamadı. Yeniden üretilmiş index.html dosyasını açın.</p>
+  <main>
+    <section id="catalog-view" role="tabpanel" aria-labelledby="catalog-tab">
+      <section class="panel" aria-label="Katalogda ara ve filtrele">
+        <div class="toolbar">
+          <div class="field"><label for="search">Besin ara</label><div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="search" type="search" placeholder="Tavuk göğsü, bulgur, ceviz…" autocomplete="off"></div></div>
+          <div class="field"><label for="icon-category">İkon kategorisi</label><select id="icon-category"><option value="">Tüm ikon kategorileri</option></select></div>
+          <div class="field"><label for="preparation">Hazırlama durumu</label><select id="preparation"><option value="">Tüm durumlar</option></select></div>
+        </div>
+        <div class="group-bar" id="group-filters" role="group" aria-label="Görsel besin grupları"></div>
+        <details class="advanced"><summary>USDA kaynak grubuyla filtrele</summary><div class="field"><label for="category">Kaynak besin grubu</label><select id="category"><option value="">Tüm kaynak grupları</option></select></div></details>
+      </section>
+      <div class="workspace">
+        <section class="panel" aria-labelledby="catalog-title">
+          <div class="panel-heading"><div><h2 id="catalog-title">Besinler</h2><p>Yenilebilir 100 g için değerler · ikonlar besin türünü gösterir</p></div><span id="result-count" class="count" role="status"></span></div>
+          <div class="table-scroll"><table id="foods-table" aria-label="Besinlerin 100 gram değerleri"><thead><tr><th scope="col">Besin / hazırlama</th><th scope="col">Enerji<br>kcal</th><th scope="col">Protein<br>g</th><th scope="col">Karbonhidrat<br>g</th><th scope="col">Yağ<br>g</th></tr></thead><tbody id="foods"></tbody></table><div id="no-results" class="empty" hidden><strong id="empty-title">Aramana uygun besin bulunamadı.</strong><span id="empty-note">Başka bir ad dene veya filtreleri temizle.</span><br><button id="reset-filters">Filtreleri temizle</button></div></div>
+          <div class="pagination"><span id="shown-count"></span><button id="show-more">Daha fazla göster</button></div>
+        </section>
+        <aside class="panel detail-panel" aria-labelledby="detail-title"><div class="detail">
+          <div class="detail-top"><span id="selected-icon"></span><div><div class="eyebrow" id="editor-mode">Miktarını belirle</div><p class="detail-category" id="selected-category"></p></div></div>
+          <span class="badge" id="selected-preparation"></span><h2 id="detail-title" tabindex="-1"></h2><p class="original" id="original-name"></p>
+          <form id="portion-form" novalidate>
+            <div class="detail-form"><div class="field"><label for="portion">Ölçü</label><select id="portion"></select></div><div class="field"><label for="quantity">Miktar</label><input id="quantity" type="text" inputmode="decimal" value="100" autocomplete="off" aria-describedby="amount-error portion-note"></div></div>
+            <p id="portion-note" class="portion-note"></p><p id="amount-error" class="error" role="alert" hidden></p><p id="weight" class="weight"></p>
+            <div id="calculated" class="nutrients" aria-live="polite" aria-atomic="true"></div>
+            <p id="missing-warning" class="warning" hidden>Bazı değerler kaynakta eksik veya negatif olduğu için hesaplanamıyor. “—” bilinmeyen değerdir; sıfır değildir.</p>
+            <button id="add-item" type="submit" class="primary full">Öğüne ekle</button><button id="cancel-edit" type="button" class="secondary" hidden>Düzenlemekten vazgeç</button>
+          </form>
+          <details class="source-detail"><summary>Besin ayrıntıları ve kaynak</summary><div id="source-info"></div></details>
+        </div></aside>
+      </div>
+      <p id="live-status" class="live" role="status" aria-live="polite"></p>
+      <section class="panel meal" aria-labelledby="meal-title">
+        <div class="panel-heading"><div><h2 id="meal-title">Örnek öğünüm <span id="meal-count" class="count"></span></h2><p>Yalnız bu sayfada tutulur; sayfayı yenileyince silinir.</p></div><button id="clear-meal" class="danger" disabled>Öğünü temizle</button></div>
+        <div class="meal-body"><div id="meal-items" class="meal-list"></div><div class="total-panel"><h3>Öğün toplamı</h3><div id="totals" class="nutrients" aria-live="polite" aria-atomic="true"></div><p id="total-note" class="footnote"></p></div></div>
+      </section>
+    </section>
+    <section id="atlas-view" role="tabpanel" aria-labelledby="atlas-tab" hidden>
+      <div class="atlas-header"><div><div class="eyebrow">Limely ikon ailesi</div><h2>Bir bakışta anlaşılabilen kategoriler.</h2><p>Yuvarlatılmış uçlar, ortak çizgi kalınlığı ve Limely'nin yumuşak renkleri. Bir karta tıklayıp o kategoriye atanmış gerçek besinleri inceleyebilirsin.</p></div><span class="badge" id="coverage-badge"></span></div>
+      <div class="atlas-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><span>Bu ikonlar besin türünü ayırır; klinik besin değişim grubu veya yalnızca baskın makro anlamına gelmez. Smoothie, protein içeceği ve su simgeleri hazırdır; mevcut katalogda bu türlerde kayıt olmadığı için hiçbir besin onlara zorla atanmadı.</span></div>
+      <div class="atlas-controls"><div class="field"><label for="atlas-group">İkon grubunu incele</label><select id="atlas-group"><option value="">Tüm gruplar</option></select></div><p id="atlas-visible-count" role="status"></p></div>
+      <div class="atlas-grid" id="icon-grid"></div>
+      <div class="export-actions"><button id="download-sprite">SVG ikon setini indir</button><button id="download-mapping">397 besinin eşleşmesini indir</button><button id="download-taxonomy">İkon kategorilerini indir</button></div>
+      <section class="panel mapping-panel" aria-labelledby="mapping-title"><div class="panel-heading"><div><h2 id="mapping-title">Tüm besin–ikon eşleşmeleri</h2><p>397 kaydın tamamı, kaynak kimliği ve atanmış kategorisiyle.</p></div><span class="count" id="mapping-count"></span></div><div class="mapping-controls"><div class="field"><label for="mapping-search">Eşleşmelerde ara</label><input id="mapping-search" type="search" placeholder="Besin adı, kategori veya FDC kimliği…" autocomplete="off"></div></div><div class="table-scroll"><table class="mapping-table" aria-label="Tüm besin ikon eşleşmeleri"><thead><tr><th>İkon</th><th>Besin</th><th>İkon kategorisi</th><th>Görsel grup</th></tr></thead><tbody id="mapping-rows"></tbody></table></div></section>
+    </section>
+    <details class="panel bottom" id="catalog-source"><summary>Bu katalog hakkında · kaynak, kapsam ve lisans</summary><div class="bottom-content" id="catalog-info"></div></details>
+  </main>
+  <footer><span>Limely besin kütüphanesi · bağımsız HTML önizlemesi</span><span>USDA kaynak değerleri korunur · Uygulamaya kayıt veya bağlantı kurulmaz.</span></footer>
+</div>
+<script type="application/json" id="catalog-data">__CATALOG_JSON__</script>
+<script>__PREVIEW_SCRIPT__</script>
+</body>
+</html>

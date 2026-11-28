@@ -1,0 +1,13 @@
+{
+  "foods": 397,
+  "icons": 36,
+  "activeIconCategories": 33,
+  "reservedIconCategories": 3,
+  "allOriginalFoodFieldsUnchanged": true,
+  "originalFilesOutsidePreviewUnchanged": 1518,
+  "originalFilesOutsidePreviewChanged": 0,
+  "deterministicBuild": true,
+  "svgXmlValid": true,
+  "fontsEmbedded": true,
+  "browserVisualVerification": "Not performed: file:// blocked by browser URL policy"
+}
